@@ -8,6 +8,167 @@
  "updated": "2026-11-05",
  "lectures": [
   {
+   "date": "2026-11-05",
+   "week": 9,
+   "title": {
+    "en": "Quiz review; the value iteration stopping rule and near-optimal greedy policies; policy iteration and modified policy iteration; smooth Bellman equations, softmax policies and Rust's 1987 model",
+    "fr": "Retour sur le quiz ; la règle d'arrêt de l'itération de valeur et les politiques gloutonnes quasi optimales ; itération de politique et itération de politique modifiée ; équations de Bellman lisses, politiques softmax et le modèle de Rust de 1987"
+   },
+   "chapters": [
+    {
+     "slug": "infinite-horizon-mdps",
+     "title": "Infinite-Horizon Markov Decision Processes"
+    },
+    {
+     "slug": "regularized-dp",
+     "title": "Entropy-Regularized Dynamic Programming"
+    }
+   ],
+   "drive": "https://drive.google.com/file/d/1-L51XwnutbSAXnpQKqOznpk28IIYphdE/view",
+   "duration_ms": 5183280,
+   "thumb": "2026-11-05.jpg",
+   "paragraphs": 139,
+   "cleaned": true,
+   "tldr": [
+    {
+     "notion": {
+      "en": "Discounting as a random horizon",
+      "fr": "L'actualisation comme horizon aléatoire"
+     },
+     "p": 2,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Discounting as an absorbing state",
+      "fr": "L'actualisation comme état absorbant"
+     },
+     "p": 9,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Why \\(I-\\gamma P_\\pi\\) is invertible",
+      "fr": "Pourquoi \\(I-\\gamma P_\\pi\\) est inversible"
+     },
+     "p": 16,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Direct versus iterative policy evaluation",
+      "fr": "Évaluation de politique directe ou itérative"
+     },
+     "p": 21,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "A contraction is relative to a norm",
+      "fr": "Une contraction est relative à une norme"
+     },
+     "p": 31,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Why model-free RL prefers \\(q^*\\)",
+      "fr": "Pourquoi le RL sans modèle préfère \\(q^*\\)"
+     },
+     "p": 33,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Value iteration stopping rule",
+      "fr": "Règle d'arrêt de l'itération de valeur"
+     },
+     "p": 44,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Greedy policies from \\(v^*\\)",
+      "fr": "Politiques gloutonnes à partir de \\(v^*\\)"
+     },
+     "p": 49,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Policy iteration",
+      "fr": "Itération de politique"
+     },
+     "p": 61,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Modified policy iteration",
+      "fr": "Itération de politique modifiée"
+     },
+     "p": 77,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Smooth Bellman equation",
+      "fr": "Équation de Bellman lisse"
+     },
+     "p": 84,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Stochastic policies: exploration and the partition function",
+      "fr": "Politiques stochastiques : exploration et fonction de partition"
+     },
+     "p": 90,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "From soft Q-learning back to Rust (1987)",
+      "fr": "Du soft Q-learning jusqu'à Rust (1987)"
+     },
+     "p": 98,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Inverse RL and identifiability",
+      "fr": "RL inverse et identifiabilité"
+     },
+     "p": 109,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Gumbel noise yields the log-sum-exp",
+      "fr": "Le bruit de Gumbel donne le log-somme-exp"
+     },
+     "p": 121,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Smooth value and policy iteration",
+      "fr": "Itérations de valeur et de politique lisses"
+     },
+     "p": 127,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Three routes to the same equations",
+      "fr": "Trois chemins vers les mêmes équations"
+     },
+     "p": 137,
+     "exam": false
+    }
+   ]
+  },
+  {
    "date": "2026-11-02",
    "week": 9,
    "title": {

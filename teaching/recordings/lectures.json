@@ -181,6 +181,21 @@
         "infinite-horizon-mdps"
       ],
       "redact": []
+    },
+    "2026-11-05": {
+      "title": {
+        "en": "Quiz review; the value iteration stopping rule and near-optimal greedy policies; policy iteration and modified policy iteration; smooth Bellman equations, softmax policies and Rust's 1987 model",
+        "fr": "Retour sur le quiz ; la règle d'arrêt de l'itération de valeur et les politiques gloutonnes quasi optimales ; itération de politique et itération de politique modifiée ; équations de Bellman lisses, politiques softmax et le modèle de Rust de 1987"
+      },
+      "chapters": [
+        "infinite-horizon-mdps",
+        "regularized-dp"
+      ],
+      "redact": [
+        "Charlotte",
+        "Diego",
+        "Hank"
+      ]
     }
   },
   "corrections": {

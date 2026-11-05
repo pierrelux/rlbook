@@ -1,0 +1,1238 @@
+{
+ "date": "2026-11-05",
+ "tldr": [
+  {
+   "t": 83310,
+   "exam": false,
+   "notion": "Discounting as a random horizon",
+   "detail": "A \\(\\gamma\\)-discounted problem equals a finite-horizon problem with a geometric horizon of mean \\(1/(1-\\gamma)\\): 10 for 0.9, 100 for 0.99. Sampling the stopping time is unbiased but truncates trajectories and adds variance.",
+   "notion_fr": "L'actualisation comme horizon aléatoire",
+   "detail_fr": "Un problème actualisé par \\(\\gamma\\) équivaut à un problème à horizon fini dont l'horizon est géométrique, de moyenne \\(1/(1-\\gamma)\\) : 10 pour 0,9, 100 pour 0,99. Échantillonner l'arrêt est non biaisé mais tronque les trajectoires et ajoute de la variance."
+  },
+  {
+   "t": 328320,
+   "exam": false,
+   "notion": "Discounting as an absorbing state",
+   "detail": "Add a zero-reward absorbing state reached with probability \\(1-\\gamma\\) from every state: the total return of any policy in this MDP equals its discounted return in the original.",
+   "notion_fr": "L'actualisation comme état absorbant",
+   "detail_fr": "On ajoute un état absorbant à récompense nulle, atteint avec probabilité \\(1-\\gamma\\) depuis chaque état : le rendement total de toute politique dans ce MDP égale son rendement actualisé dans l'original."
+  },
+  {
+   "t": 574380,
+   "exam": false,
+   "notion": "Why \\(I-\\gamma P_\\pi\\) is invertible",
+   "detail": "\\(P_\\pi\\) is stochastic, so the spectral radius of \\(\\gamma P_\\pi\\) is below one for \\(\\gamma<1\\) and the Neumann series \\(\\sum_t(\\gamma P_\\pi)^t\\) converges to \\((I-\\gamma P_\\pi)^{-1}\\) (Puterman, Theorem C.4). At \\(\\gamma=1\\) returns can be infinite unless an absorbing state is reached.",
+   "notion_fr": "Pourquoi \\(I-\\gamma P_\\pi\\) est inversible",
+   "detail_fr": "\\(P_\\pi\\) est stochastique, donc le rayon spectral de \\(\\gamma P_\\pi\\) est inférieur à un pour \\(\\gamma<1\\) et la série de Neumann \\(\\sum_t(\\gamma P_\\pi)^t\\) converge vers \\((I-\\gamma P_\\pi)^{-1}\\) (Puterman, théorème C.4). À \\(\\gamma=1\\), les rendements peuvent être infinis sauf si un état absorbant est atteint."
+  },
+  {
+   "t": 746040,
+   "exam": false,
+   "notion": "Direct versus iterative policy evaluation",
+   "detail": "A direct solve costs about \\(n^3\\) and is exact to numerical precision; each successive-approximation step costs \\(n^2\\) and gives a knob on accuracy. Small consecutive differences alone do not bound the error.",
+   "notion_fr": "Évaluation de politique directe ou itérative",
+   "detail_fr": "Une résolution directe coûte environ \\(n^3\\) et est exacte à la précision numérique ; chaque pas d'approximation successive coûte \\(n^2\\) et offre un réglage de la précision. De petits écarts consécutifs ne bornent pas l'erreur à eux seuls."
+  },
+  {
+   "t": 1123080,
+   "exam": false,
+   "notion": "A contraction is relative to a norm",
+   "detail": "\\(L_\\pi\\) is a \\(\\gamma\\)-contraction in the sup norm; that does not make it a \\(\\gamma\\)-contraction in other norms, such as a weighted \\(\\ell_2\\) norm, even though all norms are equivalent in finite dimension.",
+   "notion_fr": "Une contraction est relative à une norme",
+   "detail_fr": "\\(L_\\pi\\) est une \\(\\gamma\\)-contraction pour la norme sup ; cela n'en fait pas une \\(\\gamma\\)-contraction pour d'autres normes, comme une norme \\(\\ell_2\\) pondérée, même si toutes les normes sont équivalentes en dimension finie."
+  },
+  {
+   "t": 1187890,
+   "exam": false,
+   "notion": "Why model-free RL prefers \\(q^*\\)",
+   "detail": "Acting greedily from \\(v\\) needs \\(r\\) and \\(P\\); acting greedily from \\(q^*\\) only needs an argmax over actions. \\(q^*\\) is not a better policy source and is harder to learn than \\(v^*\\).",
+   "notion_fr": "Pourquoi le RL sans modèle préfère \\(q^*\\)",
+   "detail_fr": "Agir de façon gloutonne à partir de \\(v\\) exige \\(r\\) et \\(P\\) ; à partir de \\(q^*\\), il suffit d'un argmax sur les actions. \\(q^*\\) ne donne pas une meilleure politique et est plus difficile à apprendre que \\(v^*\\)."
+  },
+  {
+   "t": 1533240,
+   "exam": false,
+   "notion": "Value iteration stopping rule",
+   "detail": "Stop when \\(\\lVert v_{k+1}-v_k\\rVert_\\infty < \\varepsilon(1-\\gamma)/(2\\gamma)\\). The returned value function is then within \\(\\varepsilon/2\\) of \\(v^*\\) and its greedy policy is \\(\\varepsilon\\)-optimal. Often missing from textbook implementations.",
+   "notion_fr": "Règle d'arrêt de l'itération de valeur",
+   "detail_fr": "On s'arrête quand \\(\\lVert v_{k+1}-v_k\\rVert_\\infty < \\varepsilon(1-\\gamma)/(2\\gamma)\\). La fonction de valeur renvoyée est alors à moins de \\(\\varepsilon/2\\) de \\(v^*\\) et sa politique gloutonne est \\(\\varepsilon\\)-optimale. Souvent absente des implémentations des manuels."
+  },
+  {
+   "t": 1723380,
+   "exam": false,
+   "notion": "Greedy policies from \\(v^*\\)",
+   "detail": "Given \\(v^*\\), \\(P\\) and \\(r\\), an optimal policy is a one-step lookahead argmax in each state: one matrix-vector product and a maximization, with no forward simulation.",
+   "notion_fr": "Politiques gloutonnes à partir de \\(v^*\\)",
+   "detail_fr": "Avec \\(v^*\\), \\(P\\) et \\(r\\), une politique optimale est un argmax d'anticipation d'un pas dans chaque état : un produit matrice-vecteur et une maximisation, sans simulation vers l'avant."
+  },
+  {
+   "t": 2140220,
+   "exam": false,
+   "notion": "Policy iteration",
+   "detail": "Alternate evaluation, \\(v_\\pi = (I-\\gamma P_\\pi)^{-1} r_\\pi\\), and greedy improvement. In finite MDPs it stops when a policy repeats, which is then optimal. It converges in fewer iterations than value iteration because it is a Newton method, but each iteration costs more.",
+   "notion_fr": "Itération de politique",
+   "detail_fr": "On alterne l'évaluation, \\(v_\\pi = (I-\\gamma P_\\pi)^{-1} r_\\pi\\), et l'amélioration gloutonne. Dans un MDP fini, elle s'arrête quand une politique se répète, qui est alors optimale. Elle converge en moins d'itérations que l'itération de valeur parce que c'est une méthode de Newton, mais chaque itération coûte plus."
+  },
+  {
+   "t": 2820740,
+   "exam": false,
+   "notion": "Modified policy iteration",
+   "detail": "Truncate the Neumann series of the evaluation step after \\(k\\) terms: \\(k=\\infty\\) gives policy iteration and \\(k=1\\) gives value iteration. It is Newton's method with an approximate direction.",
+   "notion_fr": "Itération de politique modifiée",
+   "detail_fr": "On tronque la série de Neumann de l'étape d'évaluation après \\(k\\) termes : \\(k=\\infty\\) donne l'itération de politique et \\(k=1\\) l'itération de valeur. C'est la méthode de Newton avec une direction approchée."
+  },
+  {
+   "t": 3128040,
+   "exam": false,
+   "notion": "Smooth Bellman equation",
+   "detail": "Replace the max by \\(\\frac{1}{\\beta}\\log\\sum\\exp\\) and the argmax by the softmax (Boltzmann) policy, really a soft argmax. As the temperature \\(1/\\beta\\) goes to zero, the hard Bellman equation is recovered.",
+   "notion_fr": "Équation de Bellman lisse",
+   "detail_fr": "On remplace le max par \\(\\frac{1}{\\beta}\\log\\sum\\exp\\) et l'argmax par la politique softmax (de Boltzmann), en réalité un soft argmax. Quand la température \\(1/\\beta\\) tend vers zéro, on retrouve l'équation de Bellman dure."
+  },
+  {
+   "t": 3350230,
+   "exam": false,
+   "notion": "Stochastic policies: exploration and the partition function",
+   "detail": "Softmax policies explore, which engineers call exciting the system. With continuous actions, the normalizer is an intractable integral.",
+   "notion_fr": "Politiques stochastiques : exploration et fonction de partition",
+   "detail_fr": "Les politiques softmax explorent, ce que les ingénieurs appellent exciter le système. Avec des actions continues, la constante de normalisation est une intégrale intraitable."
+  },
+  {
+   "t": 3617350,
+   "exam": false,
+   "notion": "From soft Q-learning back to Rust (1987)",
+   "detail": "Haarnoja's soft Q-learning (2017) and Soft Actor-Critic (2018) build on Ziebart's maximum entropy inverse RL (2008), which rediscovered Rust's 1987 bus-engine model; Ng and Russell (2000) cited Rust.",
+   "notion_fr": "Du soft Q-learning jusqu'à Rust (1987)",
+   "detail_fr": "Le soft Q-learning (2017) et Soft Actor-Critic (2018) de Haarnoja reposent sur le RL inverse à entropie maximale de Ziebart (2008), qui redécouvrait le modèle d'entretien d'autobus de Rust de 1987 ; Ng et Russell (2000) citaient Rust."
+  },
+  {
+   "t": 4023260,
+   "exam": false,
+   "notion": "Inverse RL and identifiability",
+   "detail": "Inverse RL infers a reward that explains observed behavior, assuming rationality and full observability. Many rewards explain the same behavior equally well, so the reward is not identifiable without extra structure.",
+   "notion_fr": "RL inverse et identifiabilité",
+   "detail_fr": "Le RL inverse infère une récompense qui explique un comportement observé, en supposant rationalité et observabilité complète. Plusieurs récompenses expliquent aussi bien le même comportement, donc la récompense n'est pas identifiable sans structure supplémentaire."
+  },
+  {
+   "t": 4465170,
+   "exam": false,
+   "notion": "Gumbel noise yields the log-sum-exp",
+   "detail": "Following McFadden's discrete choice models, the expected max of values perturbed by i.i.d. Gumbel noise is the log-sum-exp. Rust used this to motivate the smooth Bellman equation, which also makes gradients available.",
+   "notion_fr": "Le bruit de Gumbel donne le log-somme-exp",
+   "detail_fr": "Selon les modèles de choix discrets de McFadden, l'espérance du max de valeurs perturbées par un bruit de Gumbel i.i.d. est le log-somme-exp. Rust s'en servait pour motiver l'équation de Bellman lisse, qui donne aussi accès aux gradients."
+  },
+  {
+   "t": 4747280,
+   "exam": false,
+   "notion": "Smooth value and policy iteration",
+   "detail": "The smooth operator is a sup-norm \\(\\gamma\\)-contraction, so smooth value iteration converges; smooth policy iteration replaces the argmax by a softmax. Policy iteration still converges if improvement happens in only one state per iteration.",
+   "notion_fr": "Itérations de valeur et de politique lisses",
+   "detail_fr": "L'opérateur lisse est une \\(\\gamma\\)-contraction pour la norme sup, donc l'itération de valeur lisse converge ; l'itération de politique lisse remplace l'argmax par un softmax. L'itération de politique converge même si l'amélioration ne touche qu'un état par itération."
+  },
+  {
+   "t": 5111880,
+   "exam": false,
+   "notion": "Three routes to the same equations",
+   "detail": "Swap hard maxima for soft ones, add Gumbel noise to rewards and integrate it out, or regularize the policy's entropy: all three give the same smooth Bellman equations.",
+   "notion_fr": "Trois chemins vers les mêmes équations",
+   "detail_fr": "Remplacer les max durs par des max lisses, ajouter un bruit de Gumbel aux récompenses et l'intégrer, ou régulariser l'entropie de la politique : les trois donnent les mêmes équations de Bellman lisses."
+  }
+ ],
+ "outline": [
+  {
+   "t": 2000,
+   "title": "Quiz: discounting as a random horizon",
+   "title_fr": "Quiz : l'actualisation comme horizon aléatoire"
+  },
+  {
+   "t": 328320,
+   "title": "Quiz: the absorbing-state construction",
+   "title_fr": "Quiz : la construction par état absorbant"
+  },
+  {
+   "t": 503820,
+   "title": "Quiz: why \\(I-\\gamma P_\\pi\\) is invertible",
+   "title_fr": "Quiz : pourquoi \\(I-\\gamma P_\\pi\\) est inversible"
+  },
+  {
+   "t": 746040,
+   "title": "Quiz: direct versus iterative evaluation",
+   "title_fr": "Quiz : évaluation directe ou itérative"
+  },
+  {
+   "t": 1048440,
+   "title": "Quiz: contractions and norms",
+   "title_fr": "Quiz : contractions et normes"
+  },
+  {
+   "t": 1187890,
+   "title": "Quiz: why model-free RL prefers \\(q^*\\)",
+   "title_fr": "Quiz : pourquoi le RL sans modèle préfère \\(q^*\\)"
+  },
+  {
+   "t": 1379550,
+   "title": "What a contraction does",
+   "title_fr": "Ce que fait une contraction"
+  },
+  {
+   "t": 1470060,
+   "title": "Value iteration with a stopping rule",
+   "title_fr": "Itération de valeur avec règle d'arrêt"
+  },
+  {
+   "t": 1692200,
+   "title": "Greedy and \\(\\varepsilon\\)-optimal policies",
+   "title_fr": "Politiques gloutonnes et \\(\\varepsilon\\)-optimales"
+  },
+  {
+   "t": 1818970,
+   "title": "Drawing an MDP as a graph",
+   "title_fr": "Dessiner un MDP comme un graphe"
+  },
+  {
+   "t": 2040900,
+   "title": "Span seminorm and when certificates matter",
+   "title_fr": "Semi-norme d'écart et utilité des certificats"
+  },
+  {
+   "t": 2140220,
+   "title": "Policy iteration",
+   "title_fr": "Itération de politique"
+  },
+  {
+   "t": 2778340,
+   "title": "Modified policy iteration",
+   "title_fr": "Itération de politique modifiée"
+  },
+  {
+   "t": 3024400,
+   "title": "MPI as an approximate Newton method",
+   "title_fr": "MPI comme méthode de Newton approchée"
+  },
+  {
+   "t": 3128040,
+   "title": "Smooth Bellman equations and the softmax",
+   "title_fr": "Équations de Bellman lisses et softmax"
+  },
+  {
+   "t": 3350230,
+   "title": "Exploration and the partition function",
+   "title_fr": "Exploration et fonction de partition"
+  },
+  {
+   "t": 3521750,
+   "title": "Soft Q-learning and Soft Actor-Critic",
+   "title_fr": "Soft Q-learning et Soft Actor-Critic"
+  },
+  {
+   "t": 3733920,
+   "title": "Ziebart and maximum entropy inverse RL",
+   "title_fr": "Ziebart et RL inverse à entropie maximale"
+  },
+  {
+   "t": 3811720,
+   "title": "Rust (1987): the bus-engine problem",
+   "title_fr": "Rust (1987) : le problème des autobus"
+  },
+  {
+   "t": 4058020,
+   "title": "Inverse RL: rationality, observability, identifiability",
+   "title_fr": "RL inverse : rationalité, observabilité, identifiabilité"
+  },
+  {
+   "t": 4282330,
+   "title": "Who rediscovered whom",
+   "title_fr": "Qui a redécouvert qui"
+  },
+  {
+   "t": 4465170,
+   "title": "Why Rust smoothed the max: gradients and Gumbel noise",
+   "title_fr": "Pourquoi Rust a lissé le max : gradients et bruit de Gumbel"
+  },
+  {
+   "t": 4747280,
+   "title": "Smooth value iteration and smooth policy iteration",
+   "title_fr": "Itérations de valeur et de politique lisses"
+  },
+  {
+   "t": 5111880,
+   "title": "Three routes to the same equations",
+   "title_fr": "Trois chemins vers les mêmes équations"
+  }
+ ],
+ "paras": [
+  {
+   "t": 2000,
+   "text": "I uploaded the last lecture and ran it through this cleanup tool, which I think is really cool actually. Because when I look at the transcript of how I speak, it's quite broken. I hope you understand, it's an oral form. And then I have a readable form, which is not exactly how I said things, not the same words, but at least it flows.",
+   "fr": "J'ai mis en ligne le dernier cours et je l'ai passé dans cet outil de nettoyage, que je trouve vraiment chouette. Parce que quand je regarde la transcription de ma façon de parler, c'est assez décousu. J'espère que vous comprenez, c'est de l'oral. Et j'ai aussi une version lisible, qui n'est pas exactement ce que j'ai dit, pas les mêmes mots, mais au moins ça se lit bien.",
+   "readable": "I uploaded the last lecture and ran it through a cleanup tool. A verbatim transcript of how I speak is quite broken, since it is oral language. So there is also a readable version: not my exact words, but it flows.",
+   "readable_fr": "J'ai mis en ligne le dernier cours et je l'ai passé dans un outil de nettoyage. Une transcription mot à mot de ma façon de parler est assez décousue, puisque c'est de l'oral. Il existe donc aussi une version lisible : ce ne sont pas mes mots exacts, mais le texte coule."
+  },
+  {
+   "t": 32540,
+   "text": "So if you want to catch up on a lecture and read it, you can read the readable form. It's available both in English and in French for all the lectures. Allez. And speaking of which, what we covered last time was the infinite-horizon discounted case, and we talked about contraction mappings. How about we look at this together, just a few questions. Remember there is this, let's call it duality. It's not duality in the optimization sense of the term, but between discounting and what we were calling a defective horizon, okay?",
+   "fr": "Donc si vous voulez rattraper un cours en le lisant, vous pouvez lire la version lisible. Elle est offerte en anglais et en français pour tous les cours. Allez. Et justement, ce qu'on a vu la dernière fois, c'est le cas actualisé à horizon infini, et on a parlé d'applications contractantes. Regardons ça ensemble, juste quelques questions. Rappelez-vous qu'il y a cette, appelons-la, dualité. Ce n'est pas la dualité au sens de l'optimisation, mais entre l'actualisation et ce qu'on appelait un horizon défectueux, d'accord ?",
+   "readable": "To catch up on a lecture, read the readable version; it exists in English and French for every lecture. Last time we covered the infinite-horizon discounted case and contraction mappings, so let's review with a few questions. Recall the duality, not in the optimization sense, between discounting and a defective horizon.",
+   "readable_fr": "Pour rattraper un cours, lisez la version lisible ; elle existe en anglais et en français pour chaque cours. La dernière fois, nous avons vu le cas actualisé à horizon infini et les applications contractantes ; révisons avec quelques questions. Rappelons la dualité, pas au sens de l'optimisation, entre l'actualisation et un horizon défectueux."
+  },
+  {
+   "t": 83310,
+   "text": "So a discounted problem with factor \\(\\gamma\\) is the same as a finite-horizon problem, although it's a random horizon, whose horizon \\(N\\) is random, with the probability that the horizon lasts \\(n\\) steps given by a geometric law: \\((1-\\gamma)\\gamma^{n-1}\\). So if \\(\\gamma\\) is 0.9, what's the expected horizon? What's the formula for this?",
+   "fr": "Donc un problème actualisé avec un facteur \\(\\gamma\\) est équivalent à un problème à horizon fini, mais un horizon aléatoire, dont la durée \\(N\\) est aléatoire, la probabilité que l'horizon dure \\(n\\) pas étant donnée par une loi géométrique : \\((1-\\gamma)\\gamma^{n-1}\\). Donc si \\(\\gamma\\) vaut 0,9, quel est l'horizon espéré ? Quelle est la formule ?",
+   "readable": "A problem discounted by \\(\\gamma\\) is equivalent to a finite-horizon problem whose horizon \\(N\\) is random, with geometric law \\(P(N=n)=(1-\\gamma)\\gamma^{n-1}\\). If \\(\\gamma = 0.9\\), what is the expected horizon?",
+   "readable_fr": "Un problème actualisé par \\(\\gamma\\) équivaut à un problème à horizon fini dont l'horizon \\(N\\) est aléatoire, de loi géométrique \\(P(N=n)=(1-\\gamma)\\gamma^{n-1}\\). Si \\(\\gamma = 0{,}9\\), quel est l'horizon espéré ?"
+  },
+  {
+   "t": 118840,
+   "text": "Do you have any idea how we get this? I mean, where was that formula coming from? [Student: a Bernoulli process.] I guess all the probability laws are connected to one another, but it's more like the expectation of a geometric series, yeah?",
+   "fr": "Avez-vous une idée de comment on obtient ça ? D'où venait cette formule ? [Étudiant : un processus de Bernoulli.] Je suppose que toutes les lois de probabilité sont liées entre elles, mais c'est plutôt l'espérance d'une série géométrique, oui ?",
+   "readable": "Where does the formula come from? A student suggests a Bernoulli process. The laws are related, but the computation is really the expectation of a geometric series.",
+   "readable_fr": "D'où vient la formule ? Un étudiant propose un processus de Bernoulli. Les lois sont liées, mais le calcul est en fait l'espérance d'une série géométrique."
+  },
+  {
+   "t": 149360,
+   "text": "Geometric distribution. Does anyone have any other idea? Oops, I clicked. Actually, my elbow clicked it. So yeah, with a geometric horizon, exactly like your colleague said, it's \\(1/(1-\\gamma)\\). So that's ten if you pick 0.9, and with 0.99 it becomes 100. So as you crank up the discount factor, you're looking further into the future.",
+   "fr": "Une distribution géométrique. Quelqu'un a une autre idée ? Oups, j'ai cliqué. En fait, c'est mon coude qui a cliqué. Donc oui, avec un horizon géométrique, exactement comme votre collègue l'a dit, c'est \\(1/(1-\\gamma)\\). Donc ça fait dix si vous prenez 0,9, et avec 0,99 ça devient 100. Donc plus on augmente le facteur d'actualisation, plus on regarde loin dans le futur.",
+   "readable": "With a geometric horizon, the expected horizon is \\(1/(1-\\gamma)\\): 10 for \\(\\gamma=0.9\\) and 100 for \\(\\gamma=0.99\\). Raising the discount factor means looking further into the future.",
+   "readable_fr": "Avec un horizon géométrique, l'horizon espéré vaut \\(1/(1-\\gamma)\\) : 10 pour \\(\\gamma=0{,}9\\) et 100 pour \\(\\gamma=0{,}99\\). Augmenter le facteur d'actualisation, c'est regarder plus loin dans le futur."
+  },
+  {
+   "t": 183280,
+   "text": "And this is the expected horizon. Again, why expected? Because the math doesn't tell you that you're going to realize that process. What does it mean to realize that process? It means you'd be flipping a coin. What your colleague said here, a Bernoulli process, I guess, right? A way to sample from this thing is that at every step you flip a coin. Let me try to get the order right, I always mix it up.",
+   "fr": "Et c'est l'horizon espéré. Encore une fois, pourquoi espéré ? Parce que les maths ne vous disent pas que vous allez réaliser ce processus. Qu'est-ce que ça veut dire, réaliser ce processus ? Ça veut dire lancer une pièce. Ce que votre collègue a dit, un processus de Bernoulli, je suppose, non ? Une façon d'échantillonner, c'est de lancer une pièce à chaque pas. Laissez-moi remettre l'ordre comme il faut, je le mélange toujours.",
+   "readable": "It is an expected horizon because the equivalence does not require realizing the random stopping process. To realize it, you would flip a coin at every step, which is the Bernoulli process a student mentioned.",
+   "readable_fr": "C'est un horizon espéré parce que l'équivalence n'exige pas de réaliser le processus d'arrêt aléatoire. Pour le réaliser, on lancerait une pièce à chaque pas : c'est le processus de Bernoulli mentionné par un étudiant."
+  },
+  {
+   "t": 213990,
+   "text": "\\(\\gamma\\) is the probability of continuing, so \\(1-\\gamma\\) is the probability of stopping. So you flip the coin: with probability \\(\\gamma\\) you continue, with probability \\(1-\\gamma\\) you stop. That's how you can actually simulate this thing. If you truly want to get unbiased samples of your process, you could do it this way. We don't do it this way, though. And why is that?",
+   "fr": "\\(\\gamma\\) est la probabilité de continuer, donc \\(1-\\gamma\\) est la probabilité d'arrêter. Donc on lance la pièce : avec probabilité \\(\\gamma\\) on continue, avec probabilité \\(1-\\gamma\\) on arrête. C'est comme ça qu'on peut simuler la chose. Si on veut vraiment des échantillons non biaisés du processus, on pourrait faire comme ça. Mais on ne le fait pas. Pourquoi ?",
+   "readable": "With probability \\(\\gamma\\) you continue and with probability \\(1-\\gamma\\) you stop. Simulating this gives unbiased samples of the process. Yet in practice we do not do it. Why?",
+   "readable_fr": "Avec probabilité \\(\\gamma\\) on continue, avec probabilité \\(1-\\gamma\\) on s'arrête. Simuler ainsi donne des échantillons non biaisés du processus. Pourtant, en pratique, on ne le fait pas. Pourquoi ?"
+  },
+  {
+   "t": 249060,
+   "text": "One of the reasons has to do with variance, actually. And another practical reason is that when you do learning, you want to leverage as much signal as possible. If you do this process of sampling a Bernoulli, you end up truncating your trajectories, and truncation can be detrimental. Often, in the learning setting, it tends to be more detrimental than beneficial. One of your colleagues wrote a great paper on BYOL-\\(\\gamma\\), which was an adaptation of these ideas to, correct me if I'm wrong, learning self-supervised representations.",
+   "fr": "Une des raisons a trait à la variance, en fait. Et une autre raison pratique, c'est qu'en apprentissage on veut exploiter le plus de signal possible. Si on échantillonne une Bernoulli, on finit par tronquer ses trajectoires, et la troncature peut être nuisible. Souvent, en apprentissage, elle est plus nuisible que bénéfique. Une de vos collègues a écrit un excellent article sur BYOL-\\(\\gamma\\), une adaptation de ces idées à, corrigez-moi si je me trompe, l'apprentissage de représentations autosupervisées.",
+   "readable": "One reason is variance. Another is that learning should use as much signal as possible, and Bernoulli stopping truncates trajectories, which usually hurts more than it helps. A student in the class co-wrote a paper, BYOL-\\(\\gamma\\), that adapts these ideas to self-supervised representation learning.",
+   "readable_fr": "Une raison est la variance. Une autre est que l'apprentissage doit exploiter le plus de signal possible, et l'arrêt de Bernoulli tronque les trajectoires, ce qui nuit généralement plus qu'il n'aide. Une étudiante du cours a coécrit un article, BYOL-\\(\\gamma\\), qui adapte ces idées à l'apprentissage de représentations autosupervisé."
+  },
+  {
+   "t": 295040,
+   "text": "It was a good idea, bravo. But there are a bunch of other ways you could extend it too, once you see these connections, which may be new to you. Sorry to put you on the spot. And yeah, it's a duality that you can leverage. And in fact there may be a third way of thinking about this, which perhaps is not so practical if you do learning, but from a theoretical perspective it makes a lot of sense.",
+   "fr": "C'était une bonne idée, bravo. Mais il y a plein d'autres façons de l'étendre, une fois qu'on voit ces liens, qui sont peut-être nouveaux pour vous. Désolé de vous mettre sur la sellette. Et oui, c'est une dualité qu'on peut exploiter. Et en fait, il y a peut-être une troisième façon d'y penser, peut-être pas très pratique en apprentissage, mais qui a beaucoup de sens d'un point de vue théorique.",
+   "readable": "Once you see these connections, there are many other ways to extend them; the duality is something you can exploit. There is also a third view, less practical for learning but natural in theory.",
+   "readable_fr": "Une fois ces liens compris, il y a bien d'autres façons de les étendre ; la dualité est un outil à exploiter. Il existe aussi un troisième point de vue, moins pratique pour l'apprentissage mais naturel en théorie."
+  },
+  {
+   "t": 328320,
+   "text": "There's another way in which you can construct an MDP equivalent to your infinite-horizon MDP. It's going to be a different one. Why different? Because you're going to be introducing a new state, and that state will be an absorbing state. And you're going to be adding edges to that new node you created, because these MDPs, these Markov chains, you can represent them graphically. We don't do that very often in my course, but if you read Puterman, he uses it once in a while for toy problems.",
+   "fr": "Il y a une autre façon de construire un MDP équivalent à votre MDP à horizon infini. Ce sera un MDP différent. Pourquoi différent ? Parce qu'on va introduire un nouvel état, et cet état sera absorbant. Et on va ajouter des arêtes vers ce nouveau nœud, parce que ces MDP, ces chaînes de Markov, on peut les représenter graphiquement. On ne le fait pas très souvent dans mon cours, mais si vous lisez Puterman, il le fait de temps en temps pour des problèmes jouets.",
+   "readable": "Third view: build an equivalent MDP by adding a new, absorbing state. MDPs and Markov chains can be drawn as graphs, and the construction adds edges into the new node. Puterman draws such graphs for toy problems.",
+   "readable_fr": "Troisième point de vue : construire un MDP équivalent en ajoutant un nouvel état absorbant. Les MDP et les chaînes de Markov se dessinent comme des graphes, et la construction ajoute des arêtes vers ce nouveau nœud. Puterman dessine de tels graphes pour des problèmes jouets."
+  },
+  {
+   "t": 361040,
+   "text": "You can write it as a Markov chain with, you know what? I think I'll draw it on the board, and I'll add it to the notes afterwards, which is good if you've never seen this, so we're on the same page. But yeah, you'll be adding a new node, and the transition probability into that node will be \\(1-\\gamma\\). And that node will be like a sink, or a cemetery. Once you enter that node, it's like a prison.",
+   "fr": "On peut l'écrire comme une chaîne de Markov avec, vous savez quoi ? Je vais le dessiner au tableau, et je l'ajouterai aux notes ensuite, c'est bien si vous ne l'avez jamais vu, pour qu'on parte du même point. Donc on ajoute un nouveau nœud, et la probabilité de transition vers ce nœud sera \\(1-\\gamma\\). Et ce nœud sera comme un puits, ou un cimetière. Une fois entré, c'est comme une prison.",
+   "readable": "I will add a drawing to the notes. Every state gets an edge into the new node with probability \\(1-\\gamma\\). The node is a sink, or cemetery: once entered, it is never left.",
+   "readable_fr": "J'ajouterai un dessin aux notes. Chaque état reçoit une arête vers le nouveau nœud avec probabilité \\(1-\\gamma\\). Ce nœud est un puits, ou cimetière : une fois entré, on n'en sort plus."
+  },
+  {
+   "t": 394020,
+   "text": "That's an absorbing state. You stay there forever, without accruing any reward, so it's zero reward. And then the expected return of any policy in this auxiliary MDP you've built will be the same as the expected return in the original MDP under the infinite-horizon discounted criterion.",
+   "fr": "C'est un état absorbant. On y reste pour toujours, sans accumuler de récompense, donc récompense nulle. Et alors le rendement espéré de n'importe quelle politique dans ce MDP auxiliaire sera le même que le rendement espéré dans le MDP original sous le critère actualisé à horizon infini.",
+   "readable": "The absorbing state yields zero reward forever. The expected total return of any policy in this auxiliary MDP equals its expected discounted return in the original MDP.",
+   "readable_fr": "L'état absorbant donne une récompense nulle pour toujours. Le rendement total espéré de toute politique dans ce MDP auxiliaire est égal à son rendement actualisé espéré dans le MDP original."
+  },
+  {
+   "t": 425460,
+   "text": "So whenever you have an absorbing state, it means your system at some point will stop. Is that always the case? No, you can have systems without absorbing states, systems that can run forever. And for most of these systems to be useful when they run forever without an absorbing state, you still need some kind of regularity, some structure. One structure we often like to have, but it's not given for free, is a chain that is ergodic, a term you find both in the Markov chain literature and in physics, I presume, as is often the case.",
+   "fr": "Donc dès qu'on a un état absorbant, le système finit par s'arrêter. Est-ce toujours le cas ? Non, on peut avoir des systèmes sans état absorbant, qui tournent indéfiniment. Et pour que ces systèmes soient utiles quand ils tournent indéfiniment, il faut quand même une certaine régularité, une structure. Une structure qu'on aime avoir, mais qui n'est pas gratuite, c'est une chaîne ergodique, un terme qu'on trouve dans la littérature sur les chaînes de Markov et en physique, je présume, comme souvent.",
+   "readable": "An absorbing state means the system eventually stops. Systems can also run forever without one, but then they need some structure to be useful. A common, though not automatic, assumption is ergodicity, a term shared by Markov chain theory and physics.",
+   "readable_fr": "Un état absorbant signifie que le système finit par s'arrêter. Un système peut aussi tourner indéfiniment sans en avoir, mais il lui faut alors une structure pour être utile. Une hypothèse courante, mais pas automatique, est l'ergodicité, un terme commun à la théorie des chaînes de Markov et à la physique."
+  },
+  {
+   "t": 467940,
+   "text": "And these ergodic systems give you the property that in the limit your system will enter a regime that is equivalent to sampling from a stationary distribution, right? So rather than putting all the probability mass into one state, it's spread out, most likely across many states. And then it's as if your system in the long run samples from that long-run distribution.",
+   "fr": "Et ces systèmes ergodiques ont la propriété qu'à la limite, le système entre dans un régime équivalent à échantillonner une distribution stationnaire, non ? Donc plutôt que de mettre toute la masse de probabilité sur un état, elle est répartie, probablement sur plusieurs états. Et c'est comme si le système, à long terme, échantillonnait cette distribution de long terme.",
+   "readable": "An ergodic chain eventually behaves like sampling from a stationary distribution, which typically spreads probability over many states rather than concentrating it in one.",
+   "readable_fr": "Une chaîne ergodique finit par se comporter comme si elle échantillonnait une distribution stationnaire, qui répartit en général la probabilité sur plusieurs états au lieu de la concentrer sur un seul."
+  },
+  {
+   "t": 503820,
+   "text": "But that's a digression; that was question number one. Okay, next question. Policy evaluation solves the linear problem \\((I-\\gamma P_\\pi)v = r_\\pi\\). Again, what is \\(P_\\pi\\), by the way? \\(P_\\pi\\) is a matrix, number of states by number of states. Usually the convention is that rows are the source, the start state, and columns are destination states. And we build that matrix by marginalizing out the choice of actions under your policy, whether it's deterministic or stochastic.",
+   "fr": "Mais c'est une digression ; c'était la question numéro un. D'accord, question suivante. L'évaluation de politique résout le problème linéaire \\((I-\\gamma P_\\pi)v = r_\\pi\\). Au fait, c'est quoi \\(P_\\pi\\) ? \\(P_\\pi\\) est une matrice, nombre d'états par nombre d'états. Par convention, les lignes sont la source, l'état de départ, et les colonnes sont les états d'arrivée. Et on construit cette matrice en marginalisant le choix des actions sous la politique, qu'elle soit déterministe ou stochastique.",
+   "readable": "Next question. Policy evaluation solves \\((I-\\gamma P_\\pi)v = r_\\pi\\). Here \\(P_\\pi\\) is a states-by-states matrix, rows indexing the current state and columns the next state, obtained by marginalizing the policy's choice of action, deterministic or stochastic.",
+   "readable_fr": "Question suivante. L'évaluation de politique résout \\((I-\\gamma P_\\pi)v = r_\\pi\\). Ici \\(P_\\pi\\) est une matrice états par états, les lignes indexant l'état courant et les colonnes l'état suivant, obtenue en marginalisant le choix d'action de la politique, déterministe ou stochastique."
+  },
+  {
+   "t": 541860,
+   "text": "So it just tells you where, under your policy, on average, you're going to end up in one step. And then \\(v\\) here is the unknown. The solution will be \\(v_\\pi\\), the expected return associated with that policy. \\(P_\\pi\\) is a stochastic matrix, meaning all the rows sum to one, very important. When you take \\(\\gamma P_\\pi\\), however, it's not stochastic, because \\(\\gamma\\) scales it and \\(\\gamma\\) is strictly less than one, so the rows won't sum to one.",
+   "fr": "Donc elle vous dit simplement où, sous votre politique, en moyenne, vous allez vous retrouver en un pas. Ici, \\(v\\) est l'inconnue. La solution sera \\(v_\\pi\\), le rendement espéré associé à cette politique. \\(P_\\pi\\) est une matrice stochastique, c'est-à-dire que toutes les lignes somment à un, très important. Mais \\(\\gamma P_\\pi\\) n'est pas stochastique, parce que \\(\\gamma\\) la met à l'échelle et \\(\\gamma\\) est strictement inférieur à un, donc les lignes ne somment plus à un.",
+   "readable": "\\(P_\\pi\\) gives the one-step transition probabilities under the policy, and the solution \\(v\\) is \\(v_\\pi\\), the policy's expected return. \\(P_\\pi\\) is stochastic, each row summing to one, but \\(\\gamma P_\\pi\\) is not, since \\(\\gamma<1\\).",
+   "readable_fr": "\\(P_\\pi\\) donne les probabilités de transition en un pas sous la politique, et la solution \\(v\\) est \\(v_\\pi\\), le rendement espéré de la politique. \\(P_\\pi\\) est stochastique, chaque ligne sommant à un, mais \\(\\gamma P_\\pi\\) ne l'est pas, puisque \\(\\gamma<1\\)."
+  },
+  {
+   "t": 574380,
+   "text": "Explain why \\(I-\\gamma P_\\pi\\) is invertible when \\(\\gamma\\) is between zero and strictly less than one. This is not a multiple-choice question. Can anybody give me a plausible answer? Remember the theoretical argument we made? What was the name of the tool we used? It's a tool that once bit me in the face during my comprehensive exam.",
+   "fr": "Expliquez pourquoi \\(I-\\gamma P_\\pi\\) est inversible quand \\(\\gamma\\) est entre zéro et strictement moins que un. Ce n'est pas un choix multiple. Quelqu'un peut me donner une réponse plausible ? Vous vous souvenez de l'argument théorique ? Quel était le nom de l'outil qu'on a utilisé ? C'est un outil qui m'a déjà joué un tour à mon examen de synthèse.",
+   "readable": "Why is \\(I-\\gamma P_\\pi\\) invertible for \\(0\\le\\gamma<1\\)? Recall the argument and the tool we used last time, a tool that once tripped me up in my comprehensive exam.",
+   "readable_fr": "Pourquoi \\(I-\\gamma P_\\pi\\) est-elle inversible pour \\(0\\le\\gamma<1\\) ? Rappelez-vous l'argument et l'outil utilisés la dernière fois, un outil qui m'a déjà piégé à mon examen de synthèse."
+  },
+  {
+   "t": 612530,
+   "text": "You remember that. [Student: the spectral radius.] Exactement. And I'm going to ask you, what is the spectral radius? Exactly, the eigenvalue of maximum modulus, the absolute value, so the largest eigenvalue of your transition matrix in modulus.",
+   "fr": "Vous vous en souvenez. [Étudiant : le rayon spectral.] Exactement. Et je vais vous demander, c'est quoi le rayon spectral ? Exactement, la valeur propre de module maximal, la valeur absolue, donc la plus grande valeur propre de la matrice de transition en module.",
+   "readable": "The tool is the spectral radius: the largest modulus among the eigenvalues of the matrix.",
+   "readable_fr": "L'outil est le rayon spectral : le plus grand module parmi les valeurs propres de la matrice."
+  },
+  {
+   "t": 643520,
+   "text": "And we have the result, the Neumann series result, that tells us that if the spectral radius is strictly less than one, then the Neumann series, which is just the infinite sum of the matrix \\(\\gamma P_\\pi\\) to the power \\(t\\), or \\(t-1\\) depending on where you start, converges, and converges to \\((I-\\gamma P_\\pi)^{-1}\\). I don't know if there's a name for that theorem.",
+   "fr": "Et on a le résultat, celui de la série de Neumann, qui nous dit que si le rayon spectral est strictement inférieur à un, alors la série de Neumann, qui est simplement la somme infinie des puissances \\(t\\) de la matrice \\(\\gamma P_\\pi\\), ou \\(t-1\\) selon où on commence, converge, et converge vers \\((I-\\gamma P_\\pi)^{-1}\\). Je ne sais pas si ce théorème a un nom.",
+   "readable": "The Neumann series result: if the spectral radius of \\(\\gamma P_\\pi\\) is below one, then \\(\\sum_{t\\ge 0}(\\gamma P_\\pi)^t\\) converges to \\((I-\\gamma P_\\pi)^{-1}\\).",
+   "readable_fr": "Le résultat de la série de Neumann : si le rayon spectral de \\(\\gamma P_\\pi\\) est inférieur à un, alors \\(\\sum_{t\\ge 0}(\\gamma P_\\pi)^t\\) converge vers \\((I-\\gamma P_\\pi)^{-1}\\)."
+  },
+  {
+   "t": 677780,
+   "text": "I know really well that it's Theorem C.4 in the appendix of Puterman 1994, because I read that book way too often during my PhD. But it's a well-known result; you'll find it in any math book you want. What goes wrong as \\(\\gamma\\) gets to 1? You can just intuitively guess what's wrong with having \\(\\gamma\\) equal to 1. It can be close to 1, but normally not equal, unless you've got a special absorbing...",
+   "fr": "Je sais très bien que c'est le théorème C.4 de l'annexe de Puterman 1994, parce que j'ai lu ce livre beaucoup trop souvent pendant mon doctorat. Mais c'est un résultat bien connu ; vous le trouverez dans n'importe quel livre de maths. Qu'est-ce qui ne va pas quand \\(\\gamma\\) tend vers 1 ? Vous pouvez deviner intuitivement le problème avec \\(\\gamma\\) égal à 1. Il peut être proche de 1, mais normalement pas égal, sauf si vous avez un état absorbant spécial...",
+   "readable": "It is Theorem C.4 in the appendix of Puterman (1994), though it appears in any linear algebra text. What goes wrong as \\(\\gamma\\) approaches 1? \\(\\gamma\\) can be close to 1, but normally not equal to it, unless there is a special absorbing structure.",
+   "readable_fr": "C'est le théorème C.4 de l'annexe de Puterman (1994), mais on le trouve dans tout manuel d'algèbre linéaire. Qu'est-ce qui ne va pas quand \\(\\gamma\\) tend vers 1 ? \\(\\gamma\\) peut être proche de 1, mais normalement pas égal, sauf structure absorbante particulière."
+  },
+  {
+   "t": 713960,
+   "text": "You could have an absorbing structure in the MDP that allows you to have undiscounted processes like this, but you need to guarantee that at some point your system will enter that absorbing state. Why would that be important? Because once it enters the absorbing state, it stops adding up rewards. And why is it a problem if we keep adding up rewards? If you add up rewards to infinity, then your expected return will be infinite too.",
+   "fr": "On pourrait avoir une structure absorbante dans le MDP qui permet des processus non actualisés comme ça, mais il faut garantir que le système finira par entrer dans cet état absorbant. Pourquoi est-ce important ? Parce qu'une fois dans l'état absorbant, il arrête d'accumuler des récompenses. Et pourquoi est-ce un problème d'accumuler des récompenses ? Si on additionne les récompenses à l'infini, le rendement espéré sera infini aussi.",
+   "readable": "Undiscounted problems are possible if the MDP is guaranteed to reach an absorbing state, after which rewards stop accumulating. Otherwise the sum of rewards, and hence the expected return, can be infinite.",
+   "readable_fr": "Les problèmes non actualisés sont possibles si le MDP atteint à coup sûr un état absorbant, après quoi les récompenses cessent de s'accumuler. Sinon, la somme des récompenses, donc le rendement espéré, peut être infinie."
+  },
+  {
+   "t": 746040,
+   "text": "So this is why we typically want \\(\\gamma\\) strictly less than 1, to control the magnitude of the expected return. Next: you have an MDP with 10,000 states, use \\(\\gamma\\) = 0.9, and you've got two choices. Remember there are two ways we can do policy evaluation. The first one is to solve the linear system we presented above, with a NumPy linear solve, and as we said last time, the rough order, which of course depends on the algorithm and the structure, but the rough order of magnitude is \\(n^3\\).",
+   "fr": "C'est pour ça qu'on veut normalement \\(\\gamma\\) strictement inférieur à 1, pour contrôler la grandeur du rendement espéré. Ensuite : vous avez un MDP à 10 000 états, avec \\(\\gamma\\) = 0,9, et deux choix. Rappelez-vous qu'il y a deux façons de faire l'évaluation de politique. La première, c'est de résoudre le système linéaire présenté plus haut, avec un solve linéaire de NumPy, et comme on l'a dit la dernière fois, l'ordre de grandeur, qui dépend bien sûr de l'algorithme et de la structure, est de \\(n^3\\).",
+   "readable": "Hence \\(\\gamma<1\\) keeps the expected return bounded. Next question: an MDP with 10,000 states and \\(\\gamma=0.9\\). Option A solves the linear system directly, for instance with NumPy, at a cost of roughly \\(n^3\\).",
+   "readable_fr": "D'où \\(\\gamma<1\\), qui garde le rendement espéré borné. Question suivante : un MDP à 10 000 états et \\(\\gamma=0{,}9\\). L'option A résout directement le système linéaire, par exemple avec NumPy, pour un coût d'environ \\(n^3\\)."
+  },
+  {
+   "t": 792240,
+   "text": "Option B is to leverage the fact that the policy evaluation operator, which we write \\(L_\\pi\\), is a contraction mapping. Hence we can use the method of successive approximation to find a solution, and that solution in the limit will coincide with the direct solution of the linear system. Each step of successive approximation is of order \\(n^2\\) instead. Why \\(n^2\\) and not \\(n^3\\)?",
+   "fr": "L'option B, c'est d'exploiter le fait que l'opérateur d'évaluation de politique, qu'on note \\(L_\\pi\\), est une application contractante. On peut donc utiliser la méthode des approximations successives pour trouver une solution, et cette solution, à la limite, coïncide avec la solution directe du système linéaire. Chaque pas d'approximation successive est plutôt d'ordre \\(n^2\\). Pourquoi \\(n^2\\) et pas \\(n^3\\) ?",
+   "readable": "Option B uses the fact that the policy evaluation operator \\(L_\\pi\\) is a contraction, so successive approximation converges to the same solution. Each iteration costs about \\(n^2\\) rather than \\(n^3\\). Why?",
+   "readable_fr": "L'option B utilise le fait que l'opérateur d'évaluation de politique \\(L_\\pi\\) est une contraction, si bien que les approximations successives convergent vers la même solution. Chaque itération coûte environ \\(n^2\\) au lieu de \\(n^3\\). Pourquoi ?"
+  },
+  {
+   "t": 833690,
+   "text": "It's not a trick question. [Student: matrix-vector.] I think you're getting there. Because each step essentially involves a matrix-vector multiplication, of order \\(n^2\\). Now, these operations add up as you run more iterations, but each step is quite cheap.",
+   "fr": "Ce n'est pas une question piège. [Étudiant : matrice-vecteur.] Je pense que vous y êtes. Parce que chaque pas implique essentiellement un produit matrice-vecteur, d'ordre \\(n^2\\). Ces opérations s'additionnent au fil des itérations, mais chaque pas est peu coûteux.",
+   "readable": "Each step is a matrix-vector product, of order \\(n^2\\). The cost accumulates over iterations, but each one is cheap.",
+   "readable_fr": "Chaque pas est un produit matrice-vecteur, d'ordre \\(n^2\\). Le coût s'accumule au fil des itérations, mais chacune est peu coûteuse."
+  },
+  {
+   "t": 864220,
+   "text": "So then you do these two things, and you run the iterative process until the error has shrunk by a factor of \\(10^{-6}\\). Which one is closer to the truth, do you think? Actually, it's a tricky question to answer. First choice: B needs about 10 iterations and is about 10,000 times cheaper.",
+   "fr": "Donc vous faites les deux, et vous faites tourner le processus itératif jusqu'à ce que l'erreur ait diminué d'un facteur \\(10^{-6}\\). Lequel est le plus proche de la vérité, selon vous ? En fait, c'est une question délicate. Premier choix : B demande environ 10 itérations et coûte environ 10 000 fois moins.",
+   "readable": "You run B until the error shrinks by a factor \\(10^{-6}\\). Which statement is right? First option: B needs about 10 iterations and is about 10,000 times cheaper.",
+   "readable_fr": "On fait tourner B jusqu'à ce que l'erreur diminue d'un facteur \\(10^{-6}\\). Quel énoncé est juste ? Premier choix : B demande environ 10 itérations et coûte environ 10 000 fois moins."
+  },
+  {
+   "t": 894940,
+   "text": "B needs about 130 iterations and is about 100 times cheaper. B needs about \\(10^6\\) iterations, so A is cheaper. B never reaches that accuracy without a matrix inverse. That's tricky. Which one can we rule out, at least?",
+   "fr": "B demande environ 130 itérations et coûte environ 100 fois moins. B demande environ \\(10^6\\) itérations, donc A est moins coûteux. B n'atteint jamais cette précision sans inverse de matrice. C'est délicat. Lequel peut-on au moins éliminer ?",
+   "readable": "Other options: B needs about 130 iterations and is about 100 times cheaper; B needs about \\(10^6\\) iterations, so A is cheaper; B never reaches that accuracy without a matrix inverse. Which can we rule out?",
+   "readable_fr": "Autres choix : B demande environ 130 itérations et coûte environ 100 fois moins ; B demande environ \\(10^6\\) itérations, donc A coûte moins ; B n'atteint jamais cette précision sans inverse de matrice. Lequel peut-on éliminer ?"
+  },
+  {
+   "t": 925630,
+   "text": "We'll rule out D. Yeah. You can get arbitrarily close to the solution, to whatever accuracy you need, with iterative methods; that's not a problem. And I think there's a bit of a problem maybe in the statement of the question. We'll cover some of this material today. But you'll see that if you don't know anything about the contraction mapping you use, the only thing you can do when you code up the algorithm is say: I'm going to let my system run for a while, and you add an argument called num_steps.",
+   "fr": "On élimine D. Oui. Avec les méthodes itératives, on peut s'approcher autant qu'on veut de la solution, à la précision voulue ; ce n'est pas un problème. Et je pense que l'énoncé de la question pose peut-être un petit problème. On verra une partie de cette matière aujourd'hui. Mais vous verrez que si vous ne savez rien de l'application contractante que vous utilisez, la seule chose à faire quand vous codez l'algorithme, c'est de le laisser tourner un certain temps : vous ajoutez un argument num_steps.",
+   "readable": "D is ruled out: iterative methods reach any accuracy you ask for. The statement itself is somewhat ambiguous, as we will see today. Without knowledge of the contraction, one option is a fixed iteration budget, an argument such as num_steps.",
+   "readable_fr": "On élimine D : les méthodes itératives atteignent la précision voulue. L'énoncé lui-même est un peu ambigu, comme on le verra aujourd'hui. Sans rien savoir de la contraction, une option est un budget fixe d'itérations, un argument comme num_steps."
+  },
+  {
+   "t": 970660,
+   "text": "num_steps. You set it to your budget, how many steps you want, because you don't know anything about your contraction mapping. The second option is to have a termination criterion based on the progress between two iterates: when that progress is very small, you stop. Now, the problem is that in both cases, asking for the change between two consecutive steps to be below some number does not necessarily give you a bound on how close you are to the solution.",
+   "fr": "num_steps. Vous le fixez selon votre budget, le nombre de pas voulu, parce que vous ne savez rien de votre application contractante. La deuxième option, c'est un critère d'arrêt basé sur le progrès entre deux itérés : quand ce progrès est très petit, on arrête. Le problème, dans les deux cas, c'est qu'exiger que l'écart entre deux pas consécutifs soit sous un certain seuil ne vous donne pas forcément une borne sur la distance à la solution.",
+   "readable": "The second option stops when the change between consecutive iterates is small. Neither option, by itself, bounds the distance to the solution.",
+   "readable_fr": "La deuxième option s'arrête quand l'écart entre deux itérés consécutifs est petit. Aucune des deux options ne borne, à elle seule, la distance à la solution."
+  },
+  {
+   "t": 1006220,
+   "text": "And to go from consecutive error reduction to a bound on the distance to the solution, you need to do some case-by-case work and derive bounds specific to the contraction mapping, which we'll see in a moment. So anyway, generally speaking, the direct solution gives you an answer that is as close as numerical precision allows, up to some numerical analysis of how error propagates in the underlying solver.",
+   "fr": "Et pour passer de la réduction de l'erreur entre itérés consécutifs à une borne sur la distance à la solution, il faut un travail au cas par cas et dériver des bornes propres à l'application contractante, ce qu'on verra dans un instant. Bref, de manière générale, la solution directe donne une réponse aussi proche que le permet la précision numérique, modulo l'analyse numérique de la propagation de l'erreur dans le solveur.",
+   "readable": "Turning consecutive differences into a bound on the error requires bounds specific to the contraction, which we will see shortly. The direct solve, by contrast, is accurate to numerical precision, up to error propagation in the solver.",
+   "readable_fr": "Transformer les écarts consécutifs en borne sur l'erreur demande des bornes propres à la contraction, qu'on verra bientôt. La résolution directe, elle, est exacte à la précision numérique près, modulo la propagation de l'erreur dans le solveur."
+  },
+  {
+   "t": 1048440,
+   "text": "Whereas the iterative method gives you a knob on accuracy, and that can be a feature depending on the application. You don't always need a high-accuracy solution, as you'll see especially in the context of policy iteration. OK, here's an easy one. True or false: the operator equation \\(L_\\pi v = r_\\pi + \\gamma P_\\pi v\\), which I call in this course the policy evaluation equation; some other authors simply call it the Bellman operator.",
+   "fr": "Alors que la méthode itérative vous donne un bouton de réglage sur la précision, ce qui peut être un avantage selon l'application. On n'a pas toujours besoin d'une solution très précise, comme vous le verrez surtout avec l'itération de politique. D'accord, en voici une facile. Vrai ou faux : l'équation d'opérateur \\(L_\\pi v = r_\\pi + \\gamma P_\\pi v\\), que j'appelle dans ce cours l'équation d'évaluation de politique ; d'autres auteurs l'appellent simplement l'opérateur de Bellman.",
+   "readable": "The iterative method instead offers a knob on accuracy, useful because high accuracy is not always needed, notably in policy iteration. Next, a true-or-false question about \\(L_\\pi v = r_\\pi + \\gamma P_\\pi v\\), which this course calls the policy evaluation equation and other authors call the Bellman operator.",
+   "readable_fr": "La méthode itérative offre plutôt un réglage de la précision, utile parce qu'une grande précision n'est pas toujours nécessaire, notamment en itération de politique. Ensuite, un vrai ou faux sur \\(L_\\pi v = r_\\pi + \\gamma P_\\pi v\\), que ce cours appelle l'équation d'évaluation de politique et que d'autres auteurs appellent l'opérateur de Bellman."
+  },
+  {
+   "t": 1081960,
+   "text": "But in my course, I reserve Bellman operator for the one that involves the max operator, which I think is better aligned with how things have been named historically. That being said, if you read books by Dimitri Bertsekas, who unfortunately passed away a few months ago[?], a legend in our field, or if you read Richard Sutton, they call that the Bellman operator no matter what. Other people, like Nan Jiang and other theoreticians, started using the term Bellman consistency operator.",
+   "fr": "Mais dans mon cours, je réserve le nom d'opérateur de Bellman à celui qui comporte le max, ce qui me semble plus fidèle à l'histoire des appellations. Cela dit, si vous lisez les livres de Dimitri Bertsekas, qui est malheureusement décédé il y a quelques mois, une légende de notre domaine, ou si vous lisez Richard Sutton, ils appellent ça l'opérateur de Bellman quoi qu'il arrive. D'autres, comme Nan Jiang et d'autres théoriciens, ont commencé à utiliser le terme d'opérateur de cohérence de Bellman.",
+   "readable": "This course reserves the name Bellman operator for the operator with the max, which matches the historical naming. Dimitri Bertsekas, a legend of the field who died in June 2026, and Richard Sutton call both the Bellman operator. Some theoreticians, such as Nan Jiang, say Bellman consistency operator.",
+   "readable_fr": "Ce cours réserve le nom d'opérateur de Bellman à l'opérateur avec le max, ce qui suit l'usage historique. Dimitri Bertsekas, une légende du domaine décédé en juin 2026, et Richard Sutton appellent les deux opérateur de Bellman. Certains théoriciens, comme Nan Jiang, disent opérateur de cohérence de Bellman."
+  },
+  {
+   "t": 1123080,
+   "text": "Your pick. But I prefer to call it the policy evaluation operator, because that is really the setting in which it's used. So somebody comes to you and says: \\(L_\\pi\\) is a \\(\\gamma\\)-contraction in the \\(\\ell_\\infty\\) norm, so it is a \\(\\gamma\\)-contraction in any other norm, for example the weighted \\(\\ell_2\\) norm. True or false? You paid attention to what I said last time. It's false.",
+   "fr": "À vous de choisir. Mais je préfère l'appeler opérateur d'évaluation de politique, parce que c'est vraiment le contexte où il sert. Donc quelqu'un vous dit : \\(L_\\pi\\) est une \\(\\gamma\\)-contraction pour la norme \\(\\ell_\\infty\\), donc c'est une \\(\\gamma\\)-contraction pour toute autre norme, par exemple la norme \\(\\ell_2\\) pondérée. Vrai ou faux ? Vous avez écouté ce que j'ai dit la dernière fois. C'est faux.",
+   "readable": "I prefer policy evaluation operator, since that is its role. The claim: \\(L_\\pi\\) is a \\(\\gamma\\)-contraction in \\(\\ell_\\infty\\), hence in every norm, for instance a weighted \\(\\ell_2\\) norm. It is false.",
+   "readable_fr": "Je préfère opérateur d'évaluation de politique, puisque c'est son rôle. L'énoncé : \\(L_\\pi\\) est une \\(\\gamma\\)-contraction pour \\(\\ell_\\infty\\), donc pour toute norme, par exemple une norme \\(\\ell_2\\) pondérée. C'est faux."
+  },
+  {
+   "t": 1154260,
+   "text": "It's false. Well, let's see if the quiz agrees with us. One distractor says true, because on a finite-dimensional space all norms are equivalent, which is not the right answer. There is this notion of equivalent norms and so on, but that is not enough to jump to the conclusion here. These contraction properties hold with respect to a specific norm.",
+   "fr": "C'est faux. Voyons si le quiz est d'accord. Un des choix dit vrai, parce qu'en dimension finie toutes les normes sont équivalentes, ce qui n'est pas la bonne réponse. Il y a cette notion d'équivalence des normes, mais ça ne suffit pas pour conclure ici. Ces propriétés de contraction tiennent par rapport à une norme précise.",
+   "readable": "The distractor argues that all norms are equivalent in finite dimension. Equivalence of norms does not preserve the contraction factor: a contraction is always relative to a specific norm.",
+   "readable_fr": "Le distracteur invoque l'équivalence des normes en dimension finie. L'équivalence des normes ne préserve pas le facteur de contraction : une contraction est toujours relative à une norme précise."
+  },
+  {
+   "t": 1187890,
+   "text": "And everything we see in this class is with respect to the \\(\\ell_\\infty\\) norm, commonly also called the sup norm. Oh yeah, that's a good one, a conceptual one. To act greedily from \\(v_\\pi\\), you compute the argmax of that expression here. If you're given \\(q^*\\) instead, you compute the argmax of \\(q^*\\) directly. Why does model-free RL prefer the second form?",
+   "fr": "Et tout ce qu'on voit dans ce cours est relatif à la norme \\(\\ell_\\infty\\), qu'on appelle aussi la norme sup. Ah oui, celle-là est bonne, c'est une question conceptuelle. Pour agir de façon gloutonne à partir de \\(v_\\pi\\), on calcule l'argmax de cette expression ici. Si on vous donne plutôt \\(q^*\\), on calcule directement l'argmax de \\(q^*\\). Pourquoi le RL sans modèle préfère-t-il la deuxième forme ?",
+   "readable": "In this course, contractions are with respect to the \\(\\ell_\\infty\\), or sup, norm. A conceptual question: acting greedily from \\(v\\) requires an argmax over a one-step lookahead, while from \\(q^*\\) it is a direct argmax. Why does model-free RL prefer the second form?",
+   "readable_fr": "Dans ce cours, les contractions sont relatives à la norme \\(\\ell_\\infty\\), ou norme sup. Question conceptuelle : agir de façon gloutonne à partir de \\(v\\) demande un argmax sur une anticipation d'un pas, alors qu'à partir de \\(q^*\\) c'est un argmax direct. Pourquoi le RL sans modèle préfère-t-il la deuxième forme ?"
+  },
+  {
+   "t": 1219090,
+   "text": "Is it because \\(q^*\\) gives a better policy than \\(v^*\\)? By the way, we haven't talked formally about what model-free RL is. These are learning techniques where you only assume access to samples of the transitions and samples of the reward, but you don't know the exact probabilities, the numbers in that matrix. Or you don't know that if you're in some state and take some action, you'll get this reward. That's what model-free means.",
+   "fr": "Est-ce parce que \\(q^*\\) donne une meilleure politique que \\(v^*\\) ? Au fait, on n'a pas encore défini formellement le RL sans modèle. Ce sont des techniques d'apprentissage où l'on suppose seulement avoir accès à des échantillons de transitions et de récompenses, sans connaître les probabilités exactes, les nombres dans cette matrice. Ou sans savoir que dans tel état, avec telle action, on obtient telle récompense. C'est ça, sans modèle.",
+   "readable": "First option: \\(q^*\\) gives a better policy than \\(v^*\\). As an aside, model-free RL means learning from sampled transitions and rewards without knowing the transition probabilities or the reward function.",
+   "readable_fr": "Premier choix : \\(q^*\\) donne une meilleure politique que \\(v^*\\). En passant, le RL sans modèle consiste à apprendre à partir de transitions et de récompenses échantillonnées, sans connaître les probabilités de transition ni la fonction de récompense."
+  },
+  {
+   "t": 1250010,
+   "text": "You still have access to reward and transition samples, but you don't know the exact numbers. So in the learning setting, do we like to work with \\(q^*\\) because it gives a better policy than \\(v^*\\)? Of course not. Is it because the greedy policy from \\(q^*\\) is stochastic, which gives exploration? First of all, the argmax of \\(q^*\\) is a deterministic policy.",
+   "fr": "On a toujours accès à des échantillons de récompenses et de transitions, mais pas aux nombres exacts. Donc, en apprentissage, aime-t-on travailler avec \\(q^*\\) parce qu'il donne une meilleure politique que \\(v^*\\) ? Bien sûr que non. Est-ce parce que la politique gloutonne de \\(q^*\\) est stochastique, ce qui donne de l'exploration ? D'abord, l'argmax de \\(q^*\\) est une politique déterministe.",
+   "readable": "The first option is wrong: both give optimal policies. Second option: the greedy policy from \\(q^*\\) is stochastic and so explores. But an argmax of \\(q^*\\) is deterministic.",
+   "readable_fr": "Le premier choix est faux : les deux donnent des politiques optimales. Deuxième choix : la politique gloutonne de \\(q^*\\) est stochastique, donc elle explore. Mais un argmax de \\(q^*\\) est déterministe."
+  },
+  {
+   "t": 1281050,
+   "text": "It's not a stochastic policy, so for sure that second option is wrong. Third: because the first form needs \\(r\\) and \\(P\\), which a model-free agent never gets, while the second only queries \\(q^*\\) over actions. That sounds like the answer, actually. And finally: because \\(q^*\\) is cheaper to store than \\(v^*\\). In fact, no, you need more stuff. Rule of thumb: learning \\(q^*\\) is going to be more difficult than learning \\(v^*\\).",
+   "fr": "Ce n'est pas une politique stochastique, donc ce deuxième choix est faux. Troisième : parce que la première forme a besoin de \\(r\\) et de \\(P\\), qu'un agent sans modèle n'a jamais, alors que la deuxième ne fait qu'interroger \\(q^*\\) sur les actions. Ça ressemble à la réponse, en fait. Et enfin : parce que \\(q^*\\) est moins coûteux à stocker que \\(v^*\\). En fait, non, il faut stocker plus. Règle générale : apprendre \\(q^*\\) sera plus difficile qu'apprendre \\(v^*\\).",
+   "readable": "So the second option is wrong. The third is the answer: the greedy step from \\(v\\) needs \\(r\\) and \\(P\\), which a model-free agent lacks, whereas the step from \\(q^*\\) only queries \\(q^*\\) over actions. The fourth, that \\(q^*\\) is cheaper to store, is false; as a rule, \\(q^*\\) is harder to learn than \\(v^*\\).",
+   "readable_fr": "Le deuxième choix est donc faux. Le troisième est la réponse : le pas glouton à partir de \\(v\\) exige \\(r\\) et \\(P\\), dont un agent sans modèle ne dispose pas, tandis que le pas à partir de \\(q^*\\) n'interroge que \\(q^*\\) sur les actions. Le quatrième, que \\(q^*\\) coûte moins à stocker, est faux ; en règle générale, \\(q^*\\) est plus difficile à apprendre que \\(v^*\\)."
+  },
+  {
+   "t": 1315320,
+   "text": "Why? Well, it's a more complicated function. When you design a neural network for \\(q\\), that network will maybe need more capacity, more samples, more coverage. Why? Because \\(v^*\\) takes an expectation over the choice of action, so it's like you're zooming out on the detail. Let's see. Yay, that was the answer. Okay, so that's it for the quiz.",
+   "fr": "Pourquoi ? C'est une fonction plus compliquée. Un réseau de neurones pour \\(q\\) aura peut-être besoin de plus de capacité, de plus d'échantillons, d'une meilleure couverture. Pourquoi ? Parce que \\(v^*\\) prend une espérance sur le choix d'action, c'est comme si on dézoomait sur les détails. Voyons. Youpi, c'était la réponse. D'accord, c'est tout pour le quiz.",
+   "readable": "\\(q^*\\) is a more complex function, so a network for it needs more capacity, samples and coverage; \\(v^*\\) averages out the action. The quiz confirms the third option.",
+   "readable_fr": "\\(q^*\\) est une fonction plus complexe, donc un réseau qui l'approxime demande plus de capacité, d'échantillons et de couverture ; \\(v^*\\) moyenne sur l'action. Le quiz confirme le troisième choix."
+  },
+  {
+   "t": 1345360,
+   "text": "Feel free to review it. It was just to keep you sharp, because since you don't have assignments, I don't want your brain to start getting lazy. So let's not get lazy and go to the material. We have a lot of stuff to cover, especially if you want an exam in two weeks, which I know you're very eager to have.",
+   "fr": "N'hésitez pas à le revoir. C'était juste pour vous garder alertes, parce que comme vous n'avez pas de devoirs, je ne veux pas que votre cerveau devienne paresseux. Donc ne soyons pas paresseux et passons à la matière. On a beaucoup à couvrir, surtout si vous voulez un examen dans deux semaines, ce que je sais que vous attendez avec impatience.",
+   "readable": "Review the quiz on your own; with no assignments in this course, it keeps you sharp. On to the material: there is a lot to cover before the midterm in two weeks.",
+   "readable_fr": "Revoyez le quiz de votre côté ; sans devoirs dans ce cours, il vous garde alertes. Passons à la matière : il y a beaucoup à couvrir avant l'intra dans deux semaines."
+  },
+  {
+   "t": 1379550,
+   "text": "We need to cover a lot of stuff. But what do we need to cover? First of all, oh yeah, I've got some little animations here. I'm not sure it's this one; we'll look at that later. I had a nice animation, I don't know where it is... Oh, it's down here. It's a general animation of what a contraction means.",
+   "fr": "On a beaucoup à couvrir. Mais quoi exactement ? D'abord, ah oui, j'ai quelques petites animations ici. Je ne suis pas sûr que ce soit celle-ci ; on verra ça plus tard. J'avais une belle animation, je ne sais plus où elle est... Ah, elle est ici en bas. C'est une animation générale de ce que veut dire une contraction.",
+   "readable": "First, an animation in the notes of what a contraction does.",
+   "readable_fr": "D'abord, une animation dans les notes qui montre ce que fait une contraction."
+  },
+  {
+   "t": 1409560,
+   "text": "If you look at the definition of a contraction, it's a property of an operator such that if you pick any two points, where points here are functions, and apply the operator, the distance between them shrinks. Because we established that there's a constant, a contraction factor, which upper-bounds it, we know there's at least this amount of shrinking towards the point.",
+   "fr": "Si on regarde la définition d'une contraction, c'est une propriété d'un opérateur telle que si on prend deux points quelconques, où les points sont ici des fonctions, et qu'on applique l'opérateur, la distance entre eux diminue. Parce qu'on a établi qu'il existe une constante, un facteur de contraction, qui la borne, on sait qu'il y a au moins ce niveau de contraction vers le point.",
+   "readable": "A contraction is an operator that, applied to any two points (here, functions), shrinks their distance by at least a constant factor, the contraction factor.",
+   "readable_fr": "Une contraction est un opérateur qui, appliqué à deux points quelconques (ici, des fonctions), réduit leur distance d'au moins un facteur constant, le facteur de contraction."
+  },
+  {
+   "t": 1439880,
+   "text": "This is the intuition, right? If you can establish that this shrinking happens for any two points in the space, then you can show that eventually everything shrinks down to your fixed point. Does that make sense as an intuition? You can play with this if you want: you can reset it and apply the operator manually here. It's essentially a vector field underneath, but you see we're shrinking the space towards the star.",
+   "fr": "C'est l'intuition, non ? Si on peut établir que cette contraction a lieu pour deux points quelconques de l'espace, on peut montrer que tout finit par se contracter vers le point fixe. Est-ce que ça a du sens comme intuition ? Vous pouvez jouer avec : réinitialiser et appliquer l'opérateur à la main ici. En dessous, c'est essentiellement un champ de vecteurs, mais vous voyez qu'on contracte l'espace vers l'étoile.",
+   "readable": "If the shrinking holds for every pair of points, repeated application drives everything to the fixed point. In the animation you can apply the operator step by step and watch the space contract toward the star.",
+   "readable_fr": "Si la contraction vaut pour toute paire de points, l'application répétée mène tout au point fixe. Dans l'animation, on peut appliquer l'opérateur pas à pas et voir l'espace se contracter vers l'étoile."
+  },
+  {
+   "t": 1470060,
+   "text": "But this is general stuff. Now, the thing I wanted to point out is this important detail. When you implement value iteration, it's often neglected. It's not in Sutton's textbook, and it's very important. If you ever implement a solver for an MDP by hand with value iteration, at least tell your agent to implement a bound like this.",
+   "fr": "Mais ça, c'est général. Ce que je voulais souligner, c'est ce détail important. Quand on implémente l'itération de valeur, il est souvent négligé. Il n'est pas dans le manuel de Sutton, et il est très important. Si vous implémentez un jour un solveur de MDP à la main avec l'itération de valeur, demandez au moins à votre agent d'implémenter une borne comme celle-ci.",
+   "readable": "An important and often neglected detail of value iteration, absent from Sutton's textbook: if you ever implement it, or ask your coding agent to, include a stopping bound like this one.",
+   "readable_fr": "Un détail important et souvent négligé de l'itération de valeur, absent du manuel de Sutton : si vous l'implémentez un jour, ou le faites faire par votre agent, incluez un critère d'arrêt comme celui-ci."
+  },
+  {
+   "t": 1500480,
+   "text": "So what is that detail? You recognize the structure of the Banach fixed-point theorem, or the method of successive approximation, or fixed-point iteration, whatever you want to call it. Why do you recognize it? Because we keep on applying the operator. So line 3.1.1 applies it across all the states. Here we write it as an assignment, but really you can think of it in functional form: you take a function as input and create another function. It's a function transformation, if you will.",
+   "fr": "Alors, quel est ce détail ? Vous reconnaissez la structure du théorème du point fixe de Banach, ou de la méthode des approximations successives, ou de l'itération de point fixe, comme vous voulez. Pourquoi la reconnaissez-vous ? Parce qu'on applique l'opérateur encore et encore. La ligne 3.1.1 l'applique à tous les états. On l'écrit comme une affectation, mais on peut y penser sous forme fonctionnelle : on prend une fonction en entrée et on en crée une autre. C'est une transformation de fonction, si vous voulez.",
+   "readable": "The algorithm has the structure of Banach fixed-point iteration, or successive approximation: apply the operator repeatedly. Line 3.1.1 applies it at every state; written as an assignment, it is really a map from one function to another.",
+   "readable_fr": "L'algorithme a la structure de l'itération de point fixe de Banach, ou des approximations successives : appliquer l'opérateur de façon répétée. La ligne 3.1.1 l'applique à chaque état ; écrite comme une affectation, c'est en réalité une application d'une fonction vers une autre."
+  },
+  {
+   "t": 1533240,
+   "text": "That's the general part. Now, the bit that interests us is 3.2. That's the consecutive error across two iterations: we measure the \\(\\ell_\\infty\\) norm between two iterates. But the interesting thing is step 4. We have this quantity that seems to come out of nowhere, but you can look at the proof. This is a termination criterion. It says: keep on applying the operator, but stop once the difference between two iterates is less than \\(\\varepsilon(1-\\gamma)/(2\\gamma)\\).",
+   "fr": "Ça, c'est la partie générale. Ce qui nous intéresse, c'est 3.2. C'est l'écart entre deux itérations consécutives : on mesure la norme \\(\\ell_\\infty\\) entre deux itérés. Mais ce qui est intéressant, c'est l'étape 4. On a cette quantité qui semble sortir de nulle part, mais vous pouvez regarder la preuve. C'est un critère d'arrêt. Il dit : continuez d'appliquer l'opérateur, mais arrêtez dès que l'écart entre deux itérés est inférieur à \\(\\varepsilon(1-\\gamma)/(2\\gamma)\\).",
+   "readable": "Line 3.2 computes the \\(\\ell_\\infty\\) distance between consecutive iterates. Step 4 is the stopping rule: stop once that distance falls below \\(\\varepsilon(1-\\gamma)/(2\\gamma)\\). The constant comes from the proof.",
+   "readable_fr": "La ligne 3.2 calcule la distance \\(\\ell_\\infty\\) entre itérés consécutifs. L'étape 4 est la règle d'arrêt : on s'arrête dès que cette distance passe sous \\(\\varepsilon(1-\\gamma)/(2\\gamma)\\). La constante vient de la preuve."
+  },
+  {
+   "t": 1576220,
+   "text": "Why? Because you can show that if you implement this algorithm, once it stops, and it will stop on its own, since we didn't code up a number of steps, the system keeps running until it satisfies the test. Once it stops and returns a value function, that value function is within \\(\\varepsilon/2\\) of the true solution.",
+   "fr": "Pourquoi ? Parce qu'on peut montrer que si on implémente cet algorithme, une fois qu'il s'arrête, et il s'arrête de lui-même, puisqu'on n'a pas codé de nombre de pas, le système tourne jusqu'à satisfaire le test. Une fois arrêté, la fonction de valeur qu'il renvoie est à moins de \\(\\varepsilon/2\\) de la vraie solution.",
+   "readable": "With this rule the algorithm stops on its own, with no step budget, and the returned value function is within \\(\\varepsilon/2\\) of the true solution.",
+   "readable_fr": "Avec cette règle, l'algorithme s'arrête de lui-même, sans budget de pas, et la fonction de valeur renvoyée est à moins de \\(\\varepsilon/2\\) de la vraie solution."
+  },
+  {
+   "t": 1614760,
+   "text": "The analysis doesn't take into account floating-point representation, by the way. It's an analysis of the exact mathematical procedure, which you implement on a computer, but it ignores whether you're in float32, float64, whatever, which will play a role. Here we ignore it. But you can prove that once the procedure terminates, it's within \\(\\varepsilon\\), and \\(\\varepsilon\\) is the value you pick. So you can decide ahead of time: I'll spend as much compute as I need, but I want to be sure that when this finishes, I'm within \\(10^{-8}\\) of the real solution.",
+   "fr": "L'analyse ne tient pas compte de la représentation en virgule flottante, en passant. C'est une analyse de la procédure mathématique exacte, que vous implémentez sur ordinateur, mais elle ignore si vous êtes en float32, float64, peu importe, ce qui va jouer un rôle. Ici, on l'ignore. Mais on peut prouver qu'une fois la procédure terminée, on est à moins de \\(\\varepsilon\\), et c'est vous qui choisissez \\(\\varepsilon\\). Vous pouvez donc décider d'avance : je dépenserai le calcul qu'il faut, mais je veux être sûr d'être à moins de \\(10^{-8}\\) de la vraie solution à la fin.",
+   "readable": "The analysis concerns exact arithmetic and ignores floating-point effects. Within that idealization, you choose \\(\\varepsilon\\) in advance, say \\(10^{-8}\\), and the algorithm guarantees that accuracy when it stops.",
+   "readable_fr": "L'analyse porte sur l'arithmétique exacte et ignore les effets de la virgule flottante. Dans cette idéalisation, on choisit \\(\\varepsilon\\) d'avance, disons \\(10^{-8}\\), et l'algorithme garantit cette précision à l'arrêt."
+  },
+  {
+   "t": 1659320,
+   "text": "That thing is going to guarantee it for you. Now, this is about the \\(\\ell_\\infty\\) distance to the optimal value function. But this is only half of the story, right? Because usually the value function is only an instrument for deriving an optimal policy, which is the thing we ultimately care about.",
+   "fr": "Ça vous le garantit. Mais il s'agit ici de la distance \\(\\ell_\\infty\\) à la fonction de valeur optimale. Ce n'est que la moitié de l'histoire, non ? Parce qu'en général, la fonction de valeur n'est qu'un instrument pour obtenir une politique optimale, ce qui nous intéresse au bout du compte.",
+   "readable": "This bounds the \\(\\ell_\\infty\\) distance to the optimal value function. That is half the story: the value function is a means to an optimal policy, which is what we ultimately want.",
+   "readable_fr": "Cela borne la distance \\(\\ell_\\infty\\) à la fonction de valeur optimale. Ce n'est que la moitié de l'histoire : la fonction de valeur est un moyen d'obtenir une politique optimale, ce qui nous intéresse au bout du compte."
+  },
+  {
+   "t": 1692200,
+   "text": "Let's say I give you for free the value function \\(v^*_\\gamma\\) of an MDP, and I tell you: give me an optimal policy. What do you do with it? It can be model-free or model-based; let's be model-based here and assume we know \\(P\\) and \\(r\\). How do you do this? I give you \\(v^*\\), give me an optimal policy.",
+   "fr": "Disons que je vous donne gratuitement la fonction de valeur \\(v^*_\\gamma\\) d'un MDP, et que je vous dis : donnez-moi une politique optimale. Qu'en faites-vous ? Ça peut être sans modèle ou avec modèle ; plaçons-nous avec modèle et supposons qu'on connaît \\(P\\) et \\(r\\). Comment faites-vous ? Je vous donne \\(v^*\\), donnez-moi une politique optimale.",
+   "readable": "Suppose you are given \\(v^*_\\gamma\\) and know \\(P\\) and \\(r\\). How do you obtain an optimal policy?",
+   "readable_fr": "Supposons qu'on vous donne \\(v^*_\\gamma\\) et que vous connaissez \\(P\\) et \\(r\\). Comment obtenez-vous une politique optimale ?"
+  },
+  {
+   "t": 1723380,
+   "text": "Yeah, essentially. So what you're saying is that we derive the optimal policy exactly this way, line 5.4[?]. If you give me \\(v^*\\), I plug it in there. Whenever I need an action that is optimal in a state, I plug my \\(v^*\\) in there and compute this. Now, this is a bit of work: a matrix-vector multiplication, and then you need to select over all actions, but it's not a big deal. And the computation here is purely myopic.",
+   "fr": "Oui, essentiellement. Donc ce que vous dites, c'est qu'on obtient la politique optimale exactement de cette façon, ligne 5.4. Si vous me donnez \\(v^*\\), je le substitue là. Chaque fois que j'ai besoin d'une action optimale dans un état, je substitue mon \\(v^*\\) et je calcule ceci. C'est un peu de travail : un produit matrice-vecteur, puis il faut choisir parmi toutes les actions, mais ce n'est pas grand-chose. Et ce calcul est purement myope.",
+   "readable": "Plug \\(v^*\\) into the one-step lookahead and take the argmax over actions in each state. The cost is a matrix-vector product and a maximization over actions, and the computation is purely myopic.",
+   "readable_fr": "On substitue \\(v^*\\) dans l'anticipation d'un pas et on prend l'argmax sur les actions dans chaque état. Le coût est un produit matrice-vecteur et une maximisation sur les actions, et le calcul est purement myope."
+  },
+  {
+   "t": 1754960,
+   "text": "You don't have to simulate anything into the future; it's all contained in there. When things are discrete, in NumPy, it's literally np.argmax, and you choose how you organize things, it can be axis one, let's say. So it's not complicated. We were calling these policies, by the way, \\(v\\)-improving policies, technically. More commonly, we call them greedy policies.",
+   "fr": "Pas besoin de simuler quoi que ce soit dans le futur ; tout est contenu là. Quand tout est discret, en NumPy, c'est littéralement np.argmax, et vous choisissez comment organiser les choses, disons l'axe un. Ce n'est donc pas compliqué. Au fait, techniquement, on appelait ces politiques des politiques \\(v\\)-améliorantes. Plus couramment, on les appelle des politiques gloutonnes.",
+   "readable": "Nothing needs to be simulated forward; in the discrete case it is one np.argmax along the action axis. Such policies are technically called \\(v\\)-improving, more commonly greedy.",
+   "readable_fr": "Rien n'a besoin d'être simulé vers l'avant ; dans le cas discret, c'est un np.argmax selon l'axe des actions. Ces politiques sont dites \\(v\\)-améliorantes, ou plus couramment gloutonnes."
+  },
+  {
+   "t": 1788970,
+   "text": "So to go back to our business: with the procedure we've outlined, the value function will be within \\(\\varepsilon/2\\) of \\(v^*_\\gamma\\), and the greedy policy you derive from it will be \\(\\varepsilon\\)-optimal. \\(\\varepsilon\\)-optimal means that the value function of that policy, call it \\(v_{\\pi_\\varepsilon}\\),",
+   "fr": "Donc, pour revenir à nos moutons : avec la procédure décrite, la fonction de valeur sera à moins de \\(\\varepsilon/2\\) de \\(v^*_\\gamma\\), et la politique gloutonne qu'on en tire sera \\(\\varepsilon\\)-optimale. \\(\\varepsilon\\)-optimale veut dire que la fonction de valeur de cette politique, notons-la \\(v_{\\pi_\\varepsilon}\\),",
+   "readable": "With the stopping rule, the value function is within \\(\\varepsilon/2\\) of \\(v^*_\\gamma\\), and its greedy policy \\(\\pi_\\varepsilon\\) is \\(\\varepsilon\\)-optimal: its value function \\(v_{\\pi_\\varepsilon}\\)",
+   "readable_fr": "Avec la règle d'arrêt, la fonction de valeur est à moins de \\(\\varepsilon/2\\) de \\(v^*_\\gamma\\), et sa politique gloutonne \\(\\pi_\\varepsilon\\) est \\(\\varepsilon\\)-optimale : sa fonction de valeur \\(v_{\\pi_\\varepsilon}\\)"
+  },
+  {
+   "t": 1818970,
+   "text": "is within \\(\\varepsilon\\) of the optimal value function. Oh yeah, I meant to show you on the board earlier what an MDP looks like as a graph; I just realized it now. It's a bit of going back and forth, but let me do it here anyway. The toy MDP I'd like to draw is what Luc Devroye[?], a professor at McGill[?], would call the Mickey Mouse Markov chain.",
+   "fr": "est à moins de \\(\\varepsilon\\) de la fonction de valeur optimale. Ah oui, je voulais vous montrer plus tôt au tableau à quoi ressemble un MDP sous forme de graphe ; je viens de m'en rendre compte. Ça fait un peu de va-et-vient, mais faisons-le ici quand même. Le MDP jouet que j'aimerais dessiner, c'est ce que Luc Devroye, professeur à McGill, appellerait la chaîne de Markov Mickey Mouse.",
+   "readable": "is within \\(\\varepsilon\\) of the optimal value function. A detour to the board to draw an MDP as a graph: the toy example is what Luc Devroye[?] of McGill[?] calls the Mickey Mouse Markov chain.",
+   "readable_fr": "est à moins de \\(\\varepsilon\\) de la fonction de valeur optimale. Détour au tableau pour dessiner un MDP sous forme de graphe : l'exemple jouet est ce que Luc Devroye, de McGill, appelle la chaîne de Markov Mickey Mouse."
+  },
+  {
+   "t": 1857650,
+   "text": "Why was he calling it that? I think because for him it looks like you're creating these little lobes around it, kind of. Anyway. Let's say you've got two states in the MDP. You draw states as circles, and arrows represent actions. So you'll have as many arrows as you've got actions in your system. For example, you could have a system with action \\(a_1\\) here and action \\(a_2\\) here.",
+   "fr": "Pourquoi l'appelait-il comme ça ? Je pense que pour lui, ça ressemble à de petits lobes qu'on crée autour, en quelque sorte. Bref. Disons qu'on a deux états dans le MDP. On dessine les états comme des cercles, et les flèches représentent les actions. On a donc autant de flèches qu'il y a d'actions dans le système. Par exemple, un système avec l'action \\(a_1\\) ici et l'action \\(a_2\\) ici.",
+   "readable": "The name comes from the little lobes the self-loops make. Take a two-state MDP: states are circles and arrows are actions, for instance \\(a_1\\) and \\(a_2\\).",
+   "readable_fr": "Le nom vient des petits lobes que forment les boucles. Prenons un MDP à deux états : les états sont des cercles et les flèches des actions, par exemple \\(a_1\\) et \\(a_2\\)."
+  },
+  {
+   "t": 1898250,
+   "text": "And the arrow itself, from \\(s_1\\) to \\(s_2\\), gives us the probability of going to \\(s_2\\) given that you're in \\(s_1\\) and take action \\(a_2\\). Same with this one here: the arrow represents the probability of looping back to \\(s_1\\) if you're in \\(s_1\\) and take action \\(a_1\\).",
+   "fr": "Et la flèche elle-même, de \\(s_1\\) vers \\(s_2\\), nous donne la probabilité d'aller en \\(s_2\\) sachant qu'on est en \\(s_1\\) et qu'on prend l'action \\(a_2\\). Pareil pour celle-ci : la flèche représente la probabilité de revenir en \\(s_1\\) si on est en \\(s_1\\) et qu'on prend l'action \\(a_1\\).",
+   "readable": "An arrow from \\(s_1\\) to \\(s_2\\) labelled \\(a_2\\) carries \\(p(s_2\\mid s_1,a_2)\\); a self-loop on \\(s_1\\) labelled \\(a_1\\) carries \\(p(s_1\\mid s_1,a_1)\\).",
+   "readable_fr": "Une flèche de \\(s_1\\) vers \\(s_2\\) étiquetée \\(a_2\\) porte \\(p(s_2\\mid s_1,a_2)\\) ; une boucle sur \\(s_1\\) étiquetée \\(a_1\\) porte \\(p(s_1\\mid s_1,a_1)\\)."
+  },
+  {
+   "t": 1938680,
+   "text": "And the set of actions may not be the same everywhere. It's a simplification we often make, but remember that our framework allows state-dependent action sets, written \\(A_s\\). So say that in \\(s_2\\) you can only take action \\(a_1\\); then this arrow represents the probability of going to \\(s_1\\) given that you're in \\(s_2\\) and take action \\(a_1\\). So you can sometimes specify an MDP purely graphically; I guess it's a probabilistic graphical model.",
+   "fr": "Et l'ensemble des actions n'est pas forcément le même partout. On fait souvent cette simplification, mais rappelez-vous que notre cadre permet des ensembles d'actions qui dépendent de l'état, notés \\(A_s\\). Disons qu'en \\(s_2\\) on ne peut prendre que \\(a_1\\) ; cette flèche représente alors la probabilité d'aller en \\(s_1\\) sachant qu'on est en \\(s_2\\) et qu'on prend \\(a_1\\). On peut donc parfois spécifier un MDP purement graphiquement ; c'est un modèle graphique probabiliste, je suppose.",
+   "readable": "Action sets may depend on the state, \\(A_s\\): if only \\(a_1\\) is available in \\(s_2\\), its arrow carries \\(p(s_1\\mid s_2,a_1)\\). An MDP can thus be specified purely as a graph, a kind of probabilistic graphical model.",
+   "readable_fr": "Les ensembles d'actions peuvent dépendre de l'état, \\(A_s\\) : si seule \\(a_1\\) est permise en \\(s_2\\), sa flèche porte \\(p(s_1\\mid s_2,a_1)\\). On peut donc spécifier un MDP purement comme un graphe, une sorte de modèle graphique probabiliste."
+  },
+  {
+   "t": 1972580,
+   "text": "The only thing that differs from a graphical model in the typical sense of the term, where you've got a Markov chain, is that here we have actions. So effectively, when we take the summation and write down the \\(P_\\pi\\) object, \\(P_\\pi\\) gives us the Markov chain induced by a policy. It lumps the choice of action in there.",
+   "fr": "La seule différence avec un modèle graphique au sens habituel, où l'on a une chaîne de Markov, c'est qu'ici on a des actions. Concrètement, quand on fait la somme et qu'on écrit l'objet \\(P_\\pi\\), \\(P_\\pi\\) nous donne la chaîne de Markov induite par une politique. Il absorbe le choix d'action.",
+   "readable": "Unlike an ordinary Markov chain, the graph has actions. Summing over the policy's actions gives \\(P_\\pi\\), the Markov chain induced by the policy, in which the choice of action is folded in.",
+   "readable_fr": "Contrairement à une chaîne de Markov ordinaire, le graphe comporte des actions. En sommant sur les actions de la politique, on obtient \\(P_\\pi\\), la chaîne de Markov induite par la politique, où le choix d'action est intégré."
+  },
+  {
+   "t": 2004520,
+   "text": "And this is the difference between a controlled and an uncontrolled system. Here we make the control explicit, whereas when we write \\(P_\\pi\\) it's folded in there; it's just an illusion, basically. I'm not going to go over the proof, okay? I want to choose my battles wisely. I'm not going over the proof of why this \\(\\varepsilon\\) thing holds. But I'm perfectly happy if you just remember that it exists and that it's a good way to do it.",
+   "fr": "Et c'est la différence entre un système commandé et un système non commandé. Ici, on rend la commande explicite, alors que quand on écrit \\(P_\\pi\\) elle est intégrée ; ce n'est qu'une illusion, au fond. Je ne vais pas faire la preuve, d'accord ? Je veux choisir mes batailles. Je ne ferai pas la preuve de pourquoi ce critère en \\(\\varepsilon\\) tient. Mais je suis tout à fait content si vous retenez simplement qu'il existe et que c'est une bonne façon de faire.",
+   "readable": "That is the distinction between a controlled and an uncontrolled system. I will skip the proof of the \\(\\varepsilon\\) stopping rule; remember that it exists and is a good way to stop.",
+   "readable_fr": "C'est la distinction entre système commandé et non commandé. Je saute la preuve de la règle d'arrêt en \\(\\varepsilon\\) ; retenez qu'elle existe et que c'est une bonne façon de s'arrêter."
+  },
+  {
+   "t": 2040900,
+   "text": "There are even better ways to do it. What do I mean by better? What does it mean to have a good bound, a good termination criterion? A good termination criterion is one that stops as early as possible and still guarantees the accuracy you ask for. And there are better bounds than this one. In particular, there's another choice which I don't cover here, but maybe I'll add it for completeness.",
+   "fr": "Il existe des façons encore meilleures. Qu'est-ce que je veux dire par meilleures ? Qu'est-ce qu'une bonne borne, un bon critère d'arrêt ? Un bon critère d'arrêt s'arrête le plus tôt possible tout en garantissant la précision demandée. Et il existe de meilleures bornes que celle-ci. En particulier, il y a un autre choix que je ne couvre pas ici, mais que j'ajouterai peut-être par souci d'exhaustivité.",
+   "readable": "A better stopping rule stops earlier while keeping the same accuracy guarantee, and such rules exist.",
+   "readable_fr": "Une meilleure règle d'arrêt s'arrête plus tôt tout en gardant la même garantie de précision, et de telles règles existent."
+  },
+  {
+   "t": 2073860,
+   "text": "It uses the so-called span seminorm. Instead of using the \\(\\ell_\\infty\\) norm, you do the exercise under a different kind of norm, the span seminorm. It's a seminorm. The bound we get is actually tighter, which means your algorithm gives you the same guarantee but typically terminates earlier than this one. And that can be a good thing. Now, you might not even care about having a certificate of accuracy.",
+   "fr": "Elle utilise la semi-norme d'écart, la span seminorm. Au lieu de la norme \\(\\ell_\\infty\\), on fait l'exercice avec un autre type de norme, la semi-norme d'écart. C'est une semi-norme. La borne obtenue est plus serrée, donc l'algorithme donne la même garantie mais s'arrête généralement plus tôt. Et ça peut être une bonne chose. Cela dit, il se peut que vous ne teniez même pas à avoir un certificat de précision.",
+   "readable": "One uses the span seminorm instead of \\(\\ell_\\infty\\). Its bound is tighter, so the algorithm gives the same guarantee and usually stops earlier. You may not even need a certificate of accuracy.",
+   "readable_fr": "L'une utilise la semi-norme d'écart (span) au lieu de \\(\\ell_\\infty\\). Sa borne est plus serrée, donc l'algorithme donne la même garantie et s'arrête souvent plus tôt. On n'a d'ailleurs pas toujours besoin d'un certificat de précision."
+  },
+  {
+   "t": 2107300,
+   "text": "It's possible. If you solve a grid-world environment in reinforcement learning, you're not going to care about that. If you're an econometrician and want to prove something about the GDP of a country and want to be as close as possible to the real monetary value, then you'll care about it for sure. No? It depends on your problem. I'm also going to skip the steps of the proof that it's a contraction mapping.",
+   "fr": "C'est possible. Si vous résolvez un environnement grid world en apprentissage par renforcement, ça ne vous importera pas. Si vous êtes économètre et que vous voulez démontrer quelque chose sur le PIB d'un pays en étant le plus près possible de la vraie valeur monétaire, alors ça vous importera, c'est sûr. Non ? Ça dépend de votre problème. Je vais aussi sauter les étapes de la preuve que c'est une application contractante.",
+   "readable": "For a grid world, a certificate hardly matters; for an econometrician estimating a country's GDP, it does. I will also skip the proof that the operator is a contraction.",
+   "readable_fr": "Pour un grid world, un certificat importe peu ; pour un économètre qui estime le PIB d'un pays, il importe. Je saute aussi la preuve que l'opérateur est une contraction."
+  },
+  {
+   "t": 2140220,
+   "text": "It's good material to study for an exam, like a comprehensive exam, but again, I choose my battles. Nothing too fancy is going on. We just bound things in a smart manner. We use the fact that we have a stochastic matrix, that things sum up to one. We simplify our bound in terms of the maximum. What else do we use? Probably the triangle inequality, if I remember correctly. Yes, there we go, the triangle inequality, and that's how it goes. So we'll skip that. I've got cool demos here; look at them on your own, because again, there's too much stuff, and if you want the pleasure of having midterm number two, we need to get going. So here's the second part. It has to do with an alternative to value iteration, called policy iteration. Often, if you look at",
+   "fr": "C'est de la bonne matière à étudier pour un examen, comme un examen de synthèse, mais encore une fois, je choisis mes batailles. Rien de bien sorcier. On borne simplement les choses habilement. On utilise le fait que la matrice est stochastique, que les lignes somment à un. On simplifie la borne en termes du maximum. Quoi d'autre ? Probablement l'inégalité triangulaire, si je me souviens bien. Oui, voilà, l'inégalité triangulaire, et c'est comme ça que ça se passe. Donc on saute. J'ai des démos intéressantes ici ; regardez-les de votre côté, parce qu'encore une fois, il y a trop de matière, et si vous voulez avoir le plaisir du deuxième intra, il faut avancer. Voici donc la deuxième partie. Elle porte sur une alternative à l'itération de valeur, l'itération de politique. Souvent, si on regarde",
+   "readable": "The proof is good exam preparation but uses nothing fancy: the rows of a stochastic matrix sum to one, a bound in terms of the maximum, and the triangle inequality. The demos in the notes are for you to explore. Second part: policy iteration, an alternative to value iteration. Historically,",
+   "readable_fr": "La preuve est une bonne préparation d'examen mais n'utilise rien de sorcier : les lignes d'une matrice stochastique somment à un, une borne en termes du maximum et l'inégalité triangulaire. Les démos des notes sont à explorer de votre côté. Deuxième partie : l'itération de politique, une alternative à l'itération de valeur. Historiquement,"
+  },
+  {
+   "t": 2211170,
+   "text": "the historical references, policy iteration is credited to Howard. These are big names in the field of MDPs: Bellman '59[?], and then Howard '61 or '63[?], I can't quite remember, something along those lines. And Howard himself, I think, was calling this procedure approximation in policy space, and it's useful to bring back that expression because it gives another perspective on what the algorithm does. In value iteration, we search within the space of value functions as a way to search the space of optimal policies. So it's kind of indirect, right? With policy iteration, we're essentially searching the space of policies directly. And we're not going to",
+   "fr": "les références historiques, l'itération de politique est attribuée à Howard. Ce sont de grands noms du domaine des MDP : Bellman en 59, puis Howard en 61 ou 63, je ne me souviens plus exactement. Et Howard lui-même, je crois, appelait cette procédure approximation dans l'espace des politiques, et c'est utile de ramener cette expression parce qu'elle donne un autre point de vue sur ce que fait l'algorithme. En itération de valeur, on cherche dans l'espace des fonctions de valeur pour chercher dans l'espace des politiques optimales. C'est donc indirect, non ? Avec l'itération de politique, on cherche essentiellement directement dans l'espace des politiques. Et on ne va pas",
+   "readable": "policy iteration is credited to Howard, after Bellman; I am unsure of the exact years[?]. It is also called approximation in policy space, a useful phrase: value iteration searches indirectly, through value functions, whereas policy iteration searches the space of policies directly,",
+   "readable_fr": "l'itération de politique est attribuée à Howard, après Bellman ; je ne suis pas sûr des années exactes. On l'appelle aussi approximation dans l'espace des politiques, une expression utile : l'itération de valeur cherche indirectement, à travers les fonctions de valeur, alors que l'itération de politique cherche directement dans l'espace des politiques,"
+  },
+  {
+   "t": 2274150,
+   "text": "use gradient descent explicitly[?], at least at first glance. This is what I want to highlight here. That being said, a connection was made later on, including by Martin Puterman himself in 1974[?]: policy iteration ends up being a form of Newton's method in policy space.",
+   "fr": "utiliser explicitement la descente de gradient, du moins à première vue. C'est ce que je veux souligner ici. Cela dit, un lien a été établi plus tard, notamment par Martin Puterman lui-même en 1974 : l'itération de politique s'avère être une forme de méthode de Newton dans l'espace des politiques.",
+   "readable": "without, at first sight, any explicit gradient step[?]. Later work, including by Puterman[?], showed that policy iteration is a form of Newton's method in policy space.",
+   "readable_fr": "sans, à première vue, de pas de gradient explicite. Des travaux ultérieurs, notamment de Puterman, ont montré que l'itération de politique est une forme de méthode de Newton dans l'espace des politiques."
+  },
+  {
+   "t": 2307110,
+   "text": "Let me write down policy iteration, because I think we don't even have it written down, and we should. Do we have it? If not, I'm going to write it on the board.",
+   "fr": "Laissez-moi écrire l'itération de politique, parce que je pense qu'on ne l'a même pas écrite, et on devrait. Est-ce qu'on l'a ? Sinon, je vais l'écrire au tableau.",
+   "readable": "Let me write down policy iteration, which is missing from the notes.",
+   "readable_fr": "Écrivons l'itération de politique, qui manque dans les notes."
+  },
+  {
+   "t": 2343870,
+   "text": "We don't have policy iteration. I'll update the notes, sorry. But I can write it on the board instead, because I can't cover the connection to Newton-Kantorovich if I don't first show what the algorithm looks like. There are two steps we interleave, and this is where, if you have a procedure for policy evaluation, you can repurpose it to find optimal policies.",
+   "fr": "On n'a pas l'itération de politique. Je mettrai les notes à jour, désolé. Mais je peux l'écrire au tableau à la place, parce que je ne peux pas présenter le lien avec Newton-Kantorovitch sans d'abord montrer l'algorithme. Il y a deux étapes qu'on alterne, et c'est là que, si vous avez une procédure d'évaluation de politique, vous pouvez la réutiliser pour trouver des politiques optimales.",
+   "readable": "I will add it to the notes; for now, the board, since the link to Newton-Kantorovich needs the algorithm first. Policy iteration alternates two steps and reuses policy evaluation to find optimal policies.",
+   "readable_fr": "Je l'ajouterai aux notes ; pour l'instant, le tableau, puisque le lien avec Newton-Kantorovitch demande d'abord l'algorithme. L'itération de politique alterne deux étapes et réutilise l'évaluation de politique pour trouver des politiques optimales."
+  },
+  {
+   "t": 2382040,
+   "text": "You can use it as a subroutine. First, let's start with a guess of what your policy might be; call it \\(\\pi_0\\). Right after that, if you've implemented a policy evaluation procedure, you can compute this thing, which I'll write as \\(v_{\\pi_0}\\): the value function associated with policy \\(\\pi_0\\), which might not be optimal, and most likely won't be.",
+   "fr": "On peut l'utiliser comme sous-routine. D'abord, on part d'une supposition de ce que pourrait être la politique ; appelons-la \\(\\pi_0\\). Juste après, si on a implémenté une procédure d'évaluation de politique, on peut calculer ceci, que je note \\(v_{\\pi_0}\\) : la fonction de valeur associée à la politique \\(\\pi_0\\), qui n'est peut-être pas optimale, et ne le sera probablement pas.",
+   "readable": "Start from an initial policy \\(\\pi_0\\) and evaluate it to get \\(v_{\\pi_0}\\), which is most likely not optimal.",
+   "readable_fr": "On part d'une politique initiale \\(\\pi_0\\) et on l'évalue pour obtenir \\(v_{\\pi_0}\\), qui n'est très probablement pas optimale."
+  },
+  {
+   "t": 2418610,
+   "text": "If we use a direct solver, you can write it directly like this: \\(v_{\\pi_0} = (I-\\gamma P_{\\pi_0})^{-1} r_{\\pi_0}\\). Let me remind you how you compute this thing. This is a matrix, and if you index it and look at row \\(i\\) and column \\(j\\), it's a sum over all the actions allowed in state \\(i\\), weighted by the policy, which I'll assume can be stochastic, but when I write it this way it means it's a",
+   "fr": "Avec un solveur direct, on l'écrit directement ainsi : \\(v_{\\pi_0} = (I-\\gamma P_{\\pi_0})^{-1} r_{\\pi_0}\\). Laissez-moi vous rappeler comment calculer ça. C'est une matrice, et si on l'indexe à la ligne \\(i\\) et à la colonne \\(j\\), c'est une somme sur toutes les actions permises dans l'état \\(i\\), pondérée par la politique, que je suppose possiblement stochastique, mais l'écrire ainsi veut dire que c'est une",
+   "readable": "With a direct solver, \\(v_{\\pi_0} = (I-\\gamma P_{\\pi_0})^{-1} r_{\\pi_0}\\). Entry \\((i,j)\\) of \\(P_{\\pi}\\) sums over the actions allowed in state \\(i\\), weighted by the policy, which may be stochastic but here is a",
+   "readable_fr": "Avec un solveur direct, \\(v_{\\pi_0} = (I-\\gamma P_{\\pi_0})^{-1} r_{\\pi_0}\\). L'entrée \\((i,j)\\) de \\(P_{\\pi}\\) somme sur les actions permises dans l'état \\(i\\), pondérées par la politique, qui peut être stochastique mais qui est ici une"
+  },
+  {
+   "t": 2485990,
+   "text": "Markovian stationary policy: \\(\\sum_a \\pi(a\\mid i)\\, p(j\\mid i,a)\\). The expected next state. And the same for \\(r_\\pi\\): it's a vector with as many entries as we have states in the system.",
+   "fr": "politique markovienne stationnaire : \\(\\sum_a \\pi(a\\mid i)\\, p(j\\mid i,a)\\). L'état suivant espéré. Et pareil pour \\(r_\\pi\\) : c'est un vecteur avec autant d'entrées que d'états dans le système.",
+   "readable": "Markovian stationary policy: \\([P_\\pi]_{ij} = \\sum_a \\pi(a\\mid i)\\, p(j\\mid i,a)\\). Likewise \\(r_\\pi\\) is a vector with one entry per state,",
+   "readable_fr": "politique markovienne stationnaire : \\([P_\\pi]_{ij} = \\sum_a \\pi(a\\mid i)\\, p(j\\mid i,a)\\). De même, \\(r_\\pi\\) est un vecteur avec une entrée par état,"
+  },
+  {
+   "t": 2516170,
+   "text": "You look at component \\(i\\): it's the expected immediate reward. Same story. You compute this as the first step, and we call this step policy evaluation. And in the second step, we want to make \\(\\pi_0\\) better.",
+   "fr": "On regarde la composante \\(i\\) : c'est la récompense immédiate espérée. Même histoire. On calcule ça comme première étape, qu'on appelle l'évaluation de politique. Et à la deuxième étape, on veut améliorer \\(\\pi_0\\).",
+   "readable": "whose \\(i\\)-th component is the expected immediate reward. That is the first step, policy evaluation. The second step improves \\(\\pi_0\\).",
+   "readable_fr": "dont la composante \\(i\\) est la récompense immédiate espérée. C'est la première étape, l'évaluation de politique. La deuxième étape améliore \\(\\pi_0\\)."
+  },
+  {
+   "t": 2553560,
+   "text": "It's not already optimal; we want to make it better. And how are we going to make it better? Are we going to do gradient descent, take the gradient, make a correction?[?] We're going to do something like this, the policy improvement step. Sorry, getting a little ahead of myself. What am I going to do? I'm going to generate a new policy.",
+   "fr": "Elle n'est pas déjà optimale ; on veut l'améliorer. Et comment l'améliorer ? Faire une descente de gradient, prendre le gradient, faire une correction ? On va faire quelque chose comme ceci, l'étape d'amélioration de politique. Pardon, je m'emballe un peu. Qu'est-ce que je vais faire ? Je vais générer une nouvelle politique.",
+   "readable": "How do we improve it? Not by a gradient step[?], but by the policy improvement step, which generates a new policy.",
+   "readable_fr": "Comment l'améliorer ? Pas par un pas de gradient, mais par l'étape d'amélioration de politique, qui produit une nouvelle politique."
+  },
+  {
+   "t": 2588550,
+   "text": "I'll call it \\(\\pi'\\) here, the next policy. And this \\(\\pi'\\) in a given state \\(s\\) will be the \\(v_\\pi\\)-improving, or greedy, policy with respect to our current value function: \\(\\pi'(s) = \\arg\\max_a \\{ r(s,a) + \\gamma \\sum_j p(j\\mid s,a)\\, v_\\pi(j) \\}\\). The key part is \\(v\\) from the previous step,",
+   "fr": "Je l'appelle \\(\\pi'\\) ici, la politique suivante. Et cette \\(\\pi'\\), dans un état \\(s\\) donné, sera la politique \\(v_\\pi\\)-améliorante, ou gloutonne, par rapport à notre fonction de valeur courante : \\(\\pi'(s) = \\arg\\max_a \\{ r(s,a) + \\gamma \\sum_j p(j\\mid s,a)\\, v_\\pi(j) \\}\\). L'élément clé est le \\(v\\) de l'étape précédente,",
+   "readable": "The new policy \\(\\pi'\\) is greedy with respect to the current value function: \\(\\pi'(s) = \\arg\\max_a \\{ r(s,a) + \\gamma \\sum_j p(j\\mid s,a)\\, v_\\pi(j) \\}\\), using \\(v\\) from the previous step,",
+   "readable_fr": "La nouvelle politique \\(\\pi'\\) est gloutonne par rapport à la fonction de valeur courante : \\(\\pi'(s) = \\arg\\max_a \\{ r(s,a) + \\gamma \\sum_j p(j\\mid s,a)\\, v_\\pi(j) \\}\\), avec le \\(v\\) de l'étape précédente,"
+  },
+  {
+   "t": 2647530,
+   "text": "which I just call \\(\\pi\\) here: \\(v_\\pi(j)\\). So we do these two things over and over. Here I've got \\(\\pi\\), and here I've generated \\(\\pi'\\). In the next step, we compute the value function of that new policy I've produced. And I keep on doing this.",
+   "fr": "que j'appelle simplement \\(\\pi\\) ici : \\(v_\\pi(j)\\). Donc on fait ces deux choses encore et encore. Ici j'ai \\(\\pi\\), et ici j'ai généré \\(\\pi'\\). À l'étape suivante, on calcule la fonction de valeur de cette nouvelle politique. Et on continue ainsi.",
+   "readable": "\\(v_\\pi\\). The two steps alternate: evaluate the new policy, improve it, and repeat.",
+   "readable_fr": "\\(v_\\pi\\). Les deux étapes alternent : évaluer la nouvelle politique, l'améliorer, et recommencer."
+  },
+  {
+   "t": 2680830,
+   "text": "And until when do I do this? The termination criterion here is quite neat. Whenever you see the same policy twice, it's because you've landed on the optimal policy. This can be proven in the finite state space case: whenever the same policy occurs twice. It's an argument you can make only for finite state spaces.",
+   "fr": "Et jusqu'à quand ? Le critère d'arrêt ici est assez élégant. Dès qu'on voit la même politique deux fois, c'est qu'on est tombé sur la politique optimale. On peut le prouver dans le cas d'un espace d'états fini : dès que la même politique apparaît deux fois. C'est un argument valable seulement pour les espaces d'états finis.",
+   "readable": "The stopping rule is neat: when the same policy appears twice, it is optimal. The argument is valid for finite state spaces.",
+   "readable_fr": "La règle d'arrêt est élégante : quand la même politique apparaît deux fois, elle est optimale. L'argument vaut pour les espaces d'états finis."
+  },
+  {
+   "t": 2713330,
+   "text": "That's good enough. If you want to show convergence of policy iteration in continuous state spaces, that's where you need heavier machinery, like Newton-Kantorovich. We'll talk about that. [Student comment.] Yeah, very good point. So policy iteration is actually quite effective.",
+   "fr": "Ça suffit. Pour montrer la convergence de l'itération de politique dans des espaces d'états continus, il faut une machinerie plus lourde, comme Newton-Kantorovitch. On en reparlera. [Commentaire d'un étudiant.] Oui, très bon point. Donc l'itération de politique est en fait très efficace.",
+   "readable": "For continuous state spaces, convergence requires heavier tools such as Newton-Kantorovich, which we will discuss. Policy iteration is very effective in practice.",
+   "readable_fr": "Pour les espaces d'états continus, la convergence exige des outils plus lourds comme Newton-Kantorovitch, qu'on verra. L'itération de politique est très efficace en pratique."
+  },
+  {
+   "t": 2746140,
+   "text": "It's quite efficient. It converges much faster than value iteration. Why? Same story: it's Newton-Kantorovich under the hood. Newton's method, you know, is good at this, right? So it converges faster. But you do more work per iteration, per step. In value iteration, each step is only \\(n^2\\). Here, you do a matrix inversion, a policy evaluation, every step, so it's more expensive.",
+   "fr": "Elle est très efficace. Elle converge beaucoup plus vite que l'itération de valeur. Pourquoi ? Même histoire : c'est Newton-Kantorovitch sous le capot. La méthode de Newton, vous savez, est bonne pour ça, non ? Donc elle converge plus vite. Mais on fait plus de travail par itération, par pas. En itération de valeur, chaque pas ne coûte que \\(n^2\\). Ici, on fait une inversion de matrice, une évaluation de politique, à chaque pas, donc c'est plus coûteux.",
+   "readable": "It converges much faster than value iteration because it is Newton's method under the hood. Each iteration costs more, though: a full policy evaluation instead of an \\(n^2\\) update.",
+   "readable_fr": "Elle converge beaucoup plus vite que l'itération de valeur parce que c'est la méthode de Newton sous le capot. Chaque itération coûte toutefois plus : une évaluation de politique complète au lieu d'une mise à jour en \\(n^2\\)."
+  },
+  {
+   "t": 2778340,
+   "text": "But this suggests another variant. What could I do instead for line number one? I've taught you two ways of solving policy evaluation. When I write it this way, I assume a direct matrix solve. But I could also have another loop in there, of successive approximation. And once you do successive approximation, you might say: instead of converging to the true value function, I could be lazy and get away with only a few steps. So that's another variant.",
+   "fr": "Mais ça suggère une autre variante. Que pourrais-je faire autrement pour la ligne un ? Je vous ai montré deux façons de résoudre l'évaluation de politique. Écrite ainsi, je suppose une résolution matricielle directe. Mais je pourrais aussi y mettre une autre boucle, d'approximations successives. Et une fois qu'on fait des approximations successives, on peut se dire : au lieu de converger vers la vraie fonction de valeur, je pourrais être paresseux et me contenter de quelques pas. C'est une autre variante.",
+   "readable": "This suggests a variant: replace the direct solve in the evaluation step by successive approximation, and stop after only a few iterations rather than converging.",
+   "readable_fr": "D'où une variante : remplacer la résolution directe de l'étape d'évaluation par des approximations successives, et s'arrêter après quelques itérations au lieu de converger."
+  },
+  {
+   "t": 2820740,
+   "text": "I'll come back to this after the break. It's called modified policy iteration, MPI. And MPI gives you a way to interpolate between policy iteration at one end and value iteration at the other. Let's take a break. We'll be back in 10, all right?",
+   "fr": "J'y reviens après la pause. Ça s'appelle l'itération de politique modifiée, MPI. Et MPI permet d'interpoler entre l'itération de politique à un bout et l'itération de valeur à l'autre. Prenons une pause. On revient dans 10 minutes, d'accord ?",
+   "readable": "This is modified policy iteration (MPI), which interpolates between policy iteration and value iteration. We will return to it after the break.",
+   "readable_fr": "C'est l'itération de politique modifiée (MPI), qui interpole entre l'itération de politique et l'itération de valeur. On y revient après la pause."
+  },
+  {
+   "t": 2851490,
+   "text": "OK. Let's get going with this. So we said policy iteration, but one variant that comes to mind is to replace the direct solve by an iterative counterpart. One way to see this: remind yourself that this is really all a Neumann series in disguise.",
+   "fr": "D'accord. Allons-y. On a dit l'itération de politique, mais une variante qui vient à l'esprit, c'est de remplacer la résolution directe par un équivalent itératif. Une façon de le voir : rappelez-vous que tout ça n'est en réalité qu'une série de Neumann déguisée.",
+   "readable": "Back to modified policy iteration: replace the direct solve by an iterative one. The inverse is a Neumann series in disguise.",
+   "readable_fr": "Retour à l'itération de politique modifiée : remplacer la résolution directe par une résolution itérative. L'inverse est une série de Neumann déguisée."
+  },
+  {
+   "t": 2888360,
+   "text": "So you could truncate it, and only take the first \\(k\\) terms of that series. So \\(k\\) becomes a hyperparameter of MPI, modified policy iteration. Let's start with the obvious: what happens when \\(k\\) is infinity? Here, with \\(k\\), we're going to write it like that.",
+   "fr": "On pourrait donc la tronquer, et ne garder que les \\(k\\) premiers termes de la série. \\(k\\) devient alors un hyperparamètre de MPI, l'itération de politique modifiée. Commençons par l'évident : que se passe-t-il quand \\(k\\) est infini ? Ici, avec \\(k\\), on va l'écrire comme ça.",
+   "readable": "Truncate the series after \\(k\\) terms; \\(k\\) becomes the hyperparameter of MPI. What happens when \\(k=\\infty\\)?",
+   "readable_fr": "On tronque la série après \\(k\\) termes ; \\(k\\) devient l'hyperparamètre de MPI. Que se passe-t-il quand \\(k=\\infty\\) ?"
+  },
+  {
+   "t": 2924970,
+   "text": "When \\(k\\) is infinity, you fall back to policy iteration. Something's missing; what's missing in my math? And at the other end of the spectrum, we can take only one term of that expansion, and consider an approximation that looks like \\(r_\\pi + \\gamma P_\\pi v_k\\).",
+   "fr": "Quand \\(k\\) est infini, on retombe sur l'itération de politique. Il manque quelque chose ; qu'est-ce qui manque dans mes maths ? Et à l'autre bout du spectre, on peut ne prendre qu'un terme du développement, et considérer une approximation de la forme \\(r_\\pi + \\gamma P_\\pi v_k\\).",
+   "readable": "With \\(k=\\infty\\) we recover policy iteration. At the other end, keeping a single term gives the update \\(r_\\pi + \\gamma P_\\pi v_k\\).",
+   "readable_fr": "Avec \\(k=\\infty\\), on retrouve l'itération de politique. À l'autre bout, ne garder qu'un terme donne la mise à jour \\(r_\\pi + \\gamma P_\\pi v_k\\)."
+  },
+  {
+   "t": 2989900,
+   "text": "So at the other end of the spectrum, you take a step that goes towards value iteration. When you do policy improvement, what do we compute? We're computing the argmax within the value iteration procedure. So why, intuitively, would MPI work, in fact?",
+   "fr": "Donc à l'autre bout du spectre, on fait un pas qui ressemble à l'itération de valeur. Quand on fait l'amélioration de politique, que calcule-t-on ? On calcule l'argmax dans la procédure d'itération de valeur. Alors pourquoi, intuitivement, MPI fonctionnerait-elle ?",
+   "readable": "Combined with the greedy improvement, which is the argmax inside value iteration, this end is value iteration. Why does MPI work, intuitively?",
+   "readable_fr": "Combiné à l'amélioration gloutonne, qui est l'argmax de l'itération de valeur, ce bout est l'itération de valeur. Pourquoi MPI fonctionne-t-elle, intuitivement ?"
+  },
+  {
+   "t": 3024400,
+   "text": "One way to think of the role of \\((I-\\gamma P_\\pi)^{-1}\\) is as a linearization, not the linearization of a scalar function in the usual calculus sense, but the linearization of an operator equation. Think of \\(I-\\gamma P_\\pi\\) as giving you a direction, just like Newton's method gives you the Hessian. And the Hessian acts basically as a dynamic step-size schedule, right? It's the same role being played here. And in the same way that, with Newton's method, people often end up using approximate Hessians or approximate directions,",
+   "fr": "Une façon de voir le rôle de \\((I-\\gamma P_\\pi)^{-1}\\), c'est comme une linéarisation, pas celle d'une fonction scalaire au sens habituel du calcul différentiel, mais la linéarisation d'une équation d'opérateur. Pensez à \\(I-\\gamma P_\\pi\\) comme ce qui donne une direction, comme la méthode de Newton fait intervenir la hessienne. Et la hessienne agit essentiellement comme un pas d'apprentissage dynamique, non ? C'est le même rôle ici. Et de la même façon qu'avec la méthode de Newton, on finit souvent par utiliser des hessiennes approchées ou des directions approchées,",
+   "readable": "\\((I-\\gamma P_\\pi)^{-1}\\) plays the role of a linearization of the operator equation, like the Hessian in Newton's method, which acts as an adaptive step size. Just as Newton's method is often run with an approximate Hessian,",
+   "readable_fr": "\\((I-\\gamma P_\\pi)^{-1}\\) joue le rôle d'une linéarisation de l'équation d'opérateur, comme la hessienne dans la méthode de Newton, qui agit comme un pas adaptatif. De même qu'on utilise souvent la méthode de Newton avec une hessienne approchée,"
+  },
+  {
+   "t": 3087540,
+   "text": "that's basically what's happening here. I think I'll skip the heavy math machinery of Newton-Kantorovich today, because I really want to jump to this section. We can come back to Newton-Kantorovich afterwards; I think it will be simpler to see in the context of the smooth Bellman equation. Okay, so now we've got all the building blocks in place: the Bellman operator, greedy policies, the policy evaluation operator, contraction mappings, successive approximation, the termination criterion for successive approximation, and policy iteration and its generalization.",
+   "fr": "c'est essentiellement ce qui se passe ici. Je pense que je vais sauter la lourde machinerie mathématique de Newton-Kantorovitch aujourd'hui, parce que je veux vraiment passer à cette section. On pourra revenir à Newton-Kantorovitch ensuite ; je pense que ce sera plus simple à voir dans le contexte de l'équation de Bellman lisse. D'accord, on a maintenant toutes les briques : l'opérateur de Bellman, les politiques gloutonnes, l'opérateur d'évaluation de politique, les applications contractantes, les approximations successives, le critère d'arrêt des approximations successives, et l'itération de politique et sa généralisation.",
+   "readable": "MPI uses an approximate direction. Newton-Kantorovich will come later, more simply, with the smooth Bellman equation. We now have the building blocks: the Bellman and policy evaluation operators, greedy policies, contractions, successive approximation with its stopping rule, and policy iteration with its generalization.",
+   "readable_fr": "MPI utilise une direction approchée. Newton-Kantorovitch viendra plus tard, plus simplement, avec l'équation de Bellman lisse. Nous avons maintenant les briques : les opérateurs de Bellman et d'évaluation de politique, les politiques gloutonnes, les contractions, les approximations successives avec leur règle d'arrêt, et l'itération de politique avec sa généralisation."
+  },
+  {
+   "t": 3128040,
+   "text": "Now we're good to continue with the next step, which is to consider a different operator. For the moment we're not going to give any justification for why you'd want to do this, except that I think for most of us it's a natural thing to try. Whenever we see a max in our Bellman equations, we say: how about we use a smooth approximation to the maximum?",
+   "fr": "On peut maintenant passer à l'étape suivante : considérer un autre opérateur. Pour l'instant, on ne donnera aucune justification de pourquoi on voudrait faire ça, sauf que pour la plupart d'entre nous, c'est naturel d'essayer. Partout où on voit un max dans nos équations de Bellman, on se dit : et si on utilisait une approximation lisse du maximum ?",
+   "readable": "Next, a different operator. Without justification for now: wherever the Bellman equations have a max, replace it by a smooth approximation of the maximum.",
+   "readable_fr": "Ensuite, un autre opérateur. Sans justification pour l'instant : partout où les équations de Bellman ont un max, remplaçons-le par une approximation lisse du maximum."
+  },
+  {
+   "t": 3164040,
+   "text": "And I know there are multiple smooth approximations; there's not a single one, but this one tends to be the most universal. It seems to be in the very fabric of the universe. So let's look at equation number two. It's written here for a discrete set of actions; the same could be done for a continuous set. And this term, \\(\\frac{1}{\\beta}\\log\\sum\\exp\\), the LSE, is our smooth maximum.",
+   "fr": "Et je sais qu'il existe plusieurs approximations lisses ; il n'y en a pas qu'une, mais celle-ci est la plus universelle. Elle semble faire partie du tissu même de l'univers. Regardons l'équation numéro deux. Elle est écrite ici pour un ensemble d'actions discret ; on pourrait faire la même chose pour un ensemble continu. Et ce terme, \\(\\frac{1}{\\beta}\\log\\sum\\exp\\), le LSE, c'est notre maximum lisse.",
+   "readable": "Of the several smooth maxima, the most universal is the log-sum-exp in equation (2), written for discrete actions but extendable to continuous ones: \\(\\frac{1}{\\beta}\\log\\sum_a\\exp(\\beta\\,\\cdot)\\).",
+   "readable_fr": "Parmi les maxima lisses, le plus universel est le log-somme-exp de l'équation (2), écrit pour des actions discrètes mais généralisable aux actions continues : \\(\\frac{1}{\\beta}\\log\\sum_a\\exp(\\beta\\,\\cdot)\\)."
+  },
+  {
+   "t": 3204300,
+   "text": "And now \\(\\beta\\) is a knob that controls the degree of approximation to the hard maximum. Let me try not to stumble, because depending on the convention it's one over, since you can also write it in terms of the temperature. But here, as \\(\\beta\\) goes to infinity, \\(1/\\beta\\) gets smaller and smaller, which is akin to the temperature going down.",
+   "fr": "Et \\(\\beta\\) est maintenant un bouton qui contrôle le degré d'approximation du maximum dur. Essayons de ne pas m'emmêler, parce que selon la convention c'est l'inverse, puisqu'on peut aussi l'écrire en termes de température. Mais ici, quand \\(\\beta\\) tend vers l'infini, \\(1/\\beta\\) devient de plus en plus petit, ce qui revient à faire baisser la température.",
+   "readable": "\\(\\beta\\) controls how closely it approximates the hard max. With temperature \\(\\tau = 1/\\beta\\), letting \\(\\beta\\to\\infty\\) means lowering the temperature.",
+   "readable_fr": "\\(\\beta\\) contrôle la qualité de l'approximation du max dur. Avec la température \\(\\tau = 1/\\beta\\), faire tendre \\(\\beta\\to\\infty\\) revient à baisser la température."
+  },
+  {
+   "t": 3241020,
+   "text": "And the temperature going down means our system, think of it in physics, becomes more organized, more peaked, and collapses down to the maximum operator. There will be an interpretation in terms of entropy later on, but for now we just say: log-sum-exp is the choice you make; it's got a hyperparameter now, called the temperature, and as we crank down the temperature, the system gets really, really cold and behaves like the maximum. Now, the same way that when we did value iteration or policy iteration there was always a max and an argmax,",
+   "fr": "Et quand la température baisse, le système, pensez à la physique, devient plus ordonné, plus pointu, et se réduit à l'opérateur max. Il y aura une interprétation en termes d'entropie plus tard, mais pour l'instant on dit : le log-somme-exp est le choix qu'on fait ; il a maintenant un hyperparamètre, la température, et quand on baisse la température, le système devient très, très froid et se comporte comme le maximum. Maintenant, de la même façon qu'en itération de valeur ou de politique il y avait toujours un max et un argmax,",
+   "readable": "As in physics, lowering the temperature makes the system more ordered and peaked, and the log-sum-exp collapses to the max. An entropy interpretation will come later. Just as value and policy iteration involve both a max and an argmax,",
+   "readable_fr": "Comme en physique, baisser la température rend le système plus ordonné et plus pointu, et le log-somme-exp se réduit au max. Une interprétation entropique viendra plus tard. De même que les itérations de valeur et de politique font intervenir un max et un argmax,"
+  },
+  {
+   "t": 3286470,
+   "text": "those are two different things. The max gives you the value at the maximum; the argmax gives you the argument that achieves the maximum. The counterpart of the argmax is unfortunately called the softmax, which is a big problem, and maybe you should be stricter about this when you rewrite the textbooks. What we call the softmax, or the Boltzmann distribution, the Boltzmann policy, is really the soft argmax.",
+   "fr": "ce sont deux choses différentes. Le max donne la valeur au maximum ; l'argmax donne l'argument qui atteint le maximum. L'équivalent de l'argmax s'appelle malheureusement softmax, ce qui est un gros problème, et vous devriez peut-être être plus rigoureux là-dessus quand vous réécrirez les manuels. Ce qu'on appelle softmax, ou distribution de Boltzmann, politique de Boltzmann, est en réalité un soft argmax.",
+   "readable": "the smooth case has both. The max returns the value and the argmax the maximizer. The smooth counterpart of the argmax is unfortunately called the softmax; the softmax, or Boltzmann policy, is really a soft argmax.",
+   "readable_fr": "le cas lisse a les deux. Le max renvoie la valeur et l'argmax le maximiseur. L'équivalent lisse de l'argmax s'appelle malheureusement softmax ; le softmax, ou politique de Boltzmann, est en réalité un soft argmax."
+  },
+  {
+   "t": 3319160,
+   "text": "The soft argmax is equation number three. We took our good old equation from before, where we took the argmax, and now we take the softmax instead. In doing this, however, we went from deterministic policies to stochastic policies.",
+   "fr": "Le soft argmax, c'est l'équation numéro trois. On a pris notre bonne vieille équation d'avant, où l'on prenait l'argmax, et maintenant on prend plutôt le softmax. Ce faisant, cependant, on passe de politiques déterministes à des politiques stochastiques.",
+   "readable": "Equation (3) replaces the greedy argmax by this softmax, so policies become stochastic instead of deterministic.",
+   "readable_fr": "L'équation (3) remplace l'argmax glouton par ce softmax, si bien que les politiques deviennent stochastiques au lieu de déterministes."
+  },
+  {
+   "t": 3350230,
+   "text": "Same story as usual, though: if you decrease the temperature to zero, that softmax policy collapses to the deterministic policy, and you recover the hard Bellman equation. But for nonzero temperature, it gives you a stochastic policy, which is both good and bad. First of all, a stochastic policy can be useful, because noise in some cases can be a good thing.",
+   "fr": "Même histoire que d'habitude, cela dit : si on fait tendre la température vers zéro, cette politique softmax se réduit à la politique déterministe, et on retrouve l'équation de Bellman dure. Mais pour une température non nulle, on obtient une politique stochastique, ce qui est à la fois bon et mauvais. D'abord, une politique stochastique peut être utile, parce que le bruit peut parfois être une bonne chose.",
+   "readable": "As the temperature goes to zero, the softmax policy becomes deterministic and we recover the hard Bellman equation. At positive temperature the policy is stochastic, which has pros and cons; noise can help.",
+   "readable_fr": "Quand la température tend vers zéro, la politique softmax devient déterministe et on retrouve l'équation de Bellman dure. À température positive, la politique est stochastique, ce qui a des avantages et des inconvénients ; le bruit peut aider."
+  },
+  {
+   "t": 3384180,
+   "text": "Noise gives you a way to explore. And when you need to gather your own data, as we do in reinforcement learning most of the time, it's crucial to be able to explore. Does anyone know what other fields call that, exploration? I was sitting on a PhD exam two or three weeks ago, and fortunately I knew what was going on and why they were using that term. Let's say you're an engineer, you do system identification, and you say: I'm going to collect data.",
+   "fr": "Le bruit permet d'explorer. Et quand on doit recueillir ses propres données, comme c'est presque toujours le cas en apprentissage par renforcement, pouvoir explorer est crucial. Quelqu'un sait comment d'autres domaines appellent ça, l'exploration ? J'étais membre d'un jury de doctorat il y a deux ou trois semaines, et heureusement je savais de quoi il s'agissait et pourquoi ils utilisaient ce terme. Disons que vous êtes ingénieur, que vous faites de l'identification de système, et que vous vous dites : je vais recueillir des données.",
+   "readable": "Noise enables exploration, which is crucial when the agent gathers its own data, as in most of RL. Other fields have their own term for it. Picture an engineer doing system identification who needs to collect data.",
+   "readable_fr": "Le bruit permet l'exploration, cruciale quand l'agent recueille ses propres données, comme dans la plupart des cas en RL. D'autres domaines ont leur propre terme. Imaginez un ingénieur qui fait de l'identification de système et doit recueillir des données."
+  },
+  {
+   "t": 3418900,
+   "text": "So I'll explore. What would you call that? They won't say, I'm going to find an exploration policy. They'll say: I'm going to excite my system. Makes sense, I guess. But the problem of exploration is not unique to machine learning people and reinforcement learning researchers; it's shared by engineers across different fields who try to come up with models of a system. At some point, you need to go and gather data.",
+   "fr": "Donc j'explore. Comment l'appelleriez-vous ? Ils ne diront pas : je vais trouver une politique d'exploration. Ils diront : je vais exciter mon système. Ça se tient, je suppose. Mais le problème de l'exploration n'est pas propre aux gens de l'apprentissage automatique et de l'apprentissage par renforcement ; il est partagé par les ingénieurs de divers domaines qui cherchent à modéliser un système. À un moment donné, il faut aller recueillir des données.",
+   "readable": "Engineers do not speak of an exploration policy; they excite the system. Exploration is not specific to machine learning: anyone modelling a system must, at some point, gather data.",
+   "readable_fr": "Les ingénieurs ne parlent pas de politique d'exploration ; ils excitent le système. L'exploration n'est pas propre à l'apprentissage automatique : quiconque modélise un système doit, à un moment donné, recueillir des données."
+  },
+  {
+   "t": 3451200,
+   "text": "And the question is how you gather the data, especially if you don't know the optimal policy beforehand. You need to wiggle your system in a way that exposes some of the underlying dynamics. Those people would use the term to excite the system. These softmax policies, sometimes also called Boltzmann policies or even Gibbs policies, are stochastic.",
+   "fr": "Et la question est de savoir comment recueillir les données, surtout si on ne connaît pas la politique optimale d'avance. Il faut faire bouger le système de façon à révéler une partie de la dynamique sous-jacente. Ces gens diraient exciter le système. Ces politiques softmax, qu'on appelle aussi parfois politiques de Boltzmann ou même de Gibbs, sont stochastiques.",
+   "readable": "Without the optimal policy in hand, you must perturb the system enough to reveal its dynamics. Softmax policies, also called Boltzmann or Gibbs policies, provide that randomness.",
+   "readable_fr": "Sans connaître la politique optimale, il faut perturber le système assez pour en révéler la dynamique. Les politiques softmax, dites aussi de Boltzmann ou de Gibbs, fournissent ce caractère aléatoire."
+  },
+  {
+   "t": 3488570,
+   "text": "It's both good and bad. Where do you think it's going to be bad? It's going to be quite tricky when you have continuous actions. That would be tricky too if it were deterministic, to be fair. But when the set of actions is continuous, it goes back to the good old favorite problem of people in PGMs and inference: the evil partition function, the intractable partition function.",
+   "fr": "C'est à la fois bon et mauvais. Où est-ce que ce sera mauvais, selon vous ? Ça devient délicat quand les actions sont continues. Ce serait délicat aussi avec une politique déterministe, pour être honnête. Mais quand l'ensemble des actions est continu, on retombe sur le bon vieux problème favori des gens des modèles graphiques et de l'inférence : la terrible fonction de partition, la fonction de partition intraitable.",
+   "readable": "The drawback appears with continuous actions (also hard in the deterministic case): the softmax requires the intractable partition function familiar from graphical models and inference.",
+   "readable_fr": "L'inconvénient apparaît avec des actions continues (difficiles aussi dans le cas déterministe) : le softmax exige la fonction de partition intraitable bien connue des modèles graphiques et de l'inférence."
+  },
+  {
+   "t": 3521750,
+   "text": "What do we mean by an intractable partition function? It means the denominator involves an integral. You could solve the integral with numerical quadrature methods; it's an option, by the way, just never one we quite embrace. But in principle, it's an option. So yes, that's going to be tricky. Now, this framework has been popularized, in my opinion, recently. In AI time, this is dinosaur time,",
+   "fr": "Qu'entend-on par fonction de partition intraitable ? Ça veut dire que le dénominateur fait intervenir une intégrale. On pourrait la calculer par quadrature numérique ; c'est une option, d'ailleurs, mais une qu'on n'adopte jamais vraiment. En principe, c'est possible. Donc oui, ça va être délicat. Ce cadre a été popularisé, à mon avis, récemment. En temps d'IA, c'est l'époque des dinosaures,",
+   "readable": "The denominator is an integral over actions. Numerical quadrature is possible in principle but rarely used. The framework was popularized fairly recently; in AI time that is ancient history,",
+   "readable_fr": "Le dénominateur est une intégrale sur les actions. La quadrature numérique est possible en principe mais rarement utilisée. Le cadre a été popularisé assez récemment ; en temps d'IA, c'est de l'histoire ancienne,"
+  },
+  {
+   "t": 3555230,
+   "text": "but for me it's basically yesterday. A 2014 paper by Tuomas Haarnoja, who I think finished his PhD and has now started a company, of course, in robotics. It should be 2014.",
+   "fr": "mais pour moi, c'est pratiquement hier. Un article de 2014 de Tuomas Haarnoja, qui a terminé son doctorat je crois et qui a maintenant fondé une entreprise, en robotique bien sûr. Ça devrait être 2014.",
+   "readable": "but to me it is yesterday: the work of Tuomas Haarnoja, who has since founded a robotics company.",
+   "readable_fr": "mais pour moi c'est hier : les travaux de Tuomas Haarnoja, qui a depuis fondé une entreprise de robotique."
+  },
+  {
+   "t": 3585230,
+   "text": "Soft Q-learning. It's not showing up in color, maybe, but it should be there. Soft Q-learning. I'm pretty sure it's 2014. No, it's 2017. But in my mind it's 2014. OK, so it's 2017. The ideas are even earlier than that, but let's take that for granted now.",
+   "fr": "Soft Q-learning. Ça n'apparaît pas en couleur, peut-être, mais ça devrait y être. Soft Q-learning. Je suis pas mal sûr que c'est 2014. Non, c'est 2017. Mais dans ma tête, c'est 2014. D'accord, c'est 2017. Les idées sont même plus anciennes, mais tenons ça pour acquis.",
+   "readable": "The paper is soft Q-learning, from 2017, although the ideas are older.",
+   "readable_fr": "L'article est celui du soft Q-learning, de 2017, même si les idées sont plus anciennes."
+  },
+  {
+   "t": 3617350,
+   "text": "It was popularized in 2017. I finished my PhD in 2018, so in my mind it's recent. It was popularized by this. In the soft Q-learning paper, can I find it? Reinforcement Learning with Deep Energy-Based Policies. In this first paper, he explicitly considered the problem of dealing with continuous action spaces.",
+   "fr": "Ça a été popularisé en 2017. J'ai terminé mon doctorat en 2018, donc dans ma tête c'est récent. Ça a été popularisé par ceci. Dans l'article sur le soft Q-learning, est-ce que je le trouve ? Reinforcement Learning with Deep Energy-Based Policies. Dans ce premier article, il s'attaque explicitement au problème des espaces d'actions continus.",
+   "readable": "The 2017 paper, Reinforcement Learning with Deep Energy-Based Policies, explicitly tackled continuous action spaces.",
+   "readable_fr": "L'article de 2017, Reinforcement Learning with Deep Energy-Based Policies, s'attaquait explicitement aux espaces d'actions continus."
+  },
+  {
+   "t": 3659140,
+   "text": "And not only did he popularize that structure, he proposed an algorithm I've never seen anybody use nowadays, using, there you go, Stein variational gradient descent, which I guess makes sense, right? If you do energy-based modeling and want to deal with the partition function, you use a fancy sampler. That's how he dealt with sampling from that softmax policy, with Stein variational gradient descent. But that algorithm didn't last long, because I think it was just too expensive.",
+   "fr": "Et non seulement il a popularisé cette structure, mais il a proposé un algorithme que je ne vois plus personne utiliser aujourd'hui, avec, voilà, la descente de gradient variationnelle de Stein, ce qui se tient, non ? En modélisation à base d'énergie, pour gérer la fonction de partition, on utilise un échantillonneur sophistiqué. C'est ainsi qu'il échantillonnait cette politique softmax, avec la descente de gradient variationnelle de Stein. Mais cet algorithme n'a pas duré, parce que je pense qu'il était tout simplement trop coûteux.",
+   "readable": "To sample from the softmax policy, the paper used Stein variational gradient descent, a natural choice for energy-based models. The algorithm did not last, probably because it was too expensive.",
+   "readable_fr": "Pour échantillonner la politique softmax, l'article utilisait la descente de gradient variationnelle de Stein, un choix naturel pour les modèles à base d'énergie. L'algorithme n'a pas duré, sans doute parce qu'il était trop coûteux."
+  },
+  {
+   "t": 3703400,
+   "text": "He wanted to do continuous control. Instead, the same guy published Soft Actor-Critic one year later, pretty sure it's 2018, yeah, 2018, see? Extremely popular now. It uses the same equations but forgets about Stein variational gradient descent. We'll talk about how it deals with this.",
+   "fr": "Il voulait faire de la commande continue. À la place, le même auteur a publié Soft Actor-Critic un an plus tard, je suis pas mal sûr que c'est 2018, oui, 2018, vous voyez ? Extrêmement populaire aujourd'hui. Il utilise les mêmes équations mais laisse tomber la descente de gradient variationnelle de Stein. On verra comment il gère ça.",
+   "readable": "A year later, in 2018, the same author published Soft Actor-Critic, now extremely popular. It keeps the same equations but drops Stein variational gradient descent; we will see how.",
+   "readable_fr": "Un an plus tard, en 2018, le même auteur publiait Soft Actor-Critic, aujourd'hui extrêmement populaire. Il garde les mêmes équations mais abandonne la descente de gradient variationnelle de Stein ; on verra comment."
+  },
+  {
+   "t": 3733920,
+   "text": "But to understand Soft Actor-Critic, I'll have to talk about fitted value methods, and we'll get there. But yeah, this instantiation is the one we use. OK, for now, let's not worry about that. Here's a bit that is little known. The Haarnoja 2017 paper rightly cites that the framework and the math he's using are inspired by another author in the machine learning literature, who popularized them even earlier: Ziebart.",
+   "fr": "Mais pour comprendre Soft Actor-Critic, il faudra parler des méthodes de valeur ajustée (fitted), et on y arrivera. Mais oui, c'est cette instanciation qu'on utilise. Bon, pour l'instant, n'y pensons pas. Voici un point peu connu. L'article de Haarnoja de 2017 cite à juste titre que le cadre et les maths qu'il utilise s'inspirent d'un autre auteur de la littérature en apprentissage automatique, qui les a popularisés encore plus tôt : Ziebart.",
+   "readable": "Understanding Soft Actor-Critic requires fitted value methods, which come later. A little-known point: Haarnoja's 2017 paper credits its framework to earlier work by Ziebart.",
+   "readable_fr": "Comprendre Soft Actor-Critic demande les méthodes de valeur ajustée, qui viendront plus tard. Un point peu connu : l'article de Haarnoja de 2017 attribue son cadre à des travaux antérieurs de Ziebart."
+  },
+  {
+   "t": 3780940,
+   "text": "Ziebart, the 2013[?] paper. Ziebart used these equations for inverse reinforcement learning. I think he was considering the problem of inferring behaviors from the routes taken by drivers, something like this, a driving application. So this connection is known. And Ziebart's paper is also called maximum entropy reinforcement learning. Why maximum entropy?",
+   "fr": "Ziebart, l'article de 2013. Ziebart a utilisé ces équations pour l'apprentissage par renforcement inverse. Je crois qu'il s'intéressait à inférer des comportements à partir des trajets de conducteurs, quelque chose comme ça, une application à la conduite. Ce lien-là est connu. Et l'article de Ziebart porte aussi le nom d'apprentissage par renforcement à entropie maximale. Pourquoi entropie maximale ?",
+   "readable": "Ziebart used these equations for inverse reinforcement learning, inferring behavior from routes chosen by drivers. That link is well known. The approach is called maximum entropy RL. Why maximum entropy?",
+   "readable_fr": "Ziebart utilisait ces équations pour l'apprentissage par renforcement inverse, en inférant des comportements à partir des trajets de conducteurs. Ce lien est bien connu. L'approche s'appelle RL à entropie maximale. Pourquoi entropie maximale ?"
+  },
+  {
+   "t": 3811720,
+   "text": "Because it follows the tradition of maximum entropy methods, the maximum entropy principle in supervised learning. Now what's interesting, and this is the connection that has been largely forgotten and unfortunately not celebrated enough, is that the same framework, and even more, is found in the work of John Rust in 1987.",
+   "fr": "Parce qu'elle s'inscrit dans la tradition des méthodes à entropie maximale, du principe d'entropie maximale en apprentissage supervisé. Ce qui est intéressant, et c'est le lien largement oublié et malheureusement pas assez célébré, c'est que le même cadre, et même plus, se trouve dans les travaux de John Rust en 1987.",
+   "readable": "It follows the maximum entropy principle of supervised learning. The largely forgotten connection is that the same framework, and more, appears in John Rust's 1987 work.",
+   "readable_fr": "Elle suit le principe d'entropie maximale de l'apprentissage supervisé. Le lien largement oublié, c'est que le même cadre, et davantage, apparaît dans les travaux de John Rust de 1987."
+  },
+  {
+   "t": 3846760,
+   "text": "Now, John Rust is not known at all in the machine learning community, except by those of you who take my course; every year I add, you know, 40-ish students who will remember Rust, and slowly things will change; maybe we'll rewrite history, who knows? John Rust is still alive, and he's an econometrician, and more precisely, there are different kinds of econometricians,",
+   "fr": "John Rust n'est pas du tout connu dans la communauté de l'apprentissage automatique, sauf de ceux qui suivent mon cours ; chaque année, j'ajoute une quarantaine d'étudiants qui se souviendront de Rust, et petit à petit ça va changer ; peut-être qu'on réécrira l'histoire, qui sait ? John Rust est toujours vivant, et c'est un économètre, et plus précisément, il y a différents types d'économètres,",
+   "readable": "Rust is almost unknown in machine learning, except to the forty or so students a year who take this course. He is an econometrician, and more precisely",
+   "readable_fr": "Rust est presque inconnu en apprentissage automatique, sauf de la quarantaine d'étudiants qui suivent ce cours chaque année. C'est un économètre, et plus précisément"
+  },
+  {
+   "t": 3878180,
+   "text": "and he's a structural econometrician. What structural econometrics means is that you want to come up with a structure for how you think economic systems work. You don't want to just make point predictions; you want predictions with explainability, basically. Maybe we could call that mechanistic explainability, somehow.",
+   "fr": "et c'est un économètre structurel. L'économétrie structurelle, c'est vouloir proposer une structure de la façon dont on pense que les systèmes économiques fonctionnent. On ne veut pas seulement des prédictions ponctuelles ; on veut des prédictions explicables, en gros. On pourrait peut-être appeler ça de l'explicabilité mécaniste.",
+   "readable": "a structural econometrician: he posits a structure for how an economic system works, seeking explanations rather than mere point predictions, a kind of mechanistic explainability.",
+   "readable_fr": "un économètre structurel : il postule une structure du fonctionnement d'un système économique, cherchant des explications plutôt que de simples prédictions ponctuelles, une forme d'explicabilité mécaniste."
+  },
+  {
+   "t": 3908900,
+   "text": "We want to posit that there are mathematical mechanisms that explain the behavior. And if there's data, we fit the data to the mechanism, but it's important that we preserve the structure. John Rust in 1987 was faced with this problem; I don't know the context, maybe he had a grant. They had data, maintenance data from bus mechanics fixing and maintaining a fleet of GM buses.",
+   "fr": "On veut postuler des mécanismes mathématiques qui expliquent le comportement. Et s'il y a des données, on ajuste les données au mécanisme, mais il est important de préserver la structure. En 1987, John Rust faisait face à ce problème ; je ne connais pas le contexte, peut-être avait-il une subvention. Ils avaient des données, des données d'entretien de mécaniciens qui réparaient et entretenaient une flotte d'autobus GM.",
+   "readable": "The mechanism comes first and the data are fitted to it, preserving the structure. In 1987, Rust had maintenance records for a fleet of GM buses.",
+   "readable_fr": "Le mécanisme vient d'abord et on y ajuste les données, en préservant la structure. En 1987, Rust disposait des registres d'entretien d'une flotte d'autobus GM."
+  },
+  {
+   "t": 3942980,
+   "text": "And they had the maintenance logs of that person, Harold Zurcher; that was his name. And the research goal they had, I don't know why, that's just how it is, was to figure out how Harold Zurcher was making his decisions to do maintenance on the GM buses. It's actually a problem I've seen recurring quite often.",
+   "fr": "Et ils avaient les registres d'entretien de cette personne, Harold Zurcher ; c'était son nom. Et leur objectif de recherche, je ne sais pas pourquoi, c'est comme ça, était de comprendre comment Harold Zurcher prenait ses décisions d'entretien des autobus GM. C'est d'ailleurs un problème que j'ai vu revenir assez souvent.",
+   "readable": "The logs were those of the maintenance superintendent, Harold Zurcher, and the goal was to understand how he decided when to service the buses. I have seen this problem recur often.",
+   "readable_fr": "Les registres étaient ceux du responsable de l'entretien, Harold Zurcher, et le but était de comprendre comment il décidait quand entretenir les autobus. J'ai vu ce problème revenir souvent."
+  },
+  {
+   "t": 3975620,
+   "text": "I worked with Hitachi three or four years ago. Hitachi does electronics, but they also build big machinery, they're in civil engineering, and they also operate water treatment plants in Japan, amongst other things. One of their concerns was that water treatment plant operators were aging, which is a common thread in Japan: the population is aging, and the country is trying to figure out ways to ensure the continuation of its society over time.",
+   "fr": "J'ai travaillé avec Hitachi il y a trois ou quatre ans. Hitachi fait de l'électronique, mais construit aussi de la grosse machinerie, fait du génie civil, et exploite aussi des usines de traitement d'eau au Japon, entre autres. Une de leurs préoccupations était le vieillissement des opérateurs d'usines de traitement d'eau, un thème récurrent au Japon : la population vieillit, et le pays cherche des façons d'assurer la continuité de sa société dans le temps.",
+   "readable": "A few years ago I worked with Hitachi, which among other things operates water treatment plants in Japan. A concern there was that the plant operators were aging, part of Japan's broader demographic challenge.",
+   "readable_fr": "Il y a quelques années, j'ai travaillé avec Hitachi, qui exploite entre autres des usines de traitement d'eau au Japon. Une préoccupation était le vieillissement des opérateurs, qui s'inscrit dans le défi démographique plus large du Japon."
+  },
+  {
+   "t": 4023260,
+   "text": "So they were trying to figure out how human operators were making decisions to, who knows, add different chemicals to the water, or trigger different pumps, and so on. And they did the same thing, inverse reinforcement learning. So, going back to John Rust: he tried to do what we now call inverse reinforcement learning, where you observe states and actions,",
+   "fr": "Ils cherchaient donc à comprendre comment les opérateurs humains décidaient, je ne sais pas, d'ajouter différents produits chimiques à l'eau, ou de déclencher différentes pompes, etc. Et ils ont fait la même chose, de l'apprentissage par renforcement inverse. Donc, pour revenir à John Rust : il a tenté ce qu'on appelle aujourd'hui l'apprentissage par renforcement inverse, où l'on observe des états et des actions,",
+   "readable": "They wanted to infer how operators decided on chemical dosing or pump activation, again an inverse RL problem. Rust did what we now call inverse reinforcement learning: observe states and actions,",
+   "readable_fr": "Ils voulaient inférer comment les opérateurs décidaient du dosage de produits chimiques ou du démarrage des pompes, encore un problème de RL inverse. Rust a fait ce qu'on appelle aujourd'hui l'apprentissage par renforcement inverse : observer des états et des actions,"
+  },
+  {
+   "t": 4058020,
+   "text": "but you don't know the underlying reward function, because you assume the behavior you observe comes from an MDP, which is a wrong assumption, by the way, to me. And Rust has a great paper called, roughly, Do People Behave According to Bellman's Principle of Optimality?[?] The answer is no. He writes it, and he's really clear about this. Nevertheless, it's a valid research question, and maybe a starting point. So assume your bus mechanic is solving an MDP and you've observed the resulting optimal actions. If you assume it's an MDP, it means you assume humans are perfectly rational beings, which is not the case.",
+   "fr": "sans connaître la fonction de récompense sous-jacente, parce qu'on suppose que le comportement observé vient d'un MDP, ce qui est une hypothèse fausse, d'ailleurs, à mon avis. Et Rust a un excellent article intitulé à peu près : les gens se comportent-ils selon le principe d'optimalité de Bellman ? La réponse est non. Il l'écrit, et il est très clair là-dessus. Néanmoins, c'est une question de recherche valable, et peut-être un point de départ. Donc supposons que votre mécanicien résout un MDP et qu'on a observé les actions optimales qui en résultent. Supposer un MDP, c'est supposer que les humains sont des êtres parfaitement rationnels, ce qui n'est pas le cas.",
+   "readable": "but not the reward, assuming the behavior comes from an MDP. That assumption is wrong in my view, and Rust himself, in a paper asking whether people behave according to Bellman's principle of optimality[?], answers no. It remains a valid starting point. Assuming an MDP means assuming perfectly rational humans, which they are not.",
+   "readable_fr": "mais pas la récompense, en supposant que le comportement vient d'un MDP. Cette hypothèse est fausse à mon avis, et Rust lui-même, dans un article qui demande si les gens se comportent selon le principe d'optimalité de Bellman, répond non. Ça reste un point de départ valable. Supposer un MDP, c'est supposer des humains parfaitement rationnels, ce qu'ils ne sont pas."
+  },
+  {
+   "t": 4105220,
+   "text": "In fact, there's another field, called bounded rationality, that complements this view of perfect rationality really well. Humans are boundedly rational creatures. [Student: you also assume perfect observability.] Absolutely. You assume here that you know the states too, right? I'd say even more than that: sometimes you don't even observe the actions.",
+   "fr": "En fait, il existe un autre domaine, la rationalité limitée, qui complète très bien cette vision de la rationalité parfaite. Les humains sont des créatures à rationalité limitée. [Étudiant : on suppose aussi une observabilité parfaite.] Absolument. On suppose ici qu'on connaît aussi les états, non ? Je dirais même plus : parfois, on n'observe même pas les actions.",
+   "readable": "Bounded rationality complements the perfect-rationality view. A student adds that inverse RL also assumes perfect observability of states. Sometimes even the actions are not observed.",
+   "readable_fr": "La rationalité limitée complète la vision de la rationalité parfaite. Un étudiant ajoute que le RL inverse suppose aussi une observabilité parfaite des états. Parfois, même les actions ne sont pas observées."
+  },
+  {
+   "t": 4136910,
+   "text": "I've seen that in practice. We were working on a dynamic pricing problem at some point, and all we had access to were historical prices. And the thing is, with historical prices, let's say they don't change over time: you can't really tell whether the price not changing is truly an action, a decision to keep it the same, or just the way things progress in time.",
+   "fr": "Je l'ai vu en pratique. On travaillait à un moment sur un problème de tarification dynamique, et on n'avait accès qu'aux prix historiques. Et le problème, avec des prix historiques, disons qu'ils ne changent pas dans le temps : on ne peut pas vraiment savoir si l'absence de changement est réellement une action, une décision de garder le même prix, ou simplement la façon dont les choses évoluent.",
+   "readable": "In a dynamic pricing project, we only had historical prices. When a price stays constant, you cannot tell whether that was a decision to keep it or simply no decision at all.",
+   "readable_fr": "Dans un projet de tarification dynamique, on n'avait que les prix historiques. Quand un prix reste constant, on ne peut pas savoir si c'est une décision de le garder ou simplement une absence de décision."
+  },
+  {
+   "t": 4168210,
+   "text": "So there are instances where even observing the action is a problem. In that case you need to do inference, and it's going to be partially observable too. But here, again, not only do you assume rationality, you also assume perfect observability. Long story short, the problem is to infer a plausible reward function that explains the behavior. And I say plausible because, well, let me ask you: why do I say plausible?",
+   "fr": "Il y a donc des cas où même observer l'action pose problème. Il faut alors faire de l'inférence, et ce sera aussi partiellement observable. Mais ici, encore une fois, on suppose non seulement la rationalité, mais aussi l'observabilité parfaite. Bref, le problème est d'inférer une fonction de récompense plausible qui explique le comportement. Et je dis plausible parce que, tiens, je vous pose la question : pourquoi je dis plausible ?",
+   "readable": "Then the actions must be inferred, and the problem becomes partially observable. Rust's setting assumes both rationality and perfect observability. The task is to infer a plausible reward function that explains the behavior. Why only plausible?",
+   "readable_fr": "Il faut alors inférer les actions, et le problème devient partiellement observable. Le cadre de Rust suppose à la fois la rationalité et l'observabilité parfaite. La tâche est d'inférer une fonction de récompense plausible qui explique le comportement. Pourquoi seulement plausible ?"
+  },
+  {
+   "t": 4201120,
+   "text": "A success criterion, let's say: you find a reward function, you solve the Bellman equation with it, you run the policy, and you get trajectories that are really likely under the data you've collected. That would be a good reward function. But why do I say plausible, or, let's call it, candidate reward function? That's an important point to realize about Bellman equations in general.",
+   "fr": "Un critère de succès, disons : vous trouvez une fonction de récompense, vous résolvez l'équation de Bellman avec, vous exécutez la politique, et vous obtenez des trajectoires très vraisemblables sous les données recueillies. Ce serait une bonne fonction de récompense. Mais pourquoi je dis plausible, ou appelons-la fonction de récompense candidate ? C'est un point important à saisir sur les équations de Bellman en général.",
+   "readable": "A reward is good if the policy obtained by solving the Bellman equation with it makes the observed trajectories likely. Why call it only a candidate? The answer says something general about Bellman equations.",
+   "readable_fr": "Une récompense est bonne si la politique obtenue en résolvant l'équation de Bellman avec elle rend les trajectoires observées vraisemblables. Pourquoi ne l'appeler que candidate ? La réponse dit quelque chose de général sur les équations de Bellman."
+  },
+  {
+   "t": 4245180,
+   "text": "Because there can be multiple reward functions that explain the behavior equally well. Unless you put in a lot of constraints, a lot of structure, or have a very specific problem, the reward function is not identifiable; we call it the identifiability problem. It's a many-to-one relationship, and that's a shortcoming of inverse reinforcement learning.",
+   "fr": "Parce que plusieurs fonctions de récompense peuvent expliquer le comportement aussi bien les unes que les autres. À moins d'imposer beaucoup de contraintes, beaucoup de structure, ou d'avoir un problème très particulier, la fonction de récompense n'est pas identifiable ; c'est le problème d'identifiabilité. C'est une relation plusieurs-à-un, et c'est une limite de l'apprentissage par renforcement inverse.",
+   "readable": "Many reward functions can explain the same behavior. Without strong constraints or structure, the reward is not identifiable: the map from rewards to behavior is many-to-one, a fundamental limitation of inverse RL.",
+   "readable_fr": "Plusieurs fonctions de récompense peuvent expliquer le même comportement. Sans contraintes ni structure fortes, la récompense n'est pas identifiable : l'application des récompenses vers le comportement est plusieurs-à-un, une limite fondamentale du RL inverse."
+  },
+  {
+   "t": 4282330,
+   "text": "It depends on what your goal is. If your goal is to provably recover the underlying reward function of human beings, that's already a problem. I'm sorry, I'm doing du coq-à-l'âne, as we say in French, meaning I'm jumping from one topic to another; I hope you're with me. Ziebart: apparently it's 2008, though I was sure it was 2013. Ziebart introduced maximum entropy inverse reinforcement learning, which Haarnoja reused to propose soft Q-learning and Soft Actor-Critic, which rest on equations (2) and (3).",
+   "fr": "Ça dépend de votre objectif. Si votre objectif est de retrouver de façon prouvable la fonction de récompense sous-jacente des êtres humains, c'est déjà un problème. Désolé, je fais du coq-à-l'âne, comme on dit en français ; j'espère que vous me suivez. Ziebart : apparemment c'est 2008, alors que j'étais sûr que c'était 2013. Ziebart a introduit l'apprentissage par renforcement inverse à entropie maximale, que Haarnoja a réutilisé pour proposer le soft Q-learning et Soft Actor-Critic, qui reposent sur les équations (2) et (3).",
+   "readable": "That matters if the goal is to provably recover a human's true reward. Back to the history: Ziebart introduced maximum entropy inverse RL in 2008, and Haarnoja built soft Q-learning and Soft Actor-Critic on it, using equations (2) and (3).",
+   "readable_fr": "C'est un problème si le but est de retrouver de façon prouvable la vraie récompense d'un humain. Retour à l'histoire : Ziebart a introduit le RL inverse à entropie maximale en 2008, et Haarnoja a construit le soft Q-learning et Soft Actor-Critic là-dessus, avec les équations (2) et (3)."
+  },
+  {
+   "t": 4324830,
+   "text": "But actually, Ziebart 2008 was a rediscovery of Rust 1987, just because these were two disjoint communities; I think Ziebart had never heard of Rust. There's one person who had heard of Rust, and I think he could maybe have done a better job of celebrating or embracing the result: Andrew Ng, who's often credited as the inventor of inverse reinforcement learning.",
+   "fr": "Mais en fait, Ziebart 2008 était une redécouverte de Rust 1987, simplement parce que c'étaient deux communautés disjointes ; je pense que Ziebart n'avait jamais entendu parler de Rust. Une personne avait entendu parler de Rust, et je pense qu'elle aurait pu mieux célébrer ou mettre en valeur le résultat : Andrew Ng, souvent présenté comme l'inventeur de l'apprentissage par renforcement inverse.",
+   "readable": "Ziebart's 2008 work rediscovered Rust's 1987 results, the two communities being disjoint. Andrew Ng, often credited with inventing inverse RL, did know of Rust and could have given him more credit.",
+   "readable_fr": "Les travaux de Ziebart de 2008 redécouvraient les résultats de Rust de 1987, les deux communautés étant disjointes. Andrew Ng, souvent présenté comme l'inventeur du RL inverse, connaissait Rust et aurait pu lui accorder plus de mérite."
+  },
+  {
+   "t": 4358730,
+   "text": "And Andrew Ng's famous paper is 2002, maybe? Let's just do a quick search. Yeah, 2000. Andrew Ng and Stuart Russell do cite Rust. But after this paper, it's all gone; people forgot about it.",
+   "fr": "Et le fameux article d'Andrew Ng date de 2002, peut-être ? Faisons une petite recherche. Oui, 2000. Andrew Ng et Stuart Russell citent bien Rust. Mais après cet article, tout disparaît ; les gens l'ont oublié.",
+   "readable": "Ng and Russell's inverse RL paper (2000) does cite Rust, but the reference was forgotten afterwards.",
+   "readable_fr": "L'article de Ng et Russell sur le RL inverse (2000) cite bien Rust, mais la référence a ensuite été oubliée."
+  },
+  {
+   "t": 4390680,
+   "text": "Anyway, I find the Rust paper really fascinating. First, you find in it the basis of the smooth Bellman equation. Second, he poses the problem of inverse reinforcement learning, although it's not called that, but that's what it is. And third, he proposes an algorithm for learning it that uses a tool that became quite popular in 2018, '19, '20, '21: implicit differentiation.",
+   "fr": "Bref, je trouve l'article de Rust vraiment fascinant. D'abord, on y trouve la base de l'équation de Bellman lisse. Ensuite, il pose le problème de l'apprentissage par renforcement inverse, même s'il ne l'appelle pas ainsi, mais c'est bien ça. Et troisièmement, il propose un algorithme d'apprentissage qui utilise un outil devenu assez populaire en 2018, 19, 20, 21 : la différentiation implicite.",
+   "readable": "Rust's paper contains three things: the smooth Bellman equation, the inverse RL problem under another name, and a learning algorithm based on implicit differentiation, a tool that became popular around 2018 to 2021.",
+   "readable_fr": "L'article de Rust contient trois choses : l'équation de Bellman lisse, le problème du RL inverse sous un autre nom, et un algorithme d'apprentissage fondé sur la différentiation implicite, un outil devenu populaire vers 2018 à 2021."
+  },
+  {
+   "t": 4429930,
+   "text": "Because at the end of the day, when you do inverse reinforcement learning, and I know I'm very hand-wavy here, I'll write down the algorithm, you end up solving a bilevel optimization problem. These methods of implicit differentiation became really popular a couple of years ago in the context of hyperparameter optimization, which we don't do so much nowadays with LLMs, but not long ago it was a relevant problem. Anyway, I think when we can translate concepts across fields, there are really hidden gems in there.",
+   "fr": "Parce qu'au bout du compte, l'apprentissage par renforcement inverse, et je sais que je reste très vague, j'écrirai l'algorithme, revient à résoudre un problème d'optimisation à deux niveaux. Ces méthodes de différentiation implicite sont devenues très populaires il y a quelques années pour l'optimisation d'hyperparamètres, qu'on fait moins aujourd'hui avec les LLM, mais c'était un problème pertinent il n'y a pas si longtemps. Bref, je pense que quand on peut traduire des concepts d'un domaine à l'autre, il y a de vraies perles cachées.",
+   "readable": "Inverse RL is a bilevel optimization problem; I will write down the algorithm later. Implicit differentiation became popular a few years ago for hyperparameter optimization. Translating concepts across fields uncovers hidden gems.",
+   "readable_fr": "Le RL inverse est un problème d'optimisation à deux niveaux ; j'écrirai l'algorithme plus tard. La différentiation implicite est devenue populaire il y a quelques années pour l'optimisation d'hyperparamètres. Traduire des concepts d'un domaine à l'autre révèle des perles cachées."
+  },
+  {
+   "t": 4465170,
+   "text": "And that's a good instance. Oh yeah, the last thing: why the heck did Rust introduce these equations? Of course he knew the Bellman equations, so why did he come up with this? Two reasons. One pragmatic reason is that it's really convenient when you take gradients, because things are smooth. When you have a max in there, things are not smooth, and differentiability becomes an issue.",
+   "fr": "Et c'en est un bon exemple. Ah oui, dernière chose : pourquoi diable Rust a-t-il introduit ces équations ? Il connaissait évidemment les équations de Bellman, alors pourquoi ? Deux raisons. Une raison pragmatique : c'est très pratique pour calculer des gradients, parce que tout est lisse. Avec un max, ce n'est pas lisse, et la différentiabilité devient un problème.",
+   "readable": "Why did Rust, who knew the Bellman equations, introduce the smooth version? First, for a pragmatic reason: smoothness makes gradients available, whereas a max is not differentiable everywhere.",
+   "readable_fr": "Pourquoi Rust, qui connaissait les équations de Bellman, a-t-il introduit la version lisse ? D'abord pour une raison pragmatique : la régularité donne accès aux gradients, alors qu'un max n'est pas partout différentiable."
+  },
+  {
+   "t": 4496620,
+   "text": "His algorithm was a gradient-based algorithm, so that's a really good thing. The second reason is a bit more subtle, and I'll be hand-waving, but I'll mention it here. It has to do with Rust being an econometrician, following in the footsteps of his peers in that community. The big influence in econometrics is the work by McFadden, 1974 I think, on what we call discrete choice models.",
+   "fr": "Son algorithme était fondé sur le gradient, donc c'est un vrai avantage. La deuxième raison est plus subtile, et je resterai vague, mais je la mentionne. Elle tient au fait que Rust est économètre, et qu'il suivait les traces de ses pairs. La grande influence en économétrie, ce sont les travaux de McFadden, en 1974 je crois, sur ce qu'on appelle les modèles de choix discrets.",
+   "readable": "His algorithm was gradient-based. The second reason is subtler: as an econometrician, Rust built on McFadden's work (1974) on discrete choice models.",
+   "readable_fr": "Son algorithme reposait sur le gradient. La deuxième raison est plus subtile : en économètre, Rust s'appuyait sur les travaux de McFadden (1974) sur les modèles de choix discrets."
+  },
+  {
+   "t": 4533900,
+   "text": "Discrete choice models are a big deal in that community. Kind of obvious if you're a machine learning researcher, not to diminish or trivialize their contribution, but it's very natural for us. Discrete choice modeling is about modeling the behavior of humans who take discrete actions. We do that all the time, through our good old friend the softmax, classifiers, logistic regression, multiclass classification. But McFadden did way more than that in '74, because he laid out the statistical basis explaining the emergence of these softmax classifiers, like logistic regression, using a statistical model that one of you can maybe guess, a type of distribution",
+   "fr": "Les modèles de choix discrets sont très importants dans cette communauté. Assez évidents pour un chercheur en apprentissage automatique, sans vouloir diminuer ni banaliser leur contribution, mais c'est très naturel pour nous. La modélisation de choix discrets porte sur le comportement d'humains qui prennent des actions discrètes. On le fait tout le temps, avec notre bon vieil ami le softmax, les classifieurs, la régression logistique, la classification multiclasse. Mais McFadden a fait bien plus en 74, parce qu'il a posé la base statistique qui explique l'émergence de ces classifieurs softmax, comme la régression logistique, à partir d'un modèle statistique que l'un de vous devinera peut-être, un type de distribution",
+   "readable": "Discrete choice models describe people choosing among discrete options, which in machine learning looks like softmax classification or logistic regression. McFadden's contribution was to give these models a statistical foundation, using a family of distributions",
+   "readable_fr": "Les modèles de choix discrets décrivent des personnes qui choisissent parmi des options discrètes, ce qui en apprentissage automatique ressemble à la classification softmax ou à la régression logistique. La contribution de McFadden a été de leur donner un fondement statistique, à partir d'une famille de distributions"
+  },
+  {
+   "t": 4600550,
+   "text": "called extreme value distributions. Extreme value distributions are very interesting. They have the property that if you sample noise from them, plug it into the max operator, and take the expectation over the noise of the max, with noise distributed according to an extreme value distribution, in particular a Gumbel-type extreme value distribution, then the expected max coincides with the closed-form log-sum-exp.",
+   "fr": "appelée distributions des valeurs extrêmes. Les distributions des valeurs extrêmes sont très intéressantes. Elles ont la propriété que si on en échantillonne du bruit, qu'on l'injecte dans l'opérateur max, et qu'on prend l'espérance du max par rapport au bruit, distribué selon une loi des valeurs extrêmes, en particulier de type Gumbel, alors le max espéré coïncide avec la forme close du log-somme-exp.",
+   "readable": "called extreme value distributions. If i.i.d. Gumbel noise is added to each option's value and you take the expected maximum, the result is exactly the log-sum-exp (up to a constant).",
+   "readable_fr": "appelée lois des valeurs extrêmes. Si on ajoute un bruit de Gumbel i.i.d. à la valeur de chaque option et qu'on prend l'espérance du maximum, on obtient exactement le log-somme-exp (à une constante près)."
+  },
+  {
+   "t": 4647930,
+   "text": "And this is a connection Rust was also leveraging in his paper, which is why he can motivate these equations differently. As a structural econometrician, he says: I'm going to believe that Harold Zurcher behaves like a rational decision-maker who happens to observe rewards corrupted by Gumbel noise. It's an assumption one can make, the same way we assume in linear regression that a function is corrupted by zero-mean, i.i.d. normal noise. So you can make the same kind of assumption; it's quite natural here to say that maybe his internal reward function is not perfect, not always consistent, and sometimes it changes by a random value",
+   "fr": "Et c'est un lien que Rust exploitait aussi dans son article, ce qui lui permet de motiver ces équations autrement. En économètre structurel, il dit : je vais supposer qu'Harold Zurcher se comporte comme un décideur rationnel qui observe des récompenses corrompues par un bruit de Gumbel. C'est une hypothèse qu'on peut faire, de la même façon qu'en régression linéaire on suppose une fonction corrompue par un bruit normal centré, i.i.d. On peut donc faire le même genre d'hypothèse ; il est assez naturel de dire ici que sa fonction de récompense interne n'est peut-être pas parfaite, pas toujours cohérente, et qu'elle varie parfois d'une valeur aléatoire",
+   "readable": "Rust used this to motivate the equations structurally: Zurcher is a rational decision-maker whose rewards are perturbed by Gumbel noise. This is an assumption like the Gaussian noise in linear regression, expressing that his internal reward is imperfect and varies randomly,",
+   "readable_fr": "Rust s'en servait pour motiver les équations de façon structurelle : Zurcher est un décideur rationnel dont les récompenses sont perturbées par un bruit de Gumbel. C'est une hypothèse comme le bruit gaussien en régression linéaire, qui exprime que sa récompense interne est imparfaite et varie aléatoirement,"
+  },
+  {
+   "t": 4711970,
+   "text": "drawn from a Gumbel distribution. So he starts the paper like that, then does all the math, uses McFadden, and says: well, the Bellman equations in that case are the ones shown up there. And as a side effect, things are smooth, guys, it's amazing, so we can start taking gradients. That's roughly how the story goes. Clearly I've said way too much here without writing any equations. So next time, I'll make sure to write down Rust's inverse RL algorithm.",
+   "fr": "tirée d'une distribution de Gumbel. Il commence donc l'article ainsi, fait tous les calculs, utilise McFadden, et dit : les équations de Bellman dans ce cas sont celles affichées là-haut. Et par effet secondaire, tout est lisse, c'est formidable, donc on peut calculer des gradients. C'est à peu près l'histoire. Visiblement, j'en ai dit beaucoup trop sans écrire d'équations. La prochaine fois, je vais m'assurer d'écrire l'algorithme de RL inverse de Rust.",
+   "readable": "according to a Gumbel distribution. Working out the math with McFadden's result yields the smooth Bellman equations above, and, as a bonus, smoothness enables gradients. Next lecture, I will write down Rust's inverse RL algorithm.",
+   "readable_fr": "selon une loi de Gumbel. En faisant les calculs avec le résultat de McFadden, on obtient les équations de Bellman lisses ci-dessus et, en prime, la régularité donne accès aux gradients. Au prochain cours, j'écrirai l'algorithme de RL inverse de Rust."
+  },
+  {
+   "t": 4747280,
+   "text": "And we'll make it clear. Now, let's look at what we can do with this. First, let's consider what value iteration looks like. Before just accepting that value iteration can be applied, there's one necessary step you'd have to take. What would it be? Say I define a new operator, \\(L_\\beta\\) or \\(L_\\tau\\), depending on how you want to write it. It depends not only on \\(\\gamma\\), the discount factor, but also on this temperature parameter.",
+   "fr": "Et on rendra ça clair. Voyons maintenant ce qu'on peut faire avec ça. D'abord, voyons à quoi ressemble l'itération de valeur. Avant d'accepter qu'on puisse appliquer l'itération de valeur, il y a une étape nécessaire. Laquelle ? Disons que je définis un nouvel opérateur, \\(L_\\beta\\) ou \\(L_\\tau\\), selon votre préférence. Il dépend non seulement de \\(\\gamma\\), le facteur d'actualisation, mais aussi de ce paramètre de température.",
+   "readable": "What can we do with the smooth operator, \\(L_\\beta\\) (or \\(L_\\tau\\)), which depends on both \\(\\gamma\\) and the temperature? Before applying value iteration, one step is needed. Which?",
+   "readable_fr": "Que peut-on faire avec l'opérateur lisse \\(L_\\beta\\) (ou \\(L_\\tau\\)), qui dépend à la fois de \\(\\gamma\\) et de la température ? Avant d'appliquer l'itération de valeur, une étape est nécessaire. Laquelle ?"
+  },
+  {
+   "t": 4784000,
+   "text": "What should I establish first? [Student: that it's a contraction.] Ideally, yeah, that would be nice. If you can establish it's a contraction, then you know successive approximation is the right tool. Again, big danger here, a big mental shortcut you shouldn't take: if you can't show it's a contraction, that doesn't mean there doesn't exist an algorithm, or even a solution to your fixed-point problem.",
+   "fr": "Que devrais-je établir d'abord ? [Étudiant : que c'est une contraction.] Idéalement, oui, ce serait bien. Si on établit que c'est une contraction, on sait que les approximations successives sont le bon outil. Encore une fois, gros danger ici, un gros raccourci mental à éviter : si on n'arrive pas à montrer que c'est une contraction, ça ne veut pas dire qu'il n'existe pas d'algorithme, ni même de solution au problème de point fixe.",
+   "readable": "Show that it is a contraction; then successive approximation applies. Beware the converse: failing to prove a contraction does not mean there is no algorithm, or no fixed point.",
+   "readable_fr": "Montrer que c'est une contraction ; alors les approximations successives s'appliquent. Attention à la réciproque : ne pas réussir à prouver une contraction ne veut pas dire qu'il n'y a pas d'algorithme, ni de point fixe."
+  },
+  {
+   "t": 4815600,
+   "text": "There could be other fixed-point theorems that give you one. But in general, most of us search for contraction mappings, and whenever we find one, we're like, great, things work. And we can show that this gives a contraction mapping in the \\(\\ell_\\infty\\), sup, norm, the same way the hard Bellman operator is a contraction in the sup norm. Which means we can apply the method of successive approximation, which would be called smooth value iteration.",
+   "fr": "D'autres théorèmes de point fixe pourraient en donner un. Mais en général, la plupart d'entre nous cherchent des applications contractantes, et quand on en trouve une, on se dit : parfait, ça marche. Et on peut montrer que ceci donne une application contractante pour la norme \\(\\ell_\\infty\\), la norme sup, comme l'opérateur de Bellman dur est une contraction pour la norme sup. On peut donc appliquer la méthode des approximations successives, qu'on appellerait l'itération de valeur lisse.",
+   "readable": "Other fixed-point theorems exist, but contractions are the usual route. The smooth Bellman operator is a \\(\\gamma\\)-contraction in the sup norm, like the hard one, so successive approximation applies: smooth value iteration.",
+   "readable_fr": "D'autres théorèmes de point fixe existent, mais les contractions sont la voie habituelle. L'opérateur de Bellman lisse est une \\(\\gamma\\)-contraction pour la norme sup, comme l'opérateur dur, donc les approximations successives s'appliquent : l'itération de valeur lisse."
+  },
+  {
+   "t": 4852080,
+   "text": "Same structure as value iteration. The only thing is that wherever we had a max, we have a log-sum-exp. What we'll have to be careful with, though, is the termination criterion. I'm not sure there's been work deriving bounds for this; if not, I'll do a bit of research, see what exists, and we could come up with one. For now, let's just assume you stop whenever the progress between two iterates is small enough. And you terminate the same way, and then you output a policy, which now is not a greedy policy but a softmax policy.",
+   "fr": "Même structure que l'itération de valeur. La seule différence, c'est que là où on avait un max, on a un log-somme-exp. Il faudra toutefois faire attention au critère d'arrêt. Je ne suis pas sûr qu'il existe des travaux qui dérivent des bornes pour ça ; sinon, je ferai un peu de recherche, je verrai ce qui existe, et on pourrait en proposer une. Pour l'instant, supposons qu'on s'arrête dès que le progrès entre deux itérés est assez petit. On termine de la même façon, puis on renvoie une politique, qui n'est plus gloutonne mais softmax.",
+   "readable": "Smooth value iteration is value iteration with log-sum-exp in place of max. The stopping rule needs care; I am not sure a bound like the \\(\\varepsilon\\) rule exists for this case, and will look into it. For now, stop when consecutive iterates are close, then output the softmax policy instead of the greedy one.",
+   "readable_fr": "L'itération de valeur lisse est l'itération de valeur avec le log-somme-exp à la place du max. La règle d'arrêt demande de la prudence ; je ne suis pas sûr qu'une borne comme la règle en \\(\\varepsilon\\) existe pour ce cas, et je vais vérifier. Pour l'instant, on s'arrête quand deux itérés consécutifs sont proches, puis on renvoie la politique softmax au lieu de la politique gloutonne."
+  },
+  {
+   "t": 4885490,
+   "text": "So it's stochastic. But it's the same thing: the loop is over these smooth value functions, and then you output an object which is now a policy. OK, so that's quite obvious. The other thing you can do, of course, is policy iteration as well. What would you do if you wanted to generalize policy iteration to the smooth case?",
+   "fr": "Elle est donc stochastique. Mais c'est la même chose : la boucle porte sur ces fonctions de valeur lisses, puis on renvoie un objet qui est maintenant une politique. D'accord, c'est assez évident. L'autre chose qu'on peut faire, bien sûr, c'est aussi l'itération de politique. Que feriez-vous pour généraliser l'itération de politique au cas lisse ?",
+   "readable": "The output policy is stochastic, but the loop is the same, over smooth value functions. How would you generalize policy iteration to the smooth case?",
+   "readable_fr": "La politique renvoyée est stochastique, mais la boucle est la même, sur des fonctions de valeur lisses. Comment généraliser l'itération de politique au cas lisse ?"
+  },
+  {
+   "t": 4931520,
+   "text": "It's step number two, the one up there; I should have drawn an arrow. In normal policy iteration, you improve your policy by taking the argmax. Instead, you can improve your policy by taking the softmax. That's another way of doing it. The policy evaluation step remains the same. Policy evaluation is agnostic to what kind of policy you've got; it could be deterministic, it could be anything, right? It just says: whatever you think is a good policy right now, I'll tell you its actual performance.",
+   "fr": "C'est l'étape numéro deux, celle du haut ; j'aurais dû dessiner une flèche. En itération de politique normale, on améliore la politique en prenant l'argmax. On peut plutôt l'améliorer en prenant le softmax. C'est une autre façon de faire. L'étape d'évaluation de politique reste la même. L'évaluation de politique est indifférente au type de politique ; elle peut être déterministe, n'importe quoi, non ? Elle dit simplement : quelle que soit la politique que vous jugez bonne en ce moment, je vous dis sa vraie performance.",
+   "readable": "Replace the argmax in the improvement step by a softmax. The evaluation step is unchanged, since policy evaluation works for any policy, deterministic or stochastic: it reports the actual performance of whatever policy it is given.",
+   "readable_fr": "On remplace l'argmax de l'étape d'amélioration par un softmax. L'étape d'évaluation ne change pas, puisque l'évaluation de politique fonctionne pour toute politique, déterministe ou stochastique : elle donne la vraie performance de la politique qu'on lui fournit."
+  },
+  {
+   "t": 4966720,
+   "text": "By the way, another thing that can be shown for policy iteration: when I write the policy improvement \\(\\pi'(s) = \\arg\\max \\ldots\\), I should write for all \\(s\\), since it's something I do across all states. But convergence of policy iteration does not require doing the improvement in all states. You only need to do it in at least one state.",
+   "fr": "Au fait, une autre chose qu'on peut montrer pour l'itération de politique : quand j'écris l'amélioration \\(\\pi'(s) = \\arg\\max \\ldots\\), je devrais écrire pour tout \\(s\\), puisque je le fais dans tous les états. Mais la convergence de l'itération de politique n'exige pas d'améliorer dans tous les états. Il suffit de le faire dans au moins un état.",
+   "readable": "Policy improvement is written for all \\(s\\), but convergence of policy iteration only requires improving the policy in at least one state per iteration.",
+   "readable_fr": "L'amélioration de politique s'écrit pour tout \\(s\\), mais la convergence de l'itération de politique n'exige d'améliorer la politique que dans au moins un état par itération."
+  },
+  {
+   "t": 4996910,
+   "text": "It will still converge, which is an important fact, because when you analyze RL algorithms, you often find behind them something that looks like policy iteration, with an improvement step that is only partial: a bit of improvement at every step, maybe at every state, but only partial. So it's an important fact. And in the smooth case, the hard improvement operator is replaced by a smooth softmax operator.",
+   "fr": "Ça convergera quand même, ce qui est important, parce qu'en analysant des algorithmes de RL, on trouve souvent derrière eux quelque chose qui ressemble à l'itération de politique, avec une étape d'amélioration seulement partielle : un peu d'amélioration à chaque pas, peut-être dans chaque état, mais partielle. C'est donc un fait important. Et dans le cas lisse, l'opérateur d'amélioration dur est remplacé par un opérateur softmax lisse.",
+   "readable": "This matters because many RL algorithms are, underneath, policy iteration with a partial improvement step. In the smooth case, the hard improvement operator becomes the softmax.",
+   "readable_fr": "C'est important parce que bien des algorithmes de RL sont, au fond, une itération de politique avec une étape d'amélioration partielle. Dans le cas lisse, l'opérateur d'amélioration dur devient le softmax."
+  },
+  {
+   "t": 5031630,
+   "text": "But I'm going to go back over this next lecture and say: this is how Rust actually did it. That guy was really smart, and also a great writer. He derived his procedure, and he knew about this stuff already, so he said: well, I've got these operators, these new things I'm introducing, and I'm going to solve them using Newton-Kantorovich. He was able to zoom out on the big picture and say: I've got operator equations, these are root-finding problems, and there's a tool for that called Newton-Kantorovich. He doesn't even call it policy iteration; he says, I'm going to apply Newton-Kantorovich. I can show these two things very quickly.",
+   "fr": "Mais je vais y revenir au prochain cours et vous montrer comment Rust l'a vraiment fait. Ce gars était vraiment brillant, et un excellent auteur. Il a dérivé sa procédure, et il connaissait déjà tout ça, alors il a dit : j'ai ces opérateurs, ces nouvelles choses que j'introduis, et je vais les résoudre avec Newton-Kantorovitch. Il a su prendre du recul et dire : j'ai des équations d'opérateurs, ce sont des problèmes de recherche de racine, et il existe un outil pour ça, Newton-Kantorovitch. Il ne parle même pas d'itération de politique ; il dit : je vais appliquer Newton-Kantorovitch. Je peux montrer ces deux choses très rapidement.",
+   "readable": "Next lecture: how Rust actually did it. He treated the smooth Bellman equation as an operator root-finding problem and solved it with Newton-Kantorovich, without calling it policy iteration.",
+   "readable_fr": "Au prochain cours : comment Rust l'a vraiment fait. Il a traité l'équation de Bellman lisse comme un problème de recherche de racine d'opérateur et l'a résolu avec Newton-Kantorovitch, sans parler d'itération de politique."
+  },
+  {
+   "t": 5071950,
+   "text": "But really, yeah, Rust uses the term Newton-Kantorovich. This section, I think I'm going to remove; it's way too esoteric. Last year I tried to say: the softmax I'm using here is one type of smooth maximum, and I tried really hard to find other types of smooth maximum used in practice. It turns out you really have to work hard to find good practical counterparts. I found one here, from 2016[?], which uses this weird Gaussian approximation that can be seen as a smooth maximum.",
+   "fr": "Mais oui, Rust utilise bien le terme Newton-Kantorovitch. Cette section, je pense que je vais l'enlever ; elle est beaucoup trop ésotérique. L'an dernier, j'ai voulu dire : le softmax que j'utilise ici est un type de maximum lisse, et j'ai cherché très fort d'autres maxima lisses utilisés en pratique. Il se trouve qu'il faut vraiment chercher pour trouver de bons équivalents pratiques. J'en ai trouvé un ici, de 2016, qui utilise une étrange approximation gaussienne qu'on peut voir comme un maximum lisse.",
+   "readable": "I will likely remove the section on other smooth maxima from the notes: it is too esoteric, and practical alternatives to log-sum-exp are hard to find. The one I found, from 2016[?], uses an odd Gaussian approximation.",
+   "readable_fr": "Je vais sans doute retirer des notes la section sur les autres maxima lisses : elle est trop ésotérique, et les alternatives pratiques au log-somme-exp sont difficiles à trouver. Celle que j'ai trouvée, de 2016, utilise une étrange approximation gaussienne."
+  },
+  {
+   "t": 5111880,
+   "text": "But it's too weird. I think I'll move this to the appendix, and for sure I'm not going to cover it. What we are going to cover, though, is what I've been waving around: this connection to the Gumbel distribution. There are basically three languages. Either you say, pragmatically, I'm going to remove all the hard maxes and use soft maxes. Or I re-derive everything from the usual Bellman equation, but add this Gumbel noise, and when you work out the math and integrate everything, it gives you the log-sum-exp. Or you take the third route, which is quite popular nowadays: start from the entropy-regularized perspective.",
+   "fr": "Mais c'est trop étrange. Je pense que je vais déplacer ça en annexe, et je ne vais certainement pas le couvrir. Ce qu'on va couvrir, par contre, c'est ce que j'ai évoqué : ce lien avec la distribution de Gumbel. Il y a essentiellement trois langages. Soit on dit, de façon pragmatique : je remplace tous les max durs par des max lisses. Soit je redérive tout à partir de l'équation de Bellman habituelle, en ajoutant ce bruit de Gumbel, et quand on fait les calculs et qu'on intègre tout, on obtient le log-somme-exp. Soit on prend la troisième voie, assez populaire aujourd'hui : partir du point de vue de la régularisation entropique.",
+   "readable": "It will go to an appendix. We will instead cover the Gumbel connection. There are three ways to arrive at the same equations: replace hard maxima by soft ones pragmatically; add Gumbel noise to the usual Bellman equation and integrate it out; or start from entropy regularization, the view popular today.",
+   "readable_fr": "Ça ira en annexe. Nous verrons plutôt le lien avec Gumbel. Il y a trois façons d'arriver aux mêmes équations : remplacer de façon pragmatique les max durs par des max lisses ; ajouter un bruit de Gumbel à l'équation de Bellman habituelle et l'intégrer ; ou partir de la régularisation entropique, le point de vue populaire aujourd'hui."
+  },
+  {
+   "t": 5154240,
+   "text": "You can also recover the same equations from a different mathematical program: the usual Bellman equation, for an MDP with the usual reward, but now you penalize the entropy of your policy at every state. Work out the math, and you recover exactly these two equations. Everything is connected. Okay. See you on Monday.",
+   "fr": "On peut aussi retrouver les mêmes équations à partir d'un autre programme mathématique : l'équation de Bellman habituelle, pour un MDP avec la récompense habituelle, mais où l'on pénalise maintenant l'entropie de la politique dans chaque état. En faisant les calculs, on retrouve exactement ces deux équations. Tout est lié. D'accord. À lundi.",
+   "readable": "In the entropy-regularized view, the usual MDP objective is augmented with an entropy term on the policy at every state; working it out yields exactly equations (2) and (3). Everything is connected. See you Monday.",
+   "readable_fr": "Dans le point de vue entropique, on ajoute à l'objectif habituel du MDP un terme d'entropie sur la politique dans chaque état ; le calcul donne exactement les équations (2) et (3). Tout est lié. À lundi."
+  }
+ ]
+}
