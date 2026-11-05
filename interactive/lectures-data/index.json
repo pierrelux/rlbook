@@ -5,8 +5,149 @@
   "fr": "Automne 2026"
  },
  "folder_url": "https://drive.google.com/drive/folders/1iwN-j6IJP9l8EOkXrcxy4DpWRNcTixr8",
- "updated": "2026-11-02",
+ "updated": "2026-11-05",
  "lectures": [
+  {
+   "date": "2026-11-02",
+   "week": 9,
+   "title": {
+    "en": "Infinite-horizon MDPs: vector notation and the Neumann series; contraction mappings and the Banach fixed-point theorem; Bellman optimality, greedy policies and Q functions",
+    "fr": "MDP à horizon infini : notation vectorielle et série de Neumann ; applications contractantes et théorème du point fixe de Banach ; optimalité de Bellman, politiques gloutonnes et fonctions Q"
+   },
+   "chapters": [
+    {
+     "slug": "infinite-horizon-mdps",
+     "title": "Infinite-Horizon Markov Decision Processes"
+    }
+   ],
+   "drive": "https://drive.google.com/file/d/1lL9cf7o0UQdEo833ASRFFwqGcvAomA3d/view",
+   "duration_ms": 6433170,
+   "thumb": "2026-11-02.jpg",
+   "paragraphs": 139,
+   "cleaned": true,
+   "tldr": [
+    {
+     "notion": {
+      "en": "Three views of policy evaluation",
+      "fr": "Trois points de vue sur l'évaluation de politique"
+     },
+     "p": 3,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Decision rules versus policies",
+      "fr": "Règles de décision et politiques"
+     },
+     "p": 9,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Neumann series and the spectral radius",
+      "fr": "Série de Neumann et rayon spectral"
+     },
+     "p": 24,
+     "exam": true
+    },
+    {
+     "notion": {
+      "en": "Results depend on the norm",
+      "fr": "Les résultats dépendent de la norme"
+     },
+     "p": 33,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Why \\(\\gamma<1\\) gives invertibility",
+      "fr": "Pourquoi \\(\\gamma<1\\) garantit l'inversibilité"
+     },
+     "p": 36,
+     "exam": true
+    },
+    {
+     "notion": {
+      "en": "\\(L_\\pi\\) as an affine operator",
+      "fr": "\\(L_\\pi\\), un opérateur affine"
+     },
+     "p": 42,
+     "exam": true
+    },
+    {
+     "notion": {
+      "en": "Contraction mappings",
+      "fr": "Applications contractantes"
+     },
+     "p": 71,
+     "exam": true
+    },
+    {
+     "notion": {
+      "en": "Banach fixed-point theorem",
+      "fr": "Théorème du point fixe de Banach"
+     },
+     "p": 80,
+     "exam": true
+    },
+    {
+     "notion": {
+      "en": "Value iteration and policy iteration as general tools",
+      "fr": "Itération de la valeur et de la politique comme outils généraux"
+     },
+     "p": 87,
+     "exam": true
+    },
+    {
+     "notion": {
+      "en": "Direct versus iterative policy evaluation",
+      "fr": "Évaluation de politique directe ou itérative"
+     },
+     "p": 88,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Deterministic Markovian rules suffice",
+      "fr": "Les règles markoviennes déterministes suffisent"
+     },
+     "p": 102,
+     "exam": true
+    },
+    {
+     "notion": {
+      "en": "Bellman optimality operator",
+      "fr": "Opérateur d'optimalité de Bellman"
+     },
+     "p": 110,
+     "exam": true
+    },
+    {
+     "notion": {
+      "en": "Greedy policies",
+      "fr": "Politiques gloutonnes"
+     },
+     "p": 116,
+     "exam": true
+    },
+    {
+     "notion": {
+      "en": "Why Q functions in model-free RL",
+      "fr": "Pourquoi les fonctions Q en RL sans modèle"
+     },
+     "p": 131,
+     "exam": true
+    },
+    {
+     "notion": {
+      "en": "Preview: smooth Bellman equations",
+      "fr": "Aperçu : équations de Bellman lisses"
+     },
+     "p": 136,
+     "exam": false
+    }
+   ]
+  },
   {
    "date": "2026-10-29",
    "week": 8,
