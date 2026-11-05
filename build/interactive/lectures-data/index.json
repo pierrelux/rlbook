@@ -5,8 +5,282 @@
   "fr": "Automne 2026"
  },
  "folder_url": "https://drive.google.com/drive/folders/1iwN-j6IJP9l8EOkXrcxy4DpWRNcTixr8",
- "updated": "2026-10-27",
+ "updated": "2026-11-05",
  "lectures": [
+  {
+   "date": "2026-11-02",
+   "week": 9,
+   "title": {
+    "en": "Infinite-horizon MDPs: vector notation and the Neumann series; contraction mappings and the Banach fixed-point theorem; Bellman optimality, greedy policies and Q functions",
+    "fr": "MDP à horizon infini : notation vectorielle et série de Neumann ; applications contractantes et théorème du point fixe de Banach ; optimalité de Bellman, politiques gloutonnes et fonctions Q"
+   },
+   "chapters": [
+    {
+     "slug": "infinite-horizon-mdps",
+     "title": "Infinite-Horizon Markov Decision Processes"
+    }
+   ],
+   "drive": "https://drive.google.com/file/d/1lL9cf7o0UQdEo833ASRFFwqGcvAomA3d/view",
+   "duration_ms": 6433170,
+   "thumb": "2026-11-02.jpg",
+   "paragraphs": 139,
+   "cleaned": true,
+   "tldr": [
+    {
+     "notion": {
+      "en": "Three views of policy evaluation",
+      "fr": "Trois points de vue sur l'évaluation de politique"
+     },
+     "p": 3,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Decision rules versus policies",
+      "fr": "Règles de décision et politiques"
+     },
+     "p": 9,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Neumann series and the spectral radius",
+      "fr": "Série de Neumann et rayon spectral"
+     },
+     "p": 24,
+     "exam": true
+    },
+    {
+     "notion": {
+      "en": "Results depend on the norm",
+      "fr": "Les résultats dépendent de la norme"
+     },
+     "p": 33,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Why \\(\\gamma<1\\) gives invertibility",
+      "fr": "Pourquoi \\(\\gamma<1\\) garantit l'inversibilité"
+     },
+     "p": 36,
+     "exam": true
+    },
+    {
+     "notion": {
+      "en": "\\(L_\\pi\\) as an affine operator",
+      "fr": "\\(L_\\pi\\), un opérateur affine"
+     },
+     "p": 42,
+     "exam": true
+    },
+    {
+     "notion": {
+      "en": "Contraction mappings",
+      "fr": "Applications contractantes"
+     },
+     "p": 71,
+     "exam": true
+    },
+    {
+     "notion": {
+      "en": "Banach fixed-point theorem",
+      "fr": "Théorème du point fixe de Banach"
+     },
+     "p": 80,
+     "exam": true
+    },
+    {
+     "notion": {
+      "en": "Value iteration and policy iteration as general tools",
+      "fr": "Itération de la valeur et de la politique comme outils généraux"
+     },
+     "p": 87,
+     "exam": true
+    },
+    {
+     "notion": {
+      "en": "Direct versus iterative policy evaluation",
+      "fr": "Évaluation de politique directe ou itérative"
+     },
+     "p": 88,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Deterministic Markovian rules suffice",
+      "fr": "Les règles markoviennes déterministes suffisent"
+     },
+     "p": 102,
+     "exam": true
+    },
+    {
+     "notion": {
+      "en": "Bellman optimality operator",
+      "fr": "Opérateur d'optimalité de Bellman"
+     },
+     "p": 110,
+     "exam": true
+    },
+    {
+     "notion": {
+      "en": "Greedy policies",
+      "fr": "Politiques gloutonnes"
+     },
+     "p": 116,
+     "exam": true
+    },
+    {
+     "notion": {
+      "en": "Why Q functions in model-free RL",
+      "fr": "Pourquoi les fonctions Q en RL sans modèle"
+     },
+     "p": 131,
+     "exam": true
+    },
+    {
+     "notion": {
+      "en": "Preview: smooth Bellman equations",
+      "fr": "Aperçu : équations de Bellman lisses"
+     },
+     "p": 136,
+     "exam": false
+    }
+   ]
+  },
+  {
+   "date": "2026-10-29",
+   "week": 8,
+   "title": {
+    "en": "iLQR and DDP; from stochastic dynamic programming to MDPs; infinite-horizon discounting as a random horizon",
+    "fr": "iLQR et DDP ; de la programmation dynamique stochastique aux MDP ; l'actualisation à horizon infini comme horizon aléatoire"
+   },
+   "chapters": [
+    {
+     "slug": "iterative-trajectory-optimization",
+     "title": "iLQR and Differential Dynamic Programming"
+    },
+    {
+     "slug": "stochastic-dp",
+     "title": "Stochastic Dynamic Programming and Markov Decision Processes"
+    },
+    {
+     "slug": "infinite-horizon-mdps",
+     "title": "Infinite-Horizon Markov Decision Processes"
+    }
+   ],
+   "drive": "https://drive.google.com/file/d/1DL05eQ9R48IlYQyJf0ObLai084yFXYXi/view",
+   "duration_ms": 4493599,
+   "thumb": "2026-10-29.jpg",
+   "paragraphs": 113,
+   "cleaned": true,
+   "tldr": [
+    {
+     "notion": {
+      "en": "LQR by backward induction",
+      "fr": "LQR par induction arrière"
+     },
+     "p": 7,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Where LQR alone falls short",
+      "fr": "Les limites du LQR seul"
+     },
+     "p": 14,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "iLQR: linearize, solve, repeat",
+      "fr": "iLQR : linéariser, résoudre, recommencer"
+     },
+     "p": 25,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "iLQR gives a local feedback controller, not MPC",
+      "fr": "iLQR donne un contrôleur rétroactif local, pas du MPC"
+     },
+     "p": 27,
+     "exam": true
+    },
+    {
+     "notion": {
+      "en": "Newton-like steps and line search",
+      "fr": "Pas de type Newton et recherche linéaire"
+     },
+     "p": 43,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "DDP versus iLQR",
+      "fr": "DDP et iLQR"
+     },
+     "p": 50,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Stochastic DP and the transition kernel",
+      "fr": "PD stochastique et noyau de transition"
+     },
+     "p": 61,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Finite horizon: stage-dependent policies",
+      "fr": "Horizon fini : politiques dépendantes de l'étape"
+     },
+     "p": 76,
+     "exam": true
+    },
+    {
+     "notion": {
+      "en": "Discounting and bounded values",
+      "fr": "Actualisation et valeurs bornées"
+     },
+     "p": 83,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Discounting as a random horizon",
+      "fr": "L'actualisation comme horizon aléatoire"
+     },
+     "p": 90,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Other infinite-horizon criteria",
+      "fr": "Autres critères à horizon infini"
+     },
+     "p": 98,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Geometric horizon equals discounting",
+      "fr": "Horizon géométrique et actualisation"
+     },
+     "p": 103,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Discount factor: model or knob",
+      "fr": "Facteur d'actualisation : modèle ou réglage"
+     },
+     "p": 109,
+     "exam": false
+    }
+   ]
+  },
   {
    "date": "2026-10-26",
    "week": 8,
