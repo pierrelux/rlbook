@@ -607,23 +607,42 @@ $$\begin{align*}
 (\Bellman u)(s) &= \max_{a \in A} \left\{r(s,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a)u(j)\right\}
 \end{align*}$$
 
-For any state $s$, let $a_v$ be the action that achieves the maximum for $(\Bellman v)(s)$, and $a_u$ be the action that achieves the maximum for $(\Bellman u)(s)$. By the definition of these maximizers:
+Fix a state $s$. Let $a_v$ be an action that achieves the maximum in $(\Bellman v)(s)$, and $a_u$ an action that achieves the maximum in $(\Bellman u)(s)$. We bound the difference $(\Bellman v)(s) - (\Bellman u)(s)$ from above and from below, one direction at a time.
+
+**Upper bound.** Since $a_v$ is the maximizer for $v$, $(\Bellman v)(s)$ is *equal* to the value of $a_v$:
+
+$$(\Bellman v)(s) = r(s,a_v) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a_v)v(j).$$
+
+The action $a_v$ need not be the maximizer for $u$, so plugging it into the maximum that defines $(\Bellman u)(s)$ can only give a smaller or equal value:
+
+$$(\Bellman u)(s) \geq r(s,a_v) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a_v)u(j).$$
+
+Subtracting the second line from the first, the rewards $r(s,a_v)$ cancel because both lines use the same action, and the result is an upper bound because we subtract a lower bound on $(\Bellman u)(s)$:
+
+$$(\Bellman v)(s) - (\Bellman u)(s) \leq \gamma \sum_{j \in \mathcal{S}} p(j|s,a_v)\bigl(v(j) - u(j)\bigr).$$
+
+**Lower bound.** Swap the roles of $v$ and $u$ and use $a_u$ instead. Now $(\Bellman u)(s)$ is equal to the value of $a_u$ under $u$, while $(\Bellman v)(s)$ is at least the value of $a_u$ under $v$:
 
 $$\begin{align*}
-(\Bellman v)(s) &\geq r(s,a_u) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a_u)v(j)\\
-(\Bellman u)(s) &\geq r(s,a_v) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a_v)u(j)
+(\Bellman u)(s) &= r(s,a_u) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a_u)u(j),\\
+(\Bellman v)(s) &\geq r(s,a_u) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a_u)v(j).
 \end{align*}$$
 
-Subtracting these inequalities:
+Subtracting in the same way:
 
-$$\begin{align*}
-(\Bellman v)(s) - (\Bellman u)(s) &\leq \gamma \sum_{j \in \mathcal{S}} p(j|s,a_v)(v(j) - u(j))\\
-(\Bellman u)(s) - (\Bellman v)(s) &\leq \gamma \sum_{j \in \mathcal{S}} p(j|s,a_u)(u(j) - v(j))
-\end{align*}$$
+$$(\Bellman u)(s) - (\Bellman v)(s) \leq \gamma \sum_{j \in \mathcal{S}} p(j|s,a_u)\bigl(u(j) - v(j)\bigr).$$
 
-Taking the absolute value and using the fact that $\sum_{j \in \mathcal{S}} p(j|s,a) = 1$:
+**Bounding each sum by the max-norm.** Each sum is an average of the differences $v(j) - u(j)$ (or $u(j) - v(j)$) with weights $p(j|s,a) \geq 0$ that sum to $1$. An average is never larger than its largest term, and every term satisfies $v(j) - u(j) \leq |v(j) - u(j)| \leq \|v - u\|_\infty$. Hence, for either action $a \in \{a_v, a_u\}$:
 
-$$|(\Bellman v)(s) - (\Bellman u)(s)| \leq \gamma \max_{j \in \mathcal{S}} |v(j) - u(j)| = \gamma \|v - u\|_\infty$$
+$$\sum_{j \in \mathcal{S}} p(j|s,a)\bigl(v(j) - u(j)\bigr) \leq \sum_{j \in \mathcal{S}} p(j|s,a)\,\|v - u\|_\infty = \|v - u\|_\infty,$$
+
+and the same holds with $u(j) - v(j)$ in place of $v(j) - u(j)$. Plugging this into the two bounds above gives
+
+$$(\Bellman v)(s) - (\Bellman u)(s) \leq \gamma \|v - u\|_\infty \quad\text{and}\quad (\Bellman u)(s) - (\Bellman v)(s) \leq \gamma \|v - u\|_\infty.$$
+
+A number $x$ with $x \leq c$ and $-x \leq c$ satisfies $|x| \leq c$, so
+
+$$|(\Bellman v)(s) - (\Bellman u)(s)| \leq \gamma \|v - u\|_\infty.$$
 
 Since this holds for all $s \in \mathcal{S}$, taking the supremum over $s$ gives:
 
