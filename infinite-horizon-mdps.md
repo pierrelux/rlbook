@@ -388,6 +388,19 @@ Let $(X, \|\cdot\|)$ be a Banach space (a complete normed space) and let $\mathr
 
 The theorem is an existence and uniqueness statement, and its proof is constructive: the sequence used to show that a fixed point exists is the algorithm that computes it. Uniqueness matters, because nothing about an equation $x = \mathrm{T}(x)$ alone rules out many solutions. The theorem gives a sufficient condition only. An operator that is not a contraction may still have a fixed point, and other fixed-point theorems cover some of those cases.
 
+:::{iframe} ../interactive/contraction-cloud.html
+:label: fig-contraction-cloud
+:width: 100%
+:title: Contraction cloud
+:class: contraction-cloud-replay
+
+What a contraction shrinks. Each dot is a value function $v = (v(1), v(2))$ of a
+two-state MDP, and each step applies the Bellman optimality operator (defined
+later in this chapter) to all of them at once. The dashed box, whose side is the
+cloud's diameter in the sup-norm, shrinks by the factor $\gamma$ at every step,
+and the whole cloud collapses onto the unique fixed point $v^*$.
+:::
+
 ````{prf:algorithm} Successive Approximation
 :label: successive-approximation
 

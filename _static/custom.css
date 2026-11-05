@@ -1339,3 +1339,15 @@ iframe {
 @media (max-width: 454px) { .tamarisk-river-replay > div > div { height: 1810px; } }
 @media (max-width: 399px) { .tamarisk-river-replay > div > div { height: 1840px; } }
 @media (max-width: 364px) { .tamarisk-river-replay > div > div { height: 1840px; } }
+
+/* Contraction cloud: two columns down to a 621px iframe (about 670px tall), one
+   column below that. Heights are the tallest page over each band of iframe widths. */
+.contraction-cloud-replay > div > div {
+  height: 690px;
+  padding-bottom: 0 !important;
+  width: 100% !important;
+}
+@media (max-width: 644px) { .contraction-cloud-replay > div > div { height: 1390px; } }
+@media (max-width: 544px) { .contraction-cloud-replay > div > div { height: 1260px; } }
+@media (max-width: 454px) { .contraction-cloud-replay > div > div { height: 1205px; } }
+@media (max-width: 399px) { .contraction-cloud-replay > div > div { height: 1185px; } }
