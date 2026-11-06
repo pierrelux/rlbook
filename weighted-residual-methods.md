@@ -105,150 +105,175 @@ value iteration converge survive the approximation? The
 for an arbitrary fitting rule, neural networks included, and ends with the
 steps that lead from it to FQI and NFQCA.
 
-## A Motivating Example: Optimal Stopping with Continuous States
+(sec-wr-fishery)=
+## A Motivating Example: Harvesting a Fishery Near a Tipping Point
 
-What fails when an exact value function lives on a continuum but only finitely
-many coefficients can be stored?
+What goes wrong when a value function on a continuum must be stored in a few
+numbers, and does the way we store it change the decisions it produces?
 
-Before developing the general theory, consider a concrete example. The Bellman optimality equation $\Bellman v = v$ is a functional equation: its unknown is a function rather than a finite vector, and when the state is continuous no computer can store that function exactly. An agent observes a state $s \in [0, 1]$ and must decide whether to **stop** (receive reward $s$ and end the episode) or **continue** (receive nothing, and the state is redrawn uniformly on $[0, 1]$). With discount factor $\gamma = 0.9$, the Bellman optimality equation is:
-
-$$
-v^*(s) = \max\left\{ s, \; \gamma \int_0^1 v^*(s') \, ds' \right\}.
-$$
-
-The first term is the immediate payoff from stopping; the second is the discounted expected continuation value. This is an optimal stopping problem of the same kind as the storm-surge barrier of {ref}`sec-storm-surge-barrier`, reduced to its simplest form. Since the continuation value $\bar{v} = \int_0^1 v^*(s') ds'$ is a constant (it doesn't depend on the current state $s$), the optimal policy has a **threshold structure**: stop if $s \geq s^*$ for some threshold $s^*$, continue otherwise.
-
-At the threshold, the agent is indifferent: $s^* = \gamma \bar{v}$. Computing $\bar{v}$ by integrating $v^*$:
+A regulator sets the annual quota for a fish stock. Before the season, a survey
+gives the stock $x$, measured as a fraction of the carrying capacity of the
+habitat. The regulator chooses the *escapement* $s \in [0, x]$, the part of the
+stock left in the water to spawn. The rest, $x - s$, is caught and sold at a
+unit price. Over the following year the escaped stock grows to
 
 $$
-\bar{v} = \int_0^{s^*} \gamma \bar{v} \, ds' + \int_{s^*}^1 s' \, ds' = s^* \gamma \bar{v} + \frac{1 - (s^*)^2}{2}.
+x' = z\, f(s), \qquad f(s) = s \exp\!\Big(r \Big(1 - \frac{s}{K}\Big) \frac{s - C}{K}\Big),
 $$
 
-Substituting $s^* = \gamma \bar{v}$ and solving gives the exact threshold and value.
-
-```{code-cell} python
-:tags: [hide-input]
-
-#  label: fig-optimal-stopping-exact
-#  caption: The exact value function for the optimal stopping problem.
-
-%config InlineBackend.figure_format = 'retina'
-import numpy as np
-import matplotlib.pyplot as plt
-
-gamma = 0.9
-
-# Solve for exact threshold
-v_bar_exact = (1 - np.sqrt(1 - gamma**2)) / gamma**2
-s_star_exact = gamma * v_bar_exact
-
-print(f"Exact solution:")
-print(f"  Threshold s* = {s_star_exact:.6f}")
-print(f"  Continuation value v̄ = {v_bar_exact:.6f}")
-
-# The exact value function
-def v_exact(s):
-    return np.where(s >= s_star_exact, s, gamma * v_bar_exact)
-
-# Plot the exact value function
-s_grid = np.linspace(0, 1, 200)
-plt.figure(figsize=(8, 4))
-plt.plot(s_grid, v_exact(s_grid), 'b-', linewidth=2, label='Exact $v^*(s)$')
-plt.axvline(s_star_exact, color='r', linestyle='--', label=f'Threshold $s^* = {s_star_exact:.3f}$')
-plt.xlabel('State $s$')
-plt.ylabel('Value $v^*(s)$')
-plt.legend()
-plt.title('Optimal Stopping: Exact Value Function')
-plt.grid(True, alpha=0.3)
-plt.tight_layout()
-```
-
-The exact value function is piecewise linear: constant at $\gamma \bar{v}$ below the threshold, equal to $s$ above it. Now suppose we want to approximate $v^*$ using a **polynomial basis** with $n$ terms:
+where $z$ is a log-normal shock with mean one that stands for the environment:
+how many young fish survive varies a lot from year to year. This growth law,
+which {cite:t}`Boettiger2015` use to study tipping points in fisheries, has an
+Allee effect. Below the threshold $C$, the fish are too sparse to replace
+themselves, and the stock shrinks even when nobody fishes it (panel (a) of
+{numref}`fig-fishery-problem`). We take $r = 2$, $K = 1$, $C = 0.3$, a shock
+whose logarithm has standard deviation $0.15$, and $\gamma = 0.95$. These are
+teaching values, not the assessment of a real stock. The Bellman optimality
+equation is
 
 $$
-\hat{v}(s; \theta) = \sum_{j=0}^{n-1} \theta_j s^j = \theta_0 + \theta_1 s + \theta_2 s^2 + \cdots
+v^\star(x) = \max_{0 \le s \le x} \Big\{ x - s + \gamma\, \mathbb{E}_z\big[ v^\star\big(z f(s)\big) \big] \Big\}, \qquad x \in [0, 1.6].
 $$
 
-The **residual** at state $s$ measures how far our approximation is from satisfying the Bellman equation:
+Three things separate it from the finite MDPs of the earlier chapters. The
+state is a real number, so $v^\star$ is a function on an interval and no table
+holds it. The action is a real number too, so the maximization runs over an
+interval. And the expectation is an integral over $z$, which we compute with
+21-point Gauss–Hermite quadrature. The successor stock $z f(s)$ almost never
+falls on a point where a value was stored, which is the difficulty that
+[interpolation](finite-horizon-dp.md#handling-continuous-spaces-with-interpolation)
+handled in the finite-horizon chapter.
+
+This problem has one state variable, so we can still afford a reference
+solution: value iteration on 4,001 grid points, with linear interpolation
+between them and escapements restricted to the grid. Because the harvest value
+$x - s$ is linear in $s$, the maximization over $s \le x$ reduces to a running
+maximum along the grid, and one backup costs a single pass. Halving the number
+of grid points changes the solution by less than $0.001$.
+
+:::{figure} _static/fishery_tipping_point/problem.svg
+:label: fig-fishery-problem
+
+The fishery. (a) Expected stock next year against the escapement, with the
+band that holds 80% of the years. Below the tipping point $C$ the curve lies
+under the diagonal: the stock shrinks even without fishing. (b) The optimal
+value $v^\star$, computed on a fine grid. (c) The optimal escapement. The
+shading marks the three regions of the policy.
+:::
+
+The optimal policy has three regions. Above $S^\star = 0.712$, the regulator
+harvests down to the constant escapement $S^\star$, the policy that
+{cite:t}`Reed1979` proved optimal for this class of models. His condition
+$\gamma f'(S^\star) = 1$ gives $0.710$. The small gap comes from bad years,
+which leave the stock below $S^\star$, where a fish left to spawn is worth more
+than its price. Between $\hat x = 0.23$ and $S^\star$, the fishery is closed
+and the stock rebuilds. Below $\hat x$, the policy fishes the stock out: a
+stock this far below the tipping point will most likely decline anyway, and its
+catch today is worth more than its small chance of recovery.
+{cite:t}`Clark1973` showed that maximizing the value of the harvest can make
+extinction optimal in this way. Fisheries law adds conservation limits for that
+reason, and this model leaves them out. For the methods of this chapter, what
+matters is the shape of $v^\star$. It is linear on $[0, \hat x]$, has a kink at
+$\hat x$, rises more than tenfold across the tipping point, and is smooth
+elsewhere.
+
+Now suppose we may store only $n$ numbers. Two choices are natural.
+
+- A Chebyshev polynomial, $\hat v(x; \theta) = \sum_{j=0}^{n-1} \theta_j T_j(2x/1.6 - 1)$.
+  The basis is smooth and global: every coefficient changes the value at every
+  stock.
+- Piecewise-linear interpolation on $n$ uniform nodes, the hat functions of the
+  finite-horizon chapter. Each coefficient is the value at one node, and it
+  changes the value only between the two neighboring nodes.
+
+Neither can satisfy the Bellman equation at every stock. The residual
 
 $$
-R(s; \theta) = \max\left\{ s, \; \gamma \int_0^1 \hat{v}(s'; \theta) \, ds' \right\} - \hat{v}(s; \theta).
+R(x; \theta) = (\Bellman \hat v)(x) - \hat v(x; \theta)
 $$
 
-For a perfect solution, $R(s; \theta) = 0$ for all $s \in [0, 1]$. But a polynomial cannot exactly represent the kink at $s^*$. We must choose how to make the residual "small" across the state space.
-
-**Collocation** picks $n$ points $\{s_1, \ldots, s_n\}$ and requires the residual to vanish exactly there:
-
-$$
-R(s_i; \theta) = 0, \quad i = 1, \ldots, n.
-$$
-
-**Galerkin** requires the residual to be orthogonal to each basis function:
+measures by how much it fails at $x$. Collocation picks $n$ points
+$x_1, \ldots, x_n$ and asks the residual to vanish at them:
 
 $$
-\int_0^1 R(s; \theta) s^{j} w(s) \, ds = 0, \quad j = 0, \ldots, n-1.
+R(x_i; \theta) = 0, \qquad i = 1, \ldots, n.
 $$
 
-```{code-cell} python
-:tags: [hide-input]
+We use the Chebyshev nodes for the polynomial and the interpolation nodes for
+the hat functions, and we solve the $n$ nonlinear equations by function
+iteration. Each iteration computes the Bellman backup at the nodes with the
+current $\hat v$, then chooses the $\theta$ that reproduces those targets at
+the nodes. This is the simplest case of the fitted value iteration of the
+[next chapter](approximate-bellman-equations.md).
+{numref}`fig-fishery-collocation` shows both approximations with $n = 12$.
 
-#  label: fig-collocation-comparison
-#  caption: Polynomial collocation approximation with 5 Chebyshev nodes.
+:::{figure} _static/fishery_tipping_point/collocation.svg
+:label: fig-fishery-collocation
 
-from scipy.integrate import quad
+Collocation with $n = 12$ coefficients. (a) The two approximations against
+the exact value, with their collocation nodes. (b) The Bellman residual
+$R(x;\theta)$, which vanishes at the nodes. (c) The escapement chosen by the
+greedy policy of each approximation, against the optimal escapement.
+:::
 
-def chebyshev_nodes(n, a=0, b=1):
-    """Chebyshev nodes on [a, b]."""
-    k = np.arange(1, n + 1)
-    nodes = 0.5 * (a + b) + 0.5 * (b - a) * np.cos((2*k - 1) * np.pi / (2*n))
-    return np.sort(nodes)
+The residuals in panel (b) vanish at the nodes, as collocation requires, and
+both peak at about $0.2$ between them. The approximations themselves differ
+much more. A polynomial of degree 11 cannot bend sharply enough to follow the
+cliff, so it oscillates around it. Near the left end, its value at an empty
+stock is $1.6$ instead of zero. The greedy policy inherits these oscillations
+(panel (c)). It fishes out every stock below $0.31$, past the tipping point,
+where the optimal policy closes the fishery and lets the stock rebuild. A
+stock at $0.31$ is worth $1.49$ under the optimal policy and $0.31$, its
+immediate catch, under this one. Between $0.53$ and $0.67$ the policy also
+harvests stocks that should be left to grow. The piecewise-linear approximation
+is coarse between its nodes, but it follows the cliff, and its greedy policy
+loses at most $0.064$ anywhere. That worst case is near $x = 0.21$, where the
+policy closes the fishery a little too early.
 
-def collocation_solve(n, gamma, max_iter=100, tol=1e-8):
-    """Solve optimal stopping via polynomial collocation."""
-    nodes = chebyshev_nodes(n)
-    Phi = np.vander(nodes, n, increasing=True)
-    
-    theta = np.zeros(n)
-    for iteration in range(max_iter):
-        def v_approx(s):
-            return sum(theta[j] * s**j for j in range(n))
-        
-        v_bar, _ = quad(v_approx, 0, 1)
-        targets = np.maximum(nodes, gamma * v_bar)
-        theta_new = np.linalg.solve(Phi, targets)
-        
-        if np.linalg.norm(theta_new - theta) < tol:
-            return theta_new, iteration + 1
-        theta = theta_new
-    return theta, max_iter
+:::{figure} _static/fishery_tipping_point/sweep.svg
+:label: fig-fishery-sweep
 
-# Solve with different numbers of basis functions
-for n in [3, 5, 8]:
-    theta, iters = collocation_solve(n, gamma)
-    def v_approx(s, theta=theta, n=n):
-        return sum(theta[j] * s**j for j in range(n))
-    errors = [abs(v_approx(s) - v_exact(s)) for s in np.linspace(0, 1, 1000)]
-    print(f"n = {n}: converged in {iters} iters, max error = {max(errors):.6f}")
+The same experiment for $n$ from 4 to 64. (a) Largest error of the
+approximate value. (b) Largest loss of its greedy policy, evaluated exactly.
+Crosses mark the $n$ for which function iteration with the polynomial diverged.
+:::
 
-# Plot comparison for n=5
-n = 5
-theta, _ = collocation_solve(n, gamma)
-v_approx_5 = lambda s: sum(theta[j] * s**j for j in range(n))
+{numref}`fig-fishery-sweep` repeats the experiment for $n$ from 4 to 64.
+Piecewise-linear interpolation improves steadily as nodes are added. The
+polynomial is erratic. Adding one coefficient can multiply its error by five,
+and for $n = 4$ and $n = 9, 10, 11$ function iteration does not converge: the
+coefficients grow without bound, although every iteration fits its targets
+exactly. Once $n$ is large enough to resolve the cliff, from about 40
+coefficients on, the polynomial overtakes the hat functions and converges much
+faster. The table summarizes a few cases.
 
-plt.figure(figsize=(8, 4))
-plt.plot(s_grid, v_exact(s_grid), 'b-', linewidth=2, label='Exact')
-plt.plot(s_grid, [v_approx_5(s) for s in s_grid], 'r--', linewidth=2, label=f'Collocation ($n={n}$)')
-plt.scatter(chebyshev_nodes(n), [v_approx_5(s) for s in chebyshev_nodes(n)], 
-            color='red', s=50, zorder=5, label='Collocation nodes')
-plt.xlabel('State $s$')
-plt.ylabel('Value')
-plt.legend()
-plt.title('Polynomial Collocation Approximation')
-plt.grid(True, alpha=0.3)
-plt.tight_layout()
-```
+:::{include} artifacts/fishery_tipping_point/results.md
+:::
 
-This example illustrates the fundamental tension in weighted residual methods: with finite parameters, we cannot satisfy the Bellman equation everywhere. We must choose how to allocate our approximation capacity. The rest of this chapter develops the general theory behind these choices.
+The example raises the three questions that organize this chapter and the
+next.
+
+1. **Where should the residual be small?** With finitely many coefficients
+   the residual cannot vanish everywhere. Collocation makes it vanish at
+   chosen points. The rest of this chapter treats collocation, Galerkin and
+   least squares as three ways of testing the residual, and the choice of test
+   is a choice of where the approximation spends its accuracy.
+2. **Which basis?** A global polynomial spreads the difficulty of the cliff
+   over the whole interval, while local hat functions confine it to the nodes
+   next to the cliff. The basis also decides whether the iteration converges.
+   The [next chapter](approximate-bellman-equations.md) shows that
+   piecewise-linear interpolation belongs to a class of fits, the averagers,
+   for which function iteration is always a contraction, and that polynomial
+   interpolation does not.
+3. **What should be measured?** The residual is what the method controls,
+   the value error is what the residual bounds, and the policy loss is what
+   the regulator pays. At $n = 12$, the polynomial has the smaller residual of
+   the two approximations and a policy loss eighteen times larger. The next
+   chapter bounds the policy loss by the fitting error.
+
+- {download}`Fishery model, reference solver and collocation <code/fishery_tipping_point.py>`
+- {download}`Fishery experiment builder <scripts/build_fishery_tipping_point_artifacts.py>`
+- {download}`Fishery results for every basis size <artifacts/fishery_tipping_point/metrics.json>`
 
 ## Testing Whether a Residual Vanishes
 

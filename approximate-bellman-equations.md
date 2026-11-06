@@ -136,57 +136,62 @@ stationary version of the interpolated backward recursion
 5. **return** $\theta^{(k)}$
 ```
 
-On the optimal stopping problem of the previous chapter, with $n = 4$
-polynomial basis functions at Chebyshev nodes:
+The fishery of {ref}`sec-wr-fishery` runs this algorithm with the hat
+functions and with Chebyshev polynomials. The maximization over the
+escapement and the quadrature over the shock are done by the module that
+produced the figures of the previous chapter. The cell prints how much the
+fitted values at the nodes change from one iteration to the next.
 
 ```{code-cell} python
 :tags: [hide-input]
+
+import sys
+from pathlib import Path
+
 import numpy as np
-from scipy.integrate import quad
 
-gamma = 0.9
-n = 4
+code_directory = Path.cwd() / "code"
+if str(code_directory) not in sys.path:
+    sys.path.insert(0, str(code_directory))
+from fishery_tipping_point import Bellman, ChebyshevBasis, HatBasis, solve_exact
 
-# Chebyshev nodes on [0, 1]
-k = np.arange(1, n + 1)
-nodes = 0.5 + 0.5 * np.cos((2*k - 1) * np.pi / (2*n))
-nodes = np.sort(nodes)
+bellman = Bellman()                  # backups on a fine grid of escapements, 21 quadrature nodes
+exact = solve_exact(bellman)         # reference solution
 
-# Vandermonde matrix
-Phi = np.vander(nodes, n, increasing=True)
 
-# Exact solution
-v_bar_exact = (1 - np.sqrt(1 - gamma**2)) / gamma**2
-s_star_exact = gamma * v_bar_exact
-def v_exact(s):
-    return np.where(s >= s_star_exact, s, gamma * v_bar_exact)
+def collocation(basis, max_iter=2000):
+    theta = np.zeros(basis.n)
+    steps = []
+    for k in range(max_iter):
+        v = basis.function(theta)
+        targets = bellman.apply(v, basis.nodes)        # t_i = (L v_theta)(s_i)
+        new = basis.fit(targets)                       # solve Phi theta = t
+        steps.append(np.abs(basis.function(new)(basis.nodes) - v(basis.nodes)).max())
+        theta = new
+        if steps[-1] < 1e-10 or steps[-1] > 1e8:
+            break
+    return basis.function(theta), np.array(steps)
 
-# Collocation iteration
-theta = np.zeros(n)
-print("Collocation iteration trace:")
-print(f"{'Iter':<6} {'||theta||':<12} {'Max error':<12}")
-print("-" * 30)
 
-for iteration in range(60):
-    def v_approx(s, th=theta):
-        return sum(th[j] * s**j for j in range(n))
-    v_bar, _ = quad(v_approx, 0, 1)
-    test_points = np.linspace(0, 1, 100)
-    max_error = max(abs(v_approx(s) - v_exact(s)) for s in test_points)
-    if iteration % 5 == 0:
-        print(f"{iteration:<6} {np.linalg.norm(theta):<12.6f} {max_error:<12.6f}")
-    
-    targets = np.maximum(nodes, gamma * v_bar)
-    theta_new = np.linalg.solve(Phi, targets)
-    if np.linalg.norm(theta_new - theta) < 1e-10:
-        print(f"\nConverged in {iteration + 1} iterations; max error {max_error:.6f}")
-        break
-    theta = theta_new
+print(f"{'basis':<30}{'step 10':>10}{'step 100':>11}{'last step':>11}"
+      f"{'iterations':>12}{'rate':>7}{'max error':>11}")
+for basis in (HatBasis(12), ChebyshevBasis(12), ChebyshevBasis(10)):
+    v, steps = collocation(basis)
+    rate = np.median(steps[50:150] / steps[49:149])
+    error = np.abs(v(bellman.x) - exact.v).max()
+    label = f"{basis.name}, n = {basis.n}"
+    print(f"{label:<30}{steps[9]:>10.2e}{steps[99]:>11.2e}{steps[-1]:>11.2e}"
+          f"{len(steps):>12}{rate:>7.3f}{error:>11.3g}")
 ```
 
-The iteration converges linearly at the rate $\gamma$, as value iteration
-does, and the remaining error is the interpolation error of a cubic through
-four nodes on a function with a kink.
+With 12 coefficients, both bases converge, and the change per iteration
+shrinks by the factor $\gamma = 0.95$, as in value iteration. They converge to
+different fixed points, with errors of about $0.5$ and $1.7$. With 10
+Chebyshev coefficients, the change instead grows by about 5% per iteration,
+and the coefficients run off to infinity. The Bellman backup still
+contracts by $\gamma$. It is the interpolation step that expands, by a
+factor of at least $1.049/0.95 \approx 1.10$, enough to undo the contraction.
+{ref}`sec-abe-convergence` explains which fitting rules can do this and which cannot.
 
 **Galerkin projection** fits by weighted least squares. Given a weight $w(s)$
 over states, $\theta_{k+1}$ minimizes
@@ -244,9 +249,9 @@ gradient steps instead of run to convergence.
 (sec-abe-high-dim)=
 ### Example: A Stopping Problem in Eight Dimensions
 
-The stopping problem of the previous chapter has one state variable, and a
-grid of a dozen nodes solves it. To see why the fit matters, give the state
-$D$ coordinates. An agent watches an index $s \in [0,1]^D$, for instance the
+The fishery has one state variable, and a grid of a few thousand nodes
+solves it exactly enough to serve as a reference. To see why the choice of
+fit matters, consider a state with $D$ coordinates. An agent watches an index $s \in [0,1]^D$, for instance the
 prices of $D$ assets. Stopping pays the average of the coordinates,
 $\bar{s} = \frac{1}{D}\sum_\ell s_\ell$, and ends the problem. Continuing pays
 nothing, and each coordinate then moves toward a fresh uniform draw,
@@ -510,7 +515,12 @@ $(\Proj f)(s) = \sum_j \ell_j(s) f(s_j)$ with cardinal functions $\ell_j$, the
 two conditions say that the weights are nonnegative and sum to one, which is
 the condition $\Lambda = 1$ of the finite-horizon chapter. The least-squares
 fit of the counterexample violates them: it maps the constant function
-$(1, 1)$ to $(3/5, 6/5)$.
+$(1, 1)$ to $(3/5, 6/5)$. Polynomial interpolation at Chebyshev nodes
+preserves constants but is not monotone: its cardinal functions dip below
+zero between the nodes, and its Lebesgue constant is about $2.4$ for ten
+nodes. That is how the ten-coefficient polynomial of the fishery
+({ref}`sec-abe-fvi`) could undo the contraction of the Bellman backup, while
+the hat functions, whose cardinal functions are nonnegative, could not.
 
 ```{prf:theorem} Stability of projected value iteration (Santos-Vigo-Aguiar)
 :label: santos-vigo-aguiar-stability
