@@ -916,7 +916,7 @@ $$
 where the second form, $m+1$ sweeps of policy evaluation started from $\mathbf{v}^n$, is how it is implemented. The integer $m \ge 0$ is a hyperparameter that interpolates between the two algorithms we have seen. With $m = 0$ the update is $\mathbf{v}^{n+1} = \mathrm{L}_{\pi_{n+1}}\mathbf{v}^n = \Bellman\mathbf{v}^n$, which is value iteration. With $m = \infty$ it is exact evaluation, which is policy iteration. In between, each iteration costs $m+1$ matrix-vector products and no linear solve.
 
 ````{prf:algorithm} Modified Policy Iteration
-:label: modified-policy-iteration
+:label: alg-modified-policy-iteration
 
 **Input:** MDP $(S, A, P, R, \gamma)$, number of evaluation sweeps $m \ge 0$, tolerance $\varepsilon > 0$  
 **Output:** An $\varepsilon$-optimal policy
@@ -1528,7 +1528,7 @@ The connection to semismooth Newton methods places policy iteration within a bro
 
 ### Policy Iteration as a Newton Method
 
-Comparing the Newton step above with {prf:ref}`policy-iteration-standard`, the linearization happens in the policy evaluation step 3, where we solve $(\mathbf{I}-\gamma \mathbf{P}_{\pi_n}) \mathbf{v} = \mathbf{r}_{\pi_n}$, and the improvement step recomputes the point at which the operator is linearized. The linear system can be solved by direct methods (Gaussian elimination), by successive approximation, or by Krylov methods such as GMRES. Solving it only approximately, with a few sweeps of successive approximation, is {prf:ref}`modified-policy-iteration`: an inexact Newton method whose direction comes from a truncated Neumann series.
+Comparing the Newton step above with {prf:ref}`policy-iteration-standard`, the linearization happens in the policy evaluation step 3, where we solve $(\mathbf{I}-\gamma \mathbf{P}_{\pi_n}) \mathbf{v} = \mathbf{r}_{\pi_n}$, and the improvement step recomputes the point at which the operator is linearized. The linear system can be solved by direct methods (Gaussian elimination), by successive approximation, or by Krylov methods such as GMRES. Solving it only approximately, with a few sweeps of successive approximation, is {prf:ref}`alg-modified-policy-iteration`: an inexact Newton method whose direction comes from a truncated Neumann series.
 
 (sec-sailing-wind-shifts)=
 ## Example: Sailing to a Windward Mark in a Shifting Wind
