@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 330" width="800" height="330" role="img"
+     aria-label="A two-state MDP drawn as a graph, and the same MDP with a cemetery state">
+<style>
+  .title { font: 600 11.5px 'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+           letter-spacing: .07em; text-transform: uppercase; fill: #5c6874; }
+  .node { fill: #ffffff; stroke: #1b2430; stroke-width: 1.6; }
+  .node.dead { fill: none; stroke: #6e7982; stroke-dasharray: 4 3; }
+  .nlab { font: italic 19px Newsreader, Georgia, 'Times New Roman', serif; fill: #1b2430; }
+  .nlab.dead { font-style: normal; fill: #6e7982; }
+  .lab { font: italic 14.5px Newsreader, Georgia, 'Times New Roman', serif; }
+  .up { font-style: normal; }
+  .note { font: 12px 'IBM Plex Sans', system-ui, -apple-system, sans-serif; fill: #6e7982; }
+  .e { fill: none; stroke-width: 1.7; }
+  .a1 { stroke: #2f6f8f; } .a1t { fill: #2f6f8f; } .a1h { fill: #2f6f8f; }
+  .a2 { stroke: #b0642a; } .a2t { fill: #b0642a; } .a2h { fill: #b0642a; }
+  .k  { stroke: #6e7982; } .kt  { fill: #6e7982; } .kh  { fill: #6e7982; }
+  @media (prefers-color-scheme: dark) {
+    .title { fill: #a8b2b9; }
+    .node { fill: #1b2430; stroke: #edf1f1; }
+    .node.dead { fill: none; stroke: #9ca7ae; }
+    .nlab { fill: #edf1f1; }
+    .nlab.dead { fill: #9ca7ae; }
+    .note { fill: #9ca7ae; }
+    .a1 { stroke: #72a8c2; } .a1t, .a1h { fill: #72a8c2; }
+    .a2 { stroke: #e0a06a; } .a2t, .a2h { fill: #e0a06a; }
+    .k { stroke: #9ca7ae; } .kt, .kh { fill: #9ca7ae; }
+  }
+</style>
+<defs><marker id="h-a1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7.5" markerHeight="7.5" orient="auto-start-reverse"><path class="a1h" d="M0,0.8 L10,5 L0,9.2 z"/></marker><marker id="h-a2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7.5" markerHeight="7.5" orient="auto-start-reverse"><path class="a2h" d="M0,0.8 L10,5 L0,9.2 z"/></marker><marker id="h-k" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7.5" markerHeight="7.5" orient="auto-start-reverse"><path class="kh" d="M0,0.8 L10,5 L0,9.2 z"/></marker></defs>
+<g>
+  <text class="title" x="4" y="22">(a) a two-state MDP</text>
+  <path class="e a1" d="M51.2,129.7 C20.1,75.6 103.9,75.6 73.3,128.8" marker-end="url(#h-a1)"/>
+  <text class="lab a1t" x="32.0" y="52.0" text-anchor="start">a<tspan class="up" font-size="10.5" dy="3.5">1</tspan><tspan dy="-3.5"></tspan><tspan class="up">: </tspan>p(s<tspan class="up" font-size="10.5" dy="3.5">1</tspan><tspan dy="-3.5"></tspan> | s<tspan class="up" font-size="10.5" dy="3.5">1</tspan><tspan dy="-3.5"></tspan>, a<tspan class="up" font-size="10.5" dy="3.5">1</tspan><tspan dy="-3.5"></tspan>)</text>
+  <path class="e a2" d="M80.9,136.9 Q195.0,58.0 308.3,136.3" marker-end="url(#h-a2)"/>
+  <text class="lab a2t" x="195.0" y="130.0" text-anchor="middle">a<tspan class="up" font-size="10.5" dy="3.5">2</tspan><tspan dy="-3.5"></tspan><tspan class="up">: </tspan>p(s<tspan class="up" font-size="10.5" dy="3.5">2</tspan><tspan dy="-3.5"></tspan> | s<tspan class="up" font-size="10.5" dy="3.5">1</tspan><tspan dy="-3.5"></tspan>, a<tspan class="up" font-size="10.5" dy="3.5">2</tspan><tspan dy="-3.5"></tspan>)</text>
+  <path class="e a1" d="M309.1,163.1 Q195.0,242.0 81.7,163.7" marker-end="url(#h-a1)"/>
+  <text class="lab a1t" x="195.0" y="176.0" text-anchor="middle">a<tspan class="up" font-size="10.5" dy="3.5">1</tspan><tspan dy="-3.5"></tspan><tspan class="up">: </tspan>p(s<tspan class="up" font-size="10.5" dy="3.5">1</tspan><tspan dy="-3.5"></tspan> | s<tspan class="up" font-size="10.5" dy="3.5">2</tspan><tspan dy="-3.5"></tspan>, a<tspan class="up" font-size="10.5" dy="3.5">1</tspan><tspan dy="-3.5"></tspan>)</text>
+  <circle class="node" cx="62.0" cy="150.0" r="23"/><text class="nlab" x="60.0" y="155.5" text-anchor="middle">s<tspan class="up" font-size="12" dy="5">1</tspan></text>
+  <circle class="node" cx="328.0" cy="150.0" r="23"/><text class="nlab" x="326.0" y="155.5" text-anchor="middle">s<tspan class="up" font-size="12" dy="5">2</tspan></text>
+</g>
+<g>
+  <text class="title" x="414" y="22">(b) with a cemetery state</text>
+  <path class="e a1" d="M461.2,129.7 C430.1,75.6 513.9,75.6 483.3,128.8" marker-end="url(#h-a1)"/>
+  <text class="lab a1t" x="442.0" y="52.0" text-anchor="start">a<tspan class="up" font-size="10.5" dy="3.5">1</tspan><tspan dy="-3.5"></tspan><tspan class="up">: </tspan>γ p(s<tspan class="up" font-size="10.5" dy="3.5">1</tspan><tspan dy="-3.5"></tspan> | s<tspan class="up" font-size="10.5" dy="3.5">1</tspan><tspan dy="-3.5"></tspan>, a<tspan class="up" font-size="10.5" dy="3.5">1</tspan><tspan dy="-3.5"></tspan>)</text>
+  <path class="e a2" d="M490.9,136.9 Q605.0,58.0 718.3,136.3" marker-end="url(#h-a2)"/>
+  <text class="lab a2t" x="605.0" y="130.0" text-anchor="middle">a<tspan class="up" font-size="10.5" dy="3.5">2</tspan><tspan dy="-3.5"></tspan><tspan class="up">: </tspan>γ p(s<tspan class="up" font-size="10.5" dy="3.5">2</tspan><tspan dy="-3.5"></tspan> | s<tspan class="up" font-size="10.5" dy="3.5">1</tspan><tspan dy="-3.5"></tspan>, a<tspan class="up" font-size="10.5" dy="3.5">2</tspan><tspan dy="-3.5"></tspan>)</text>
+  <path class="e a1" d="M719.1,163.1 Q605.0,242.0 491.7,163.7" marker-end="url(#h-a1)"/>
+  <text class="lab a1t" x="605.0" y="176.0" text-anchor="middle">a<tspan class="up" font-size="10.5" dy="3.5">1</tspan><tspan dy="-3.5"></tspan><tspan class="up">: </tspan>γ p(s<tspan class="up" font-size="10.5" dy="3.5">1</tspan><tspan dy="-3.5"></tspan> | s<tspan class="up" font-size="10.5" dy="3.5">2</tspan><tspan dy="-3.5"></tspan>, a<tspan class="up" font-size="10.5" dy="3.5">1</tspan><tspan dy="-3.5"></tspan>)</text>
+  <path class="e k" d="M473.6,172.9 Q480.0,268.0 581.1,276.1" marker-end="url(#h-k)"/>
+  <path class="e k" d="M736.4,172.9 Q730.0,268.0 628.9,276.1" marker-end="url(#h-k)"/>
+  <text class="lab kt" x="470.0" y="250.0" text-anchor="end"><tspan class="up">1 − </tspan>γ</text>
+  <text class="lab kt" x="740.0" y="250.0" text-anchor="start"><tspan class="up">1 − </tspan>γ</text>
+  <path class="e k" d="M615.8,298.3 C631.6,325.2 578.4,325.2 593.7,299.2" marker-end="url(#h-k)"/>
+  <text class="note" x="645.0" y="322.0">probability 1, reward 0</text>
+  <circle class="node" cx="472.0" cy="150.0" r="23"/><text class="nlab" x="470.0" y="155.5" text-anchor="middle">s<tspan class="up" font-size="12" dy="5">1</tspan></text>
+  <circle class="node" cx="738.0" cy="150.0" r="23"/><text class="nlab" x="736.0" y="155.5" text-anchor="middle">s<tspan class="up" font-size="12" dy="5">2</tspan></text>
+  <circle class="node dead" cx="605.0" cy="278.0" r="23"/><text class="nlab dead" x="605.0" y="284.5" text-anchor="middle">Δ</text>
+</g>
+</svg>
