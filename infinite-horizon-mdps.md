@@ -785,7 +785,7 @@ def policy_value(P, r, gamma, policy):
 
 
 gamma, eps = 0.95, 1e-3
-print(f"{'stay':>5} | {'sup-norm iters':>14} {'span iters':>10} | {'worst gap (sup)':>15} {'worst gap (span)':>16}")
+rows = [f"{'stay':>5} | {'sup-norm iters':>14} {'span iters':>10} | {'worst gap (sup)':>15} {'worst gap (span)':>16}"]
 for stay in (0.0, 0.5, 0.9, 0.99):
     iters = {"sup": [], "span": []}
     gaps = {"sup": [], "span": []}
@@ -797,8 +797,9 @@ for stay in (0.0, 0.5, 0.9, 0.99):
             n, pi = value_iteration(P, r, gamma, eps, test)
             iters[test].append(n)
             gaps[test].append((v_star - policy_value(P, r, gamma, pi)).max())
-    print(f"{stay:>5} | {np.mean(iters['sup']):>14.0f} {np.mean(iters['span']):>10.0f} | "
-          f"{max(gaps['sup']):>15.1e} {max(gaps['span']):>16.1e}")
+    rows.append(f"{stay:>5} | {np.mean(iters['sup']):>14.0f} {np.mean(iters['span']):>10.0f} | "
+                f"{max(gaps['sup']):>15.1e} {max(gaps['span']):>16.1e}")
+print("\n".join(rows))
 ```
 
 With fast-mixing random transitions (`stay = 0`) the span test stops after about 10 iterations, against about 200 for the sup-norm test. As the chains become stickier the advantage shrinks, and at `stay = 0.99` the two tests stop within about 15% of each other. In every case both returned policies are within $\varepsilon$ of optimal.
@@ -998,7 +999,7 @@ def policy_iteration(P, r, gamma, rule, seed=0, max_iter=100_000):
 
 
 gamma = 0.95
-print(f"{'improvement rule':>18} | {'evaluations (mean of 5 MDPs)':>28} | optimal")
+rows = [f"{'improvement rule':>18} | {'evaluations (mean of 5 MDPs)':>28} | optimal"]
 for rule in ("all", "best state", "random improvable", "random state"):
     counts, all_optimal = [], True
     for seed in range(5):
@@ -1007,7 +1008,8 @@ for rule in ("all", "best state", "random improvable", "random state"):
         _, pi_ref = policy_iteration(P, r, gamma, "all")
         all_optimal &= np.allclose(evaluate(P, r, gamma, pi), evaluate(P, r, gamma, pi_ref))
         counts.append(n)
-    print(f"{rule:>18} | {np.mean(counts):>28.1f} | {all_optimal}")
+    rows.append(f"{rule:>18} | {np.mean(counts):>28.1f} | {all_optimal}")
+print("\n".join(rows))
 ```
 
 Standard policy iteration needs about 3 evaluations, while one improvable state per iteration needs 20 to 30. Choosing the state blindly costs about 200, because most draws land on states that are already greedy. The guarantee itself is only finite termination: the counting argument bounds the number of evaluations by the number of policies, which grows exponentially with the number of states, and there are MDPs on which badly chosen single-state rules do take exponentially many steps.
