@@ -289,6 +289,24 @@ function drawMap(t) {
   ctx.fillText("too late", X(3), pad.t + 2);
 }
 
+// The book sizes this iframe to the window. Shrink the canvases until the
+// whole page fits; below 620px the panels stack and the page scrolls instead.
+const FIT = [["section", "height"], ["fan", "height"], ["map", "height"]];
+function fitToWindow() {
+  const before = FIT.map(([id, p]) => $(id).style[p]).join();
+  for (const [id, p] of FIT) $(id).style[p] = "";
+  const main = document.querySelector("main"), full = FIT.map(([id, p]) => $(id).getBoundingClientRect()[p]);
+  const set = k => FIT.forEach(([id, p], i) => { $(id).style[p] = (full[i] * k).toFixed(1) + "px"; });
+  const h = main.offsetHeight;
+  if (innerWidth > 620 && h > innerHeight) {
+    set(0.8);
+    const slope = Math.max(1, (h - main.offsetHeight) / 0.2);
+    let k = Math.max(0.35, 1 - (h - innerHeight) / slope), over;
+    set(k);
+    for (let i = 0; i < 3 && (over = main.offsetHeight - innerHeight) > 0 && k > 0.35; i++) set(k = Math.max(0.35, k - over / slope));
+  }
+  return FIT.map(([id, p]) => $(id).style[p]).join() !== before;
+}
 function render() {
   if (!data) return;
   tau = Math.max(0, Math.min(tau, total()));
@@ -309,6 +327,7 @@ function render() {
   const outcome = r.order_lead === null ? (r.flooded ? "never closed the barrier, and the city flooded" : "never closed the barrier")
     : `ordered the closure ${r.order_lead} h before the peak` + (r.flooded ? ", too late: the city flooded" : (pk > 300 ? ", and the barrier held back the peak" : ", a false closure"));
   $("summary").textContent = `This storm peaks at ${pk} cm above NAP. The policy ${outcome}; cost ${r.cost.toFixed(0)}. Over all storms, this policy's expected cost is ${m.cost.toFixed(1)}, with false closures in ${(100 * m.p_false).toFixed(1)}% of storms and missed floods in ${(100 * m.p_miss).toFixed(2)}%.`;
+  if (!playing && fitToWindow()) render();
 }
 
 function tick(now) {

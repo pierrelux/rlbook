@@ -1,0 +1,98 @@
+{
+  "build_elapsed_s": 0.834,
+  "command": "uv run --group artifacts python scripts/build_battery_artifacts.py",
+  "hardware": {
+    "machine": "arm64",
+    "platform": "macOS-14.6-arm64-arm-64bit",
+    "processor": "arm"
+  },
+  "inputs": {
+    "_static/battery/fonts/IBM-Plex-LICENSE.txt": "7e6b2818edbd8f6a01ae80641cc8f16a51080d08fb4e532be3a0b6f74adb07da",
+    "_static/battery/fonts/IBMPlexMono-Regular.ttf": "7c6fbddca4b700be918f5f6183d9bd4464fa427fe435f0b480d77fe2bb8c5a43",
+    "_static/battery/fonts/IBMPlexSans-Regular.ttf": "975dcda37d80f038dcd143c22e33ca2d97a0cc5a929aace1c749153b0fe1afa5",
+    "_static/battery/fonts/IBMPlexSans-SemiBold.ttf": "a20caf8286023a6a7a85e40b1d2a4ae9fc3e3b1f9eda8f4c542dd4986af67bb1",
+    "_static/battery/fonts/Newsreader-OFL.txt": "fdfad38143ec470553cae82a1e45320bdd1b9ec70415d37bd0171051d8a4ded8",
+    "_static/battery/fonts/Newsreader.ttf": "8a08d13f8a6c0d51be379a60af84f945f65369a67e509ee3c3bdcc421254d7c1",
+    "_static/battery/fonts/README.md": "bdd24b6296ce80463ce0452ec14389ec8683b9b7cd62393e6e9bd0b8204f16ac",
+    "code/battery_control.py": "081449b73971eb5f68d286fa4241ab1b998500b3836bafb481c2278f811f7220",
+    "code/battery_replay.py": "d9526c2b6ed98b2ea4751e0e489e83b456129757f0c8accbe8e01b14813ce19c",
+    "pyproject.toml": "9c39f7b2e6337d8182a18f7915bde7120d65fac64b9abe157f9a94c2cb060bff",
+    "scripts/build_battery_artifacts.py": "5487b26270e857b3d7fdfa919235ac49ac6ed6b6f0863dd2d0fe67ca71214bb9",
+    "uv.lock": "0934921e192640c3858800a5f4471b48b1e9f37b1afc51dfe6e73d5a36d5b804"
+  },
+  "outputs": {
+    "_static/battery/fast-charging.pdf": "0d48d4310535f2a6fcdbd8b5a9ccea0083b1d3e433acfa3c21a4162e5f988310",
+    "_static/battery/fast-charging.svg": "ed381b12d9032913ca3c415800a3df72a86e75739692c7c356069edbe191180a",
+    "artifacts/battery/diagnostic_pulse.csv": "a25d9edd2f29c14e399039909aaf080a39c7383a54402e798d0808c4e244be40",
+    "artifacts/battery/metrics.csv": "17561723825c3b4f633681a4baaa170d62d0b5c018cadcfccb6a0669a0f8df05",
+    "artifacts/battery/results.md": "af028d92159caefc02cd49a9661e8245acdfac1f35ab5910c52a6025abe7823b",
+    "artifacts/battery/textbook_results.json": "0c9f94f9ae55faf88625957fb8a23de9ace52386fd55e3e94f9052150bb9b0f1",
+    "artifacts/battery/trajectories.csv": "ab5a147e81b0f5709cc232f1ba6dfd715d31b566549f8ce9e95462da4062430b",
+    "artifacts/battery/trajectories.npz": "fa96fce817f14a8b38e87bcee8a4909a76dda46c5aea839d3d49180258823de3"
+  },
+  "protocol": {
+    "controller": "Continuous PyBaMM CustomStepExplicit current governor; the minimum of the 10 A action limit, the immediate-voltage envelope, and a 34.5 degree C local thermal-headroom ceiling derived from the declared steady heat balance; results sampled every 1 s. The 35 degree C plant bound is never reached, but the thermal-headroom ceiling does limit requested current.",
+    "diagnostic": {
+      "fit_bounds": [
+        0.7,
+        2.5
+      ],
+      "fitted_resistance_scale": 1.8004726712666284,
+      "informative_samples": 101,
+      "noise_std_v": 0.001,
+      "protocol": "20 s rest, 10 s at 5 A charge, 40 s rest",
+      "seed": 11,
+      "true_resistance_scale": 1.8,
+      "voltage_rmse_v": 0.000939237413534322
+    },
+    "model": {
+      "library": "PyBaMM",
+      "name": "Thevenin Equivalent Circuit Model",
+      "ocv_expression_v": "3.10 + soc + 0.08 * tanh((soc - 0.50) / 0.10)",
+      "options": {
+        "diffusion element": "false",
+        "number of rc elements": 1,
+        "operating mode": "current"
+      },
+      "pybamm_current_convention": "positive discharge",
+      "textbook_current_convention": "positive charge",
+      "version": "26.6.2.0"
+    },
+    "resistance_scaling": "R0 and R1 multiply by alpha; C1 divides by alpha; R1*C1 remains 24 s",
+    "scenario": {
+      "ambient_temperature_c": 25.0,
+      "capacity_ah": 5.0,
+      "cell_jig_heat_transfer_w_per_k": 0.55,
+      "cell_thermal_mass_j_per_k": 180.0,
+      "control_period_s": 1.0,
+      "current_limit_a": 10.0,
+      "duration_s": 1800.0,
+      "fit_sample_period_s": 0.5,
+      "fit_seed": 11,
+      "fit_voltage_noise_std_v": 0.001,
+      "high_resistance_scale": 1.8,
+      "initial_soc": 0.2,
+      "initial_temperature_c": 25.0,
+      "jig_air_heat_transfer_w_per_k": 0.35,
+      "jig_thermal_mass_j_per_k": 400.0,
+      "nominal_c1_f": 2400.0,
+      "nominal_r0_ohm": 0.015,
+      "nominal_r1_ohm": 0.01,
+      "solver_atol": 1e-09,
+      "solver_rtol": 1e-08,
+      "target_soc": 0.8,
+      "temperature_guard_c": 34.5,
+      "temperature_limit_c": 35.0,
+      "voltage_guard_v": 4.17,
+      "voltage_limit_v": 4.2
+    },
+    "threshold_duration": "piecewise-linear threshold crossing interpolation on sampled output"
+  },
+  "schema_version": 1,
+  "software": {
+    "matplotlib": "3.10.3",
+    "numpy": "2.3.1",
+    "pybamm": "26.6.2.0",
+    "python": "3.12.8"
+  }
+}

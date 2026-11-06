@@ -1,0 +1,496 @@
+<section id="inference-replay-c7cdd87d" class="inference-replay" aria-labelledby="inference-replay-c7cdd87d-title" aria-describedby="inference-replay-c7cdd87d-description">
+  <style>
+    #inference-replay-c7cdd87d {
+      --paper: #F6F7F4; --ink: #1B2430; --teal: #2F6F8F;
+      --stands: #2E7D5B; --caveat: #B8860B; --withdrawn: #A83A32;
+      --muted: #66727D; --line: #CBD2D6; --soft: #E8ECEB;
+      color: var(--ink); background: var(--paper); font-family: "IBM Plex Sans", Inter, system-ui, sans-serif;
+      max-width: 980px; margin: 0 auto; padding: 1rem; box-sizing: border-box;
+      color-scheme: light;
+    }
+    #inference-replay-c7cdd87d[data-theme="dark"] {
+      --paper: #151C24; --ink: #EEF2F3; --teal: #70AFC8;
+      --stands: #68B894; --caveat: #D6AD43; --withdrawn: #D87168;
+      --muted: #A9B3BA; --line: #46515A; --soft: #202A33;
+      color-scheme: dark;
+    }
+    #inference-replay-c7cdd87d *, #inference-replay-c7cdd87d *::before, #inference-replay-c7cdd87d *::after { box-sizing: border-box; }
+    #inference-replay-c7cdd87d [hidden] { display: none !important; }
+    #inference-replay-c7cdd87d h3 { margin: 0; font-family: Newsreader, Georgia, serif; font-weight: 500; font-size: 1.35rem; line-height: 1.2; }
+    #inference-replay-c7cdd87d .description { margin: .3rem 0 .85rem; color: var(--muted); font-size: .91rem; }
+    #inference-replay-c7cdd87d .provenance { margin: -.5rem 0 .85rem; font-size: .82rem; font-weight: 500; }
+    #inference-replay-c7cdd87d .provenance[data-verdict="stands"] { color: var(--stands); }
+    #inference-replay-c7cdd87d .provenance[data-verdict="caveat"] { color: var(--caveat); }
+    #inference-replay-c7cdd87d .controls { display: flex; align-items: end; flex-wrap: wrap; gap: .55rem .75rem; margin-bottom: .8rem; }
+    #inference-replay-c7cdd87d .field { display: grid; gap: .22rem; color: var(--muted); font-size: .78rem; }
+    #inference-replay-c7cdd87d select, #inference-replay-c7cdd87d button, #inference-replay-c7cdd87d input { font: inherit; color: var(--ink); }
+    #inference-replay-c7cdd87d select, #inference-replay-c7cdd87d button { min-height: 2.25rem; border: 1px solid var(--line); background: transparent; border-radius: .28rem; padding: .38rem .68rem; }
+    #inference-replay-c7cdd87d button { cursor: pointer; }
+    #inference-replay-c7cdd87d button[aria-pressed="true"] { color: var(--paper); background: var(--ink); border-color: var(--ink); }
+    #inference-replay-c7cdd87d button:focus-visible, #inference-replay-c7cdd87d select:focus-visible, #inference-replay-c7cdd87d input:focus-visible { outline: 3px solid color-mix(in srgb, var(--teal) 42%, transparent); outline-offset: 2px; }
+    #inference-replay-c7cdd87d .scrub { flex: 1 1 18rem; }
+    #inference-replay-c7cdd87d .scrub-head { display: flex; justify-content: space-between; gap: .6rem; }
+    #inference-replay-c7cdd87d output, #inference-replay-c7cdd87d .numeric { font-family: "IBM Plex Mono", ui-monospace, monospace; font-variant-numeric: tabular-nums; color: var(--ink); }
+    #inference-replay-c7cdd87d input[type="range"] { width: 100%; accent-color: var(--teal); min-height: 1.5rem; }
+    #inference-replay-c7cdd87d .visuals { display: grid; grid-template-columns: minmax(0, 1.08fr) minmax(0, .92fr); gap: .8rem; }
+    #inference-replay-c7cdd87d svg { display: block; width: 100%; height: auto; overflow: visible; }
+    #inference-replay-c7cdd87d .frame { fill: none; stroke: var(--line); stroke-width: 1; }
+    #inference-replay-c7cdd87d .structure { fill: var(--soft); stroke: var(--teal); stroke-width: 1.5; }
+    #inference-replay-c7cdd87d .structure-label { fill: var(--ink); font-family: "IBM Plex Sans", system-ui, sans-serif; font-size: 12px; font-weight: 500; }
+    #inference-replay-c7cdd87d .annotation { fill: var(--muted); font-family: "IBM Plex Sans", system-ui, sans-serif; font-size: 11px; }
+    #inference-replay-c7cdd87d .number { fill: var(--ink); font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 12px; font-variant-numeric: tabular-nums; }
+    #inference-replay-c7cdd87d .arrow { fill: none; stroke: var(--teal); stroke-width: 1.6; }
+    #inference-replay-c7cdd87d .request { fill: var(--teal); stroke: var(--paper); stroke-width: 1.1; }
+    #inference-replay-c7cdd87d .request[data-phase="complete"] { fill: var(--stands); }
+    #inference-replay-c7cdd87d .policy-cell { stroke: var(--paper); stroke-width: 1.2; }
+    #inference-replay-c7cdd87d .policy-cell[data-action="0"] { fill: var(--teal); }
+    #inference-replay-c7cdd87d .policy-cell[data-action="1"] { fill: var(--ink); }
+    #inference-replay-c7cdd87d .policy-cell[data-action="2"] { fill: var(--muted); }
+    #inference-replay-c7cdd87d .policy-letter { fill: var(--paper); font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 10px; font-weight: 500; pointer-events: none; }
+    #inference-replay-c7cdd87d .coverage-dot { fill: var(--paper); stroke: var(--ink); stroke-width: .7; pointer-events: none; }
+    #inference-replay-c7cdd87d .meter-track { fill: var(--soft); }
+    #inference-replay-c7cdd87d .meter { fill: var(--teal); }
+    #inference-replay-c7cdd87d .trace { fill: none; stroke: var(--teal); stroke-width: 2; vector-effect: non-scaling-stroke; }
+    #inference-replay-c7cdd87d .trace.secondary { stroke: var(--ink); stroke-dasharray: 5 4; }
+    #inference-replay-c7cdd87d .trace.plan { stroke: var(--caveat); stroke-dasharray: 4 4; }
+    #inference-replay-c7cdd87d .now { stroke: var(--muted); stroke-width: 1; stroke-dasharray: 2 3; }
+    #inference-replay-c7cdd87d .status { margin: .65rem 0 0; color: var(--muted); font-size: .84rem; min-height: 1.3em; }
+    #inference-replay-c7cdd87d .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+    @media (max-width: 690px) {
+      #inference-replay-c7cdd87d { padding: .75rem .3rem; }
+      #inference-replay-c7cdd87d .visuals { grid-template-columns: 1fr; }
+      #inference-replay-c7cdd87d .controls { align-items: stretch; }
+      #inference-replay-c7cdd87d .field.controller { flex: 1 1 100%; }
+      #inference-replay-c7cdd87d select { width: 100%; }
+      #inference-replay-c7cdd87d button { min-width: 4.1rem; min-height: 2.75rem; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      #inference-replay-c7cdd87d *, #inference-replay-c7cdd87d *::before, #inference-replay-c7cdd87d *::after { scroll-behavior: auto !important; transition: none !important; animation: none !important; }
+    }
+  </style>
+  <header>
+    <h3 id="inference-replay-c7cdd87d-title">Requests, work, and the GPU state</h3>
+    <p id="inference-replay-c7cdd87d-description" class="description">Every mark is read from the recorded Python trajectory. The controls change only which recorded frame is shown.</p>
+    <p class="provenance" data-verdict="caveat">Profile: Engineering surrogate, not L4 measurements</p>
+  </header>
+  <div class="controls" aria-label="Replay controls">
+    <label class="field controller" for="inference-replay-c7cdd87d-controller">Controller
+      <select id="inference-replay-c7cdd87d-controller" data-controller disabled><option value="Maximum clock" selected>Maximum clock</option></select>
+    </label>
+    <label class="field" data-age-field hidden>Oldest prefill-age bin
+      <select data-age aria-label="Oldest prefill-age bin"></select>
+    </label>
+    <button type="button" data-action="play" aria-pressed="false">Play</button>
+    <button type="button" data-action="step">Step</button>
+    <button type="button" data-action="reset">Reset</button>
+    <label class="field scrub" for="inference-replay-c7cdd87d-scrubber">
+      <span class="scrub-head"><span>Recorded time</span><output data-time>0.00 s</output></span>
+      <input id="inference-replay-c7cdd87d-scrubber" data-scrubber type="range" min="0" max="0" value="0" step="1" aria-label="Recorded replay time">
+    </label>
+  </div>
+  <div class="visuals">
+    <svg data-policy-view viewBox="0 0 520 270" role="img" hidden aria-labelledby="inference-replay-c7cdd87d-policy-title inference-replay-c7cdd87d-policy-description">
+      <title id="inference-replay-c7cdd87d-policy-title">Scheduling action over the reduced queue state</title>
+      <desc id="inference-replay-c7cdd87d-policy-description">A seven by seven grid shows the selected action for each prefill and decode queue length. A white dot appears only when the log contains that cell's displayed state-action choice, and grows with its visit count.</desc>
+      <rect class="frame" x=".5" y=".5" width="519" height="269"></rect>
+      <text class="structure-label" data-policy-heading x="260" y="23" text-anchor="middle">policy slice</text>
+      <g data-policy-grid></g>
+      <text class="annotation" x="273" y="256" text-anchor="middle">decode jobs d</text>
+      <text class="annotation" transform="translate(20 137) rotate(-90)" text-anchor="middle">prefill jobs p</text>
+      <g aria-hidden="true">
+        <rect class="policy-cell" data-action="0" x="382" y="55" width="15" height="15"></rect><text class="annotation" x="402" y="67">prefill (P)</text>
+        <rect class="policy-cell" data-action="1" x="382" y="82" width="15" height="15"></rect><text class="annotation" x="402" y="94">decode (D)</text>
+        <rect class="policy-cell" data-action="2" x="382" y="109" width="15" height="15"></rect><text class="annotation" x="402" y="121">idle (I)</text>
+        <circle class="coverage-dot" cx="390" cy="143" r="5"></circle><text class="annotation" x="402" y="147">logged visits to shown action</text>
+      </g>
+      <text class="annotation" data-coverage-label x="382" y="177">coverage not recorded</text>
+      <text class="annotation" data-policy-empty x="260" y="138" text-anchor="middle" hidden>No stored policy slice for this controller.</text>
+    </svg>
+    <svg data-scene viewBox="0 0 520 270" role="img" aria-labelledby="inference-replay-c7cdd87d-scene-title inference-replay-c7cdd87d-scene-description">
+      <title id="inference-replay-c7cdd87d-scene-title">Recorded request flow through the inference service</title>
+      <desc id="inference-replay-c7cdd87d-scene-description">Requests move from the queue through prompt prefill and token decode to completion. The GPU clock, power, temperature, and key-value cache are reported below.</desc>
+      <defs><marker id="inference-replay-c7cdd87d-arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 L8 4 L0 8 Z" fill="var(--teal)"></path></marker></defs>
+      <rect class="frame" x=".5" y=".5" width="519" height="269"></rect>
+      <g aria-hidden="true">
+        <rect class="structure" x="24" y="48" width="94" height="94" rx="5"></rect>
+        <rect class="structure" x="151" y="48" width="94" height="94" rx="5"></rect>
+        <rect class="structure" x="278" y="48" width="94" height="94" rx="5"></rect>
+        <rect class="structure" x="405" y="48" width="90" height="94" rx="5"></rect>
+        <path class="arrow" d="M119 95 H146" marker-end="url(#inference-replay-c7cdd87d-arrow)"></path>
+        <path class="arrow" d="M246 95 H273" marker-end="url(#inference-replay-c7cdd87d-arrow)"></path>
+        <path class="arrow" d="M373 95 H400" marker-end="url(#inference-replay-c7cdd87d-arrow)"></path>
+        <text class="structure-label" x="71" y="35" text-anchor="middle">queue</text>
+        <text class="structure-label" x="198" y="35" text-anchor="middle">prefill</text>
+        <text class="structure-label" x="325" y="35" text-anchor="middle">decode</text>
+        <text class="structure-label" x="450" y="35" text-anchor="middle">complete</text>
+        <text class="number" data-count="queue" x="71" y="130" text-anchor="middle">0</text>
+        <text class="number" data-count="prefill" x="198" y="130" text-anchor="middle">0</text>
+        <text class="number" data-count="decode" x="325" y="130" text-anchor="middle">0</text>
+        <text class="number" data-count="complete" x="450" y="130" text-anchor="middle">0</text>
+      </g>
+      <g data-requests aria-hidden="true"></g>
+      <text class="annotation" x="24" y="177">KV cache</text>
+      <rect class="meter-track" x="88" y="166" width="407" height="13" rx="2"></rect>
+      <rect class="meter" data-kv-meter x="88" y="166" width="0" height="13" rx="2"></rect>
+      <text class="number" data-kv-value x="495" y="198" text-anchor="end">not recorded</text>
+      <text class="annotation" x="24" y="222">GPU</text>
+      <text class="number" data-gpu x="88" y="222">clock not recorded</text>
+      <text class="annotation" x="24" y="248">thermal state</text>
+      <text class="number" data-thermal x="118" y="248">not recorded</text>
+    </svg>
+    <svg data-trace viewBox="0 0 420 270" role="img" aria-labelledby="inference-replay-c7cdd87d-trace-title inference-replay-c7cdd87d-trace-description">
+      <title id="inference-replay-c7cdd87d-trace-title">Causal trace of the recorded controller</title>
+      <desc id="inference-replay-c7cdd87d-trace-description">Only measurements up to the selected recorded time are drawn. For MPC, the dashed amber curve is the plan available at that time rather than realized future data.</desc>
+      <rect class="frame" x=".5" y=".5" width="419" height="269"></rect>
+      <line class="frame" x1="54" y1="126" x2="398" y2="126"></line>
+      <line class="frame" x1="54" y1="236" x2="398" y2="236"></line>
+      <text class="structure-label" data-lane-label="0" x="54" y="24">backlog</text>
+      <text class="structure-label" data-lane-label="1" x="54" y="145">GPU clock</text>
+      <text class="annotation" x="226" y="260" text-anchor="middle">time (s)</text>
+      <text class="annotation" data-x-start x="54" y="253" text-anchor="middle">0</text>
+      <text class="annotation" data-x-end x="398" y="253" text-anchor="middle">0</text>
+      <path class="trace" data-trace-path="0" d=""></path>
+      <path class="trace secondary" data-trace-path="1" d=""></path>
+      <path class="trace plan" data-plan-path d=""></path>
+      <line class="now" data-now x1="54" x2="54" y1="28" y2="236"></line>
+      <text class="number" data-lane-value="0" x="398" y="24" text-anchor="end"></text>
+      <text class="number" data-lane-value="1" x="398" y="145" text-anchor="end"></text>
+    </svg>
+  </div>
+  <p class="status" data-status aria-live="off"></p>
+  <span class="sr-only" data-announcer aria-live="polite"></span>
+</section>
+<script type="application/json" id="inference-replay-c7cdd87d-data">{"view":"modeling","title":"Requests, work, and the GPU state","default_controller":"Maximum clock","controllers":{"Maximum clock":{"frames":[{"time_s":0.1,"phase":"prefill","prefill_queue":1.0,"decode_active":0.0,"completed_requests":0.0,"kv_tokens":512.0,"temperature_c":25.0792,"power_w":50.4432,"requested_clock_mhz":1755.0,"realized_clock_mhz":1755.0,"energy_j":5.0443,"backlog":1.0,"requests":[{"id":"0","phase":"prefill","progress":0.1,"prompt_tokens":4808,"output_tokens":10},{"id":"1","phase":"queue","progress":0.0316,"prompt_tokens":3180,"output_tokens":8}],"planned_clock_mhz":[],"plan_start_time_s":null,"plan_update":false},{"time_s":0.6,"phase":"prefill","prefill_queue":4.0,"decode_active":0.0,"completed_requests":0.0,"kv_tokens":3072.0,"temperature_c":25.4716,"power_w":50.4432,"requested_clock_mhz":1755.0,"realized_clock_mhz":1755.0,"energy_j":30.2659,"backlog":4.0,"requests":[{"id":"0","phase":"prefill","progress":0.6,"prompt_tokens":4808,"output_tokens":10},{"id":"1","phase":"queue","progress":0.6369,"prompt_tokens":3180,"output_tokens":8},{"id":"2","phase":"queue","progress":0.3385,"prompt_tokens":110,"output_tokens":27},{"id":"3","phase":"queue","progress":0.3078,"prompt_tokens":7433,"output_tokens":14}],"planned_clock_mhz":[],"plan_start_time_s":null,"plan_update":false},{"time_s":1.1,"phase":"interleaved","prefill_queue":6.0,"decode_active":0.0,"completed_requests":1.0,"kv_tokens":824.0,"temperature_c":25.8881,"power_w":58.0176,"requested_clock_mhz":1755.0,"realized_clock_mhz":1755.0,"energy_j":57.385,"backlog":6.0,"requests":[{"id":"0","phase":"complete","progress":0.0,"prompt_tokens":4808,"output_tokens":10},{"id":"1","phase":"prefill","progress":0.2857,"prompt_tokens":3180,"output_tokens":8},{"id":"2","phase":"queue","progress":0.706,"prompt_tokens":110,"output_tokens":27},{"id":"3","phase":"queue","progress":0.6923,"prompt_tokens":7433,"output_tokens":14},{"id":"4","phase":"queue","progress":0.1896,"prompt_tokens":34,"output_tokens":12},{"id":"5","phase":"queue","progress":0.1431,"prompt_tokens":374,"output_tokens":14},{"id":"6","phase":"queue","progress":0.0487,"prompt_tokens":6985,"output_tokens":9}],"planned_clock_mhz":[],"plan_start_time_s":null,"plan_update":false},{"time_s":1.6,"phase":"interleaved","prefill_queue":5.0,"decode_active":2.0,"completed_requests":1.0,"kv_tokens":3390.0081,"temperature_c":26.2869,"power_w":61.8432,"requested_clock_mhz":1755.0,"realized_clock_mhz":1755.0,"energy_j":83.7466,"backlog":7.0,"requests":[{"id":"0","phase":"complete","progress":0.5,"prompt_tokens":4808,"output_tokens":10},{"id":"1","phase":"decode","progress":0.0,"prompt_tokens":3180,"output_tokens":8},{"id":"2","phase":"decode","progress":0.0,"prompt_tokens":110,"output_tokens":27},{"id":"3","phase":"prefill","progress":0.0588,"prompt_tokens":7433,"output_tokens":14},{"id":"4","phase":"queue","progress":0.3922,"prompt_tokens":34,"output_tokens":12},{"id":"5","phase":"queue","progress":0.3573,"prompt_tokens":374,"output_tokens":14},{"id":"6","phase":"queue","progress":0.2752,"prompt_tokens":6985,"output_tokens":9},{"id":"7","phase":"queue","progress":0.0481,"prompt_tokens":34,"output_tokens":23}],"planned_clock_mhz":[],"plan_start_time_s":null,"plan_update":false},{"time_s":2.1,"phase":"prefill","prefill_queue":9.0,"decode_active":0.0,"completed_requests":3.0,"kv_tokens":2142.0,"temperature_c":26.7004,"power_w":50.4432,"requested_clock_mhz":1755.0,"realized_clock_mhz":1755.0,"energy_j":111.4249,"backlog":9.0,"requests":[{"id":"1","phase":"complete","progress":0.3,"prompt_tokens":3180,"output_tokens":8},{"id":"2","phase":"complete","progress":0.2,"prompt_tokens":110,"output_tokens":27},{"id":"3","phase":"prefill","progress":0.3529,"prompt_tokens":7433,"output_tokens":14},{"id":"4","phase":"queue","progress":0.5948,"prompt_tokens":34,"output_tokens":12},{"id":"5","phase":"queue","progress":0.5715,"prompt_tokens":374,"output_tokens":14},{"id":"6","phase":"queue","progress":0.5017,"prompt_tokens":6985,"output_tokens":9},{"id":"7","phase":"queue","progress":0.2016,"prompt_tokens":34,"output_tokens":23},{"id":"8","phase":"queue","progress":0.089,"prompt_tokens":1145,"output_tokens":7},{"id":"9","phase":"queue","progress":0.0781,"prompt_tokens":201,"output_tokens":24},{"id":"10","phase":"queue","progress":0.0361,"prompt_tokens":137,"output_tokens":9},{"id":"11","phase":"queue","progress":0.0361,"prompt_tokens":7427,"output_tokens":8}],"planned_clock_mhz":[],"plan_start_time_s":null,"plan_update":false},{"time_s":2.6,"phase":"prefill","prefill_queue":9.0,"decode_active":0.0,"completed_requests":3.0,"kv_tokens":4702.0,"temperature_c":27.0698,"power_w":50.4432,"requested_clock_mhz":1755.0,"realized_clock_mhz":1755.0,"energy_j":136.6466,"backlog":9.0,"requests":[{"id":"1","phase":"complete","progress":0.8,"prompt_tokens":3180,"output_tokens":8},{"id":"2","phase":"complete","progress":0.7,"prompt_tokens":110,"output_tokens":27},{"id":"3","phase":"prefill","progress":0.6471,"prompt_tokens":7433,"output_tokens":14},{"id":"4","phase":"queue","progress":0.7974,"prompt_tokens":34,"output_tokens":12},{"id":"5","phase":"queue","progress":0.7858,"prompt_tokens":374,"output_tokens":14},{"id":"6","phase":"queue","progress":0.7282,"prompt_tokens":6985,"output_tokens":9},{"id":"7","phase":"queue","progress":0.3551,"prompt_tokens":34,"output_tokens":23},{"id":"8","phase":"queue","progress":0.2642,"prompt_tokens":1145,"output_tokens":7},{"id":"9","phase":"queue","progress":0.2317,"prompt_tokens":201,"output_tokens":24},{"id":"10","phase":"queue","progress":0.1968,"prompt_tokens":137,"output_tokens":9},{"id":"11","phase":"queue","progress":0.1967,"prompt_tokens":7427,"output_tokens":8}],"planned_clock_mhz":[],"plan_start_time_s":null,"plan_update":false},{"time_s":3.1,"phase":"prefill","prefill_queue":9.0,"decode_active":0.0,"completed_requests":3.0,"kv_tokens":7262.0,"temperature_c":27.434,"power_w":50.4432,"requested_clock_mhz":1755.0,"realized_clock_mhz":1755.0,"energy_j":161.8682,"backlog":9.0,"requests":[{"id":"3","phase":"prefill","progress":0.9412,"prompt_tokens":7433,"output_tokens":14},{"id":"4","phase":"prefill","progress":0.0,"prompt_tokens":34,"output_tokens":12},{"id":"5","phase":"prefill","progress":0.0,"prompt_tokens":374,"output_tokens":14},{"id":"6","phase":"queue","progress":0.9547,"prompt_tokens":6985,"output_tokens":9},{"id":"7","phase":"queue","progress":0.5087,"prompt_tokens":34,"output_tokens":23},{"id":"8","phase":"queue","progress":0.4394,"prompt_tokens":1145,"output_tokens":7},{"id":"9","phase":"queue","progress":0.3854,"prompt_tokens":201,"output_tokens":24},{"id":"10","phase":"queue","progress":0.3574,"prompt_tokens":137,"output_tokens":9},{"id":"11","phase":"queue","progress":0.3574,"prompt_tokens":7427,"output_tokens":8}],"planned_clock_mhz":[],"plan_start_time_s":null,"plan_update":false},{"time_s":3.6,"phase":"decode","prefill_queue":6.0,"decode_active":0.0,"completed_requests":6.0,"kv_tokens":957.0,"temperature_c":27.816,"power_w":24.6974,"requested_clock_mhz":1755.0,"realized_clock_mhz":1755.0,"energy_j":188.5909,"backlog":6.0,"requests":[{"id":"3","phase":"complete","progress":0.1,"prompt_tokens":7433,"output_tokens":14},{"id":"4","phase":"complete","progress":0.1,"prompt_tokens":34,"output_tokens":12},{"id":"5","phase":"complete","progress":0.0,"prompt_tokens":374,"output_tokens":14},{"id":"6","phase":"prefill","progress":0.25,"prompt_tokens":6985,"output_tokens":9},{"id":"7","phase":"queue","progress":0.6622,"prompt_tokens":34,"output_tokens":23},{"id":"8","phase":"queue","progress":0.6146,"prompt_tokens":1145,"output_tokens":7},{"id":"9","phase":"queue","progress":0.539,"prompt_tokens":201,"output_tokens":24},{"id":"10","phase":"queue","progress":0.5181,"prompt_tokens":137,"output_tokens":9},{"id":"11","phase":"queue","progress":0.518,"prompt_tokens":7427,"output_tokens":8}],"planned_clock_mhz":[],"plan_start_time_s":null,"plan_update":false},{"time_s":4.1,"phase":"prefill","prefill_queue":6.0,"decode_active":0.0,"completed_requests":6.0,"kv_tokens":3517.0,"temperature_c":28.1696,"power_w":50.4432,"requested_clock_mhz":1755.0,"realized_clock_mhz":1755.0,"energy_j":213.8125,"backlog":6.0,"requests":[{"id":"3","phase":"complete","progress":0.6,"prompt_tokens":7433,"output_tokens":14},{"id":"4","phase":"complete","progress":0.6,"prompt_tokens":34,"output_tokens":12},{"id":"5","phase":"complete","progress":0.5,"prompt_tokens":374,"output_tokens":14},{"id":"6","phase":"prefill","progress":0.5625,"prompt_tokens":6985,"output_tokens":9},{"id":"7","phase":"queue","progress":0.8158,"prompt_tokens":34,"output_tokens":23},{"id":"8","phase":"queue","progress":0.7898,"prompt_tokens":1145,"output_tokens":7},{"id":"9","phase":"queue","progress":0.6927,"prompt_tokens":201,"output_tokens":24},{"id":"10","phase":"queue","progress":0.6787,"prompt_tokens":137,"output_tokens":9},{"id":"11","phase":"queue","progress":0.6787,"prompt_tokens":7427,"output_tokens":8}],"planned_clock_mhz":[],"plan_start_time_s":null,"plan_update":false},{"time_s":4.6,"phase":"prefill","prefill_queue":6.0,"decode_active":0.0,"completed_requests":6.0,"kv_tokens":6077.0,"temperature_c":28.5182,"power_w":50.4432,"requested_clock_mhz":1755.0,"realized_clock_mhz":1755.0,"energy_j":239.0342,"backlog":6.0,"requests":[{"id":"5","phase":"complete","progress":1.0,"prompt_tokens":374,"output_tokens":14},{"id":"6","phase":"prefill","progress":0.875,"prompt_tokens":6985,"output_tokens":9},{"id":"7","phase":"queue","progress":0.9693,"prompt_tokens":34,"output_tokens":23},{"id":"8","phase":"queue","progress":0.965,"prompt_tokens":1145,"output_tokens":7},{"id":"9","phase":"queue","progress":0.8463,"prompt_tokens":201,"output_tokens":24},{"id":"10","phase":"queue","progress":0.8394,"prompt_tokens":137,"output_tokens":9},{"id":"11","phase":"queue","progress":0.8393,"prompt_tokens":7427,"output_tokens":8}],"planned_clock_mhz":[],"plan_start_time_s":null,"plan_update":false},{"time_s":5.1,"phase":"interleaved","prefill_queue":4.0,"decode_active":0.0,"completed_requests":8.0,"kv_tokens":1106.0,"temperature_c":28.909,"power_w":51.3612,"requested_clock_mhz":1755.0,"realized_clock_mhz":1755.0,"energy_j":267.2832,"backlog":4.0,"requests":[{"id":"6","phase":"complete","progress":0.1,"prompt_tokens":6985,"output_tokens":9},{"id":"7","phase":"complete","progress":0.0,"prompt_tokens":34,"output_tokens":23},{"id":"8","phase":"prefill","progress":0.8,"prompt_tokens":1145,"output_tokens":7},{"id":"9","phase":"prefill","progress":0.0,"prompt_tokens":201,"output_tokens":24},{"id":"10","phase":"prefill","progress":0.0,"prompt_tokens":137,"output_tokens":9},{"id":"11","phase":"prefill","progress":0.0,"prompt_tokens":7427,"output_tokens":8}],"planned_clock_mhz":[],"plan_start_time_s":null,"plan_update":false},{"time_s":5.6,"phase":"decode","prefill_queue":1.0,"decode_active":0.0,"completed_requests":11.0,"kv_tokens":1159.0,"temperature_c":29.2702,"power_w":24.6974,"requested_clock_mhz":1755.0,"realized_clock_mhz":1755.0,"energy_j":294.006,"backlog":1.0,"requests":[{"id":"6","phase":"complete","progress":0.6,"prompt_tokens":6985,"output_tokens":9},{"id":"7","phase":"complete","progress":0.5,"prompt_tokens":34,"output_tokens":23},{"id":"8","phase":"complete","progress":0.2,"prompt_tokens":1145,"output_tokens":7},{"id":"9","phase":"complete","progress":0.0,"prompt_tokens":201,"output_tokens":24},{"id":"10","phase":"complete","progress":0.2,"prompt_tokens":137,"output_tokens":9},{"id":"11","phase":"prefill","progress":0.2778,"prompt_tokens":7427,"output_tokens":8}],"planned_clock_mhz":[],"plan_start_time_s":null,"plan_update":false},{"time_s":6.1,"phase":"prefill","prefill_queue":1.0,"decode_active":0.0,"completed_requests":11.0,"kv_tokens":3719.0,"temperature_c":29.6032,"power_w":50.4432,"requested_clock_mhz":1755.0,"realized_clock_mhz":1755.0,"energy_j":319.2276,"backlog":1.0,"requests":[{"id":"7","phase":"complete","progress":1.0,"prompt_tokens":34,"output_tokens":23},{"id":"8","phase":"complete","progress":0.7,"prompt_tokens":1145,"output_tokens":7},{"id":"9","phase":"complete","progress":0.5,"prompt_tokens":201,"output_tokens":24},{"id":"10","phase":"complete","progress":0.7,"prompt_tokens":137,"output_tokens":9},{"id":"11","phase":"prefill","progress":0.5556,"prompt_tokens":7427,"output_tokens":8}],"planned_clock_mhz":[],"plan_start_time_s":null,"plan_update":false},{"time_s":6.6,"phase":"prefill","prefill_queue":1.0,"decode_active":0.0,"completed_requests":11.0,"kv_tokens":6279.0,"temperature_c":29.9314,"power_w":50.4432,"requested_clock_mhz":1755.0,"realized_clock_mhz":1755.0,"energy_j":344.4492,"backlog":1.0,"requests":[{"id":"9","phase":"complete","progress":1.0,"prompt_tokens":201,"output_tokens":24},{"id":"11","phase":"prefill","progress":0.8333,"prompt_tokens":7427,"output_tokens":8}],"planned_clock_mhz":[],"plan_start_time_s":null,"plan_update":false},{"time_s":7.1,"phase":"idle","prefill_queue":0.0,"decode_active":0.0,"completed_requests":12.0,"kv_tokens":0.0,"temperature_c":30.1472,"power_w":20.0,"requested_clock_mhz":1755.0,"realized_clock_mhz":1755.0,"energy_j":362.7931,"backlog":0.0,"requests":[{"id":"11","phase":"complete","progress":0.2,"prompt_tokens":7427,"output_tokens":8}],"planned_clock_mhz":[],"plan_start_time_s":null,"plan_update":false},{"time_s":7.6,"phase":"idle","prefill_queue":0.0,"decode_active":0.0,"completed_requests":12.0,"kv_tokens":0.0,"temperature_c":30.2303,"power_w":20.0,"requested_clock_mhz":1755.0,"realized_clock_mhz":1755.0,"energy_j":372.7931,"backlog":0.0,"requests":[{"id":"11","phase":"complete","progress":0.7,"prompt_tokens":7427,"output_tokens":8}],"planned_clock_mhz":[],"plan_start_time_s":null,"plan_update":false},{"time_s":8.1,"phase":"idle","prefill_queue":0.0,"decode_active":0.0,"completed_requests":12.0,"kv_tokens":0.0,"temperature_c":30.3121,"power_w":20.0,"requested_clock_mhz":1755.0,"realized_clock_mhz":1755.0,"energy_j":382.7931,"backlog":0.0,"requests":[],"planned_clock_mhz":[],"plan_start_time_s":null,"plan_update":false},{"time_s":8.6,"phase":"idle","prefill_queue":0.0,"decode_active":0.0,"completed_requests":12.0,"kv_tokens":0.0,"temperature_c":30.3928,"power_w":20.0,"requested_clock_mhz":1755.0,"realized_clock_mhz":1755.0,"energy_j":392.7931,"backlog":0.0,"requests":[],"planned_clock_mhz":[],"plan_start_time_s":null,"plan_update":false},{"time_s":9.1,"phase":"idle","prefill_queue":0.0,"decode_active":0.0,"completed_requests":12.0,"kv_tokens":0.0,"temperature_c":30.4723,"power_w":20.0,"requested_clock_mhz":1755.0,"realized_clock_mhz":1755.0,"energy_j":402.7931,"backlog":0.0,"requests":[],"planned_clock_mhz":[],"plan_start_time_s":null,"plan_update":false},{"time_s":9.6,"phase":"idle","prefill_queue":0.0,"decode_active":0.0,"completed_requests":12.0,"kv_tokens":0.0,"temperature_c":30.5507,"power_w":20.0,"requested_clock_mhz":1755.0,"realized_clock_mhz":1755.0,"energy_j":412.7931,"backlog":0.0,"requests":[],"planned_clock_mhz":[],"plan_start_time_s":null,"plan_update":false},{"time_s":10.1,"phase":"idle","prefill_queue":0.0,"decode_active":0.0,"completed_requests":12.0,"kv_tokens":0.0,"temperature_c":30.628,"power_w":20.0,"requested_clock_mhz":1755.0,"realized_clock_mhz":1755.0,"energy_j":422.7931,"backlog":0.0,"requests":[],"planned_clock_mhz":[],"plan_start_time_s":null,"plan_update":false},{"time_s":10.6,"phase":"idle","prefill_queue":0.0,"decode_active":0.0,"completed_requests":12.0,"kv_tokens":0.0,"temperature_c":30.7042,"power_w":20.0,"requested_clock_mhz":1755.0,"realized_clock_mhz":1755.0,"energy_j":432.7931,"backlog":0.0,"requests":[],"planned_clock_mhz":[],"plan_start_time_s":null,"plan_update":false},{"time_s":11.1,"phase":"idle","prefill_queue":0.0,"decode_active":0.0,"completed_requests":12.0,"kv_tokens":0.0,"temperature_c":30.7793,"power_w":20.0,"requested_clock_mhz":1755.0,"realized_clock_mhz":1755.0,"energy_j":442.7931,"backlog":0.0,"requests":[],"planned_clock_mhz":[],"plan_start_time_s":null,"plan_update":false},{"time_s":11.6,"phase":"idle","prefill_queue":0.0,"decode_active":0.0,"completed_requests":12.0,"kv_tokens":0.0,"temperature_c":30.8534,"power_w":20.0,"requested_clock_mhz":1755.0,"realized_clock_mhz":1755.0,"energy_j":452.7931,"backlog":0.0,"requests":[],"planned_clock_mhz":[],"plan_start_time_s":null,"plan_update":false},{"time_s":12.1,"phase":"idle","prefill_queue":0.0,"decode_active":0.0,"completed_requests":12.0,"kv_tokens":0.0,"temperature_c":30.9264,"power_w":20.0,"requested_clock_mhz":1755.0,"realized_clock_mhz":1755.0,"energy_j":462.7931,"backlog":0.0,"requests":[],"planned_clock_mhz":[],"plan_start_time_s":null,"plan_update":false},{"time_s":12.6,"phase":"idle","prefill_queue":0.0,"decode_active":0.0,"completed_requests":12.0,"kv_tokens":0.0,"temperature_c":30.9983,"power_w":20.0,"requested_clock_mhz":1755.0,"realized_clock_mhz":1755.0,"energy_j":472.7931,"backlog":0.0,"requests":[],"planned_clock_mhz":[],"plan_start_time_s":null,"plan_update":false},{"time_s":13.1,"phase":"idle","prefill_queue":0.0,"decode_active":0.0,"completed_requests":12.0,"kv_tokens":0.0,"temperature_c":31.0693,"power_w":20.0,"requested_clock_mhz":1755.0,"realized_clock_mhz":1755.0,"energy_j":482.7931,"backlog":0.0,"requests":[],"planned_clock_mhz":[],"plan_start_time_s":null,"plan_update":false},{"time_s":13.6,"phase":"idle","prefill_queue":0.0,"decode_active":0.0,"completed_requests":12.0,"kv_tokens":0.0,"temperature_c":31.1392,"power_w":20.0,"requested_clock_mhz":1755.0,"realized_clock_mhz":1755.0,"energy_j":492.7931,"backlog":0.0,"requests":[],"planned_clock_mhz":[],"plan_start_time_s":null,"plan_update":false},{"time_s":14.1,"phase":"idle","prefill_queue":0.0,"decode_active":0.0,"completed_requests":12.0,"kv_tokens":0.0,"temperature_c":31.2082,"power_w":20.0,"requested_clock_mhz":1755.0,"realized_clock_mhz":1755.0,"energy_j":502.7931,"backlog":0.0,"requests":[],"planned_clock_mhz":[],"plan_start_time_s":null,"plan_update":false},{"time_s":14.6,"phase":"idle","prefill_queue":0.0,"decode_active":0.0,"completed_requests":12.0,"kv_tokens":0.0,"temperature_c":31.2761,"power_w":20.0,"requested_clock_mhz":1755.0,"realized_clock_mhz":1755.0,"energy_j":512.7931,"backlog":0.0,"requests":[],"planned_clock_mhz":[],"plan_start_time_s":null,"plan_update":false},{"time_s":15.1,"phase":"idle","prefill_queue":0.0,"decode_active":0.0,"completed_requests":12.0,"kv_tokens":0.0,"temperature_c":31.3431,"power_w":20.0,"requested_clock_mhz":1755.0,"realized_clock_mhz":1755.0,"energy_j":522.7931,"backlog":0.0,"requests":[],"planned_clock_mhz":[],"plan_start_time_s":null,"plan_update":false},{"time_s":15.6,"phase":"idle","prefill_queue":0.0,"decode_active":0.0,"completed_requests":12.0,"kv_tokens":0.0,"temperature_c":31.4092,"power_w":20.0,"requested_clock_mhz":1755.0,"realized_clock_mhz":1755.0,"energy_j":532.7931,"backlog":0.0,"requests":[],"planned_clock_mhz":[],"plan_start_time_s":null,"plan_update":false},{"time_s":16.1,"phase":"idle","prefill_queue":0.0,"decode_active":0.0,"completed_requests":12.0,"kv_tokens":0.0,"temperature_c":31.4743,"power_w":20.0,"requested_clock_mhz":1755.0,"realized_clock_mhz":1755.0,"energy_j":542.7931,"backlog":0.0,"requests":[],"planned_clock_mhz":[],"plan_start_time_s":null,"plan_update":false},{"time_s":16.6,"phase":"idle","prefill_queue":0.0,"decode_active":0.0,"completed_requests":12.0,"kv_tokens":0.0,"temperature_c":31.5385,"power_w":20.0,"requested_clock_mhz":1755.0,"realized_clock_mhz":1755.0,"energy_j":552.7931,"backlog":0.0,"requests":[],"planned_clock_mhz":[],"plan_start_time_s":null,"plan_update":false},{"time_s":17.1,"phase":"idle","prefill_queue":0.0,"decode_active":0.0,"completed_requests":12.0,"kv_tokens":0.0,"temperature_c":31.6018,"power_w":20.0,"requested_clock_mhz":1755.0,"realized_clock_mhz":1755.0,"energy_j":562.7931,"backlog":0.0,"requests":[],"planned_clock_mhz":[],"plan_start_time_s":null,"plan_update":false},{"time_s":17.6,"phase":"idle","prefill_queue":0.0,"decode_active":0.0,"completed_requests":12.0,"kv_tokens":0.0,"temperature_c":31.6642,"power_w":20.0,"requested_clock_mhz":1755.0,"realized_clock_mhz":1755.0,"energy_j":572.7931,"backlog":0.0,"requests":[],"planned_clock_mhz":[],"plan_start_time_s":null,"plan_update":false},{"time_s":18.1,"phase":"idle","prefill_queue":0.0,"decode_active":0.0,"completed_requests":12.0,"kv_tokens":0.0,"temperature_c":31.7257,"power_w":20.0,"requested_clock_mhz":1755.0,"realized_clock_mhz":1755.0,"energy_j":582.7931,"backlog":0.0,"requests":[],"planned_clock_mhz":[],"plan_start_time_s":null,"plan_update":false},{"time_s":18.6,"phase":"idle","prefill_queue":0.0,"decode_active":0.0,"completed_requests":12.0,"kv_tokens":0.0,"temperature_c":31.7863,"power_w":20.0,"requested_clock_mhz":1755.0,"realized_clock_mhz":1755.0,"energy_j":592.7931,"backlog":0.0,"requests":[],"planned_clock_mhz":[],"plan_start_time_s":null,"plan_update":false},{"time_s":19.1,"phase":"idle","prefill_queue":0.0,"decode_active":0.0,"completed_requests":12.0,"kv_tokens":0.0,"temperature_c":31.8461,"power_w":20.0,"requested_clock_mhz":1755.0,"realized_clock_mhz":1755.0,"energy_j":602.7931,"backlog":0.0,"requests":[],"planned_clock_mhz":[],"plan_start_time_s":null,"plan_update":false},{"time_s":19.6,"phase":"idle","prefill_queue":0.0,"decode_active":0.0,"completed_requests":12.0,"kv_tokens":0.0,"temperature_c":31.905,"power_w":20.0,"requested_clock_mhz":1755.0,"realized_clock_mhz":1755.0,"energy_j":612.7931,"backlog":0.0,"requests":[],"planned_clock_mhz":[],"plan_start_time_s":null,"plan_update":false},{"time_s":20.1,"phase":"idle","prefill_queue":0.0,"decode_active":0.0,"completed_requests":12.0,"kv_tokens":0.0,"temperature_c":31.9631,"power_w":20.0,"requested_clock_mhz":1755.0,"realized_clock_mhz":1755.0,"energy_j":622.7931,"backlog":0.0,"requests":[],"planned_clock_mhz":[],"plan_start_time_s":null,"plan_update":false},{"time_s":20.6,"phase":"idle","prefill_queue":0.0,"decode_active":0.0,"completed_requests":12.0,"kv_tokens":0.0,"temperature_c":32.0203,"power_w":20.0,"requested_clock_mhz":1755.0,"realized_clock_mhz":1755.0,"energy_j":632.7931,"backlog":0.0,"requests":[],"planned_clock_mhz":[],"plan_start_time_s":null,"plan_update":false},{"time_s":21.1,"phase":"idle","prefill_queue":0.0,"decode_active":0.0,"completed_requests":12.0,"kv_tokens":0.0,"temperature_c":32.0768,"power_w":20.0,"requested_clock_mhz":1755.0,"realized_clock_mhz":1755.0,"energy_j":642.7931,"backlog":0.0,"requests":[],"planned_clock_mhz":[],"plan_start_time_s":null,"plan_update":false},{"time_s":21.6,"phase":"idle","prefill_queue":0.0,"decode_active":0.0,"completed_requests":12.0,"kv_tokens":0.0,"temperature_c":32.1324,"power_w":20.0,"requested_clock_mhz":1755.0,"realized_clock_mhz":1755.0,"energy_j":652.7931,"backlog":0.0,"requests":[],"planned_clock_mhz":[],"plan_start_time_s":null,"plan_update":false},{"time_s":22.1,"phase":"idle","prefill_queue":0.0,"decode_active":0.0,"completed_requests":12.0,"kv_tokens":0.0,"temperature_c":32.1873,"power_w":20.0,"requested_clock_mhz":1755.0,"realized_clock_mhz":1755.0,"energy_j":662.7931,"backlog":0.0,"requests":[],"planned_clock_mhz":[],"plan_start_time_s":null,"plan_update":false},{"time_s":22.6,"phase":"idle","prefill_queue":0.0,"decode_active":0.0,"completed_requests":12.0,"kv_tokens":0.0,"temperature_c":32.2414,"power_w":20.0,"requested_clock_mhz":1755.0,"realized_clock_mhz":1755.0,"energy_j":672.7931,"backlog":0.0,"requests":[],"planned_clock_mhz":[],"plan_start_time_s":null,"plan_update":false},{"time_s":23.1,"phase":"idle","prefill_queue":0.0,"decode_active":0.0,"completed_requests":12.0,"kv_tokens":0.0,"temperature_c":32.2947,"power_w":20.0,"requested_clock_mhz":1755.0,"realized_clock_mhz":1755.0,"energy_j":682.7931,"backlog":0.0,"requests":[],"planned_clock_mhz":[],"plan_start_time_s":null,"plan_update":false},{"time_s":23.6,"phase":"idle","prefill_queue":0.0,"decode_active":0.0,"completed_requests":12.0,"kv_tokens":0.0,"temperature_c":32.3472,"power_w":20.0,"requested_clock_mhz":1755.0,"realized_clock_mhz":1755.0,"energy_j":692.7931,"backlog":0.0,"requests":[],"planned_clock_mhz":[],"plan_start_time_s":null,"plan_update":false},{"time_s":24.1,"phase":"idle","prefill_queue":0.0,"decode_active":0.0,"completed_requests":12.0,"kv_tokens":0.0,"temperature_c":32.399,"power_w":20.0,"requested_clock_mhz":1755.0,"realized_clock_mhz":1755.0,"energy_j":702.7931,"backlog":0.0,"requests":[],"planned_clock_mhz":[],"plan_start_time_s":null,"plan_update":false},{"time_s":24.6,"phase":"idle","prefill_queue":0.0,"decode_active":0.0,"completed_requests":12.0,"kv_tokens":0.0,"temperature_c":32.4501,"power_w":20.0,"requested_clock_mhz":1755.0,"realized_clock_mhz":1755.0,"energy_j":712.7931,"backlog":0.0,"requests":[],"planned_clock_mhz":[],"plan_start_time_s":null,"plan_update":false},{"time_s":25.1,"phase":"idle","prefill_queue":0.0,"decode_active":0.0,"completed_requests":12.0,"kv_tokens":0.0,"temperature_c":32.5005,"power_w":20.0,"requested_clock_mhz":1755.0,"realized_clock_mhz":1755.0,"energy_j":722.7931,"backlog":0.0,"requests":[],"planned_clock_mhz":[],"plan_start_time_s":null,"plan_update":false},{"time_s":25.6,"phase":"idle","prefill_queue":0.0,"decode_active":0.0,"completed_requests":12.0,"kv_tokens":0.0,"temperature_c":32.5501,"power_w":20.0,"requested_clock_mhz":1755.0,"realized_clock_mhz":1755.0,"energy_j":732.7931,"backlog":0.0,"requests":[],"planned_clock_mhz":[],"plan_start_time_s":null,"plan_update":false},{"time_s":26.1,"phase":"idle","prefill_queue":0.0,"decode_active":0.0,"completed_requests":12.0,"kv_tokens":0.0,"temperature_c":32.599,"power_w":20.0,"requested_clock_mhz":1755.0,"realized_clock_mhz":1755.0,"energy_j":742.7931,"backlog":0.0,"requests":[],"planned_clock_mhz":[],"plan_start_time_s":null,"plan_update":false},{"time_s":26.6,"phase":"idle","prefill_queue":0.0,"decode_active":0.0,"completed_requests":12.0,"kv_tokens":0.0,"temperature_c":32.6473,"power_w":20.0,"requested_clock_mhz":1755.0,"realized_clock_mhz":1755.0,"energy_j":752.7931,"backlog":0.0,"requests":[],"planned_clock_mhz":[],"plan_start_time_s":null,"plan_update":false},{"time_s":27.1,"phase":"idle","prefill_queue":0.0,"decode_active":0.0,"completed_requests":12.0,"kv_tokens":0.0,"temperature_c":32.6948,"power_w":20.0,"requested_clock_mhz":1755.0,"realized_clock_mhz":1755.0,"energy_j":762.7931,"backlog":0.0,"requests":[],"planned_clock_mhz":[],"plan_start_time_s":null,"plan_update":false},{"time_s":27.6,"phase":"idle","prefill_queue":0.0,"decode_active":0.0,"completed_requests":12.0,"kv_tokens":0.0,"temperature_c":32.7417,"power_w":20.0,"requested_clock_mhz":1755.0,"realized_clock_mhz":1755.0,"energy_j":772.7931,"backlog":0.0,"requests":[],"planned_clock_mhz":[],"plan_start_time_s":null,"plan_update":false},{"time_s":28.1,"phase":"idle","prefill_queue":0.0,"decode_active":0.0,"completed_requests":12.0,"kv_tokens":0.0,"temperature_c":32.7879,"power_w":20.0,"requested_clock_mhz":1755.0,"realized_clock_mhz":1755.0,"energy_j":782.7931,"backlog":0.0,"requests":[],"planned_clock_mhz":[],"plan_start_time_s":null,"plan_update":false},{"time_s":28.6,"phase":"idle","prefill_queue":0.0,"decode_active":0.0,"completed_requests":12.0,"kv_tokens":0.0,"temperature_c":32.8335,"power_w":20.0,"requested_clock_mhz":1755.0,"realized_clock_mhz":1755.0,"energy_j":792.7931,"backlog":0.0,"requests":[],"planned_clock_mhz":[],"plan_start_time_s":null,"plan_update":false},{"time_s":29.1,"phase":"idle","prefill_queue":0.0,"decode_active":0.0,"completed_requests":12.0,"kv_tokens":0.0,"temperature_c":32.8784,"power_w":20.0,"requested_clock_mhz":1755.0,"realized_clock_mhz":1755.0,"energy_j":802.7931,"backlog":0.0,"requests":[],"planned_clock_mhz":[],"plan_start_time_s":null,"plan_update":false},{"time_s":29.6,"phase":"idle","prefill_queue":0.0,"decode_active":0.0,"completed_requests":12.0,"kv_tokens":0.0,"temperature_c":32.9227,"power_w":20.0,"requested_clock_mhz":1755.0,"realized_clock_mhz":1755.0,"energy_j":812.7931,"backlog":0.0,"requests":[],"planned_clock_mhz":[],"plan_start_time_s":null,"plan_update":false},{"time_s":30.1,"phase":"idle","prefill_queue":0.0,"decode_active":0.0,"completed_requests":12.0,"kv_tokens":0.0,"temperature_c":32.9663,"power_w":20.0,"requested_clock_mhz":1755.0,"realized_clock_mhz":1755.0,"energy_j":822.7931,"backlog":0.0,"requests":[],"planned_clock_mhz":[],"plan_start_time_s":null,"plan_update":false},{"time_s":30.6,"phase":"idle","prefill_queue":0.0,"decode_active":0.0,"completed_requests":12.0,"kv_tokens":0.0,"temperature_c":33.0094,"power_w":20.0,"requested_clock_mhz":1755.0,"realized_clock_mhz":1755.0,"energy_j":832.7931,"backlog":0.0,"requests":[],"planned_clock_mhz":[],"plan_start_time_s":null,"plan_update":false},{"time_s":31.1,"phase":"idle","prefill_queue":0.0,"decode_active":0.0,"completed_requests":12.0,"kv_tokens":0.0,"temperature_c":33.0518,"power_w":20.0,"requested_clock_mhz":1755.0,"realized_clock_mhz":1755.0,"energy_j":842.7931,"backlog":0.0,"requests":[],"planned_clock_mhz":[],"plan_start_time_s":null,"plan_update":false},{"time_s":31.6,"phase":"idle","prefill_queue":0.0,"decode_active":0.0,"completed_requests":12.0,"kv_tokens":0.0,"temperature_c":33.0936,"power_w":20.0,"requested_clock_mhz":1755.0,"realized_clock_mhz":1755.0,"energy_j":852.7931,"backlog":0.0,"requests":[],"planned_clock_mhz":[],"plan_start_time_s":null,"plan_update":false},{"time_s":32.1,"phase":"idle","prefill_queue":0.0,"decode_active":0.0,"completed_requests":12.0,"kv_tokens":0.0,"temperature_c":33.1348,"power_w":20.0,"requested_clock_mhz":1755.0,"realized_clock_mhz":1755.0,"energy_j":862.7931,"backlog":0.0,"requests":[],"planned_clock_mhz":[],"plan_start_time_s":null,"plan_update":false},{"time_s":32.6,"phase":"idle","prefill_queue":0.0,"decode_active":0.0,"completed_requests":12.0,"kv_tokens":0.0,"temperature_c":33.1755,"power_w":20.0,"requested_clock_mhz":1755.0,"realized_clock_mhz":1755.0,"energy_j":872.7931,"backlog":0.0,"requests":[],"planned_clock_mhz":[],"plan_start_time_s":null,"plan_update":false},{"time_s":33.1,"phase":"idle","prefill_queue":0.0,"decode_active":0.0,"completed_requests":12.0,"kv_tokens":0.0,"temperature_c":33.2155,"power_w":20.0,"requested_clock_mhz":1755.0,"realized_clock_mhz":1755.0,"energy_j":882.7931,"backlog":0.0,"requests":[],"planned_clock_mhz":[],"plan_start_time_s":null,"plan_update":false},{"time_s":33.6,"phase":"idle","prefill_queue":0.0,"decode_active":0.0,"completed_requests":12.0,"kv_tokens":0.0,"temperature_c":33.255,"power_w":20.0,"requested_clock_mhz":1755.0,"realized_clock_mhz":1755.0,"energy_j":892.7931,"backlog":0.0,"requests":[],"planned_clock_mhz":[],"plan_start_time_s":null,"plan_update":false},{"time_s":34.1,"phase":"idle","prefill_queue":0.0,"decode_active":0.0,"completed_requests":12.0,"kv_tokens":0.0,"temperature_c":33.294,"power_w":20.0,"requested_clock_mhz":1755.0,"realized_clock_mhz":1755.0,"energy_j":902.7931,"backlog":0.0,"requests":[],"planned_clock_mhz":[],"plan_start_time_s":null,"plan_update":false},{"time_s":34.6,"phase":"idle","prefill_queue":0.0,"decode_active":0.0,"completed_requests":12.0,"kv_tokens":0.0,"temperature_c":33.3323,"power_w":20.0,"requested_clock_mhz":1755.0,"realized_clock_mhz":1755.0,"energy_j":912.7931,"backlog":0.0,"requests":[],"planned_clock_mhz":[],"plan_start_time_s":null,"plan_update":false},{"time_s":35.1,"phase":"idle","prefill_queue":0.0,"decode_active":0.0,"completed_requests":12.0,"kv_tokens":0.0,"temperature_c":33.3702,"power_w":20.0,"requested_clock_mhz":1755.0,"realized_clock_mhz":1755.0,"energy_j":922.7931,"backlog":0.0,"requests":[],"planned_clock_mhz":[],"plan_start_time_s":null,"plan_update":false},{"time_s":35.6,"phase":"idle","prefill_queue":0.0,"decode_active":0.0,"completed_requests":12.0,"kv_tokens":0.0,"temperature_c":33.4075,"power_w":20.0,"requested_clock_mhz":1755.0,"realized_clock_mhz":1755.0,"energy_j":932.7931,"backlog":0.0,"requests":[],"planned_clock_mhz":[],"plan_start_time_s":null,"plan_update":false},{"time_s":36.1,"phase":"idle","prefill_queue":0.0,"decode_active":0.0,"completed_requests":12.0,"kv_tokens":0.0,"temperature_c":33.4443,"power_w":20.0,"requested_clock_mhz":1755.0,"realized_clock_mhz":1755.0,"energy_j":942.7931,"backlog":0.0,"requests":[],"planned_clock_mhz":[],"plan_start_time_s":null,"plan_update":false},{"time_s":36.6,"phase":"idle","prefill_queue":0.0,"decode_active":0.0,"completed_requests":12.0,"kv_tokens":0.0,"temperature_c":33.4805,"power_w":20.0,"requested_clock_mhz":1755.0,"realized_clock_mhz":1755.0,"energy_j":952.7931,"backlog":0.0,"requests":[],"planned_clock_mhz":[],"plan_start_time_s":null,"plan_update":false},{"time_s":37.1,"phase":"idle","prefill_queue":0.0,"decode_active":0.0,"completed_requests":12.0,"kv_tokens":0.0,"temperature_c":33.5162,"power_w":20.0,"requested_clock_mhz":1755.0,"realized_clock_mhz":1755.0,"energy_j":962.7931,"backlog":0.0,"requests":[],"planned_clock_mhz":[],"plan_start_time_s":null,"plan_update":false},{"time_s":37.6,"phase":"idle","prefill_queue":0.0,"decode_active":0.0,"completed_requests":12.0,"kv_tokens":0.0,"temperature_c":33.5515,"power_w":20.0,"requested_clock_mhz":1755.0,"realized_clock_mhz":1755.0,"energy_j":972.7931,"backlog":0.0,"requests":[],"planned_clock_mhz":[],"plan_start_time_s":null,"plan_update":false},{"time_s":38.1,"phase":"idle","prefill_queue":0.0,"decode_active":0.0,"completed_requests":12.0,"kv_tokens":0.0,"temperature_c":33.5862,"power_w":20.0,"requested_clock_mhz":1755.0,"realized_clock_mhz":1755.0,"energy_j":982.7931,"backlog":0.0,"requests":[],"planned_clock_mhz":[],"plan_start_time_s":null,"plan_update":false},{"time_s":38.6,"phase":"idle","prefill_queue":0.0,"decode_active":0.0,"completed_requests":12.0,"kv_tokens":0.0,"temperature_c":33.6204,"power_w":20.0,"requested_clock_mhz":1755.0,"realized_clock_mhz":1755.0,"energy_j":992.7931,"backlog":0.0,"requests":[],"planned_clock_mhz":[],"plan_start_time_s":null,"plan_update":false},{"time_s":39.1,"phase":"idle","prefill_queue":0.0,"decode_active":0.0,"completed_requests":12.0,"kv_tokens":0.0,"temperature_c":33.6542,"power_w":20.0,"requested_clock_mhz":1755.0,"realized_clock_mhz":1755.0,"energy_j":1002.7931,"backlog":0.0,"requests":[],"planned_clock_mhz":[],"plan_start_time_s":null,"plan_update":false},{"time_s":39.6,"phase":"idle","prefill_queue":0.0,"decode_active":0.0,"completed_requests":12.0,"kv_tokens":0.0,"temperature_c":33.6875,"power_w":20.0,"requested_clock_mhz":1755.0,"realized_clock_mhz":1755.0,"energy_j":1012.7931,"backlog":0.0,"requests":[],"planned_clock_mhz":[],"plan_start_time_s":null,"plan_update":false},{"time_s":40.1,"phase":"idle","prefill_queue":0.0,"decode_active":0.0,"completed_requests":12.0,"kv_tokens":0.0,"temperature_c":33.7203,"power_w":20.0,"requested_clock_mhz":1755.0,"realized_clock_mhz":1755.0,"energy_j":1022.7931,"backlog":0.0,"requests":[],"planned_clock_mhz":[],"plan_start_time_s":null,"plan_update":false},{"time_s":40.6,"phase":"idle","prefill_queue":0.0,"decode_active":0.0,"completed_requests":12.0,"kv_tokens":0.0,"temperature_c":33.7526,"power_w":20.0,"requested_clock_mhz":1755.0,"realized_clock_mhz":1755.0,"energy_j":1032.7931,"backlog":0.0,"requests":[],"planned_clock_mhz":[],"plan_start_time_s":null,"plan_update":false},{"time_s":41.1,"phase":"idle","prefill_queue":0.0,"decode_active":0.0,"completed_requests":12.0,"kv_tokens":0.0,"temperature_c":33.7845,"power_w":20.0,"requested_clock_mhz":1755.0,"realized_clock_mhz":1755.0,"energy_j":1042.7931,"backlog":0.0,"requests":[],"planned_clock_mhz":[],"plan_start_time_s":null,"plan_update":false},{"time_s":41.6,"phase":"idle","prefill_queue":0.0,"decode_active":0.0,"completed_requests":12.0,"kv_tokens":0.0,"temperature_c":33.8159,"power_w":20.0,"requested_clock_mhz":1755.0,"realized_clock_mhz":1755.0,"energy_j":1052.7931,"backlog":0.0,"requests":[],"planned_clock_mhz":[],"plan_start_time_s":null,"plan_update":false},{"time_s":42.1,"phase":"prefill","prefill_queue":1.0,"decode_active":0.0,"completed_requests":12.0,"kv_tokens":1024.0,"temperature_c":33.9423,"power_w":50.4432,"requested_clock_mhz":1755.0,"realized_clock_mhz":1755.0,"energy_j":1068.8817,"backlog":1.0,"requests":[{"id":"12","phase":"prefill","progress":0.5,"prompt_tokens":1555,"output_tokens":19},{"id":"13","phase":"queue","progress":0.4264,"prompt_tokens":3893,"output_tokens":19},{"id":"14","phase":"queue","progress":0.0342,"prompt_tokens":1827,"output_tokens":10}],"planned_clock_mhz":[],"plan_start_time_s":null,"plan_update":false},{"time_s":42.6,"phase":"prefill","prefill_queue":4.0,"decode_active":0.0,"completed_requests":13.0,"kv_tokens":1517.0,"temperature_c":34.2177,"power_w":50.4432,"requested_clock_mhz":1755.0,"realized_clock_mhz":1755.0,"energy_j":1094.6642,"backlog":4.0,"requests":[{"id":"12","phase":"complete","progress":0.2,"prompt_tokens":1555,"output_tokens":19},{"id":"13","phase":"prefill","progress":0.4444,"prompt_tokens":3893,"output_tokens":19},{"id":"14","phase":"queue","progress":0.5707,"prompt_tokens":1827,"output_tokens":10},{"id":"15","phase":"queue","progress":0.3254,"prompt_tokens":394,"output_tokens":17},{"id":"16","phase":"queue","progress":0.2966,"prompt_tokens":675,"output_tokens":6}],"planned_clock_mhz":[],"plan_start_time_s":null,"plan_update":false},{"time_s":43.1,"phase":"interleaved","prefill_queue":5.0,"decode_active":1.0,"completed_requests":13.0,"kv_tokens":4083.0081,"temperature_c":34.4983,"power_w":61.8432,"requested_clock_mhz":1755.0,"realized_clock_mhz":1755.0,"energy_j":1121.0258,"backlog":6.0,"requests":[{"id":"12","phase":"complete","progress":0.7,"prompt_tokens":1555,"output_tokens":19},{"id":"13","phase":"decode","progress":0.0,"prompt_tokens":3893,"output_tokens":19},{"id":"14","phase":"prefill","progress":0.1667,"prompt_tokens":1827,"output_tokens":10},{"id":"15","phase":"queue","progress":0.7002,"prompt_tokens":394,"output_tokens":17},{"id":"16","phase":"queue","progress":0.6874,"prompt_tokens":675,"output_tokens":6},{"id":"17","phase":"queue","progress":0.2437,"prompt_tokens":7436,"output_tokens":9},{"id":"18","phase":"queue","progress":0.0698,"prompt_tokens":158,"output_tokens":26}],"planned_clock_mhz":[],"plan_start_time_s":null,"plan_update":false},{"time_s":43.6,"phase":"interleaved","prefill_queue":4.0,"decode_active":2.0,"completed_requests":14.0,"kv_tokens":2238.0081,"temperature_c":34.766,"power_w":61.8432,"requested_clock_mhz":1755.0,"realized_clock_mhz":1755.0,"energy_j":1146.8082,"backlog":6.0,"requests":[{"id":"13","phase":"complete","progress":0.4,"prompt_tokens":3893,"output_tokens":19},{"id":"14","phase":"decode","progress":0.0,"prompt_tokens":1827,"output_tokens":10},{"id":"15","phase":"decode","progress":0.0,"prompt_tokens":394,"output_tokens":17},{"id":"16","phase":"prefill","progress":0.25,"prompt_tokens":675,"output_tokens":6},{"id":"17","phase":"queue","progress":0.7839,"prompt_tokens":7436,"output_tokens":9},{"id":"18","phase":"queue","progress":0.2913,"prompt_tokens":158,"output_tokens":26},{"id":"19","phase":"queue","progress":0.1397,"prompt_tokens":6587,"output_tokens":18}],"planned_clock_mhz":[],"plan_start_time_s":null,"plan_update":false},{"time_s":44.1,"phase":"prefill","prefill_queue":3.0,"decode_active":0.0,"completed_requests":17.0,"kv_tokens":1384.0,"temperature_c":35.0534,"power_w":50.4432,"requested_clock_mhz":1755.0,"realized_clock_mhz":1755.0,"energy_j":1174.1071,"backlog":3.0,"requests":[{"id":"13","phase":"complete","progress":0.9,"prompt_tokens":3893,"output_tokens":19},{"id":"14","phase":"complete","progress":0.3,"prompt_tokens":1827,"output_tokens":10},{"id":"15","phase":"complete","progress":0.3,"prompt_tokens":394,"output_tokens":17},{"id":"16","phase":"complete","progress":0.2,"prompt_tokens":675,"output_tokens":6},{"id":"17","phase":"prefill","progress":0.2,"prompt_tokens":7436,"output_tokens":9},{"id":"18","phase":"queue","progress":0.5127,"prompt_tokens":158,"output_tokens":26},{"id":"19","phase":"queue","progress":0.3787,"prompt_tokens":6587,"output_tokens":18}],"planned_clock_mhz":[],"plan_start_time_s":null,"plan_update":false},{"time_s":44.6,"phase":"prefill","prefill_queue":3.0,"decode_active":0.0,"completed_requests":17.0,"kv_tokens":3944.0,"temperature_c":35.3043,"power_w":50.4432,"requested_clock_mhz":1755.0,"realized_clock_mhz":1755.0,"energy_j":1199.3287,"backlog":3.0,"requests":[{"id":"14","phase":"complete","progress":0.8,"prompt_tokens":1827,"output_tokens":10},{"id":"15","phase":"complete","progress":0.8,"prompt_tokens":394,"output_tokens":17},{"id":"16","phase":"complete","progress":0.7,"prompt_tokens":675,"output_tokens":6},{"id":"17","phase":"prefill","progress":0.5333,"prompt_tokens":7436,"output_tokens":9},{"id":"18","phase":"queue","progress":0.7342,"prompt_tokens":158,"output_tokens":26},{"id":"19","phase":"queue","progress":0.6177,"prompt_tokens":6587,"output_tokens":18}],"planned_clock_mhz":[],"plan_start_time_s":null,"plan_update":false},{"time_s":45.1,"phase":"prefill","prefill_queue":3.0,"decode_active":0.0,"completed_requests":17.0,"kv_tokens":6504.0,"temperature_c":35.5516,"power_w":50.4432,"requested_clock_mhz":1755.0,"realized_clock_mhz":1755.0,"energy_j":1224.5503,"backlog":3.0,"requests":[{"id":"17","phase":"prefill","progress":0.8667,"prompt_tokens":7436,"output_tokens":9},{"id":"18","phase":"queue","progress":0.9557,"prompt_tokens":158,"output_tokens":26},{"id":"19","phase":"queue","progress":0.8566,"prompt_tokens":6587,"output_tokens":18}],"planned_clock_mhz":[],"plan_start_time_s":null,"plan_update":false},{"time_s":45.6,"phase":"decode","prefill_queue":1.0,"decode_active":1.0,"completed_requests":18.0,"kv_tokens":629.5081,"temperature_c":35.8027,"power_w":57.0,"requested_clock_mhz":1755.0,"realized_clock_mhz":1755.0,"energy_j":1250.231,"backlog":2.0,"requests":[{"id":"17","phase":"complete","progress":0.2,"prompt_tokens":7436,"output_tokens":9},{"id":"18","phase":"decode","progress":0.5,"prompt_tokens":158,"output_tokens":26},{"id":"19","phase":"prefill","progress":0.1429,"prompt_tokens":6587,"output_tokens":18}],"planned_clock_mhz":[],"plan_start_time_s":null,"plan_update":false},{"time_s":46.1,"phase":"prefill","prefill_queue":1.0,"decode_active":0.0,"completed_requests":19.0,"kv_tokens":3006.0,"temperature_c":36.0445,"power_w":50.4432,"requested_clock_mhz":1755.0,"realized_clock_mhz":1755.0,"energy_j":1275.5459,"backlog":1.0,"requests":[{"id":"17","phase":"complete","progress":0.7,"prompt_tokens":7436,"output_tokens":9},{"id":"18","phase":"complete","progress":0.4,"prompt_tokens":158,"output_tokens":26},{"id":"19","phase":"prefill","progress":0.5,"prompt_tokens":6587,"output_tokens":18}],"planned_clock_mhz":[],"plan_start_time_s":null,"plan_update":false},{"time_s":46.6,"phase":"prefill","prefill_queue":1.0,"decode_active":0.0,"completed_requests":19.0,"kv_tokens":5566.0,"temperature_c":36.2813,"power_w":50.4432,"requested_clock_mhz":1755.0,"realized_clock_mhz":1755.0,"energy_j":1300.7675,"backlog":1.0,"requests":[{"id":"18","phase":"complete","progress":0.9,"prompt_tokens":158,"output_tokens":26},{"id":"19","phase":"prefill","progress":0.8571,"prompt_tokens":6587,"output_tokens":18}],"planned_clock_mhz":[],"plan_start_time_s":null,"plan_update":false},{"time_s":46.9,"phase":"decode","prefill_queue":0.0,"decode_active":0.0,"completed_requests":20.0,"kv_tokens":0.0,"temperature_c":36.4273,"power_w":42.6038,"requested_clock_mhz":1755.0,"realized_clock_mhz":1755.0,"energy_j":1316.2537,"backlog":0.0,"requests":[{"id":"19","phase":"complete","progress":0.0,"prompt_tokens":6587,"output_tokens":18}],"planned_clock_mhz":[],"plan_start_time_s":null,"plan_update":false}],"metrics":{"completed_fraction":1.0,"decode_stall_fraction":0.0,"energy_j":1316.253735273738,"energy_per_output_token_j":4.554511194718816,"kv_violation_tokens":0.0,"mean_latency_s":2.6249403150304724,"mean_tpot_s":0.01556121311198041,"mean_ttft_s":2.4349403150304716,"output_throughput_tokens_per_s":6.175213675213623,"p95_tpot_s":0.028809523809523833,"p95_ttft_s":3.862759611998352,"peak_kv_tokens":8317.516216216216,"peak_power_w":61.84324324324324,"peak_queued_requests":9.0,"peak_queued_requests_at_minimum_clock":0.0,"peak_temperature_c":36.42732894166331,"power_violation_w":0.0,"reporting_horizon_s":60.0,"thermal_violation_c":0.0,"tpot_violation_rate":0.75,"ttft_violation_rate":1.0,"unfinished_requests_at_end":0.0,"unfinished_requests_at_reporting_horizon":0.0},"plan_dt_s":0.5000000000000071,"limits":{}}},"profile_status":"engineering_proxy_not_measured","provenance_text":"Engineering surrogate, not L4 measurements","provenance_verdict":"caveat","policy":{"actions":{},"coverage":{},"coverage_fraction":{},"action_labels":{"0":"prefill","1":"decode","2":"idle"}}}</script>
+<script>
+(() => {
+  "use strict";
+  const root = document.getElementById("inference-replay-c7cdd87d");
+  const dataNode = document.getElementById("inference-replay-c7cdd87d-data");
+  if (!root || !dataNode) return;
+  const replay = JSON.parse(dataNode.textContent);
+  const controller = root.querySelector("[data-controller]");
+  const scrubber = root.querySelector("[data-scrubber]");
+  const playButton = root.querySelector('[data-action="play"]');
+  const stepButton = root.querySelector('[data-action="step"]');
+  const resetButton = root.querySelector('[data-action="reset"]');
+  const timeOutput = root.querySelector("[data-time]");
+  const status = root.querySelector("[data-status]");
+  const announcer = root.querySelector("[data-announcer]");
+  const requestLayer = root.querySelector("[data-requests]");
+  const sceneView = root.querySelector("[data-scene]");
+  const policyView = root.querySelector("[data-policy-view]");
+  const policyGrid = root.querySelector("[data-policy-grid]");
+  const policyHeading = root.querySelector("[data-policy-heading]");
+  const policyEmpty = root.querySelector("[data-policy-empty]");
+  const coverageLabel = root.querySelector("[data-coverage-label]");
+  const ageField = root.querySelector("[data-age-field]");
+  const ageSelect = root.querySelector("[data-age]");
+  const svgNS = "http://www.w3.org/2000/svg";
+  let frameIndex = 0;
+  let timer = null;
+
+  const currentRun = () => replay.controllers[controller.value];
+  const finite = (value) => typeof value === "number" && Number.isFinite(value);
+  const format = (value, digits) => finite(value) ? value.toFixed(digits) : "not recorded";
+  const hasPolicies = replay.policy && Object.keys(replay.policy.actions || {}).length > 0;
+  const updateAgeOptions = () => {
+    if (!hasPolicies) return;
+    const slices = replay.policy.actions[controller.value] || {};
+    const previous = ageSelect.value;
+    ageSelect.replaceChildren();
+    Object.keys(slices).sort((a, b) => Number(a) - Number(b)).forEach((age) => {
+      const option = document.createElement("option");
+      option.value = age; option.textContent = age;
+      ageSelect.appendChild(option);
+    });
+    if ([...ageSelect.options].some((option) => option.value === previous)) ageSelect.value = previous;
+    else if ([...ageSelect.options].some((option) => option.value === "4")) ageSelect.value = "4";
+    ageSelect.disabled = ageSelect.options.length === 0;
+  };
+  const renderPolicy = () => {
+    if (!hasPolicies) return;
+    policyGrid.replaceChildren();
+    const slices = replay.policy.actions[controller.value] || {};
+    const matrix = slices[ageSelect.value];
+    policyEmpty.toggleAttribute("hidden", Boolean(matrix));
+    coverageLabel.textContent = "coverage not recorded";
+    policyHeading.textContent = controller.options[controller.selectedIndex].text + " · age bin " + (ageSelect.value || "not stored");
+    if (!matrix) return;
+    const coverageSlices = (replay.policy.coverage || {})[controller.value] || {};
+    const coverage = coverageSlices[ageSelect.value];
+    const maximumCoverage = coverage ? Math.max(1, ...coverage.flat()) : 1;
+    const letters = ["P", "D", "I"];
+    for (let p = 0; p < 7; p += 1) {
+      for (let d = 0; d < 7; d += 1) {
+        const x = 54 + d * 43;
+        const y = 39 + (6 - p) * 27;
+        const action = Number(matrix[p][d]);
+        const cell = document.createElementNS(svgNS, "rect");
+        cell.setAttribute("class", "policy-cell");
+        cell.setAttribute("data-action", String(action));
+        cell.setAttribute("x", String(x)); cell.setAttribute("y", String(y));
+        cell.setAttribute("width", "40"); cell.setAttribute("height", "24");
+        policyGrid.appendChild(cell);
+        const letter = document.createElementNS(svgNS, "text");
+        letter.setAttribute("class", "policy-letter");
+        letter.setAttribute("x", String(x + 20)); letter.setAttribute("y", String(y + 16));
+        letter.setAttribute("text-anchor", "middle"); letter.textContent = letters[action] || "?";
+        policyGrid.appendChild(letter);
+        if (coverage && Number(coverage[p][d]) > 0) {
+          const dot = document.createElementNS(svgNS, "circle");
+          dot.setAttribute("class", "coverage-dot");
+          dot.setAttribute("cx", String(x + 31)); dot.setAttribute("cy", String(y + 7));
+          dot.setAttribute("r", String(1.8 + 5 * Math.sqrt(Number(coverage[p][d]) / maximumCoverage)));
+          policyGrid.appendChild(dot);
+        }
+      }
+    }
+    for (let value = 0; value < 7; value += 1) {
+      const xTick = document.createElementNS(svgNS, "text");
+      xTick.setAttribute("class", "annotation"); xTick.setAttribute("text-anchor", "middle");
+      xTick.setAttribute("x", String(74 + value * 43)); xTick.setAttribute("y", "237"); xTick.textContent = String(value);
+      policyGrid.appendChild(xTick);
+      const yTick = document.createElementNS(svgNS, "text");
+      yTick.setAttribute("class", "annotation"); yTick.setAttribute("text-anchor", "end");
+      yTick.setAttribute("x", "48"); yTick.setAttribute("y", String(56 + (6 - value) * 27)); yTick.textContent = String(value);
+      policyGrid.appendChild(yTick);
+    }
+    if (coverage) {
+      const fraction = replay.policy.coverage_fraction[controller.value];
+      const observed = coverage.flat().filter((value) => Number(value) > 0).length / 49;
+      coverageLabel.textContent = "state-action coverage " + (100 * (finite(fraction) ? fraction : observed)).toFixed(1) + "%";
+    }
+  };
+  const laneDefinitions = () => {
+    const frames = currentRun().frames;
+    const has = (key) => frames.some((frame) => finite(frame[key]));
+    if (replay.view === "open_loop" || replay.view === "mpc") {
+      return [
+        {key: "backlog", label: "backlog", unit: "requests"},
+        {key: has("realized_clock_mhz") ? "realized_clock_mhz" : "requested_clock_mhz", label: "GPU clock", unit: "MHz"}
+      ];
+    }
+    if (replay.view === "scheduling" || replay.view === "fqi") {
+      return [
+        {key: has("prefill_queue") ? "prefill_queue" : "backlog", label: "prefill queue", unit: "requests"},
+        {key: has("decode_active") ? "decode_active" : "completed_requests", label: has("decode_active") ? "active decode" : "completed", unit: "requests"}
+      ];
+    }
+    return [
+      {key: "backlog", label: "unfinished requests", unit: "requests"},
+      {key: has("temperature_c") ? "temperature_c" : (has("realized_clock_mhz") ? "realized_clock_mhz" : "power_w"), label: has("temperature_c") ? "GPU temperature" : (has("realized_clock_mhz") ? "GPU clock" : "GPU power"), unit: has("temperature_c") ? "°C" : (has("realized_clock_mhz") ? "MHz" : "W")}
+    ];
+  };
+  const extent = (frames, key) => {
+    const values = frames.map((frame) => frame[key]).filter(finite);
+    if (!values.length) return [0, 1];
+    let low = Math.min(...values), high = Math.max(...values);
+    if (low === high) { low -= Math.max(1, Math.abs(low) * .05); high += Math.max(1, Math.abs(high) * .05); }
+    const pad = .08 * (high - low);
+    return [low - pad, high + pad];
+  };
+  const pathFor = (frames, key, lane, fullFrames) => {
+    const domain = extent(fullFrames, key);
+    const t0 = fullFrames[0].time_s;
+    const t1 = fullFrames[fullFrames.length - 1].time_s;
+    const yTop = lane === 0 ? 32 : 151;
+    const yBottom = lane === 0 ? 116 : 230;
+    const points = [];
+    frames.forEach((frame) => {
+      if (!finite(frame[key])) return;
+      const x = 54 + 344 * ((frame.time_s - t0) / Math.max(t1 - t0, 1e-9));
+      const y = yBottom - (yBottom - yTop) * ((frame[key] - domain[0]) / (domain[1] - domain[0]));
+      points.push((points.length ? "L" : "M") + x.toFixed(2) + " " + y.toFixed(2));
+    });
+    return points.join(" ");
+  };
+  const renderRequests = (frame) => {
+    requestLayer.replaceChildren();
+    const phases = {queue: 71, prefill: 198, decode: 325, complete: 450};
+    const requests = Array.isArray(frame.requests) ? frame.requests : [];
+    if (requests.length) {
+      const counts = {queue: 0, prefill: 0, decode: 0, complete: 0};
+      requests.forEach((request) => {
+        if (!(request.phase in phases)) return;
+        const rank = counts[request.phase]++;
+        const circle = document.createElementNS(svgNS, "circle");
+        circle.setAttribute("class", "request");
+        circle.setAttribute("data-phase", request.phase);
+        circle.setAttribute("cx", String(phases[request.phase] - 24 + (rank % 5) * 12));
+        circle.setAttribute("cy", String(62 + Math.floor(rank / 5) * 13));
+        circle.setAttribute("r", "4.5");
+        requestLayer.appendChild(circle);
+      });
+      Object.keys(counts).forEach((phase) => {
+        root.querySelector('[data-count="' + phase + '"]').textContent = String(counts[phase]);
+      });
+    } else {
+      const counts = {
+        queue: finite(frame.prefill_queue) ? Math.max(0, Math.round(frame.prefill_queue) - (frame.phase === "prefill" ? 1 : 0)) : 0,
+        prefill: frame.phase === "prefill" ? 1 : 0,
+        decode: finite(frame.decode_active) ? Math.round(frame.decode_active) : 0,
+        complete: finite(frame.completed_requests) ? Math.round(frame.completed_requests) : 0
+      };
+      Object.keys(counts).forEach((phase) => {
+        root.querySelector('[data-count="' + phase + '"]').textContent = String(counts[phase]);
+      });
+    }
+  };
+  const renderFrame = (announce) => {
+    const run = currentRun();
+    const frames = run.frames;
+    frameIndex = Math.max(0, Math.min(frameIndex, frames.length - 1));
+    const frame = frames[frameIndex];
+    scrubber.max = String(frames.length - 1);
+    scrubber.value = String(frameIndex);
+    timeOutput.value = format(frame.time_s, 2) + " s";
+    renderRequests(frame);
+    renderPolicy();
+
+    const kvValues = frames.map((item) => item.kv_tokens).filter(finite);
+    const kvMaximum = kvValues.length ? Math.max(...kvValues, 1) : 1;
+    const kvWidth = finite(frame.kv_tokens) ? 407 * Math.max(0, frame.kv_tokens) / kvMaximum : 0;
+    root.querySelector("[data-kv-meter]").setAttribute("width", String(Math.min(407, kvWidth)));
+    root.querySelector("[data-kv-value]").textContent = finite(frame.kv_tokens) ? format(frame.kv_tokens, 0) + " recorded units" : "not recorded";
+    const clock = finite(frame.realized_clock_mhz) ? frame.realized_clock_mhz : frame.requested_clock_mhz;
+    root.querySelector("[data-gpu]").textContent = (finite(clock) ? format(clock, 0) + " MHz" : "clock not recorded") + (finite(frame.power_w) ? " · " + format(frame.power_w, 1) + " W" : "");
+    root.querySelector("[data-thermal]").textContent = finite(frame.temperature_c) ? format(frame.temperature_c, 1) + " °C" : "not recorded";
+
+    const lanes = laneDefinitions();
+    const visibleFrames = frames.slice(0, frameIndex + 1);
+    lanes.forEach((lane, index) => {
+      root.querySelector('[data-lane-label="' + index + '"]').textContent = lane.label;
+      root.querySelector('[data-lane-value="' + index + '"]').textContent = finite(frame[lane.key]) ? format(frame[lane.key], lane.unit === "MHz" ? 0 : 1) + " " + lane.unit : "not recorded";
+      root.querySelector('[data-trace-path="' + index + '"]').setAttribute("d", pathFor(visibleFrames, lane.key, index, frames));
+    });
+    const t0 = frames[0].time_s, t1 = frames[frames.length - 1].time_s;
+    const nowX = 54 + 344 * ((frame.time_s - t0) / Math.max(t1 - t0, 1e-9));
+    const now = root.querySelector("[data-now]");
+    now.setAttribute("x1", String(nowX)); now.setAttribute("x2", String(nowX));
+    root.querySelector("[data-x-start]").textContent = format(t0, 0);
+    root.querySelector("[data-x-end]").textContent = format(t1, 0);
+
+    const planPath = root.querySelector("[data-plan-path]");
+    const plan = frame.planned_clock_mhz;
+    if (Array.isArray(plan) && plan.length && lanes[1].key.includes("clock")) {
+      const planDomainFrames = frames.concat(plan.map((value) => ({[lanes[1].key]: value})));
+      const domain = extent(planDomainFrames, lanes[1].key);
+      const planStart = finite(frame.plan_start_time_s) ? frame.plan_start_time_s : frame.time_s;
+      const samples = plan.map((value, index) => {
+        const planTime = planStart + index * run.plan_dt_s;
+        const x = 54 + 344 * ((planTime - t0) / Math.max(t1 - t0, 1e-9));
+        const y = 230 - 79 * ((value - domain[0]) / (domain[1] - domain[0]));
+        return [Math.max(54, Math.min(398, x)), Math.max(151, Math.min(230, y))];
+      });
+      const pieces = samples.length ? ["M" + samples[0][0].toFixed(2) + " " + samples[0][1].toFixed(2)] : [];
+      for (let index = 1; index < samples.length; index += 1) {
+        pieces.push("H" + samples[index][0].toFixed(2));
+        pieces.push("V" + samples[index][1].toFixed(2));
+      }
+      const planEnd = planStart + plan.length * run.plan_dt_s;
+      const endX = 54 + 344 * ((planEnd - t0) / Math.max(t1 - t0, 1e-9));
+      if (samples.length) pieces.push("H" + Math.max(54, Math.min(398, endX)).toFixed(2));
+      planPath.setAttribute("d", pieces.join(" "));
+    } else {
+      planPath.setAttribute("d", "");
+    }
+
+    const pieces = ["frame " + (frameIndex + 1) + " of " + frames.length];
+    if (finite(frame.backlog)) pieces.push(format(frame.backlog, 0) + " unfinished requests");
+    if (finite(frame.energy_j)) pieces.push(format(frame.energy_j, 0) + " J cumulative energy");
+    status.textContent = pieces.join(" · ");
+    if (announce) announcer.textContent = controller.value + ", " + format(frame.time_s, 2) + " seconds, " + pieces.slice(1).join(", ");
+  };
+  const stop = () => {
+    if (timer !== null) window.clearTimeout(timer);
+    timer = null;
+    playButton.setAttribute("aria-pressed", "false");
+    playButton.textContent = "Play";
+  };
+  const tick = () => {
+    const frames = currentRun().frames;
+    if (frameIndex >= frames.length - 1) { stop(); return; }
+    frameIndex += 1;
+    renderFrame(false);
+    const reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    timer = window.setTimeout(tick, reduced ? 900 : 180);
+  };
+  playButton.addEventListener("click", () => {
+    if (timer !== null) { stop(); announcer.textContent = "Replay paused."; return; }
+    if (frameIndex >= currentRun().frames.length - 1) frameIndex = 0;
+    playButton.setAttribute("aria-pressed", "true");
+    playButton.textContent = "Pause";
+    announcer.textContent = "Replay started.";
+    timer = window.setTimeout(tick, 0);
+  });
+  stepButton.addEventListener("click", () => { stop(); frameIndex = Math.min(frameIndex + 1, currentRun().frames.length - 1); renderFrame(true); });
+  resetButton.addEventListener("click", () => { stop(); frameIndex = 0; renderFrame(true); });
+  scrubber.addEventListener("input", () => { stop(); frameIndex = Number(scrubber.value); renderFrame(false); });
+  scrubber.addEventListener("change", () => renderFrame(true));
+  controller.addEventListener("change", () => { stop(); frameIndex = 0; updateAgeOptions(); renderFrame(true); });
+  ageSelect.addEventListener("change", () => { renderPolicy(); announcer.textContent = "Oldest prefill-age bin " + ageSelect.value + "."; });
+
+  const applyTheme = () => {
+    let dark = false;
+    try {
+      const themeRoot = window.parent && window.parent !== window
+        ? window.parent.document.documentElement
+        : document.documentElement;
+      const declared = String(themeRoot.dataset.theme || themeRoot.getAttribute("data-mode") || "").toLowerCase();
+      dark = declared === "dark" || themeRoot.classList.contains("dark") || getComputedStyle(themeRoot).colorScheme === "dark";
+      if (!dark && window.matchMedia) dark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    } catch (error) {
+      dark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+    }
+    root.dataset.theme = dark ? "dark" : "light";
+  };
+  applyTheme();
+  try {
+    const themeRoot = window.parent && window.parent !== window
+      ? window.parent.document.documentElement
+      : document.documentElement;
+    if (typeof MutationObserver !== "undefined") {
+      new MutationObserver(applyTheme).observe(themeRoot, {attributes: true, attributeFilter: ["class", "data-theme", "data-mode", "style"]});
+    }
+  } catch (error) { /* Cross-origin embedding falls back to the media query. */ }
+  if (window.matchMedia) {
+    const themeQuery = window.matchMedia("(prefers-color-scheme: dark)");
+    if (typeof themeQuery.addEventListener === "function") themeQuery.addEventListener("change", applyTheme);
+  }
+  if (hasPolicies) {
+    sceneView.setAttribute("hidden", "");
+    policyView.removeAttribute("hidden");
+    ageField.hidden = false;
+    updateAgeOptions();
+  }
+  renderFrame(false);
+  const fallbackIds = {
+    modeling: "fig-inference-serving-model-fallback",
+    open_loop: "fig-inference-open-loop-fallback",
+    mpc: "fig-inference-mpc-fallback",
+    scheduling: "fig-inference-scheduling-dp-fallback",
+    fqi: "fig-inference-scheduling-fqi-fallback"
+  };
+  const fallbackId = fallbackIds[replay.view];
+  let fallbackDocument = document;
+  try {
+    if (window.parent && window.parent !== window && window.parent.document) {
+      fallbackDocument = window.parent.document;
+    }
+  } catch (error) { /* Cross-origin embedding keeps the local document. */ }
+  const hideFallback = () => {
+    if (!fallbackId) return true;
+    const fallback = fallbackDocument.getElementById(fallbackId);
+    if (!fallback) return false;
+    fallback.hidden = true;
+    fallback.setAttribute("aria-hidden", "true");
+    return true;
+  };
+  if (!hideFallback() && typeof MutationObserver !== "undefined") {
+    const fallbackObserver = new MutationObserver(() => {
+      if (hideFallback()) fallbackObserver.disconnect();
+    });
+    fallbackObserver.observe(fallbackDocument.documentElement, {childList: true, subtree: true});
+  }
+})();
+</script>

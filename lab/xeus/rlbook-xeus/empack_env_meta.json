@@ -79,18 +79,6 @@
       "subdir": "noarch"
     },
     {
-      "name": "backcall",
-      "version": "0.2.0",
-      "build": "pyh9f0ad1d_0",
-      "filename_stem": "backcall-0.2.0-pyh9f0ad1d_0",
-      "filename": "backcall-0.2.0-pyh9f0ad1d_0.tar.gz",
-      "channel": "https://prefix.dev/conda-forge",
-      "depends": [
-        "python"
-      ],
-      "subdir": "noarch"
-    },
-    {
       "name": "fonttools",
       "version": "4.39.4",
       "build": "py313h6d8a2ba_2",
@@ -116,6 +104,19 @@
         "nlohmann_json-abi 3.12.0"
       ],
       "subdir": "emscripten-wasm32"
+    },
+    {
+      "name": "pytz",
+      "version": "2026.6",
+      "build": "pyh5ded981_0",
+      "filename_stem": "pytz-2026.6-pyh5ded981_0",
+      "filename": "pytz-2026.6-pyh5ded981_0.tar.gz",
+      "channel": "https://prefix.dev/conda-forge",
+      "depends": [
+        "python >=3.11",
+        "python"
+      ],
+      "subdir": "noarch"
     },
     {
       "name": "stack_data",
@@ -173,19 +174,6 @@
       "subdir": "emscripten-wasm32"
     },
     {
-      "name": "pytz",
-      "version": "2026.5",
-      "build": "pyh5ded981_0",
-      "filename_stem": "pytz-2026.5-pyh5ded981_0",
-      "filename": "pytz-2026.5-pyh5ded981_0.tar.gz",
-      "channel": "https://prefix.dev/conda-forge",
-      "depends": [
-        "python >=3.11",
-        "python"
-      ],
-      "subdir": "noarch"
-    },
-    {
       "name": "openblas",
       "version": "0.3.34",
       "build": "h69b678e_4",
@@ -196,21 +184,6 @@
         "emscripten-abi >=4,<5.0a0"
       ],
       "subdir": "emscripten-wasm32"
-    },
-    {
-      "name": "python-dateutil",
-      "version": "3.0.0",
-      "build": "pyh5ded981_0",
-      "filename_stem": "python-dateutil-3.0.0-pyh5ded981_0",
-      "filename": "python-dateutil-3.0.0-pyh5ded981_0.tar.gz",
-      "channel": "https://prefix.dev/conda-forge",
-      "depends": [
-        "python >=3.11",
-        "six >=1.6",
-        "python-tzdata",
-        "python"
-      ],
-      "subdir": "noarch"
     },
     {
       "name": "asttokens",
@@ -384,19 +357,6 @@
       "subdir": "noarch"
     },
     {
-      "name": "python-tzdata",
-      "version": "2026.5",
-      "build": "pyh5ded981_0",
-      "filename_stem": "python-tzdata-2026.5-pyh5ded981_0",
-      "filename": "python-tzdata-2026.5-pyh5ded981_0.tar.gz",
-      "channel": "https://prefix.dev/conda-forge",
-      "depends": [
-        "python >=3.11",
-        "python"
-      ],
-      "subdir": "noarch"
-    },
-    {
       "name": "nlohmann_json-abi",
       "version": "3.12.0",
       "build": "h0f90c79_2",
@@ -445,6 +405,33 @@
       "subdir": "noarch"
     },
     {
+      "name": "python-dateutil",
+      "version": "4.0.0",
+      "build": "pyh5ded981_0",
+      "filename_stem": "python-dateutil-4.0.0-pyh5ded981_0",
+      "filename": "python-dateutil-4.0.0-pyh5ded981_0.tar.gz",
+      "channel": "https://prefix.dev/conda-forge",
+      "depends": [
+        "python >=3.11",
+        "python-tzdata",
+        "python"
+      ],
+      "subdir": "noarch"
+    },
+    {
+      "name": "python-tzdata",
+      "version": "2026.6",
+      "build": "pyh5ded981_0",
+      "filename_stem": "python-tzdata-2026.6-pyh5ded981_0",
+      "filename": "python-tzdata-2026.6-pyh5ded981_0.tar.gz",
+      "channel": "https://prefix.dev/conda-forge",
+      "depends": [
+        "python >=3.11",
+        "python"
+      ],
+      "subdir": "noarch"
+    },
+    {
       "name": "decorator",
       "version": "5.3.1",
       "build": "pyhd8ed1ab_0",
@@ -462,6 +449,19 @@
       "build": "pyh5ded981_0",
       "filename_stem": "pyparsing-3.3.3-pyh5ded981_0",
       "filename": "pyparsing-3.3.3-pyh5ded981_0.tar.gz",
+      "channel": "https://prefix.dev/conda-forge",
+      "depends": [
+        "python >=3.11",
+        "python"
+      ],
+      "subdir": "noarch"
+    },
+    {
+      "name": "backcall",
+      "version": "0.2.0",
+      "build": "pyh5ded981_1",
+      "filename_stem": "backcall-0.2.0-pyh5ded981_1",
+      "filename": "backcall-0.2.0-pyh5ded981_1.tar.gz",
       "channel": "https://prefix.dev/conda-forge",
       "depends": [
         "python >=3.11",
@@ -535,19 +535,6 @@
         "python_abi 3.13.* *_cp313"
       ],
       "subdir": "emscripten-wasm32"
-    },
-    {
-      "name": "six",
-      "version": "1.17.0",
-      "build": "pyhe01879c_1",
-      "filename_stem": "six-1.17.0-pyhe01879c_1",
-      "filename": "six-1.17.0-pyhe01879c_1.tar.gz",
-      "channel": "https://prefix.dev/conda-forge",
-      "depends": [
-        "python >=3.9",
-        "python"
-      ],
-      "subdir": "noarch"
     },
     {
       "name": "executing",

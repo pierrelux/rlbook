@@ -12,10 +12,10 @@
   h1 { font-size:22px; font-weight:650; margin:0 0 5px; letter-spacing:-.3px; }
   p { margin:0 0 14px; }
   .intro, .note { color:var(--muted); font-size:13px; }
-  .toolbar { display:flex; align-items:end; flex-wrap:wrap; gap:12px; margin-bottom:10px; }
+  .toolbar { display:flex; align-items:end; flex-wrap:wrap; gap:10px; margin-bottom:10px; }
   .toolbar + .toolbar { border-top:1px solid var(--rule); padding-top:9px; }
   label { font-size:12px; color:var(--muted); display:block; }
-  select, button { font:inherit; color:var(--ink); background:white; border:1px solid #bdccd4; border-radius:5px; padding:7px 10px; min-height:35px; max-width:100%; }
+  select, button { font:inherit; color:var(--ink); background:white; border:1px solid #bdccd4; border-radius:5px; padding:7px 8px; min-height:35px; max-width:100%; }
   select { margin-top:4px; }
   button { cursor:pointer; }
   button.primary { background:var(--ink); color:white; border-color:var(--ink); min-width:74px; }
@@ -27,7 +27,7 @@
   .panels { display:grid; grid-template-columns:minmax(0,1.25fr) minmax(0,1fr); gap:14px; }
   .panel { border:1px solid var(--rule); border-radius:7px; background:#fff; overflow:hidden; margin:0; }
   .panel canvas { width:100%; display:block; }
-  #lake { aspect-ratio:1; background:#f4f8fa; }
+  #lake { aspect-ratio:1; background:#f4f8fa; margin:0 auto; }
   #wind { height:120px; }
   #chart { height:200px; }
   .charts { display:grid; gap:14px; align-content:start; }
@@ -332,6 +332,24 @@ function drawConv(k) {
 }
 
 // ---------- render ----------
+// The book sizes this iframe to the window. Shrink the canvases until the
+// whole page fits; below 620px the panels stack and the page scrolls instead.
+const FIT = [["lake", "width"], ["wind", "height"], ["chart", "height"]];
+function fitToWindow() {
+  const before = FIT.map(([id, p]) => $(id).style[p]).join();
+  for (const [id, p] of FIT) $(id).style[p] = "";
+  const main = document.querySelector("main"), full = FIT.map(([id, p]) => $(id).getBoundingClientRect()[p]);
+  const set = k => FIT.forEach(([id, p], i) => { $(id).style[p] = (full[i] * k).toFixed(1) + "px"; });
+  const h = main.offsetHeight;
+  if (innerWidth > 620 && h > innerHeight) {
+    set(0.8);
+    const slope = Math.max(1, (h - main.offsetHeight) / 0.2);
+    let k = Math.max(0.35, 1 - (h - innerHeight) / slope), over;
+    set(k);
+    for (let i = 0; i < 3 && (over = main.offsetHeight - innerHeight) > 0 && k > 0.35; i++) set(k = Math.max(0.35, k - over / slope));
+  }
+  return FIT.map(([id, p]) => $(id).style[p]).join() !== before;
+}
 function render() {
   if (!data) return;
   const T = totalTime(); tau = Math.min(tau, T);
@@ -362,6 +380,7 @@ function render() {
     $("m3-l").textContent = "Error ‖v_n − v*‖"; $("m3").textContent = s.vi_errors[k] === 0 ? "0" : s.vi_errors[k].toExponential(1);
     $("m4-l").textContent = "Cells within 1 min of v*"; $("m4").textContent = `${count} / ${data.n * data.n}`;
   }
+  if (!playing && fitToWindow()) render();
 }
 function updateMode() {
   const vi = mode() === "vi";
@@ -395,7 +414,7 @@ function setPlaying(value) {
 fetch("sailing-wind-shifts-data.json").then(r => r.json()).then(d => {
   data = d;
   for (const [key, s] of Object.entries(data.scenarios)) {
-    const o = document.createElement("option"); o.value = key; o.textContent = s.label; if (key === data.featured) o.selected = true; $("scenario").appendChild(o);
+    const o = document.createElement("option"); o.value = key; o.textContent = s.label.replace(/ \(.*\)$/, ""); if (key === data.featured) o.selected = true; $("scenario").appendChild(o);
   }
   data.scenarios[data.featured].races.forEach((_, i) => { const o = document.createElement("option"); o.value = i; o.textContent = `Race ${i + 1}`; $("race").appendChild(o); });
   data.scenarios[data.featured].vi_winds.forEach(w => { const o = document.createElement("option"); o.value = w; o.textContent = `From ${data.dirs[w]}`; if (w === 0) o.selected = true; $("vi-wind").appendChild(o); });
