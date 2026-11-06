@@ -22,7 +22,9 @@ While the standard Bellman optimality equations use the max operator to determin
 
 In the infinite-horizon setting, the smooth Bellman optimality equations take the form:
 
-$$ v_\gamma^\star(s) = \frac{1}{\beta} \log \sum_{a \in A_s} \exp\left(\beta\left(r(s, a) + \gamma \sum_{j \in S} p(j | s, a) v_\gamma^\star(j)\right)\right) $$
+$$ v^\star_\beta(s) = \frac{1}{\beta} \log \sum_{a \in \mathcal{A}_s} \exp\left(\beta\left(r(s, a) + \gamma \sum_{j \in \mathcal{S}} p(j | s, a) v^\star_\beta(j)\right)\right) $$
+
+We write $v^\star_\beta$ for this smooth value function, to keep it apart from the optimal value $v^*_\gamma$ of the hard Bellman equation.
 
 Adopting an operator-theoretic perspective, we can define a nonlinear operator $\mathrm{L}_\beta$ such that the smooth value function of an MDP is then the solution to the following fixed-point equation:
 
@@ -30,7 +32,7 @@ $$ (\mathrm{L}_\beta \mathbf{v})(s) = \frac{1}{\beta} \log \sum_{a \in \mathcal{
 
 As $\beta \to \infty$, $\mathrm{L}_\beta$ converges to the standard Bellman operator $\Bellman$. Furthermore, it can be shown that the smooth Bellman operator is a contraction mapping in the supremum norm, and therefore has a unique fixed point. However, as opposed to the usual "hard" setting, the fixed point of $\mathrm{L}_\beta$ is associated with the value function of an optimal stochastic policy defined by the softmax distribution:
 
-   $$ \pi(a|s) = \frac{\exp\left(\beta\left(r(s,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a) v_\gamma^\star(j)\right)\right)}{\sum_{a' \in \mathcal{A}_s} \exp\left(\beta\left(r(s,a') + \gamma \sum_{j \in \mathcal{S}} p(j|s,a') v_\gamma^\star(j)\right)\right)} $$
+   $$ \pi(a|s) = \frac{\exp\left(\beta\left(r(s,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a) v^\star_\beta(j)\right)\right)}{\sum_{a' \in \mathcal{A}_s} \exp\left(\beta\left(r(s,a') + \gamma \sum_{j \in \mathcal{S}} p(j|s,a') v^\star_\beta(j)\right)\right)} $$
 
 Despite the confusing terminology, the above "softmax" policy is the smooth counterpart of the argmax in the original optimality equation, not of the max: it is a soft-argmax. The smooth counterpart of the max is the log-sum-exp. The same policy is also called a Boltzmann or Gibbs policy. As the temperature $1/\beta$ goes to zero, the softmax concentrates on the maximizing actions and we recover the greedy policy and the hard Bellman equation.
 
@@ -38,7 +40,7 @@ Despite the confusing terminology, the above "softmax" policy is the smooth coun
 
 Moving from the argmax to the softmax turns deterministic policies into stochastic ones, which is both useful and costly. It is useful because noise in the actions is a way to explore. In RL the agent usually gathers its own data, and if it always took the action it currently believes best it would never learn about the others. The problem is not specific to RL. An engineer identifying a model of a plant must also choose inputs that reveal the dynamics, and in system identification this is called *exciting* the system: a persistently exciting input is one rich enough for the parameters to be identifiable from the data.
 
-It is costly when the action set is continuous. The softmax policy is then a density $\pi(a \mid s) \propto \exp(\beta q(s,a))$ whose normalizing constant, the partition function $\int \exp(\beta q(s,a))\, da$, is an integral with no closed form in general. The log-sum-exp value has the same problem, since it is the logarithm of that integral. This is the intractable partition function familiar from energy-based models and probabilistic graphical models. Numerical quadrature is an option in low dimension but is rarely used. {cite:t}`haarnoja2017reinforcement` sampled from the softmax policy over continuous actions with amortized Stein variational gradient descent, which proved expensive; soft actor-critic {cite}`haarnoja2018soft` instead fits a tractable parametric policy to the softmax, an idea we return to in the chapters on fitted value methods and policy learning.
+It is costly when the action set is continuous. The softmax policy is then a density $\pi(a \mid s) \propto \exp(\beta q(s,a))$ whose normalizing constant, the partition function $\int \exp(\beta q(s,a))\, da$, is an integral with no closed form in general. The log-sum-exp value has the same problem, since it is the logarithm of that integral. This is the intractable partition function familiar from energy-based models and probabilistic graphical models. Numerical quadrature is an option in low dimension but is rarely used. {cite:t}`haarnoja2017reinforcement` sampled from the softmax policy over continuous actions with amortized Stein variational gradient descent, which proved expensive; soft actor-critic {cite}`haarnoja2018soft` instead fits a tractable parametric policy to the softmax, an idea we return to in the chapters on fitted value methods and policy learning. The notation for continuous actions, and what changes when sums become integrals, is in {ref}`sec-continuous-actions`.
 
 
 
@@ -84,7 +86,7 @@ Successive approximation applied to $\mathrm{L}_\beta$ is **smooth value iterati
 - As $\beta \to \infty$, the algorithm converges to standard value iteration
 - Lower $\beta$ values produce more stochastic policies with higher entropy
 
-**What the stopping rule guarantees.** Because $\mathrm{L}_\beta$ is a $\gamma$-contraction, the a posteriori bound of the Banach fixed-point theorem applies unchanged, and the stopping test of line 9 guarantees $\|v - v^\star_\beta\|_\infty \le \varepsilon/2$. The proof that value iteration returns an $\varepsilon$-optimal policy also carries over, with one change of meaning. The softmax policy satisfies $\mathrm{L}_{\pi,\Omega} v = \mathrm{L}_\beta v$ for the entropy-regularized evaluation operator of {ref}`sec-regularized-operators`, with regularizer $\Omega(\pi(\cdot|s)) = \frac{1}{\beta}\sum_a \pi(a|s)\log\pi(a|s)$,, just as a greedy policy satisfies $\mathrm{L}_\pi v = \Bellman v$. Repeating the proof of {prf:ref}`value-iteration-convergence` with these operators shows that the returned policy is $\varepsilon$-optimal *for the entropy-regularized objective*. How far is that from optimal for the original rewards? Since $\max_a x_a \le \frac{1}{\beta}\log\sum_a e^{\beta x_a} \le \max_a x_a + \frac{\log|\mathcal{A}|}{\beta}$, where $|\mathcal{A}|$ is the largest number of actions in any state, the two fixed points satisfy
+**What the stopping rule guarantees.** Because $\mathrm{L}_\beta$ is a $\gamma$-contraction, the a posteriori bound of the Banach fixed-point theorem applies unchanged, and the stopping test of line 9 guarantees $\|v - v^\star_\beta\|_\infty \le \varepsilon/2$. The proof that value iteration returns an $\varepsilon$-optimal policy also carries over, with one change of meaning. The softmax policy satisfies $\mathrm{L}_{\pi,\Omega} v = \mathrm{L}_\beta v$ for the entropy-regularized evaluation operator of {ref}`sec-regularized-operators`, with regularizer $\Omega(\pi(\cdot|s)) = \frac{1}{\beta}\sum_a \pi(a|s)\log\pi(a|s)$, just as a greedy policy satisfies $\mathrm{L}_\pi v = \Bellman v$. Repeating the proof of {prf:ref}`value-iteration-convergence` with these operators shows that the returned policy is $\varepsilon$-optimal *for the entropy-regularized objective*. How far is that from optimal for the original rewards? Since $\max_a x_a \le \frac{1}{\beta}\log\sum_a e^{\beta x_a} \le \max_a x_a + \frac{\log|\mathcal{A}|}{\beta}$, where $|\mathcal{A}|$ is the largest number of actions in any state, the two fixed points satisfy
 
 $$
 v^*_\gamma \;\le\; v^\star_\beta \;\le\; v^*_\gamma + \frac{\log |\mathcal{A}|}{\beta(1-\gamma)}\mathbf{1},
@@ -110,7 +112,7 @@ These shocks are independent across time periods, states, and actions, and are i
 
 The **Gumbel distribution** with location parameter $\mu$ and scale parameter $1/\beta$ has probability density function:
 
-$$ f(x; \mu, \beta) = \beta\exp\left(-\beta(x-\mu)-\exp(-\beta(x-\mu))\right) $$
+$$ f(x; \mu, 1/\beta) = \beta\exp\left(-\beta(x-\mu)-\exp(-\beta(x-\mu))\right) $$
 
 To generate a Gumbel-distributed random variable, we can use inverse transform sampling: $X = \mu - \frac{1}{\beta} \ln(-\ln(U))$ where $U$ is uniform on $(0,1)$.
 
@@ -126,9 +128,9 @@ We now define an **augmented MDP** with:
 
 The transition factorizes because the next shock vector $\boldsymbol{\epsilon}'$ is drawn independently of the current state and action (conditional independence).
 
-```{admonition} The Augmented State Space is Infinite-Dimensional
+```{admonition} The Augmented State Space is Uncountable
 :class: warning
-Even if the original state space $\mathcal{S}$ and action space $\mathcal{A}$ are finite, the augmented state space $\tilde{\mathcal{S}} = \mathcal{S} \times \mathbb{R}^{|\mathcal{A}|}$ is **uncountably infinite** because each shock vector $\boldsymbol{\epsilon}$ is a continuous random variable. Therefore:
+Even if the original state space $\mathcal{S}$ and action space $\mathcal{A}$ are finite, the augmented state space $\tilde{\mathcal{S}} = \mathcal{S} \times \mathbb{R}^{|\mathcal{A}|}$ is **uncountably infinite** because each shock vector $\boldsymbol{\epsilon}$ is a continuous random variable. The space has finite dimension, $|\mathcal{A}|$ coordinates for the shocks, but a value function on it is an element of an infinite-dimensional function space. The shocks are also unbounded, so the rewards $r(s,a)+\epsilon(a)$ are unbounded and the sup-norm theory of the previous chapter does not apply as stated. Nothing breaks, because the shocks have finite mean and enter additively, but it is one more reason not to work on this space directly. Therefore:
 - We cannot enumerate the augmented states
 - Tabular dynamic programming methods do not apply directly
 - The augmented value function $\tilde{v}(s, \boldsymbol{\epsilon})$ maps a continuous space to $\mathbb{R}$
@@ -149,7 +151,7 @@ This is a perfectly well-defined Bellman equation, and an optimal stationary pol
 $$\pi(s, \boldsymbol{\epsilon}) \in \operatorname{argmax}_{a \in \mathcal{A}_s} \left\{ r(s,a) + \epsilon(a) + \gamma \mathbb{E}_{s', \boldsymbol{\epsilon}'}\left[\tilde{v}(s', \boldsymbol{\epsilon}') \mid s, a\right] \right\}$$
 
 However, this equation is **computationally intractable** because:
-- The state space is continuous and infinite-dimensional
+- The state space is continuous (uncountable), so $\tilde v$ is a function on a continuum
 - The shocks are fresh each period
 - We would need to solve for $\tilde{v}$ over an uncountable domain
 
@@ -240,7 +242,7 @@ We have arrived at the **smooth Bellman equation**.
 To recap the logical flow:
 
 1. We constructed an augmented MDP with state $(s, \boldsymbol{\epsilon})$ where shocks perturb rewards
-2. We wrote the standard Bellman equation for this augmented MDP (hard max, but over an infinite-dimensional state space)
+2. We wrote the standard Bellman equation for this augmented MDP (hard max, but over an uncountable state space)
 3. We defined the ex-ante value $v(s) = \mathbb{E}_{\boldsymbol{\epsilon}}[\tilde{v}(s, \boldsymbol{\epsilon})]$ to eliminate the continuous shock component
 4. We separated deterministic and random terms: $\tilde{v}(s, \boldsymbol{\epsilon}) = \max_a \{x_a(s) + \epsilon(a)\}$
 5. We applied the Gumbel identity to evaluate $\mathbb{E}_{\boldsymbol{\epsilon}}[\max_a \{\cdots\}]$ in closed form as a log-sum-exp
@@ -294,6 +296,140 @@ This is the **softmax policy** or **Gibbs/Boltzmann policy** with inverse temper
 - For finite $\beta > 0$: the policy is stochastic, with probability mass proportional to exponentiated Q-values
 
 This completes the derivation: the smooth Bellman equation yields a value function $v(s)$, and the corresponding optimal policy is the softmax over Q-values.
+
+(sec-gumbel-side-by-side)=
+### The Original and Augmented MDPs Side by Side
+
+The derivation moves between two decision problems. The first is the original MDP solved with the smooth Bellman equation, or equivalently with an entropy bonus ({ref}`sec-regularized-mdps`). The second is the augmented MDP, in which the decision maker solves a hard Bellman equation but sees a fresh shock on every action's reward. The table puts them next to each other. We write $q(s,a) = r(s,a) + \gamma\sum_{j} p(j\mid s,a)\, v^\star_\beta(j)$, which is the $x_a(s)$ of the derivation.
+
+| | Original MDP, smooth Bellman equation | Augmented MDP, Gumbel shocks |
+|---|---|---|
+| State | $s \in \mathcal{S}$ | $(s, \boldsymbol{\epsilon}) \in \mathcal{S} \times \mathbb{R}^{\lvert\mathcal{A}_s\rvert}$ |
+| Noise | only the transitions $p(j \mid s,a)$ | the transitions, plus a fresh i.i.d. Gumbel vector $\boldsymbol{\epsilon}_t$ each period |
+| Reward of action $a$ | $r(s,a)$, plus the bonus $\beta^{-1} H(\pi(\cdot \mid s))$ | $r(s,a) + \epsilon(a)$ |
+| Transition | $p(j \mid s,a)$ | $p(j \mid s,a)\, g(\boldsymbol{\epsilon}')$, with $g$ the Gumbel density |
+| Bellman equation | $v = \mathrm{L}_\beta v$, a log-sum-exp | $\tilde v(s,\boldsymbol{\epsilon}) = \max_a \{q(s,a) + \epsilon(a)\}$, a hard max |
+| Optimal policy | stochastic, $\pi_\beta(a \mid s) \propto \exp(\beta q(s,a))$ | deterministic, $\sigma(s,\boldsymbol{\epsilon}) = \operatorname{argmax}_a \{q(s,a) + \epsilon(a)\}$ |
+| Value | $v^\star_\beta(s)$ | $\tilde v(s,\boldsymbol{\epsilon})$, with $\mathbb{E}_{\boldsymbol{\epsilon}}[\tilde v(s,\boldsymbol{\epsilon})] = v^\star_\beta(s)$ |
+| Who sees what | the agent and the modeler both see $s$ | the agent sees $s$ and $\boldsymbol{\epsilon}$; the modeler sees only $s$ |
+
+{numref}`fig-gumbel-augmented-pgm` draws both problems as graphical models, one time slice after another.
+
+:::{figure} _static/gumbel-augmented-pgm.svg
+:label: fig-gumbel-augmented-pgm
+:alt: Two graphical models side by side. Left, states s_t and actions a_t, with an arrow from each state to its action and arrows from the state and action to the next state. Right, the same graph with an extra dashed node epsilon_t above each state, an arrow from epsilon_t to a_t, and a_t drawn as a double circle. Dotted boxes group s_t with epsilon_t.
+
+(a) The original MDP under the softmax policy. The action $a_t$ is a random child of $s_t$ with conditional distribution $\pi_\beta(\cdot \mid s_t)$. (b) The augmented MDP. A shock vector $\boldsymbol{\epsilon}_t$ (dashed) is drawn independently each period, and the augmented state is $(s_t, \boldsymbol{\epsilon}_t)$ (dotted boxes). The action is a deterministic function of the augmented state (double circle). The shock has no arrow into $s_{t+1}$ or $\boldsymbol{\epsilon}_{t+1}$. Integrating $\boldsymbol{\epsilon}_t$ out of each slice of (b) gives (a).
+:::
+
+The figure shows why the construction works. In panel (b), $\boldsymbol{\epsilon}_t$ has a single child, the action $a_t$, and the action is a deterministic function of $(s_t, \boldsymbol{\epsilon}_t)$. Integrating the shock out of slice $t$ therefore changes only the conditional distribution of $a_t$:
+
+$$
+\mathbb{P}(a_t = a \mid s_t) = \int \mathbb{1}\{a = \sigma(s_t, \boldsymbol{\epsilon})\}\, g(\boldsymbol{\epsilon})\, d\boldsymbol{\epsilon} = \pi_\beta(a \mid s_t),
+$$
+
+by {prf:ref}`gumbel-softmax`. Doing this in every slice turns graph (b) into graph (a): the two models give the same distribution over state-action trajectories $(s_0, a_0, s_1, a_1, \ldots)$. The missing arrows matter. If $\boldsymbol{\epsilon}_t$ also influenced $s_{t+1}$, or if the shocks were correlated over time, integrating them out would leave a dependence on the past, and the marginal process would no longer be an MDP in $s$. {cite:t}`rust1987optimal` states this as a *conditional independence* assumption, and his estimator relies on it.
+
+The rewards are not equal path by path. The augmented agent collects $r(s_t,a_t) + \epsilon_t(a_t)$, while the original MDP pays $r(s_t,a_t)$ and the entropy bonus. They are equal on average. Conditional on which action wins, the winning value $\max_a\{q(s,a)+\epsilon(a)\}$ has the same distribution whatever the winner is, a property of the Gumbel distribution. Its mean is $\frac{1}{\beta}\log\sum_{a'} \exp(\beta q(s,a'))$ by {prf:ref}`gumbel-random-utility`, so
+
+$$
+\mathbb{E}\big[\epsilon(a) \,\big|\, \sigma(s,\boldsymbol{\epsilon}) = a\big] = \frac{1}{\beta}\log\sum_{a'} e^{\beta q(s,a')} - q(s,a) = -\frac{1}{\beta}\log \pi_\beta(a \mid s).
+$$
+
+The shock that the agent collects on the action it picks is, on average, $-\frac{1}{\beta}\log\pi_\beta(a\mid s)$. Averaging over $a \sim \pi_\beta(\cdot\mid s)$ gives $\frac{1}{\beta}H(\pi_\beta(\cdot \mid s))$, the entropy bonus. The per-action penalty $-\alpha \ln \pi(a \mid s)$ that appears later in the regularized formulation is this expected shock, with $\alpha = 1/\beta$. A rarely chosen action is chosen only when its shock is large, and the entropy bonus is the average of those large shocks.
+
+### Checking the Equivalence Numerically
+
+The augmented MDP is a device for theory: it explains where the log-sum-exp comes from and gives a likelihood for observed choices, but nobody solves it to compute a policy. On a small problem we can still solve it by brute force and check that it gives the same answer as the original MDP. The cell below draws a random MDP with 5 states and 3 actions, sets $\gamma = 0.9$ and $\beta = 2$, and computes the solution in three ways.
+
+1. *Original MDP.* Smooth value iteration with the log-sum-exp, then the softmax policy.
+2. *Original MDP, regularized reading.* The value of that softmax policy with its entropy bonus, from the linear system $(\mathbf{I}-\gamma\mathbf{P}_\pi)\mathbf{v} = \mathbf{r}_\pi + \beta^{-1}\mathbf{H}_\pi$.
+3. *Augmented MDP.* Value iteration with the hard max on the ex-ante value, $v(s) \leftarrow \mathbb{E}_{\boldsymbol{\epsilon}}[\max_a\{r(s,a)+\gamma\sum_j p(j\mid s,a)v(j)+\epsilon(a)\}]$, with the expectation replaced by an average over 50,000 Gumbel draws and no log-sum-exp anywhere. We then simulate 20,000 episodes in which the agent sees fresh shocks at every step, takes the deterministic action $\operatorname{argmax}_a\{q(s,a)+\epsilon(a)\}$, and collects $r + \epsilon(a)$.
+
+```{code-cell} python
+import numpy as np
+
+rng = np.random.default_rng(0)
+n_states, n_actions, gamma, beta = 5, 3, 0.9, 2.0
+P = rng.dirichlet(0.5 * np.ones(n_states), size=(n_states, n_actions))  # P[s, a, j]
+r = rng.normal(size=(n_states, n_actions))
+loc, scale = -np.euler_gamma / beta, 1 / beta  # mean-zero Gumbel shocks
+
+
+def smooth_max(q):
+    """(1/beta) log sum_a exp(beta q), computed stably along the last axis."""
+    m = q.max(axis=-1)
+    return m + np.log(np.exp(beta * (q - m[..., None])).sum(axis=-1)) / beta
+
+
+# Original MDP: smooth value iteration, then the softmax policy.
+v = np.zeros(n_states)
+for _ in range(500):
+    v = smooth_max(r + gamma * P @ v)
+q = r + gamma * P @ v
+pi = np.exp(beta * (q - v[:, None]))
+entropy = -(pi * np.log(pi)).sum(axis=1)
+
+# Original MDP, regularized reading: evaluate pi with its entropy bonus,
+# (I - gamma P_pi) v = r_pi + H_pi / beta.
+P_pi = np.einsum("sa,saj->sj", pi, P)
+v_reg = np.linalg.solve(np.eye(n_states) - gamma * P_pi, (pi * r).sum(axis=1) + entropy / beta)
+
+# Augmented MDP: hard Bellman equation, ex-ante value. The expectation over the
+# current shocks is an average over n_draws fixed Gumbel draws; no log-sum-exp.
+n_draws = 50_000
+shocks = rng.gumbel(loc, scale, size=(n_draws, n_states, n_actions))
+v_aug = np.zeros(n_states)
+for _ in range(150):
+    v_aug = (r + gamma * P @ v_aug + shocks).max(axis=2).mean(axis=0)
+q_aug = r + gamma * P @ v_aug
+
+# Simulate the augmented MDP: the agent sees fresh shocks every step and takes
+# the deterministic action argmax_a q_aug(s, a) + eps(a).
+n_episodes, horizon = 20_000, 150
+s = np.zeros(n_episodes, dtype=int)
+returns = np.zeros(n_episodes)
+visits = np.zeros((n_states, n_actions))
+shock_total = np.zeros((n_states, n_actions))
+cdf = P.cumsum(axis=2)
+for t in range(horizon):
+    eps = rng.gumbel(loc, scale, size=(n_episodes, n_actions))
+    a = (q_aug[s] + eps).argmax(axis=1)
+    eps_a = eps[np.arange(n_episodes), a]
+    returns += gamma**t * (r[s, a] + eps_a)
+    np.add.at(visits, (s, a), 1)
+    np.add.at(shock_total, (s, a), eps_a)
+    s = (rng.random(n_episodes)[:, None] > cdf[s, a]).sum(axis=1)
+freq = visits / visits.sum(axis=1, keepdims=True)
+mean_shock = shock_total / visits
+
+fmt = lambda x: " ".join(f"{y:6.3f}" for y in x)
+lines = [
+    "Values v(s)",
+    f"  original, smooth value iteration        {fmt(v)}",
+    f"  original, entropy-regularized eval      {fmt(v_reg)}",
+    f"  augmented, hard max over Gumbel draws   {fmt(v_aug)}",
+    f"  augmented, simulated return from s=0    {returns.mean():6.3f} +/- {2 * returns.std() / np.sqrt(n_episodes):.3f}",
+    "",
+    "Policy: softmax pi(a|s) vs. action frequencies of the augmented agent",
+    "  s |  softmax pi(.|s)      |  frequency in augmented MDP",
+]
+lines += [f"  {i} | {fmt(pi[i])} | {fmt(freq[i])}" for i in range(n_states)]
+lines += [
+    "",
+    "Shocks: -log pi(a|s)/beta vs. mean shock eps(a) when a is chosen",
+    "  s |  -log pi(.|s)/beta    |  mean chosen shock",
+]
+lines += [f"  {i} | {fmt(-np.log(pi[i]) / beta)} | {fmt(mean_shock[i])}" for i in range(n_states)]
+lines += [
+    "",
+    f"  entropy bonus H/beta per state     {fmt(entropy / beta)}",
+    f"  mean chosen shock per state        {fmt(shock_total.sum(1) / visits.sum(1))}",
+]
+print("\n".join(lines))
+```
+
+The three value functions agree up to Monte Carlo error, which stays below $0.01$ on values near $10$, and the simulated return of the augmented agent from state $0$ matches $v^\star_\beta(0)$ within its confidence interval. The augmented agent never randomizes, yet the frequencies of its actions reproduce the softmax probabilities to the third decimal. The last two blocks check the shock identity: the mean shock on a chosen action matches $-\beta^{-1}\log\pi_\beta(a\mid s)$, and its average per state matches the entropy bonus. The cost explains why the Gumbel route stays theoretical. One brute-force sweep evaluates $50{,}000 \times 5 \times 3$ maxima, where the log-sum-exp needs $5 \times 3$ exponentials, and the brute-force answer is still off in the third digit.
 
 <!-- ## Control as Inference Perspective
 
@@ -465,15 +601,15 @@ $$ \pi^*(\cdot | s) = \nabla \Omega^*(q^*_\Omega(s, \cdot)) $$
 
 ### Recovering the Smooth Bellman Equations
 
-Under this framework, we can recover the smooth Bellman equations by choosing $\Omega$ to be the negative entropy, and obtain the softmax policy as the gradient of the convex conjugate. Let's show this explicitly:
+Under this framework, we can recover the smooth Bellman equations by choosing $\Omega$ to be the negative entropy scaled by the temperature $1/\beta$, and obtain the softmax policy as the gradient of the convex conjugate. Let's show this explicitly:
 
-1. Using the negative entropy regularizer:
+1. Using the scaled negative entropy regularizer:
 
-   $$ \Omega(d(\cdot|s)) = \sum_{a \in \mathcal{A}_s} d(a|s) \ln d(a|s) $$
+   $$ \Omega(\pi(\cdot|s)) = \frac{1}{\beta}\sum_{a \in \mathcal{A}_s} \pi(a|s) \ln \pi(a|s) $$
 
 2. The convex conjugate:
 
-   $$ \Omega^*(q(s, \cdot)) = \ln \sum_{a \in \mathcal{A}_s} \exp q(s,a) $$
+   $$ \Omega^*(q(s, \cdot)) = \frac{1}{\beta}\ln \sum_{a \in \mathcal{A}_s} \exp \big(\beta q(s,a)\big) $$
 
 3. Now, let's write out the regularized Bellman optimality equation:
 
@@ -481,13 +617,13 @@ Under this framework, we can recover the smooth Bellman equations by choosing $\
 
 4. Substituting the expressions for $\Omega^*$ and $q^*_\Omega$:
 
-   $$ v^*_\Omega(s) = \ln \sum_{a \in \mathcal{A}_s} \exp \left(r(s, a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a) v^*_\Omega(j)\right) $$
+   $$ v^*_\Omega(s) = \frac{1}{\beta}\ln \sum_{a \in \mathcal{A}_s} \exp \left(\beta\Big(r(s, a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a) v^*_\Omega(j)\Big)\right) $$
 
-This matches the form of the smooth Bellman equation we derived earlier, with the log-sum-exp operation replacing the max operation of the standard Bellman equation.
+This matches the form of the smooth Bellman equation we derived earlier, with the log-sum-exp operation replacing the max operation of the standard Bellman equation. With $\beta = 1$, the unscaled negative entropy gives the same equation at unit temperature.
 
 Furthermore, the optimal policy is given by the gradient of $\Omega^*$:
 
-$$ d^*(a|s) = \nabla \Omega^*(q^*_\Omega(s, \cdot)) = \frac{\exp(q^*_\Omega(s,a))}{\sum_{a' \in \mathcal{A}_s} \exp(q^*_\Omega(s,a'))} $$
+$$ \pi^*(a|s) = \nabla \Omega^*(q^*_\Omega(s, \cdot))_a = \frac{\exp(\beta q^*_\Omega(s,a))}{\sum_{a' \in \mathcal{A}_s} \exp(\beta q^*_\Omega(s,a'))} $$
 
 This is the familiar softmax policy we encountered in the smooth MDP setting.
 
@@ -557,7 +693,7 @@ Now that we've seen how the regularized MDP framework leads to smooth Bellman eq
    - Higher $\beta$ produces policies closer to deterministic (lower entropy)
    - Lower $\beta$ produces more stochastic policies (higher entropy)
    - As $\beta \to \infty$, the method recovers standard policy iteration
-4. **Convergence**: Like standard policy iteration, this algorithm converges to the unique optimal regularized value function and policy
+4. **Convergence**: The algorithm converges to the unique optimal regularized value function and policy. Unlike standard policy iteration, it does not terminate after finitely many iterations: the softmax policies form a continuum and the iterates approach the optimum without reaching it, which is why the loop stops on a tolerance. The convergence is fast, since each iteration is a Newton step ({ref}`sec-smooth-pi-newton`).
 5. **Partial improvement**: As in the hard case, the improvement does not need to be applied in every state for the method to make progress. The policy-iteration loops hidden inside actor-critic methods make use of this.
 
 (sec-smooth-pi-newton)=
@@ -581,7 +717,7 @@ At the softmax policy the log-sum-exp equals the expected $q$ plus the entropy b
 
 ### Equivalence Between Smooth Bellman Equations and Entropy-Regularized MDPs
 
-We have now seen two distinct ways to arrive at smooth Bellman equations. Earlier in this chapter, we introduced the logsumexp operator as a smooth approximation to the max operator, motivated by analytical tractability and the desire for differentiability. Just now, we derived the same equations through the lens of regularized MDPs, where we explicitly penalize the entropy of policies. These two perspectives are mathematically equivalent: solving the smooth Bellman equation with inverse temperature parameter $\beta$ yields exactly the same optimal value function and optimal policy as solving the entropy-regularized MDP with regularization strength $\alpha = 1/\beta$. The two formulations are not merely similar. They describe identical optimization problems.
+We have now seen three ways to arrive at smooth Bellman equations. Earlier in this chapter, we introduced the logsumexp operator as a smooth approximation to the max operator, motivated by analytical tractability and the desire for differentiability, and then obtained it from Gumbel noise on the rewards. Just now, we derived the same equations through the lens of regularized MDPs, where we explicitly penalize the entropy of policies. These two perspectives are mathematically equivalent: solving the smooth Bellman equation with inverse temperature parameter $\beta$ yields exactly the same optimal value function and optimal policy as solving the entropy-regularized MDP with regularization strength $\alpha = 1/\beta$. The two formulations are not merely similar. They describe identical optimization problems.
 
 To see this equivalence clearly, consider the standard MDP problem with rewards $r(s,a)$ and transition probabilities $p(j|s,a)$. The regularized MDP framework tells us to solve:
 
@@ -779,6 +915,60 @@ While the smooth Bellman equations (using logsumexp) and entropy-regularized for
 - The algorithm alternates between evaluating the current stochastic policy and improving it
 - Converges to the unique optimal entropy-regularized policy
 
+(sec-continuous-actions)=
+## Continuous Action and State Spaces
+
+What changes in the smooth Bellman equation when the sums over actions become integrals?
+
+So far the action sets were finite. In control problems the action is usually a vector $a \in \mathcal{A}_s \subseteq \mathbb{R}^m$, a torque, a dose, a flow rate, and the state is often continuous too. The smooth Bellman equation carries over once we fix a *reference measure* $\mu$ on the actions. For a finite set, $\mu$ is the counting measure and integrals against it are sums. For a box or another bounded subset of $\mathbb{R}^m$, it is usually the Lebesgue measure $da$. It can also be a probability measure, a prior policy $\pi_0(da \mid s)$. Continuous states only need the transition kernel to be written as a measure, $p(ds' \mid s,a)$. The table translates the notation of this chapter.
+
+| Object | Finite $\mathcal{S}$ and $\mathcal{A}_s$ | Continuous $\mathcal{S}$ and $\mathcal{A}_s \subseteq \mathbb{R}^m$ |
+|---|---|---|
+| Expected next value | $\sum_{j \in \mathcal{S}} p(j \mid s,a)\, v(j)$ | $\int_{\mathcal{S}} v(s')\, p(ds' \mid s,a)$ |
+| Decision rule | probability vector $\pi(\cdot \mid s) \in \Delta(\mathcal{A}_s)$ | density $\pi(\cdot \mid s)$ with respect to $\mu$, $\int_{\mathcal{A}_s} \pi(a \mid s)\, \mu(da) = 1$ |
+| Policy average | $\sum_a \pi(a \mid s)\, q(s,a)$ | $\int_{\mathcal{A}_s} \pi(a \mid s)\, q(s,a)\, \mu(da)$ |
+| Entropy | $H(\pi) = -\sum_a \pi(a)\log\pi(a) \ge 0$ | $h_\mu(\pi) = -\int \pi(a)\log\pi(a)\, \mu(da)$, of either sign |
+| Smooth maximum | $\frac{1}{\beta}\log\sum_a e^{\beta q(s,a)}$ | $\frac{1}{\beta}\log\int_{\mathcal{A}_s} e^{\beta q(s,a)}\, \mu(da)$ |
+| Optimal decision rule | softmax over $\mathcal{A}_s$ | Gibbs density $\pi_\beta(a \mid s) = \exp\big(\beta(q(s,a) - v(s))\big)$ |
+| Bias against the hard max | between $0$ and $\frac{\log\lvert\mathcal{A}\rvert}{\beta}$ per step | at most $\frac{\log \mu(\mathcal{A}_s)}{\beta}$, but possibly negative; see below |
+
+With this notation, the smooth Bellman equation reads
+
+$$
+v^\star_\beta(s) = \frac{1}{\beta}\log\int_{\mathcal{A}_s} \exp\big(\beta\, q(s,a)\big)\, \mu(da), \qquad
+q(s,a) = r(s,a) + \gamma \int_{\mathcal{S}} v^\star_\beta(s')\, p(ds' \mid s,a),
+$$
+
+and the optimal decision rule is the Gibbs density $\pi_\beta(a \mid s) = \exp\big(\beta(q(s,a) - v^\star_\beta(s))\big)$, which integrates to one against $\mu$ because $v^\star_\beta(s)$ is the log-normalizer. The contraction argument of the smooth value iteration section uses only monotonicity and the constant shift, and both hold for the integral. The operator is therefore a $\gamma$-contraction in the sup norm, provided the integral is finite. With bounded rewards, it is finite when $\mu(\mathcal{A}_s) < \infty$, for example a box of actions under the Lebesgue measure or any prior policy.
+
+**The variational form.** The regularized reading also carries over. For any density $\nu$ with respect to $\mu$, write $Z(s) = \int e^{\beta q(s,a)}\mu(da)$. Then
+
+$$
+\int \nu(a)\, q(s,a)\, \mu(da) - \frac{1}{\beta}\int \nu(a) \log \nu(a)\, \mu(da)
+= \frac{1}{\beta}\log Z(s) - \frac{1}{\beta}\, \mathrm{KL}\big(\nu \,\big\|\, \pi_\beta(\cdot \mid s)\big),
+$$
+
+as one checks by substituting $\log \pi_\beta = \beta q - \log Z$. The left side is the regularized objective of {ref}`sec-regularized-operators` with $\Omega(\nu) = \frac{1}{\beta}\int \nu\log\nu\, d\mu$. Since the KL divergence is nonnegative and vanishes only at $\nu = \pi_\beta$, the maximum over $\nu$ is the log-integral and the maximizer is the Gibbs density. This is the continuous version of the Legendre-Fenchel pair (negative entropy, log-sum-exp), and in statistical physics it is called the Gibbs variational principle.
+
+**The reference measure matters.** With a finite action set, relabeling the actions changes nothing. With continuous actions, the entropy depends on $\mu$, and that dependence shows up in three ways.
+
+- *Prior policies give KL regularization.* If $\mu = \pi_0(\cdot \mid s)$ is a probability measure, then $\int \nu \log \nu\, d\mu = \mathrm{KL}(\nu \,\|\, \pi_0)$ and the problem is KL-regularized RL: the agent is penalized for moving away from $\pi_0$. In the finite case, the uniform prior gives $\mathrm{KL}(\nu\,\|\,\text{uniform}) = \log\lvert\mathcal{A}_s\rvert - H(\nu)$, so entropy and KL regularization differ by a constant per state and have the same optimal policy.
+- *Differential entropy has no floor.* Under the Lebesgue measure, $h(\pi) = -\int \pi \log \pi\, da$ is the differential entropy, which is negative for concentrated densities: a Gaussian with variance $\sigma^2$ in one dimension has $h = \frac{1}{2}\log(2\pi e \sigma^2)$, negative once $\sigma^2 < 1/(2\pi e)$. It also depends on the units of the action. Rescaling $a \mapsto c\,a$ in $\mathbb{R}^m$ adds $m \log\lvert c\rvert$ to $h$. That only shifts all values by a constant and leaves the policy unchanged, but a nonlinear change of variables, say from a torque to its logarithm, changes the optimal policy.
+- *Unbounded action sets need care.* If $\mathcal{A}_s = \mathbb{R}^m$ with the Lebesgue measure and bounded rewards, the integral diverges and the smooth Bellman equation has no solution. The remedies are a bounded action set (soft actor-critic squashes its Gaussian samples through a $\tanh$ into a box), a prior policy as reference measure, or rewards that decrease fast enough in $\lVert a\rVert$, such as a quadratic action cost.
+
+**How far from the hard maximum.** The finite-action bound $\max_a q \le \frac{1}{\beta}\log\sum_a e^{\beta q} \le \max_a q + \frac{\log\lvert\mathcal{A}\rvert}{\beta}$ keeps only its upper half: $\frac{1}{\beta}\log\int e^{\beta q}\,d\mu \le \sup_a q(s,a) + \frac{\log \mu(\mathcal{A}_s)}{\beta}$, which gives $v^\star_\beta \le v^*_\gamma + \frac{\log \mu(\mathcal{A})}{\beta(1-\gamma)}$ when $\mu(\mathcal{A}_s) \le \mu(\mathcal{A})$ for all $s$. The lower bound fails, because a set of actions of small volume contributes little to the integral even if it contains the maximizer. The right tool is Laplace's method. If $q(s,\cdot)$ is twice differentiable with a unique maximizer $a^\star(s)$ in the interior of $\mathcal{A}_s$, and $\mathbf{H}(s) = -\nabla_a^2 q(s, a^\star(s))$ is positive definite, then under the Lebesgue measure
+
+$$
+\frac{1}{\beta}\log\int_{\mathcal{A}_s} e^{\beta q(s,a)}\, da
+= q(s,a^\star(s)) + \frac{m}{2\beta}\log\frac{2\pi}{\beta} - \frac{1}{2\beta}\log\det \mathbf{H}(s) + o(1/\beta).
+$$
+
+The gap to the hard maximum shrinks like $\frac{m\log\beta}{2\beta}$, slightly slower than the $1/\beta$ rate of the finite case, and the Gibbs density concentrates around $a^\star(s)$ like a Gaussian with covariance $(\beta\mathbf{H}(s))^{-1}$.
+
+**Quadratic $q$ and linear-quadratic control.** If $q(s,a) = q_0(s) - \frac{1}{2}(a - \bar a(s))^\top \mathbf{H}(s)(a - \bar a(s))$ is exactly quadratic in $a$ with $\mathbf{H}(s) \succ 0$, Laplace's formula is exact. The Gibbs policy is the Gaussian $\mathcal{N}\big(\bar a(s), (\beta\mathbf{H}(s))^{-1}\big)$ and $v^\star_\beta(s) = q_0(s) + \frac{1}{2\beta}\log\det\big(2\pi(\beta\mathbf{H}(s))^{-1}\big)$. Linear-quadratic problems are of this kind. With dynamics $x' = Ax + Bu + w$ and reward $-\frac{1}{2}x^\top Q x - \frac{1}{2}u^\top R u$, a quadratic value $-\frac{1}{2}x^\top P x + c$ makes $q$ quadratic in $u$ with $\mathbf{H} = R + \gamma B^\top P B$, which does not depend on $x$. The log-determinant term is then a constant, so $P$ solves the same discounted Riccati equation as without regularization. The entropy-regularized LQR policy is Gaussian, with mean the usual linear feedback $-\gamma(R + \gamma B^\top P B)^{-1} B^\top P A\, x$ and covariance $\big(\beta(R + \gamma B^\top P B)\big)^{-1}$. The regularization adds exploration noise around the LQR controller, more of it along the directions where the cost is flat, and does not change the gain.
+
+**Gumbel shocks over a continuum.** The augmented-MDP construction needs one shock per action. Over a continuum of actions we cannot attach independent shocks to every point, since the supremum of uncountably many independent Gumbel variables is infinite. The replacement is a *Gumbel process* {cite}`maddison2014astar`: a random function $G$ on $\mathcal{A}_s$ such that, for every measurable set $B$, the maximum $\max_{a \in B} G(a)$ is Gumbel with location $\log\mu(B)$ and unit scale, independently over disjoint sets. For such a process, $\max_a\{\beta q(s,a) + G(a)\}$ is Gumbel with location $\log\int e^{\beta q(s,a)}\mu(da)$, and its argmax has the Gibbs density. With $\epsilon_t = G_t/\beta$ the derivation of {ref}`sec-gumbel-rewards` goes through with a random function in place of a random vector, and {numref}`fig-gumbel-augmented-pgm` still describes the model. It is even less a computational object than in the finite case. {cite:t}`maddison2014astar` use it to build an exact sampler, A* sampling, but the algorithms for continuous control, soft actor-critic among them, work with the Gibbs density directly and approximate it with a parametric policy.
+
 (sec-rust-inverse)=
 ## Rust's Bus Engines and Inverse Reinforcement Learning
 
@@ -835,6 +1025,12 @@ Entropy regularization replaces hard action selection with a smooth conjugate
 operator and produces a stochastic optimal policy. Gumbel perturbations,
 log-sum-exp Bellman updates, and regularized policy iteration describe the same
 construction from probabilistic, variational, and algorithmic viewpoints.
+Drawn as graphical models, the original MDP and the Gumbel-augmented MDP differ
+by one shock node per time step, and integrating it out recovers the softmax
+policy; the expected shock on the chosen action is the entropy bonus. The same
+equations hold for continuous actions once a reference measure is fixed, with
+integrals in place of sums and a Gibbs density in place of the softmax, and the
+choice of that measure becomes part of the model.
 Smooth policy iteration is Newton's method on the smooth Bellman equation, and
 Rust's nested fixed-point estimator uses the same derivative to recover reward
 parameters from observed behavior.
@@ -875,4 +1071,28 @@ Why is log-sum-exp often easier to optimize through than a hard maximum?
 :class: dropdown
 
 Log-sum-exp is differentiable and blends information from all actions. A hard maximum is nondifferentiable at ties and passes local gradient information only through selected maximizers.
+:::
+
+:::{exercise} Entropy as an expected shock
+:label: ex-smoothing-check-3
+
+In the augmented MDP the agent never randomizes. Where does the entropy bonus of the original MDP come from in its rewards?
+:::
+
+:::{solution} ex-smoothing-check-3
+:class: dropdown
+
+From the shocks on the actions it picks. Given that action $a$ wins, its shock has mean $-\frac{1}{\beta}\log\pi_\beta(a\mid s)$, which is large for actions that rarely win. Averaging over the winning action gives $\frac{1}{\beta}H(\pi_\beta(\cdot\mid s))$, the entropy bonus.
+:::
+
+:::{exercise} Units of a continuous action
+:label: ex-smoothing-check-4
+
+A one-dimensional action is measured in newton-metres, and you switch to kilonewton-metres. What happens to the entropy-regularized optimal value and policy under the Lebesgue reference measure? What if you switch to the logarithm of the torque?
+:::
+
+:::{solution} ex-smoothing-check-4
+:class: dropdown
+
+Dividing the action by $1000$ subtracts $\log 1000$ from the differential entropy of every density, so every value shifts by the constant $-\frac{\log 1000}{\beta(1-\gamma)}$ and the policy, mapped back to newton-metres, is unchanged. A logarithmic change of variables is nonlinear: the Lebesgue measure in the new variable is a different measure on torques, so the regularizer and the optimal policy both change.
 :::
