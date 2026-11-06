@@ -952,7 +952,65 @@ Suppose $S$ and every $\mathcal{A}_s$ are finite and $0 \le \gamma < 1$. Then th
 Since $\pi_{n+1}$ is greedy with respect to $\mathbf{v}^n$, $\mathrm{L}_{\pi_{n+1}} \mathbf{v}^n = \Bellman \mathbf{v}^n \ge \mathrm{L}_{\pi_n}\mathbf{v}^n = \mathbf{v}^n$. Rearranged, $\mathbf{r}_{\pi_{n+1}} \ge (\mathbf{I} - \gamma \mathbf{P}_{\pi_{n+1}})\mathbf{v}^n$. The inverse $(\mathbf{I} - \gamma \mathbf{P}_{\pi_{n+1}})^{-1} = \sum_t (\gamma\mathbf{P}_{\pi_{n+1}})^t$ has nonnegative entries, so multiplying both sides by it preserves the inequality and gives $\mathbf{v}^{n+1} \ge \mathbf{v}^n$. The improvement is strict in some state unless $\Bellman \mathbf{v}^n = \mathbf{v}^n$, in which case $\mathbf{v}^n = v^*_\gamma$ and $\pi_n$ is optimal. A strictly improving sequence never repeats a rule, and there are finitely many deterministic Markov rules, so the algorithm must stop. See {cite:t}`Puterman1994`, Section 6.4.
 ````
 
-Two remarks follow from the proof. First, the stopping rule is exact. When the same rule appears twice, $\mathbf{v}^n$ solves the optimality equation and the policy is optimal, not merely $\varepsilon$-optimal. This argument counts policies, so it is specific to finite state and action spaces; for continuous spaces, convergence needs the Newton-Kantorovich machinery of {ref}`sec-newton-kantorovich-pi`. Second, the proof never used that $\pi_{n+1}$ is greedy in *every* state. Any $\pi_{n+1}$ with $\mathrm{L}_{\pi_{n+1}}\mathbf{v}^n \ge \mathbf{v}^n$, strictly in at least one state, improves the policy. Improving a single state per iteration is enough for convergence. This matters later, because many RL algorithms contain a policy-iteration loop whose improvement step is only partial: a small change at each step, perhaps only in the states that were visited.
+Two remarks follow from the proof. First, the stopping rule is exact. When the same rule appears twice, $\mathbf{v}^n$ solves the optimality equation and the policy is optimal, not merely $\varepsilon$-optimal. This argument counts policies, so it is specific to finite state and action spaces; for continuous spaces, convergence needs the Newton-Kantorovich machinery of {ref}`sec-newton-kantorovich-pi`. Second, the proof never used that $\pi_{n+1}$ is greedy in *every* state. Any $\pi_{n+1}$ with $\mathrm{L}_{\pi_{n+1}}\mathbf{v}^n \ge \mathbf{v}^n$, strictly in at least one state, improves the policy. More precisely, $\mathbf{v}^{n+1} \ge \mathbf{v}^n$ everywhere, and the inequality is strict in every state from which the changed states can be reached. So it is enough to change the action in a single state per iteration, provided that state is *improvable*, meaning some action $a$ has $q_{\pi_n}(s,a) > q_{\pi_n}(s,\pi_n(s))$. The counting argument goes through unchanged: values never decrease and strictly increase somewhere, so no policy repeats, and the loop ends after finitely many evaluations. Two details change. The stopping test must become "no state is improvable", because a step that touches one state can leave the policy unchanged while other states still have room to improve. And if the state to update is chosen without checking that it is improvable, say at random or in a fixed sweep, then convergence needs coverage: every state must keep being considered, since a state that is never examined is never improved. This matters later, because many RL algorithms contain a policy-iteration loop whose improvement step is only partial (a small change at each step, perhaps only in the states that were visited), and there the question of which states get visited becomes the question of exploration. A state the agent never visits keeps whatever action it had.
+
+Partial improvement converges, but it needs more evaluations. The experiment below runs policy iteration with exact evaluation on random MDPs with 30 states and 4 actions, under four improvement rules: improve every improvable state (standard policy iteration), only the state with the largest advantage $\max_a q_{\pi_n}(s,a) - q_{\pi_n}(s,\pi_n(s))$, one improvable state chosen at random, or one state chosen at random whether or not it is improvable. Every rule stops at an optimal policy.
+
+```{code-cell} python
+import numpy as np
+
+
+def random_mdp(seed, n_states=30, n_actions=4):
+    rng = np.random.default_rng(seed)
+    P = rng.dirichlet(0.3 * np.ones(n_states), size=(n_states, n_actions))
+    return P, rng.normal(size=(n_states, n_actions))
+
+
+def evaluate(P, r, gamma, pi):
+    idx = np.arange(P.shape[0])
+    return np.linalg.solve(np.eye(P.shape[0]) - gamma * P[idx, pi], r[idx, pi])
+
+
+def policy_iteration(P, r, gamma, rule, seed=0, max_iter=100_000):
+    rng = np.random.default_rng(seed)
+    S = P.shape[0]
+    pi = np.zeros(S, dtype=int)
+    for n in range(max_iter):
+        v = evaluate(P, r, gamma, pi)
+        q = r + gamma * P @ v
+        advantage = q.max(axis=1) - q[np.arange(S), pi]
+        improvable = np.flatnonzero(advantage > 1e-12)
+        if improvable.size == 0:  # no state can be improved: pi is optimal
+            return n, pi
+        if rule == "all":  # standard policy iteration
+            pi = np.where(advantage > 1e-12, q.argmax(axis=1), pi)
+        elif rule == "best state":  # the state with the largest advantage
+            s = improvable[advantage[improvable].argmax()]
+            pi[s] = q[s].argmax()
+        elif rule == "random improvable":  # one improvable state at random
+            s = rng.choice(improvable)
+            pi[s] = q[s].argmax()
+        elif rule == "random state":  # one state at random, improvable or not
+            s = rng.integers(S)
+            if advantage[s] > 1e-12:
+                pi[s] = q[s].argmax()
+    return max_iter, pi
+
+
+gamma = 0.95
+print(f"{'improvement rule':>18} | {'evaluations (mean of 5 MDPs)':>28} | optimal")
+for rule in ("all", "best state", "random improvable", "random state"):
+    counts, all_optimal = [], True
+    for seed in range(5):
+        P, r = random_mdp(seed)
+        n, pi = policy_iteration(P, r, gamma, rule, seed)
+        _, pi_ref = policy_iteration(P, r, gamma, "all")
+        all_optimal &= np.allclose(evaluate(P, r, gamma, pi), evaluate(P, r, gamma, pi_ref))
+        counts.append(n)
+    print(f"{rule:>18} | {np.mean(counts):>28.1f} | {all_optimal}")
+```
+
+Standard policy iteration needs about 3 evaluations, while one improvable state per iteration needs 20 to 30. Choosing the state blindly costs about 200, because most draws land on states that are already greedy. The guarantee itself is only finite termination: the counting argument bounds the number of evaluations by the number of policies, which grows exponentially with the number of states, and there are MDPs on which badly chosen single-state rules do take exponentially many steps.
 
 In practice policy iteration converges in very few iterations, often a handful, even for large problems. The reason is that it is Newton's method in disguise, a connection made by {cite:t}`PutermanBrumelle1979` and developed in {ref}`sec-newton-kantorovich-pi`. Each iteration costs more than a value-iteration step, though. Both algorithms pay about $|\mathcal{S}|^2|\mathcal{A}|$ operations for a greedy step, but policy iteration adds a direct policy evaluation, a linear solve of order $|\mathcal{S}|^3$.
 
