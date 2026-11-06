@@ -12,19 +12,23 @@ kernelspec:
 ---
 # Weighted-Residual Methods
 
-Regularized and ordinary Bellman equations are both functional equations: the
-unknown is a function rather than a finite vector. How can such an equation be
-approximated by finitely many coefficients while retaining a precise condition
-on its residual?
-
-The Bellman optimality equation $\Bellman v = v$, whose contraction property underlies the convergence of value iteration, is a functional equation: an equation where the unknown is an entire function rather than a finite-dimensional vector. The same is true of the smooth Bellman equation of the [previous chapter](regularized-dp.md), which replaces the max by a log-sum-exp but still has a function as its unknown. When the state space is continuous or very large, we cannot represent the value function exactly on a computer. We must instead work with finite-dimensional approximations.
-
-We have already done this once. The [finite-horizon chapter](finite-horizon-dp.md#handling-continuous-spaces-with-interpolation) stored the cost-to-go at grid states, reconstructed it between them with cardinal functions, and evaluated Bellman's equation only at the grid. That was one representation (nodal values) and one way of enforcing the equation (exactly at the nodes). This chapter asks the general question: given any finite set of basis functions, what does it mean for a function built from them to "satisfy" an equation it cannot satisfy exactly? Weighted residual methods (also called minimum residual methods) answer it with a framework for transforming infinite-dimensional problems into tractable finite-dimensional ones {cite}`Chakraverty2019,AtkinsonPotra1987`. The framework is independent of the equation; the [next chapter](approximate-bellman-equations.md) specializes it to Bellman equations and asks what the contraction property buys.
+The dynamic programming chapters solved Bellman equations by storing one
+number per state, or per grid state. That works for the reservoir, the
+antibiotic regimen and a river of eight reaches, and it fails soon after. This
+part of the book replaces the table by a function with a fixed number of
+parameters, and it builds up to the algorithms used in practice: fitted
+Q-iteration with trees or neural networks, its online form DQN, and its
+continuous-action form NFQCA. This chapter starts with why the replacement is
+needed and what it must provide. It then asks the first question the
+replacement raises: a function with finitely many parameters cannot satisfy
+the Bellman equation at every state, so which equations should determine its
+parameters?
 
 ::::{admonition} Learning Goals
 :class: note
 
 After completing this chapter, you should be able to:
+- Explain why tabular dynamic programming fails for large or continuous state spaces, and what a function approximator must provide in its place
 - Explain why functional equations require finite-dimensional approximation and how weighted residual methods provide a systematic framework
 - Distinguish between Galerkin, collocation, and least-squares methods by their choice of test functions
 - Set up function iteration and Newton's method for the resulting finite-dimensional system, and explain when each applies
@@ -32,12 +36,81 @@ After completing this chapter, you should be able to:
 **Prerequisites:** Bellman operator and contraction property ([infinite-horizon MDPs](infinite-horizon-mdps.md)), interpolation with cardinal functions ([finite-horizon DP](finite-horizon-dp.md)), basic numerical quadrature, linear algebra (matrix inverses, orthogonal projection).
 ::::
 
+(sec-why-approximate)=
+## Why Approximate the Value Function?
+
+Why can't the tables of the previous chapters simply be made larger, and what
+does a replacement for them have to provide?
+
+There are three reasons, and each is already visible in an example we have
+solved.
+
+**The number of states grows exponentially with the number of state
+variables.** The tamarisk river of {ref}`sec-tamarisk-river` has one site per
+reach and three conditions per site, so a river of $n$ reaches has $3^n$
+states. Value iteration needed about 150 sweeps whatever the size of the
+river, but each sweep touches every state, and a dense transition table for a
+seven-reach river without the treatment budget would take 84 GB. The rivers that
+land managers face have hundreds of reaches. Continuous states hit the same
+wall through the grid. The reservoir of the
+[finite-horizon chapter](finite-horizon-dp.md) stored its value on 181 storage
+levels; five reservoirs in one valley, managed jointly on the same grid, would
+need $181^5 pprox 2 	imes 10^{11}$ grid states, each with its own one-step
+optimization at every stage. A grid with $N$ nodes per axis in $D$ dimensions
+has $N^D$ nodes. This is the curse of dimensionality that Bellman named, and
+it belongs to the representation rather than to the problem: the value
+function of a large system often has structure, such as smoothness or a
+dependence on a few aggregate quantities, that a grid cannot exploit and a
+more flexible representation can.
+
+**Successors fall between the stored states.** Even in one dimension, the
+[finite-horizon chapter](finite-horizon-dp.md#handling-continuous-spaces-with-interpolation)
+had to decide which value to use for a successor that lands between two grid
+states. Its answer, a family of cardinal functions, turned the table into a
+function defined everywhere, and its analysis of how the reconstruction error
+propagates through the recursion was a first instance of what this part of the
+book studies in general.
+
+**Learning from data visits only some states.** In the chapters ahead the
+model is replaced by a simulator or by recorded transitions $(s, a, r, s')$. A
+batch of transitions covers a vanishing fraction of a large state space, and
+each Bellman target $r + \gamma v(s')$ needs a value at a successor $s'$ that
+may never have been visited. A table has nothing to say there. A function
+fitted to the visited states does: it generalizes from them, and how well it
+generalizes decides how well the method works.
+
+The replacement for the table is therefore a function $v(s; \theta)$ with a
+parameter vector $\theta$ of fixed size. It must be cheap to evaluate at any
+state. It must be possible to fit it to a finite set of pairs (state, target
+value), which is a supervised learning problem. And it must extrapolate
+sensibly between and beyond those states. Grid interpolation is cheap and
+easy to fit, but it extrapolates only to the cells of its grid and its size
+grows as $N^D$. A polynomial or another fixed basis is linear in $\theta$,
+which gives closed-form fits and a complete theory, but its features must be
+chosen in advance. Tree ensembles and neural networks choose their features
+from the data. The fitted Q-iteration methods used in practice, from the
+tree-based FQI of {cite:t}`ernst2005tree` to NFQ {cite}`riedmiller2005neural`
+and NFQCA {cite}`Hafner2011`, use these.
+
+Replacing $v$ by $v(\cdot;\theta)$ raises two questions. The Bellman equation
+$v = \Bellman v$ imposes one condition per state, infinitely many when the
+state space is continuous, while $\theta$ has finitely many components. Which
+finite set of conditions should determine $\theta$? This chapter answers it
+with the weighted-residual framework of numerical analysis
+{cite}`Chakraverty2019,AtkinsonPotra1987`, using linear bases, where the
+conditions can be written out and solved in closed form. Once the conditions
+are fixed, which algorithm finds $\theta$, and does the contraction that made
+value iteration converge survive the approximation? The
+[next chapter](approximate-bellman-equations.md) answers the second question
+for an arbitrary fitting rule, neural networks included, and ends with the
+steps that lead from it to FQI and NFQCA.
+
 ## A Motivating Example: Optimal Stopping with Continuous States
 
 What fails when an exact value function lives on a continuum but only finitely
 many coefficients can be stored?
 
-Before developing the general theory, consider a concrete example that illustrates the core challenge. An agent observes a state $s \in [0, 1]$ and must decide whether to **stop** (receive reward $s$ and end the episode) or **continue** (receive nothing, and the state is redrawn uniformly on $[0, 1]$). With discount factor $\gamma = 0.9$, the Bellman optimality equation is:
+Before developing the general theory, consider a concrete example. The Bellman optimality equation $\Bellman v = v$ is a functional equation: its unknown is a function rather than a finite vector, and when the state is continuous no computer can store that function exactly. An agent observes a state $s \in [0, 1]$ and must decide whether to **stop** (receive reward $s$ and end the episode) or **continue** (receive nothing, and the state is redrawn uniformly on $[0, 1]$). With discount factor $\gamma = 0.9$, the Bellman optimality equation is:
 
 $$
 v^*(s) = \max\left\{ s, \; \gamma \int_0^1 v^*(s') \, ds' \right\}.
@@ -250,7 +323,7 @@ The choice of basis functions $\varphi_i$ is problem-dependent. Common choices i
 
 The number of basis functions $n$ determines the flexibility of our approximation. In practice, we start with small $n$ and increase it until the approximation quality is satisfactory. The only unknowns now are the coefficients $\theta = (\theta_1, \ldots, \theta_n)$.
 
-While the classical presentation of projection methods focuses on polynomial bases, the framework applies equally well to other function classes. Neural networks, for instance, can be viewed through this lens: a neural network $\hat{f}(x; \theta)$ with parameters $\theta$ defines a flexible function class, and many training procedures can be interpreted as projection methods with specific choices of test functions or residual norms. The distinction is that classical methods typically use predetermined basis functions with linear coefficients, while neural networks use adaptive nonlinear features. Throughout this chapter, we focus on the classical setting to develop the core concepts, but the principles extend naturally to modern function approximators.
+Nothing in the framework requires $\theta$ to enter linearly. A neural network $\hat{f}(x; \theta)$ defines a function class just as a basis does, and each residual condition below makes sense for it. What changes is how the conditions are solved: linear coefficients give linear systems with closed-form solutions, while adaptive features give nonlinear systems solved by gradient descent. This chapter uses linear bases because they make the conditions explicit. The [next chapter](approximate-bellman-equations.md) shows that the algorithm that carries over to neural networks, fitted value iteration, needs nothing from the representation beyond the ability to fit it to data.
 
 
 ### Step 2: Define the Residual Function
@@ -331,6 +404,8 @@ The Galerkin conditions $\langle R, \varphi_j \rangle_w = 0$ for all $j$ imply $
 A finite-dimensional analogy: to approximate a vector $\mathbf{v} \in \mathbb{R}^3$ using only the $xy$-plane, the best approximation is $\hat{\mathbf{v}} = (v_1, v_2, 0)$. The error $\mathbf{r} = \mathbf{v} - \hat{\mathbf{v}} = (0, 0, v_3)$ points purely in the $z$-direction, orthogonal to the plane. The Galerkin condition generalizes this: the residual is orthogonal to the approximation space.
 
 Galerkin requires integration to compute the conditions, making it more expensive per iteration than collocation. However, when using orthogonal polynomial bases with matching weight functions, the integrals simplify and the resulting systems are well-conditioned.
+
+Collocation fits the same pattern if its test functions are taken to be Dirac deltas $\delta(x - x_i)$, since $\langle R, \delta(x - x_i) \rangle = R(x_i)$. Deltas are not functions but distributions, and the **dual pairing** formulation {cite}`LegrandJunca2025` makes this precise: test objects act on residuals through a pairing rather than an integral, and the induced dual norm $\|\Residual(v)\|_* = \sup_{\|w\|=1} |\langle \Residual(v), w \rangle|$ measures a residual by its worst-case effect on the test objects. The same perspective has inspired adversarial formulations {cite}`Zang2020` in which both trial and test functions are learned.
 
 #### Least Squares: Minimize the $L^2$ Norm of the Residual
 
@@ -507,10 +582,12 @@ two things open. Function iteration becomes $\hat{f}^{(k+1)} = \Proj\,\Contracti
 and we hoped, without proof, that $\Proj$ keeps the contraction. Newton's
 method needs the Jacobian of the operator, and for a Bellman operator the
 envelope theorem gave it in terms of the greedy action. [Approximate Bellman
-equations](approximate-bellman-equations.md) takes up both: the two solvers
-become projected value iteration and projected policy iteration, and the
-contraction survives projection under conditions that the chapter makes
-precise.
+equations](approximate-bellman-equations.md) takes up both for an arbitrary
+fitting rule. Function iteration becomes fitted value iteration, a sequence of
+regression problems with Bellman targets that any regressor can solve, and
+the pattern behind fitted Q-iteration, NFQ and NFQCA. Newton's method becomes
+approximate policy iteration. The chapter then asks when the fit preserves the
+contraction, and shows what can go wrong when it does not.
 
 ## Self-checks
 

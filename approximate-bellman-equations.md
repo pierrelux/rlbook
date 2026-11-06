@@ -12,94 +12,111 @@ kernelspec:
 ---
 # Approximate Bellman Equations
 
-The [previous chapter](weighted-residual-methods.md) built a template for any
-functional equation: choose a basis, define the residual, test it against a
-finite set of conditions, and solve the resulting system by function iteration
-or by Newton's method. What changes when the residual is a Bellman residual,
-$R(s;\theta) = \Bellman\hat{v}(s;\theta) - \hat{v}(s;\theta)$?
+The [previous chapter](weighted-residual-methods.md) replaced the value
+function by a parametric function $v(\cdot;\theta)$ and asked which finite set
+of conditions should determine $\theta$. This chapter asks how to compute
+$\theta$, and when the result can be trusted. The answer that scales is also
+the simplest. Run value iteration, but after each application of the Bellman
+operator, fit the parametric function to the result. Each iteration is then an
+ordinary regression problem whose targets are Bellman backups, and any
+regressor can do the fitting: a grid interpolant, a tree ensemble, a neural
+network. This is **fitted value iteration**, and fitted Q-iteration, NFQ, DQN
+and NFQCA in the chapters ahead are elaborations of it.
 
-Two things, and they organize this chapter. First, the Bellman operator is one
-we know how to iterate and how to linearize. Value iteration is successive
-approximation on $\Bellman$ ({prf:ref}`value-iteration`), and policy iteration
-is the Newton-Kantorovich method on the same equation
-({ref}`sec-newton-kantorovich-pi`). Once a projection is inserted, the two
-generic solvers of {ref}`sec-wr-solve` become **projected value iteration** and
-**projected policy iteration**, and in the Galerkin case with a finite state
-space they are the least-squares temporal difference (LSTD) and least-squares
-policy iteration (LSPI) algorithms of reinforcement learning. Second, the
-Bellman operator is a $\gamma$-contraction in the sup norm, which is what made
-value iteration converge ({prf:ref}`value-iteration-convergence`). Function
-iteration on the projected equation is $\hat{v}_{k+1} = \Proj\Bellman\hat{v}_k$,
-and the question the previous chapter left open is whether the composed
-operator $\Proj\Bellman$ is still a contraction. The answer has three parts. It
-is, in the sup norm, when $\Proj$ has nonnegative weights, which continues the
-discussion of cardinal functions in the
-[finite-horizon chapter](finite-horizon-dp.md#handling-continuous-spaces-with-interpolation).
-It is, in a weighted $L^2$ norm, for policy evaluation with Galerkin projection
-when the weighting is the stationary distribution of the policy. And for the
-optimality operator with a non-monotone projection there is no general
-guarantee, which is the situation in which the fitted value and Q iteration
-methods of the next chapters are nonetheless used.
+The fit is not free. Value iteration converges because $\Bellman$ is a
+contraction in the sup norm ({prf:ref}`value-iteration-convergence`), and the
+fit can undo that. The chapter therefore follows the algorithm with three
+results. If every fit is accurate to $\varepsilon$, the errors do not
+accumulate beyond $\varepsilon/(1-\gamma)$, which is what licenses an
+arbitrary regressor. Least squares can nonetheless make the errors grow
+without bound, on a two-state problem whose value function it represents
+exactly. And two kinds of fit are provably safe: averagers, which include grid
+interpolation and the tree ensembles of the first fitted Q-iteration
+algorithm, and least squares weighted by the state distribution of the policy
+being evaluated. Neural networks belong to neither kind. What keeps neural
+fitted Q-iteration stable in practice is a set of design choices that the
+[fitted Q-iteration chapter](fitted-q-iteration.md) examines. We then turn to
+the other solver of the previous chapter, Newton's method, which becomes
+approximate policy iteration and, for linear features, the LSTD and LSPI
+algorithms. The chapter closes with the steps that separate fitted value
+iteration from NFQCA, and the chapter in which each is taken.
 
 ::::{admonition} Learning Goals
 :class: note
 
 After completing this chapter, you should be able to:
-- Write function iteration and Newton's method for a projected Bellman equation as projected value iteration and projected policy iteration
-- Derive the LSTD equations as Galerkin projection of the policy evaluation equation, and LSPI as Newton's method on the projected optimality equation
-- State and prove the conditions under which projected value iteration converges: monotone projections in the sup norm, on-policy weighting in the $\xi$-norm
-- Explain why neither argument covers the optimality operator with a non-monotone projection
-- Describe fitted value iteration as the computational pattern shared by every projection method
+- Write fitted value iteration for an arbitrary regressor, and recognize collocation and Galerkin projection as two choices of the fitting rule
+- Bound the error of fitted value iteration, and of its greedy policy, by the error of each fit
+- Construct a fitted value iteration that diverges, and state two conditions that prevent divergence: averagers in the sup norm, and on-policy weighting for policy evaluation
+- Explain approximate policy iteration as Newton's method on the approximate Bellman equation, and LSTD and LSPI as its linear case
+- Name the steps from fitted value iteration to FQI, NFQ and NFQCA, and the chapter in which each is taken
 
 **Prerequisites:** the weighted-residual template ([previous chapter](weighted-residual-methods.md)), the contraction and Newton-Kantorovich material of [infinite-horizon MDPs](infinite-horizon-mdps.md), interpolation with cardinal functions in [finite-horizon DP](finite-horizon-dp.md).
 ::::
 
-(sec-abe-projected)=
-## Projected Value Iteration and Projected Policy Iteration
+(sec-abe-fvi)=
+## Fitted Value Iteration
 
-What do the two generic solvers of the previous chapter compute when the
-operator is a Bellman operator, and which known algorithms do they reduce to?
+What does value iteration become when the value function is stored as a
+parametric function rather than as a table?
 
-Consider the Bellman optimality equation $v(s) = \Bellman v(s) = \max_{a \in \mathcal{A}_s} \{ r(s,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a) v(j) \}$. For a candidate approximation $\hat{v}(s;\theta) = \sum_{i=1}^n \theta_i \varphi_i(s)$, the residual is
-
-$$
-R(s; \theta) = \Bellman\hat{v}(s;\theta) - \hat{v}(s;\theta) = \max_{a \in \mathcal{A}_s} \left\{ r(s,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a) \hat{v}(j;\theta) \right\} - \sum_{i=1}^n \theta_i \varphi_i(s).
-$$
-
-Each test criterion of {ref}`sec-wr-conditions` defines a map $\Proj$ from functions to $\mathcal{V} = \text{span}\{\varphi_1, \ldots, \varphi_n\}$: collocation interpolates at the chosen points, Galerkin takes the $w$-orthogonal projection, and least squares fits in the weighted norm. The two solvers of {ref}`sec-wr-solve` then read as follows.
-
-**Function iteration** applies the operator and projects the result,
+Value iteration computes $\Bellman v_k$ at every state and stores the result.
+With a parametric function we can do neither, but we can do two things that
+together play the same role. We can evaluate the Bellman operator at finitely
+many states $s_1, \ldots, s_m$,
 
 $$
-\hat{v}_{k+1} = \Proj \Bellman \hat{v}_k.
+y_i = (\Bellman v_k)(s_i) = \max_{a \in \mathcal{A}_{s_i}} \Big\{ r(s_i,a) + \gamma \sum_{s' \in \mathcal{S}} p(s'|s_i,a)\, v(s';\theta_k) \Big\},
+$$
+
+and we can choose $\theta_{k+1}$ so that $v(\cdot;\theta_{k+1})$ fits the pairs
+$(s_i, y_i)$. The first step needs the model and the current function. The
+second is a supervised learning problem that knows nothing about Bellman
+equations.
+
+```{prf:algorithm} Fitted Value Iteration
+:label: fitted-value-iteration
+
+**Inputs:** States $\{s_i\}_{i=1}^m$ at which to compute targets, discount factor $\gamma$, function class $\{v(\cdot;\theta)\}$, fitting procedure $\mathtt{fit}$, tolerance $\epsilon$
+
+**Output:** Approximate value function $v(\cdot;\theta) \approx v^*$
+
+1. Initialize $\theta_0$ arbitrarily
+2. Set $k \leftarrow 0$
+3. **repeat**
+4. $\quad$ **for** each state $s_i$ **do**
+5. $\quad\quad$ Compute target: $y_i \leftarrow \displaystyle\max_{a \in \mathcal{A}_{s_i}} \Big\{ r(s_i, a) + \gamma \sum_{s'} p(s' \mid s_i, a)\, v(s';\theta_k) \Big\}$
+6. $\quad$ **end for**
+7. $\quad$ Fit: $\theta_{k+1} \leftarrow \mathtt{fit}\big(\{(s_i, y_i)\}_{i=1}^m\big)$
+8. $\quad$ $k \leftarrow k+1$
+9. **until** $\|v(\cdot;\theta_k) - v(\cdot;\theta_{k-1})\| < \epsilon$ (or maximum iterations reached)
+10. **return** $\theta_k$
+```
+
+Write $\Proj$ for the map that takes a function, through its values at
+$s_1, \ldots, s_m$, to the fitted function. Then fitted value iteration is
+
+$$
+v_{k+1} = \Proj \Bellman v_k,
 $$ (eq:projected-vi)
 
-This is value iteration with a projection after each sweep: **projected value iteration**. Nothing in it depends on the max. Replacing $\Bellman$ by the policy evaluation operator $\BellmanPi$ gives projected policy evaluation, and replacing it by the smooth operator $\mathrm{L}_\beta$ of {ref}`sec-regularized-operators` gives projected smooth value iteration.
+value iteration with a fit after each sweep. Two choices define the algorithm:
+where the targets are computed, and how the function is fitted to them.
+Nothing depends on the max. Replacing $\Bellman$ by the policy evaluation
+operator $\BellmanPi$ gives fitted policy evaluation, and replacing it by the
+smooth operator $\mathrm{L}_\beta$ of {ref}`sec-regularized-operators` gives
+fitted smooth value iteration. The weighted-residual methods of the previous
+chapter are two particular fitting rules.
 
-**Newton's method** linearizes the residual map. For the Bellman operator the envelope theorem of {ref}`sec-wr-newton` gives the derivative of $\Bellman\hat{v}$ with respect to $\theta$ by freezing the greedy action, so the Jacobian involves the transition matrix $\mathbf{P}_{\pi_k}$ of the greedy policy $\pi_k$ at the current iterate. The Newton step then solves a *linear* projected equation for $\pi_k$, which is projected policy evaluation, and the next greedy policy is read off the result. Newton's method on the projected optimality equation is therefore **projected policy iteration**, the function-approximation version of the equivalence in {ref}`sec-newton-kantorovich-pi`. Two remarks carry over from the exact case. With the smooth Bellman operator the Jacobian is $\gamma \mathbf{P}_{\pi_k}$ for the softmax policy, with no ties and no active sets to track ({ref}`sec-smooth-pi-newton`). And the "run a few sweeps of function iteration, then switch to Newton" recommendation at the end of {ref}`sec-wr-solve` is exactly how Rust solved his bus-engine model on a grid ({ref}`sec-rust-inverse`).
+### Collocation and Galerkin as Fitting Rules
 
-The rest of this section writes out both solvers for collocation and for Galerkin, then specializes to a finite state space, where the Galerkin equations become LSTD and LSPI.
-
-### Collocation
-
-For collocation, we choose $n$ states $\{s_1, \ldots, s_n\}$ and require the Bellman equation to hold exactly at these points:
-
-$$
-\sum_{j=1}^n \theta_j \varphi_j(s_i) = \max_{a \in \mathcal{A}_{s_i}} \left\{ r(s_i,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s_i,a) \sum_{\ell=1}^n \theta_\ell \varphi_\ell(j) \right\}, \quad i = 1, \ldots, n.
-$$
-
-It helps to define the **parametric Bellman operator** $\mathrm{L}_\varphi: \mathbb{R}^n \to \mathbb{R}^n$ by $[\mathrm{L}_\varphi(\theta)]_i = [\Bellman\hat{v}(\cdot; \theta)](s_i)$, the Bellman operator evaluated at collocation point $s_i$. Let $\boldsymbol{\Phi}$ be the $n \times n$ matrix with entries $\Phi_{ij} = \varphi_j(s_i)$. Then the collocation equations become $\boldsymbol{\Phi} \theta = \mathrm{L}_\varphi(\theta)$.
-
-Under function iteration, the current coefficients $\theta^{(k)}$ produce the
-target values
-$t_i^{(k)}=[\mathrm{L}_\varphi(\theta^{(k)})]_i$ at the collocation points.
-The linear system
-$\boldsymbol{\Phi}\theta^{(k+1)}=t^{(k)}$ then interpolates those values. Each
-iteration therefore applies the Bellman operator and constructs its polynomial
-interpolant at the selected points: this is {eq}`eq:projected-vi` with $\Proj$
-the interpolation operator. With piecewise-linear cardinal functions on a grid
-it is the stationary version of the interpolated backward recursion
-{eq}`eq:interpolated-bellman`.
+**Collocation** computes targets at exactly $n$ states, as many as there are
+basis functions, and interpolates them: with $\boldsymbol{\Phi}$ the $n \times n$
+matrix with entries $\Phi_{ij} = \varphi_j(s_i)$, the fit solves
+$\boldsymbol{\Phi}\theta_{k+1} = y$. Here $\Proj$ is the interpolation
+operator. With piecewise-linear cardinal functions on a grid, this is the
+stationary version of the interpolated backward recursion
+{eq}`eq:interpolated-bellman` of the finite-horizon chapter.
 
 ```{prf:algorithm} Collocation with Function Iteration
 :label: collocation-function-iteration
@@ -112,45 +129,15 @@ it is the stationary version of the interpolated backward recursion
 2. $k \leftarrow 0$
 3. **repeat**
     1. For each $i = 1, \ldots, n$:
-        1. $t_i^{(k)} \leftarrow \max_{a \in \mathcal{A}_{s_i}} \left\{ r(s_i, a) + \gamma \sum_{j \in \mathcal{S}} p(j|s_i, a) \sum_{\ell=1}^n \theta_\ell^{(k)} \varphi_\ell(j) \right\}$
+        1. $t_i^{(k)} \leftarrow \max_{a \in \mathcal{A}_{s_i}} \left\{ r(s_i, a) + \gamma \sum_{s' \in \mathcal{S}} p(s'|s_i, a) \sum_{\ell=1}^n \theta_\ell^{(k)} \varphi_\ell(s') \right\}$
     2. Solve $\boldsymbol{\Phi} \theta^{(k+1)} = t^{(k)}$
     3. $k \leftarrow k + 1$
 4. **until** $\|\theta^{(k)} - \theta^{(k-1)}\| < \varepsilon$
 5. **return** $\theta^{(k)}$
 ```
 
-When the state space is continuous, the expectation inside the max is an integral, which we approximate by numerical quadrature (Gauss-Hermite for normal shocks, and so on); the [next chapter](monte-carlo-bellman-estimation.md) treats this integration problem in its own right. The method is simple and robust when the interpolation preserves contraction, a question settled in {ref}`sec-abe-convergence`, but can be slow for large discount factors.
-
-**Newton's method** for collocation treats the problem as rootfinding: $G(\theta) = \boldsymbol{\Phi} \theta - \mathrm{L}_\varphi(\theta) = 0$. The Jacobian is $J_G = \boldsymbol{\Phi} - J_{\mathrm{L}_\varphi}$, where the envelope theorem gives $[J_{\mathrm{L}_\varphi}]_{ij} = \gamma \sum_{s' \in \mathcal{S}} p(s'|s_i, a_i^*(\theta)) \varphi_j(s')$. Here $a_i^*(\theta)$ is the optimal action at collocation point $s_i$ given the current coefficients.
-
-```{prf:algorithm} Collocation with Newton's Method
-:label: collocation-newton
-
-**Input** Collocation points $\{s_1, \ldots, s_n\}$, basis functions $\{\varphi_1, \ldots, \varphi_n\}$, initial $\theta^{(0)}$, tolerance $\varepsilon > 0$
-
-**Output** Converged coefficients $\theta^*$
-
-1. Form collocation matrix $\boldsymbol{\Phi}$ with $\Phi_{ij} = \varphi_j(s_i)$
-2. $k \leftarrow 0$
-3. **repeat**
-    1. For each $i = 1, \ldots, n$:
-        1. $t_i^{(k)} \leftarrow \max_{a \in \mathcal{A}_{s_i}} \left\{ r(s_i, a) + \gamma \sum_{s' \in \mathcal{S}} p(s'|s_i, a) \sum_{\ell=1}^n \theta_\ell^{(k)} \varphi_\ell(s') \right\}$
-        2. Store $a_i^* \in \arg\max$ achieving the maximum
-    2. Compute Jacobian: $[J_{\mathrm{L}_\varphi}]_{ij} = \gamma \sum_{s' \in \mathcal{S}} p(s'|s_i, a_i^*) \varphi_j(s')$ for all $i,j$
-    3. Solve $(\boldsymbol{\Phi} - J_{\mathrm{L}_\varphi}) \Delta\theta = \boldsymbol{\Phi} \theta^{(k)} - t^{(k)}$
-    4. $\theta^{(k+1)} \leftarrow \theta^{(k)} - \Delta\theta$
-    5. $k \leftarrow k + 1$
-4. **until** $\|\Delta\theta\| < \varepsilon$
-5. **return** $\theta^{(k)}$
-```
-
-Writing $\pi_k$ for the greedy policy stored in step 3.1.2 and $\mathbf{P}_{\pi_k}$ for the $n \times |\mathcal{S}|$ matrix of its transition probabilities from the collocation points, the Newton step is $(\boldsymbol{\Phi} - \gamma \mathbf{P}_{\pi_k} \boldsymbol{\Phi}_{\mathcal{S}}) \theta^{(k+1)} = \mathbf{r}_{\pi_k}$, where $\boldsymbol{\Phi}_{\mathcal{S}}$ evaluates the basis at the successor states. This is the policy evaluation equation $(\mathbf{I} - \gamma \mathbf{P}_{\pi_k}) v = \mathbf{r}_{\pi_k}$ of {prf:ref}`policy-iteration-standard`, restricted to the collocation points and solved within the span of the basis. Each Newton step evaluates the current greedy policy and the next step improves it, so the algorithm is policy iteration with an interpolated value function. It converges rapidly near the solution but requires good initialization and more computation per iteration than function iteration.
-
-Why is collocation popular for Bellman equations? Because it avoids integration when testing the residual. We only evaluate the Bellman operator at $n$ discrete points. In contrast, Galerkin requires integrating the residual against each basis function.
-
-#### Worked Example: Collocation on the Optimal Stopping Problem
-
-Returning to the motivating example of the previous chapter, let us trace through the collocation algorithm with $n = 4$ polynomial basis functions at Chebyshev nodes:
+On the optimal stopping problem of the previous chapter, with $n = 4$
+polynomial basis functions at Chebyshev nodes:
 
 ```{code-cell} python
 :tags: [hide-input]
@@ -197,104 +184,610 @@ for iteration in range(60):
     theta = theta_new
 ```
 
-The iteration converges linearly at the rate $\gamma$, as value iteration does, and the remaining error is the interpolation error of a cubic through four nodes on a function with a kink at $s^*$.
+The iteration converges linearly at the rate $\gamma$, as value iteration
+does, and the remaining error is the interpolation error of a cubic through
+four nodes on a function with a kink.
 
-### Galerkin
+**Galerkin projection** fits by weighted least squares. Given a weight $w(s)$
+over states, $\theta_{k+1}$ minimizes
+$\int (v(s;\theta) - (\Bellman v_k)(s))^2 w(s)\,ds$, whose first-order
+conditions are the Galerkin conditions
+$\langle v(\cdot;\theta_{k+1}) - \Bellman v_k, \varphi_i \rangle_w = 0$, a
+linear system $M\theta_{k+1} = b^{(k)}$ with mass matrix
+$M_{ij} = \langle \varphi_i, \varphi_j \rangle_w$ and
+$b_i^{(k)} = \langle \Bellman v_k, \varphi_i \rangle_w$. The integrals need
+quadrature. If the states $s_i$ are drawn from $w$, the sample average
+replaces the integral and the fit becomes an ordinary least-squares
+regression on the pairs $(s_i, y_i)$. Here $\Proj$ is the $w$-orthogonal
+projection onto the span of the basis.
 
-For Galerkin, we use the basis functions themselves as test functions. The conditions are:
+The two rules mark the ends of a range. Collocation computes few targets and
+matches them exactly; regression computes many and matches them on average.
+Regression is what scales, because it decouples the number of targets from
+the number of parameters and it applies unchanged to any model that can be
+fitted to data.
+
+### Fitting a Neural Network: Fixed Targets and the Semi-Gradient
+
+For a model $v(\cdot;\boldsymbol\theta)$ that is nonlinear in its parameters,
+such as a neural network, the fit is
 
 $$
-\int_{\mathcal{S}} [\Bellman\hat{v}(s; \theta) - \hat{v}(s; \theta)] \varphi_i(s) w(s) ds = 0, \quad i = 1, \ldots, n.
+\boldsymbol{\theta}_{k+1} \in \arg\min_{\boldsymbol{\theta}} \sum_{i=1}^m \big(v(s_i;\boldsymbol{\theta}) - y_i\big)^2, \qquad y_i = (\Bellman v_k)(s_i),
 $$
 
-where $w(s)$ is a weight function: the uniform weight $w(s) = 1$, or a probability density over states, which in reinforcement learning is usually the stationary distribution of a policy and will be written $\xi$ below. Expanding this:
+solved by gradient descent. Its first-order condition is again an
+orthogonality condition, with test functions that move with the parameters:
 
 $$
-\int_{\mathcal{S}} \left[ \max_a \left\{ r(s,a) + \gamma \mathbb{E}[v(s')] \right\} - \sum_j \theta_j \varphi_j(s) \right] \varphi_i(s) w(s) ds = 0.
+\sum_{i=1}^m \big(v(s_i;\boldsymbol{\theta}) - y_i\big) \frac{\partial v(s_i;\boldsymbol{\theta})}{\partial \theta_j} = 0 \quad \text{for all } j.
 $$
 
-**Function iteration** projects the target $\Bellman\hat{v}(\cdot;\theta^{(k)})$ onto the basis, as in {ref}`sec-wr-function-iteration`. We seek $\theta^{(k+1)}$ satisfying:
+The derivatives $\partial v/\partial\theta_j$ span the tangent space of the
+model at the current parameters. For a linear model they are the basis
+functions, and the condition is the sampled Galerkin condition. The targets
+$y_i$ are held fixed during the fit, so the gradient differentiates only
+$v(s_i;\boldsymbol\theta)$ and never the operator. This is the
+**semi-gradient** of temporal difference learning. The least-squares
+criterion of {ref}`sec-wr-conditions`, Bellman residual minimization, would
+instead minimize $\sum_i \big(v(s_i;\boldsymbol\theta) - (\Bellman v(\cdot;\boldsymbol\theta))(s_i)\big)^2$
+with the same parameters on both sides. Its test functions,
+$\partial v/\partial\theta_j - \partial(\Bellman v)/\partial\theta_j$, form the
+**full gradient**, and computing them requires differentiating through the
+max, by the envelope theorem, or through the log-sum-exp of the
+[smooth Bellman operator](regularized-dp.md). The two criteria have different
+solutions. Every algorithm in the chapters ahead, from NFQ to NFQCA, fits to
+fixed targets, and the [fitted Q-iteration chapter](fitted-q-iteration.md)
+studies what happens when the fit is warm-started and stopped after a few
+gradient steps instead of run to convergence.
+
+(sec-abe-high-dim)=
+### Example: A Stopping Problem in Eight Dimensions
+
+The stopping problem of the previous chapter has one state variable, and a
+grid of a dozen nodes solves it. To see why the fit matters, give the state
+$D$ coordinates. An agent watches an index $s \in [0,1]^D$, for instance the
+prices of $D$ assets. Stopping pays the average of the coordinates,
+$\bar{s} = \frac{1}{D}\sum_\ell s_\ell$, and ends the problem. Continuing pays
+nothing, and each coordinate then moves toward a fresh uniform draw,
+$s'_\ell = \rho s_\ell + (1-\rho)\xi_\ell$ with $\xi_\ell \sim U[0,1]$
+independent and $\rho = 0.7$. The Bellman equation is
 
 $$
-\int_{\mathcal{S}} \sum_j \theta_j^{(k+1)} \varphi_j(s) \varphi_i(s) w(s) ds = \int_{\mathcal{S}} [\Bellman\hat{v}(s; \theta^{(k)})] \varphi_i(s) w(s) ds.
+v^*(s) = \max\Big\{ \bar{s},\; \gamma\, \mathbb{E}\big[v^*(\rho s + (1-\rho)\xi)\big] \Big\}, \qquad \gamma = 0.9.
 $$
 
-```{prf:algorithm} Galerkin with Function Iteration
-:label: galerkin-function-iteration
+The average $\bar s$ is itself a Markov chain, $\bar{s}' = \rho\bar{s} + (1-\rho)\bar{\xi}$,
+so $v^*$ depends on $s$ only through $\bar s$ and can be computed exactly by
+one-dimensional value iteration. The algorithm does not know this. A grid
+with 11 nodes per axis has $11^D$ nodes: 121 for $D = 2$, 14,641 for $D = 4$,
+and $2.1 \times 10^8$ for $D = 8$, each needing an expectation over a
+$D$-dimensional successor at every iteration. Fitted value iteration instead
+computes targets at 2,000 states drawn uniformly from the cube, whatever $D$
+is, and fits them with an ensemble of extremely randomized trees
+{cite}`ernst2005tree` or with a neural network of two hidden layers. All three
+methods approximate the expectation by the average over the same 32 draws of
+$\xi$, so they solve the same sample-average problem; the
+[next chapter](monte-carlo-bellman-estimation.md) studies this approximation.
+The errors are measured against the exact $v^*$ at 5,000 fresh states.
 
-**Input** Basis functions $\{\varphi_1, \ldots, \varphi_n\}$, weight function $w(s)$, initial $\theta^{(0)}$, tolerance $\varepsilon > 0$
+```{code-cell} python
+:label: fig-fvi-eight-dimensions
+:caption: Fitted value iteration on the stopping problem with an eight-dimensional state. Each dot is a test state, placed by the average of its coordinates and the value the network assigns to it; the black curve is the exact value function, which depends on the state only through that average. The network was never told so. It was fitted at 2,000 sampled states, while a grid with 11 nodes per axis would have $2.1 \times 10^8$.
+:tags: [hide-input]
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.interpolate import RegularGridInterpolator
+from sklearn.ensemble import ExtraTreesRegressor
+from sklearn.neural_network import MLPRegressor
 
-**Output** Converged coefficients $\theta^*$
+gamma, rho = 0.9, 0.7       # discount, persistence of each coordinate
+N, M, K = 2000, 32, 40      # sampled states, successor draws, iterations
 
-1. Compute mass matrix $M_{ij} = \int_{\mathcal{S}} \varphi_i(s) \varphi_j(s) w(s) ds$ via numerical integration
-2. $k \leftarrow 0$
-3. **repeat**
-    1. For each $i = 1, \ldots, n$:
-        1. $b_i^{(k)} \leftarrow \int_{\mathcal{S}} [\Bellman\hat{v}(s; \theta^{(k)})] \varphi_i(s) w(s) ds$ via numerical integration
-    2. Solve $M \theta^{(k+1)} = b^{(k)}$
-    3. $k \leftarrow k + 1$
-4. **until** $\|\theta^{(k)} - \theta^{(k-1)}\| < \varepsilon$
-5. **return** $\theta^{(k)}$
+def exact_value(D, rng):
+    """v* depends on s only through the mean of its coordinates: 1-D value iteration."""
+    m = np.linspace(0, 1, 1001)
+    eta = rng.uniform(size=(400, D)).mean(axis=1)          # mean of the shocks
+    m_next = rho * m[:, None] + (1 - rho) * eta[None, :]
+    w = m.copy()
+    for _ in range(500):
+        w = np.maximum(m, gamma * np.interp(m_next, m, w).mean(axis=1))
+    return lambda S: np.interp(S.mean(axis=1), m, w)
+
+def fitted_value_iteration(fit, S, xi):
+    """Targets max{stop, gamma * E v(s')} at the states S, then a fit."""
+    D = S.shape[1]
+    S_next = (rho * S[:, None, :] + (1 - rho) * xi[None, :, :]).reshape(-1, D)
+    v = lambda X: np.zeros(len(X))
+    for _ in range(K):
+        continuation = v(S_next).reshape(len(S), -1).mean(axis=1)
+        y = np.maximum(S.mean(axis=1), gamma * continuation)
+        v = fit(S, y)
+    return v
+
+def fit_grid(nodes):
+    def fit(S, y):            # S is the grid itself, y the values at its nodes
+        D = S.shape[1]
+        table = RegularGridInterpolator([nodes] * D, y.reshape([len(nodes)] * D))
+        return lambda X: table(np.clip(X, 0, 1))
+    return fit
+
+def fit_trees(S, y):
+    model = ExtraTreesRegressor(n_estimators=20, min_samples_leaf=3, random_state=0)
+    return model.fit(S, y).predict
+
+def fit_network(S, y):
+    model = MLPRegressor(hidden_layer_sizes=(64, 64), max_iter=300, random_state=0)
+    return model.fit(S, y).predict
+
+rng = np.random.default_rng(0)
+nodes = np.linspace(0, 1, 11)
+rows = []
+for D in [2, 4, 8]:
+    v_star = exact_value(D, rng)
+    test = rng.uniform(size=(5000, D))
+    xi = rng.uniform(size=(M, D))
+    S = rng.uniform(size=(N, D))
+    errors = {}
+    if len(nodes)**D <= 20000:
+        grid = np.stack(np.meshgrid(*[nodes] * D, indexing="ij"), axis=-1).reshape(-1, D)
+        v = fitted_value_iteration(fit_grid(nodes), grid, xi)
+        errors["grid"] = np.abs(v(test) - v_star(test))
+    for name, fit in [("trees", fit_trees), ("network", fit_network)]:
+        v = fitted_value_iteration(fit, S, xi)
+        errors[name] = np.abs(v(test) - v_star(test))
+        if D == 8 and name == "network":
+            scatter = (test.mean(axis=1), v(test), v_star(test))
+    rows.append((D, len(nodes)**D, errors))
+
+print("Mean absolute error (maximum in parentheses) against the exact value")
+print(f"{'D':>2} {'grid nodes':>12}  {'grid':^16} {'trees, 2000 states':^20} {'network, 2000 states':^20}")
+for D, n_nodes, e in rows:
+    cell = lambda key: f"{e[key].mean():.3f} ({e[key].max():.3f})" if key in e else "out of reach"
+    print(f"{D:>2} {n_nodes:>12,}  {cell('grid'):^16} {cell('trees'):^20} {cell('network'):^20}")
+
+mean_s, v_hat, v_true = scatter
+order = np.argsort(mean_s)
+fig, ax = plt.subplots(figsize=(6, 3.5))
+ax.scatter(mean_s, v_hat, s=3, alpha=0.3, label="network, D = 8")
+ax.plot(mean_s[order], v_true[order], color="black", lw=1.5, label="exact $v^*$")
+ax.set_xlabel("average of the coordinates of $s$")
+ax.set_ylabel("value")
+ax.legend(frameon=False)
+fig.tight_layout()
+plt.show()
 ```
 
-The left side is a linear system with the mass matrix $M_{ij} = \int \varphi_i \varphi_j w$, and the right side requires integrating the Bellman operator output against each test function. When the basis functions are orthogonal polynomials with matching weight $w$, the mass matrix is diagonal, simplifying the solve. But we still need numerical integration to evaluate the right side, which makes Galerkin substantially more expensive than collocation per iteration.
+The grid is the most accurate method while it fits in memory, and it is out of
+reach at $D = 8$. The trees and the network use the same 2,000 states in every
+dimension. The average error of the trees roughly doubles each time $D$
+doubles, while that of the network stays near 0.01; the figure shows that the network
+has found the one direction along which the value changes. Both have maximum errors several
+times their average, at the corners of the cube, where few of the sampled
+states lie. That gap is a first glimpse of the issue that dominates the
+analysis below and the batch methods of the
+[fitted Q-iteration chapter](fitted-q-iteration.md): a fit is controlled
+where there are data, and only there.
 
-**Newton's method** for Galerkin similarly requires integration. The residual is $R(s; \theta) = \Bellman\hat{v}(s; \theta) - \hat{v}(s; \theta)$, and we need $G_i(\theta) = \int R(s; \theta) \varphi_i(s) w(s) ds = 0$. The envelope theorem gives $\frac{\partial \Bellman\hat{v}(s; \theta)}{\partial \theta_j} = \gamma \mathbb{E}[\varphi_j(s') \mid s, a^*(s;\theta)]$, so the Jacobian entry is:
+(sec-abe-error)=
+## How Fitting Errors Propagate
+
+If every fit is only approximately right, how far from $v^*$ does fitted value
+iteration end, and how good is the policy it returns?
+
+The finite-horizon chapter answered this for backward recursion with
+interpolation: with nonnegative weights, the error of the stored values is
+at most the sum of the interpolation errors of the later stages
+({prf:ref}`prop-interp-error-accumulation`). Over an infinite horizon the sum
+becomes a geometric series.
+
+```{prf:theorem} Error of approximate value iteration
+:label: thm-approximate-vi
+
+Let $v_0$ be bounded and let the sequence $v_k$ satisfy $\|v_{k+1} - \Bellman v_k\|_\infty \leq \varepsilon$ for every $k$. Then
 
 $$
-J_{ij} = \int \left[ \gamma \mathbb{E}[\varphi_j(s') \mid s, a^*(s;\theta)] - \varphi_j(s) \right] \varphi_i(s) w(s) ds.
+\|v_k - v^*\|_\infty \leq \gamma^k \|v_0 - v^*\|_\infty + \frac{\varepsilon}{1-\gamma}.
 $$
-
-```{prf:algorithm} Galerkin with Newton's Method
-:label: galerkin-newton
-
-**Input** Basis functions $\{\varphi_1, \ldots, \varphi_n\}$, weight function $w(s)$, initial $\theta^{(0)}$, tolerance $\varepsilon > 0$
-
-**Output** Converged coefficients $\theta^*$
-
-1. $k \leftarrow 0$
-2. **repeat**
-    1. For each $i = 1, \ldots, n$:
-        1. $G_i^{(k)} \leftarrow \int_{\mathcal{S}} [\Bellman\hat{v}(s; \theta^{(k)}) - \hat{v}(s; \theta^{(k)})] \varphi_i(s) w(s) ds$
-        2. For each $j = 1, \ldots, n$:
-            1. $J_{ij} \leftarrow \int_{\mathcal{S}} \left[ \gamma \mathbb{E}[\varphi_j(s') \mid s, a^*(s;\theta^{(k)})] - \varphi_j(s) \right] \varphi_i(s) w(s) ds$
-    2. Solve $J \Delta\theta = G^{(k)}$
-    3. $\theta^{(k+1)} \leftarrow \theta^{(k)} - \Delta\theta$
-    4. $k \leftarrow k + 1$
-3. **until** $\|\Delta\theta\| < \varepsilon$
-4. **return** $\theta^{(k)}$
 ```
 
-We must integrate expected basis function values under the greedy actions against the test functions, which requires both numerical integration and tracking of greedy actions across the state space. The advantage of Galerkin lies in its approximation properties: with orthogonal polynomials it is the best approximation in the weighted $L^2$ norm, which for smooth problems can yield better accuracy per degree of freedom than collocation. In practice, collocation's computational simplicity usually wins for Bellman equations, especially in high dimension where integration becomes prohibitively expensive. The exception is the finite-state case, where the integrals are sums and Galerkin is as cheap as collocation. We turn to it now.
+```{prf:proof}
+Since $v^* = \Bellman v^*$ and $\Bellman$ is a $\gamma$-contraction,
 
-```{admonition} Exercises: Collocation and Galerkin
+$$
+\|v_{k+1} - v^*\|_\infty \leq \|v_{k+1} - \Bellman v_k\|_\infty + \|\Bellman v_k - \Bellman v^*\|_\infty \leq \varepsilon + \gamma \|v_k - v^*\|_\infty.
+$$
+
+Unrolling the recursion gives $\|v_k - v^*\|_\infty \leq \gamma^k\|v_0 - v^*\|_\infty + \varepsilon(1 + \gamma + \cdots + \gamma^{k-1})$.
+```
+
+The value function is an instrument. What we use is the greedy policy, and its
+loss is bounded by the error of the value function it is greedy for
+{cite}`SinghYee1994`.
+
+```{prf:proposition} Loss of a greedy policy
+:label: prop-greedy-loss
+
+If $\pi$ is greedy with respect to $v$, that is $\BellmanPi v = \Bellman v$, then
+
+$$
+\|v^* - v_\pi\|_\infty \leq \frac{2\gamma}{1-\gamma}\|v - v^*\|_\infty.
+$$
+```
+
+```{prf:proof}
+Let $\pi^*$ be an optimal policy. Then $v^* - v_\pi = \mathrm{L}_{\pi^*} v^* - \BellmanPi v_\pi$, which we split as
+
+$$
+v^* - v_\pi = (\mathrm{L}_{\pi^*} v^* - \mathrm{L}_{\pi^*} v) + (\mathrm{L}_{\pi^*} v - \BellmanPi v) + (\BellmanPi v - \BellmanPi v^*) + (\BellmanPi v^* - \BellmanPi v_\pi).
+$$
+
+The second term is nonpositive because $\pi$ is greedy for $v$. The others are $\gamma\mathbf{P}_{\pi^*}(v^* - v)$, $\gamma\mathbf{P}_\pi(v - v^*)$ and $\gamma\mathbf{P}_\pi(v^* - v_\pi)$, and stochastic matrices do not increase the sup norm. Since $v^* - v_\pi \geq 0$, taking the maximum over states gives $\|v^* - v_\pi\|_\infty \leq 2\gamma\|v - v^*\|_\infty + \gamma\|v^* - v_\pi\|_\infty$.
+```
+
+Combining the two, the greedy policies of fitted value iteration are
+eventually within $2\gamma\varepsilon/(1-\gamma)^2$ of optimal. The bound
+asks nothing of the fit except accuracy: no linearity, no particular basis,
+no structure at all. This is what licenses a tree ensemble or a neural
+network in place of a table. It also says where the difficulty lies, in
+three places that the rest of this chapter and the next ones take up.
+
+1. **The error is measured in the sup norm, at every state.** A regression
+   controls an average error over the states where targets were computed,
+   and nothing at the states it never saw. The analysis of fitted value
+   iteration by {cite:t}`Munos2007` and {cite:t}`MunosSzepesvari2008`
+   replaces the sup norm by weighted norms. The price is a concentrability
+   coefficient, which measures how far the state distributions that policies
+   reach can be from the distribution of the data. It is the theoretical form
+   of the coverage problem of batch and offline reinforcement learning.
+2. **The fit must be achievable.** The bound needs some $\theta$ with
+   $v(\cdot;\theta)$ close to $\Bellman v_k$ for every $v_k$ the algorithm
+   produces. The function class must therefore be nearly closed under the
+   Bellman operator, not merely able to represent $v^*$.
+3. **The error must stay bounded.** The theorem assumes one $\varepsilon$ for
+   all iterations. If the fit error grows with $v_k$, the bound says nothing,
+   and the next section shows that this happens.
+
+(sec-abe-convergence)=
+## When Fitting Diverges, and Which Fits Cannot
+
+Can a fit that represents the solution exactly still make value iteration
+diverge, and which fitting rules rule this out?
+
+### A Two-State Counterexample
+
+The following example is due to {cite:t}`TsitsiklisVanRoy1996`. There are two
+states and one action. State 1 moves to state 2, state 2 stays where it is,
+and all rewards are zero, so $v^* = 0$. The value function is represented
+with a single feature, $v(1;\theta) = \theta$ and $v(2;\theta) = 2\theta$,
+which contains $v^*$ at $\theta = 0$. Fitted value iteration computes the
+targets at both states and fits them by least squares with equal weights.
+Both targets equal $\gamma v(2;\theta_k) = 2\gamma\theta_k$, and the fit
+minimizes $(\theta - 2\gamma\theta_k)^2 + (2\theta - 2\gamma\theta_k)^2$,
+which gives
+
+$$
+\theta_{k+1} = \frac{6\gamma}{5}\theta_k.
+$$
+
+For $\gamma > 5/6$ the iterates diverge from every $\theta_0 \neq 0$. The
+Bellman operator shrinks the difference between $v_k$ and $v^*$ by $\gamma$,
+and the fit then stretches it by $6/5$: the target is the constant
+$2\gamma\theta_k$, and the best line through the origin overshoots it at
+state 2, where it predicts $\frac{12}{5}\gamma\theta_k$. The fit error grows in
+proportion to $\theta_k$, which is why {prf:ref}`thm-approximate-vi` does not
+apply. {cite:t}`BoyanMoore1995` observed the same failure with polynomial
+regression and neural networks on small control problems, at a time when
+TD-Gammon had made neural value functions look easy.
+
+### Averagers: Fits That Cannot Expand
+
+The counterexample suggests asking which fitting rules cannot stretch
+differences between functions. The answer was found independently in
+computational economics {cite}`Judd1992,Judd1996,McGrattan1997,SantosVigoAguiar1998`,
+economic dynamics {cite}`Stachurski2009`, and reinforcement learning
+{cite}`Gordon1995,Gordon1999`, and the communities arrived at essentially the
+same conditions.
+
+```{prf:proposition} Monotone operators are nonexpansive (Stachurski)
+:label: monotone-nonexpansive
+
+Let $\Proj: \mathcal{V} \to \mathcal{V}$ be a linear operator on the space $\mathcal{V}$ of bounded real-valued functions on $\mathcal{S}$. If $\Proj$ satisfies:
+
+1. **Monotonicity**: $f \leq g$ pointwise implies $\Proj f \leq \Proj g$
+2. **Constant preservation**: $\Proj\mathbf{1} = \mathbf{1}$ where $\mathbf{1}$ is the constant function equal to $1$
+
+Then $\Proj$ is nonexpansive in the sup norm: $\|\Proj f - \Proj g\|_\infty \leq \|f - g\|_\infty$ for all $f, g \in \mathcal{V}$.
+```
+
+```{prf:proof}
+Let $M = \|f - g\|_\infty$. Then $-M \leq f(s) - g(s) \leq M$ for all $s$, which can be written as $g - M\mathbf{1} \leq f \leq g + M\mathbf{1}$. By monotonicity, $\Proj(g - M\mathbf{1}) \leq \Proj f \leq \Proj(g + M\mathbf{1})$. By linearity and constant preservation, $\Proj g - M\mathbf{1} \leq \Proj f \leq \Proj g + M\mathbf{1}$, which means $|\Proj f(s) - \Proj g(s)| \leq M$ for all $s$. Therefore $\|\Proj f - \Proj g\|_\infty \leq \|f - g\|_\infty$.
+```
+
+A monotone, constant-preserving operator acts like a weighted average: it
+respects order and cannot amplify differences. For an interpolation operator
+$(\Proj f)(s) = \sum_j \ell_j(s) f(s_j)$ with cardinal functions $\ell_j$, the
+two conditions say that the weights are nonnegative and sum to one, which is
+the condition $\Lambda = 1$ of the finite-horizon chapter. The least-squares
+fit of the counterexample violates them: it maps the constant function
+$(1, 1)$ to $(3/5, 6/5)$.
+
+```{prf:theorem} Stability of projected value iteration (Santos-Vigo-Aguiar)
+:label: santos-vigo-aguiar-stability
+
+Let $\Bellman: \mathcal{V} \to \mathcal{V}$ be a $\gamma$-contraction on the space $\mathcal{V}$ of bounded functions with respect to the sup norm. Let $\Proj: \mathcal{V} \to \mathcal{V}$ be a linear approximation operator satisfying monotonicity and constant preservation.
+
+Then the composed operator $\Proj \Bellman$ is a $\gamma$-contraction, and projected value iteration $v_{k+1} = \Proj \Bellman v_k$ converges globally to a unique fixed point $v_\Proj \in \text{Range}(\Proj)$ with approximation error:
+
+$$
+\|v_\Proj - v^*\|_\infty \leq \frac{1}{1-\gamma} \|\Proj v^* - v^*\|_\infty,
+$$
+
+where $v^*$ is the true value function.
+```
+
+```{prf:proof}
+By {prf:ref}`monotone-nonexpansive`, $\Proj$ is nonexpansive. Since $\Bellman$ is a $\gamma$-contraction,
+
+$$
+\|\Proj \Bellman f - \Proj \Bellman g\|_\infty \leq \|\Bellman f - \Bellman g\|_\infty \leq \gamma\|f-g\|_\infty,
+$$
+
+so $\Proj \Bellman$ is a $\gamma$-contraction and {prf:ref}`banach-fixed-point` gives the unique fixed point and global convergence. For the error bound, use $v_\Proj = \Proj\Bellman v_\Proj$ and $v^* = \Bellman v^*$:
+
+$$
+\|v_\Proj - v^*\|_\infty \leq \|\Proj\Bellman v_\Proj - \Proj\Bellman v^*\|_\infty + \|\Proj \Bellman v^* - v^*\|_\infty \leq \gamma \|v_\Proj - v^*\|_\infty + \|\Proj v^* - v^*\|_\infty,
+$$
+
+and rearranging gives the claim.
+```
+
+The fixed-point error is the best-approximation error
+$\|\Proj v^* - v^*\|_\infty$ amplified by $(1-\gamma)^{-1}$. For a monotone
+fit the per-iteration error stays bounded, and the result is the special case
+of {prf:ref}`thm-approximate-vi` in which the third difficulty above cannot
+arise. For a finite state space, the monotonicity conditions describe
+**averaging with nonnegative weights**, a characterization due to Gordon.
+
+```{prf:definition} Averager (Gordon)
+:label: gordon-averager
+
+An operator $\Proj: \mathbb{R}^{|\mathcal{S}|} \to \mathbb{R}^{|\mathcal{S}|}$ is an **averager** if $\Proj v = Wv$ where $W$ is a $|\mathcal{S}| \times |\mathcal{S}|$ stochastic matrix: $w_{ij} \geq 0$ and $\sum_j w_{ij} = 1$ for all $i$.
+```
+
+Averagers satisfy the monotonicity conditions: linearity follows from matrix
+multiplication, monotonicity from nonnegativity of the entries, and constant
+preservation from the row sums.
+
+```{prf:theorem} Stability with averagers (Gordon)
+:label: gordon-stability
+
+If $\Proj$ is an averager and $\Bellman$ is the Bellman operator (a $\gamma$-contraction), then $\Proj \Bellman$ is a $\gamma$-contraction, and value iteration $v_{k+1} = \Proj \Bellman v_k$ converges to a unique fixed point.
+```
+
+The stochastic matrix gives the averaging a Markov-chain reading: $\Proj v$ is
+an expected value after one random transition, and expectations preserve
+order. The finite-horizon chapter made the same observation about linear
+interpolation, which replaces a deterministic successor by a random grid node
+with the interpolation weights as probabilities. Composing that chain with
+the model's own transitions makes $\Proj\Bellman$ the Bellman operator of a
+finite-state MDP, which is why it contracts.
+
+**Which regressors are averagers?** State aggregation, $k$-nearest neighbors,
+kernel smoothing with nonnegative kernels normalized to sum to one, and
+multilinear interpolation on a grid all predict a convex combination of
+training targets whose weights depend only on the states. So does a
+regression tree, which predicts the average of the targets in a leaf, as long
+as its partition of the state space does not depend on the targets.
+{cite:t}`ernst2005tree` used this to give tree-based fitted Q-iteration a
+convergence guarantee. Their extremely randomized trees choose splits with
+the help of the targets, and freezing the tree structure after some
+iterations restores the guarantee. Linear least squares, high-order
+polynomial interpolation, and neural networks are not averagers.
+
+| **Method** | **Averager?** | **Notes** |
+|:-----------|:--------------|:----------|
+| Piecewise linear interpolation | Yes | Barycentric weights are nonnegative and sum to one |
+| Multilinear interpolation (grid) | Yes | Weights are products of one-dimensional hat functions |
+| Shape-preserving splines (Schumaker) | Yes | Designed to maintain monotonicity |
+| State aggregation, $k$-nearest neighbors | Yes | Equal weights within a group or neighborhood |
+| Kernel smoothing (nonnegative kernels) | Yes | If the weights are normalized to sum to one |
+| Regression trees and forests, fixed partition | Yes | Leaf averages; guarantee lost if splits depend on the targets |
+| High-order polynomial interpolation | No | Negative weights (Runge phenomenon) |
+| Least squares on an arbitrary basis | No | The counterexample above |
+| Neural networks | No | No sign or normalization constraint on the fit |
+
+The table puts the methods of this chapter in their place. Collocation with
+piecewise-linear interpolation is an averager, and the folk wisdom that
+linear interpolation is safe for value iteration is a theorem. Collocation
+with the cubic through four Chebyshev nodes is not, and its convergence in
+the worked example was not guaranteed. Galerkin projection and least squares
+are not averagers. The tree ensemble in the eight-dimensional example sits on
+the boundary, and the network is outside.
+
+The solver matters too. Fitted value iteration needs $\Proj\Bellman$ to
+contract. Newton's method does not; its convergence depends on the
+conditioning of the Jacobian and on the starting point. This is the reason for
+the hybrid strategy of {ref}`sec-wr-solve`: a few iterations with a monotone,
+low-order approximation to get a starting guess, then Newton's method with a
+smooth, high-order one.
+
+```{admonition} Exercises: Divergence and Averagers
 :class: hint dropdown
 
-1. **Effect of collocation points.** For the optimal stopping problem, compare collocation with $n=4$ Chebyshev nodes versus $n=4$ equally-spaced nodes. Which choice gives smaller maximum error?
+1. **The counterexample with an averager.** Replace the least-squares fit in the two-state example by state aggregation into a single group. Write $\Proj$ as a matrix, check that it is an averager, and show that fitted value iteration converges for every $\gamma < 1$. What is its fixed point?
 
-2. **Threshold location.** The optimal stopping policy has a threshold structure. Using your polynomial approximation $\hat{v}(s)$, estimate the threshold by finding where $\hat{v}(s) = s$. Compare to the exact threshold.
+2. **A non-monotone example.** Using Lagrange interpolation with 4 equally spaced nodes on $[0, 1]$, compute the interpolation weights for the point $x = 0.1$. Show that some weights are negative.
 
-3. **Orthogonal polynomials.** For $\mathcal{S} = [-1, 1]$, write out the Galerkin conditions using Chebyshev polynomials $T_i$ and weight $w(x) = 1/\sqrt{1-x^2}$. What makes this choice computationally convenient?
+3. **Verifying monotonicity.** Consider piecewise linear interpolation on a 5-point grid. Write out the interpolation weights for a point between grid points 2 and 3. Verify that all weights are nonnegative and sum to one.
 
-4. **Newton vs. function iteration.** How does the iteration count depend on $\gamma$? Try $\gamma \in \{0.5, 0.9, 0.99\}$.
+4. **Trees.** Show that a regression tree with a fixed partition is an averager. Explain why a tree that chooses its splits by the targets can change its partition from one iteration to the next, and which step of the proof of {prf:ref}`santos-vigo-aguiar-stability` this breaks.
 ```
 
-(sec-abe-lstd)=
-### Discrete State Spaces: LSTD and LSPI
+### On-Policy Weighting Rescues Policy Evaluation
 
-When the state space is discrete and finite, the Galerkin integrals become sums and everything can be written in matrix form. For $\mathcal{S} = \{s_1, \ldots, s_m\}$, the Galerkin orthogonality conditions become weighted sums over states:
+The counterexample has a second reading. The chain moves from state 1 to
+state 2 and stays there, so its stationary distribution puts all its mass on
+state 2. If the fit weights each state by that distribution, it minimizes
+$(2\theta - 2\gamma\theta_k)^2$ alone, and $\theta_{k+1} = \gamma\theta_k$
+converges. The equal weighting was the problem: it fits the value at a state
+the process does not occupy as much as the value at the state it does.
 
-$$
-\sum_{s \in \mathcal{S}} \xi(s) [\Bellman\hat{v}(s; \theta) - \hat{v}(s; \theta)] \varphi_i(s) = 0, \quad i = 1, \ldots, n,
-$$
-
-where $\xi(s) \geq 0$ with $\sum_s \xi(s) = 1$ is a probability distribution over states. Define the feature matrix $\boldsymbol{\Phi} \in \mathbb{R}^{m \times n}$ with entries $\Phi_{si} = \varphi_i(s)$ (each row contains the features for one state), and let $\boldsymbol{\Xi} = \text{diag}(\xi)$ be the diagonal matrix with the state distribution on the diagonal. The $\xi$-weighted inner product, norm, and orthogonal projection onto $\text{span}(\boldsymbol{\Phi})$ are
+This observation is a theorem for policy evaluation {cite}`TsitsiklisVanRoy1997`,
+proved to explain the convergence of TD(0) with linear features. Take a finite
+state space $\mathcal{S} = \{s_1,\ldots,s_m\}$, a feature matrix
+$\boldsymbol{\Phi} \in \mathbb{R}^{m\times n}$ with rows $\boldsymbol\varphi(s)^\top$,
+and a distribution $\xi$ over states with $\boldsymbol{\Xi} = \text{diag}(\xi)$.
+The $\xi$-weighted inner product, norm, and least-squares projection onto the
+span of the features are
 
 $$
 \langle u, v \rangle_\xi = u^\top \boldsymbol{\Xi} v, \qquad \|v\|_\xi = \sqrt{v^\top \boldsymbol{\Xi} v}, \qquad \Proj = \boldsymbol{\Phi}(\boldsymbol{\Phi}^\top \boldsymbol{\Xi} \boldsymbol{\Phi})^{-1} \boldsymbol{\Phi}^\top \boldsymbol{\Xi}.
 $$ (eq:xi-projection)
 
-**Policy evaluation.** For a fixed policy $\pi$ the Bellman operator is linear, $\BellmanPi \hat{v} = \mathbf{r}_\pi + \gamma \mathbf{P}_\pi \boldsymbol{\Phi} \theta$, with $[\mathbf{r}_\pi]_s = r(s, \pi(s))$ and $[\mathbf{P}_\pi]_{sj} = p(j|s, \pi(s))$. The Galerkin conditions $\langle \BellmanPi \hat{v} - \hat{v}, \varphi_i \rangle_\xi = 0$ for all $i$ read, in matrix form,
+Fitted policy evaluation is $v_{k+1} = \Proj\BellmanPi v_k$ with
+$\BellmanPi v = \mathbf{r}_\pi + \gamma\mathbf{P}_\pi v$. In reinforcement
+learning the weighting is not a free choice: the states in the data are those
+the process visits, and if the chain under $\pi$ is ergodic their
+distribution approaches the stationary distribution $\xi$ with
+$\xi^\top\mathbf{P}_\pi = \xi^\top$. Suppose that is the weighting. We show
+that $\Proj$ is nonexpansive and $\BellmanPi$ is a $\gamma$-contraction, both
+in $\|\cdot\|_\xi$, so that
+
+$$
+\|\Proj \BellmanPi v - \Proj \BellmanPi w\|_\xi \leq \|\BellmanPi v - \BellmanPi w\|_\xi \leq \gamma \|v - w\|_\xi.
+$$
+
+**Orthogonal projection is nonexpansive.** For any vector $v$, decompose
+$v = \Proj v + (v - \Proj v)$, where $v - \Proj v$ is $\xi$-orthogonal to
+the span of $\boldsymbol\Phi$. By the Pythagorean theorem,
+
+$$
+\|v\|_\xi^2 = \|\Proj v\|_\xi^2 + \|v - \Proj v\|_\xi^2 \geq \|\Proj v\|_\xi^2.
+$$
+
+No sign condition on the entries of $\Proj$ was needed. The sup-norm argument
+fails for this projection; the $\xi$-norm argument does not see the negative
+weights at all.
+
+**$\BellmanPi$ contracts in $\|\cdot\|_\xi$.** Since
+$\BellmanPi v - \BellmanPi w = \gamma \mathbf{P}_\pi (v - w)$, it suffices to
+show $\|\mathbf{P}_\pi z\|_\xi \leq \|z\|_\xi$ for every $z$.
+
+*Before reading on, try to show this yourself. Hint: what property of $\xi$
+relates it to $\mathbf{P}_\pi$?*
+
+The $s$-th component of $\mathbf{P}_\pi z$ is $\sum_{s'} p(s'|s,\pi(s)) z(s')$,
+an average of the values $z(s')$. Since $x \mapsto x^2$ is convex, Jensen's
+inequality gives
+$\big[\sum_{s'} p(s'|s,\pi(s)) z(s')\big]^2 \leq \sum_{s'} p(s'|s,\pi(s)) z(s')^2$.
+Weighting by $\xi$ and summing over $s$,
+
+$$
+\|\mathbf{P}_\pi z\|_\xi^2 \leq \sum_s \xi(s) \sum_{s'} p(s'|s,\pi(s)) z(s')^2 = \sum_{s'} z(s')^2 \sum_s \xi(s) p(s'|s,\pi(s)) = \sum_{s'} \xi(s') z(s')^2 = \|z\|_\xi^2,
+$$
+
+where the second-to-last step is stationarity. So $\Proj\BellmanPi$ is a
+$\gamma$-contraction in $\|\cdot\|_\xi$, and by {prf:ref}`banach-fixed-point`
+fitted policy evaluation converges from any start to the unique solution of
+the **projected Bellman equation**
+
+$$
+v = \Proj \BellmanPi v.
+$$ (eq:projected-bellman-pi)
+
+Its solution is the fixed point to which TD(0) with linear features converges.
+The argument of {prf:ref}`santos-vigo-aguiar-stability` bounds its distance to
+$v_\pi$ by $(1-\gamma)^{-1}\|\Proj v_\pi - v_\pi\|_\xi$, and the inner-product
+structure improves the constant to $(1-\gamma^2)^{-1/2}$
+{cite}`TsitsiklisVanRoy1997`.
+
+**The on-policy condition.** Convergence came from matching the weighting to
+the operator, not from any property of the fit beyond orthogonality: $\xi$
+must be the stationary distribution of the very $\mathbf{P}_\pi$ that appears
+in $\BellmanPi$. When the data are collected by following $\pi$, this holds
+automatically, which is **on-policy** learning. When they come from another
+behavior policy, as in the counterexample's equal weighting or in learning
+from a replay buffer filled by older policies, the Jensen step fails,
+$\mathbf{P}_\pi$ need not be nonexpansive in $\|\cdot\|_\xi$, and
+$\Proj\BellmanPi$ may not contract. Baird's counterexample {cite}`Baird1995` is
+the classical demonstration.
+
+```{admonition} Exercises: The On-Policy Condition
+:class: hint dropdown
+
+1. **Weighting the counterexample.** In the two-state example, fit with weights $(\xi_1, \xi_2)$. Show that $\theta_{k+1} = 2\gamma\theta_k(\xi_1 + 2\xi_2)/(\xi_1 + 4\xi_2)$ and find the set of weightings for which the iteration converges for every $\gamma < 1$.
+
+2. **Non-expansiveness fails off-policy.** For the 3-state chain of {ref}`sec-abe-lstd` and the weighting $\xi' = (0.9, 0.05, 0.05)$, find a vector $z$ such that $\|\mathbf{P}_\pi z\|_{\xi'} > \|z\|_{\xi'}$.
+
+3. **Losing the argument is not losing convergence.** Implement fitted policy evaluation for the same chain, with features $\varphi(s) = (1, s)$ and weighting $\xi'$. It still converges: compute the spectral radius of $\gamma \Proj \mathbf{P}_\pi$ and check that it equals $\gamma$ for this feature set whatever the weighting. Then keep only the feature $\varphi(s) = s$ and find a weighting concentrated on state 1 under which the spectral radius exceeds one.
+```
+
+### The Optimality Operator and the Deadly Triad
+
+Can the weighted argument be extended to the optimality operator
+$\Bellman v = \max_a [\mathbf{r}_a + \gamma \mathbf{P}_a v]$? Not this way.
+The obstacle is the Jensen step. For the optimality operator we would need to
+bound $\big[\max_{a} \sum_{s'} p(s'|s,a) z(s')\big]^2$, and a maximum of
+averages is not an average. Nor is there a single stationary distribution to
+match, since the greedy policy, and with it the state distribution, changes
+from iteration to iteration.
+
+{cite:t}`SuttonBarto2018` call the combination of function approximation,
+bootstrapping (targets built from the current estimate), and off-policy data
+the **deadly triad**: any two are manageable, all three can diverge. Fitted
+Q-iteration with a neural network has all three. There is no general
+convergence theorem for it, and divergence can be observed on small examples.
+Yet NFQ and DQN solve many problems, because of design choices that limit the
+damage: each fit is run against targets held fixed, the fit is warm-started
+from the previous parameters, a separate target network changes slowly, and a
+large replay buffer keeps the data distribution from tracking every change of
+policy. The [fitted Q-iteration chapter](fitted-q-iteration.md) examines these
+choices one by one.
+
+(sec-abe-api)=
+## Approximate Policy Iteration
+
+What does Newton's method, the other solver of the previous chapter, become
+when the value function is parametric, and what does the linear case add?
+
+In the exact setting, Newton's method on the Bellman equation is policy
+iteration ({ref}`sec-newton-kantorovich-pi`): by the envelope theorem the
+Jacobian at $v_k$ involves the transition matrix of the greedy policy
+$\pi_k$, and the Newton step solves the evaluation equation of $\pi_k$. With a
+parametric value function the same holds, except that the evaluation is done
+within the function class. The algorithm alternates **approximate
+evaluation**, finding $\theta$ with $v(\cdot;\theta) \approx v_{\pi_k}$, and
+**greedy improvement**. This is approximate policy iteration. Its guarantee
+has the same form as for fitted value iteration: if every evaluation is
+accurate to $\varepsilon$ in the sup norm, the policies are eventually within
+$2\gamma\varepsilon/(1-\gamma)^2$ of optimal {cite}`BertsekasTsitsiklis1996`.
+Unlike exact policy iteration, the sequence of policies need not improve
+monotonically, and it can cycle among a few policies.
+
+Two remarks carry over from the exact case. With the smooth Bellman operator,
+the Jacobian is $\gamma\mathbf{P}_{\pi_k}$ for the softmax policy, with no
+ties to resolve ({ref}`sec-smooth-pi-newton`). And the recommendation at the
+end of {ref}`sec-wr-solve`, a few sweeps of function iteration before
+switching to Newton, is how Rust solved his bus-engine model
+({ref}`sec-rust-inverse`).
+
+For collocation, the Newton step reads as follows. Let $a_i^*$ be the greedy
+action at collocation point $s_i$ for the current coefficients. The envelope
+theorem gives the Jacobian of the targets,
+$[J]_{ij} = \gamma \sum_{s'} p(s'|s_i, a_i^*) \varphi_j(s')$, and the Newton
+step solves $(\boldsymbol\Phi - J)\theta^{(k+1)} = \mathbf{r}_{\pi_k}$, the
+evaluation equation of the greedy policy restricted to the collocation points
+and solved within the span of the basis.
+
+(sec-abe-lstd)=
+### The Linear Case: LSTD and LSPI
+
+When the features enter linearly and the state space is finite, the
+approximate evaluation step has a closed form. The fixed point of fitted
+policy evaluation solves the projected Bellman equation
+{eq}`eq:projected-bellman-pi`. Its residual $\BellmanPi v - v$ is
+$\xi$-orthogonal to every feature, which in matrix form reads
 
 $$
 \boldsymbol{\Phi}^\top \boldsymbol{\Xi} (\mathbf{r}_\pi + \gamma \mathbf{P}_\pi \boldsymbol{\Phi} \theta - \boldsymbol{\Phi} \theta) = \mathbf{0},
@@ -302,23 +795,22 @@ $$
 \boldsymbol{\Phi}^\top \boldsymbol{\Xi} (\boldsymbol{\Phi} - \gamma \mathbf{P}_\pi \boldsymbol{\Phi}) \theta = \boldsymbol{\Phi}^\top \boldsymbol{\Xi} \mathbf{r}_\pi.
 $$ (eq:lstd-galerkin)
 
-This is the **LSTD (least-squares temporal difference)** solution of {cite:t}`BradtkeBarto1996`: a linear system $\mathbf{A} \theta = \mathbf{b}$ with $\mathbf{A} = \boldsymbol{\Phi}^\top \boldsymbol{\Xi} (\boldsymbol{\Phi} - \gamma \mathbf{P}_\pi \boldsymbol{\Phi})$ and $\mathbf{b} = \boldsymbol{\Phi}^\top \boldsymbol{\Xi} \mathbf{r}_\pi$. The left form of {eq}`eq:lstd-galerkin` says that the residual $\BellmanPi\hat{v} - \hat{v}$ is $\xi$-orthogonal to every column of $\boldsymbol{\Phi}$, hence to $\text{span}(\boldsymbol{\Phi})$, while $\hat{v}$ itself lies in that span. By the definition of orthogonal projection, this is the same as
+This is the **LSTD (least-squares temporal difference)** solution of
+{cite:t}`BradtkeBarto1996`, an $n\times n$ linear system
+$\mathbf{A}\theta = \mathbf{b}$. The practical algorithm never forms
+$\boldsymbol\Phi$ over all states or $\mathbf{P}_\pi$ explicitly. It
+accumulates $\mathbf{A} = \mathbb{E}_{s \sim \xi}[\boldsymbol{\varphi}(s)(\boldsymbol{\varphi}(s) - \gamma \boldsymbol{\varphi}(s'))^\top]$
+and $\mathbf{b} = \mathbb{E}_{s \sim \xi}[\boldsymbol{\varphi}(s) r]$ from
+sampled transitions $(s, r, s')$, which is possible because the system is
+linear in the unknown.
 
-$$
-\hat{v} = \Proj \BellmanPi \hat{v},
-$$ (eq:projected-bellman-pi)
+*Check that the dimensions work out: with $m$ states and $n$ features, what
+are the dimensions of $\boldsymbol{\Phi}$, $\boldsymbol{\Xi}$,
+$\mathbf{P}_\pi$, and $\mathbf{A}$?*
 
-the **projected Bellman equation**. LSTD computes the fixed point of the projected operator $\Proj\BellmanPi$ in closed form; projected value iteration {eq}`eq:projected-vi` computes the same point by iterating, if it converges. We write the matrix equation for analysis. The practical algorithm never forms $\boldsymbol{\Phi}$ over all states or $\mathbf{P}_\pi$ explicitly: it accumulates $\mathbf{A}$ and $\mathbf{b}$ from sampled transitions $(s, r, s')$, since $\mathbf{A} = \mathbb{E}_{s \sim \xi}[\boldsymbol{\varphi}(s)(\boldsymbol{\varphi}(s) - \gamma \boldsymbol{\varphi}(s'))^\top]$ and $\mathbf{b} = \mathbb{E}_{s \sim \xi}[\boldsymbol{\varphi}(s) r]$. That sampled form, and the incremental TD(0) algorithm that converges to the same fixed point, belong to the chapters that replace exact expectations by samples.
-
-*Check that the dimensions work out: if we have $m$ states and $n$ basis functions, what are the dimensions of $\boldsymbol{\Phi}$, $\boldsymbol{\Xi}$, $\mathbf{P}_\pi$, and $\mathbf{A}$?*
-
-#### Worked Example: LSTD for Policy Evaluation
-
-To illustrate LSTD concretely, consider a 3-state Markov chain under a fixed policy:
-
-$$
-\mathbf{P}_\pi = \begin{pmatrix} 0.7 & 0.2 & 0.1 \\ 0.3 & 0.4 & 0.3 \\ 0.1 & 0.3 & 0.6 \end{pmatrix}, \quad \mathbf{r}_\pi = \begin{pmatrix} 1 \\ 2 \\ 0 \end{pmatrix}.
-$$
+On a 3-state chain under a fixed policy, with
+$\mathbf{P}_\pi = \begin{pmatrix} 0.7 & 0.2 & 0.1 \\ 0.3 & 0.4 & 0.3 \\ 0.1 & 0.3 & 0.6 \end{pmatrix}$,
+$\mathbf{r}_\pi = (1, 2, 0)$, features $\varphi(s) = (1, s)$ and uniform weights:
 
 ```{code-cell} python
 :tags: [hide-input]
@@ -355,347 +847,115 @@ residual = r_pi + gamma * P_pi @ v_lstd - v_lstd
 print(f"\nGalerkin orthogonality: <residual, phi_1> = {np.sum(xi * residual * Phi[:,0]):.6f}")
 ```
 
-**The optimality equation.** With the max back in, the Galerkin conditions are a system of $n$ nonlinear equations in $n$ unknowns:
+With the max back in, Newton's method on the projected optimality equation
+$\boldsymbol{\Phi}^\top \boldsymbol{\Xi}\big(\Bellman(\boldsymbol\Phi\theta) - \boldsymbol{\Phi} \theta\big) = \mathbf{0}$
+uses the envelope-theorem Jacobian
+$\boldsymbol{\Phi}^\top \boldsymbol{\Xi} (\gamma \mathbf{P}_{\pi_k} \boldsymbol{\Phi} - \boldsymbol{\Phi})$
+at the greedy policy $\pi_k$. After the terms in $\theta^{(k)}$ cancel, the
+Newton step is
 
 $$
-G(\theta) \equiv \boldsymbol{\Phi}^\top \boldsymbol{\Xi} \big(\Bellman\hat{v}(\cdot; \theta) - \boldsymbol{\Phi} \theta\big) = \mathbf{0}.
-$$
-
-The two solvers now give genuinely different updates, and it is worth seeing both in matrix form. Let $\pi_k$ be the greedy policy at the current coefficients, $\pi_k(s) = \arg\max_a \{r(s,a) + \gamma \sum_j p(j|s,a) \boldsymbol{\varphi}(j)^\top \theta^{(k)}\}$, so that $\Bellman\hat{v}(\cdot;\theta^{(k)}) = \mathbf{r}_{\pi_k} + \gamma \mathbf{P}_{\pi_k} \boldsymbol{\Phi} \theta^{(k)}$.
-
-*Projected value iteration* fits the basis to the current Bellman targets:
-
-$$
-\boldsymbol{\Phi}^\top \boldsymbol{\Xi} \boldsymbol{\Phi}\, \theta^{(k+1)} = \boldsymbol{\Phi}^\top \boldsymbol{\Xi} \big(\mathbf{r}_{\pi_k} + \gamma \mathbf{P}_{\pi_k} \boldsymbol{\Phi} \theta^{(k)}\big).
-$$ (eq:projected-vi-matrix)
-
-The unknown appears only on the left, through the mass matrix $\boldsymbol{\Phi}^\top \boldsymbol{\Xi} \boldsymbol{\Phi}$. This is {eq}`eq:projected-vi` written in coordinates, a weighted least-squares regression of $\boldsymbol{\Phi}\theta$ on the targets.
-
-*Newton's method* linearizes $G$. By the envelope theorem the Jacobian at $\theta^{(k)}$ is $J_G = \boldsymbol{\Phi}^\top \boldsymbol{\Xi} (\gamma \mathbf{P}_{\pi_k} \boldsymbol{\Phi} - \boldsymbol{\Phi})$, and the Newton update $\theta^{(k+1)} = \theta^{(k)} - J_G^{-1} G(\theta^{(k)})$ becomes, after multiplying through by $J_G$ and cancelling the terms in $\theta^{(k)}$,
-
-$$
-\boldsymbol{\Phi}^\top \boldsymbol{\Xi} (\boldsymbol{\Phi} - \gamma \mathbf{P}_{\pi_k} \boldsymbol{\Phi})\, \theta^{(k+1)} = \boldsymbol{\Phi}^\top \boldsymbol{\Xi} \mathbf{r}_{\pi_k}.
+\boldsymbol{\Phi}^\top \boldsymbol{\Xi} (\boldsymbol{\Phi} - \gamma \mathbf{P}_{\pi_k} \boldsymbol{\Phi})\, \theta^{(k+1)} = \boldsymbol{\Phi}^\top \boldsymbol{\Xi} \mathbf{r}_{\pi_k},
 $$ (eq:lspi)
 
-This is the LSTD system {eq}`eq:lstd-galerkin` for the greedy policy $\pi_k$. Newton's method on the projected optimality equation therefore alternates two steps: compute the greedy policy of the current coefficients, then evaluate it by LSTD. That is **LSPI (least-squares policy iteration)** {cite}`LagoudakisParr2003`, and it is projected policy iteration exactly as announced at the start of the section. Each step solves a linear system in closed form, so the sequence of greedy policies converges in a few steps when it converges. It need not: unlike exact policy iteration, whose improvement step is monotone, the projected evaluation can rank policies inconsistently and LSPI can cycle among a few policies. This is the function-approximation counterpart of the question we take up next.
+the LSTD system for $\pi_k$. Alternating greedy improvement with LSTD
+evaluation is **LSPI (least-squares policy iteration)**
+{cite}`LagoudakisParr2003`. Compare it with fitted value iteration in the same
+coordinates,
+$\boldsymbol{\Phi}^\top \boldsymbol{\Xi} \boldsymbol{\Phi}\, \theta^{(k+1)} = \boldsymbol{\Phi}^\top \boldsymbol{\Xi} (\mathbf{r}_{\pi_k} + \gamma \mathbf{P}_{\pi_k} \boldsymbol{\Phi} \theta^{(k)})$:
+both use the greedy policy, but fitted value iteration applies its Bellman
+operator once and regresses, while LSPI solves for its value.
+
+The closed forms need the features to enter linearly. With a neural network,
+the evaluation step has no closed form, and the natural replacement is a few
+sweeps of fitted policy evaluation, $q \leftarrow \Proj\BellmanPi q$, which is
+what the critic of NFQCA does.
 
 ```{admonition} Exercises: LSTD and LSPI
 :class: hint dropdown
 
-1. **Computing the stationary distribution.** For the 3-state Markov chain above, compute the stationary distribution $\xi$ satisfying $\xi^\top \mathbf{P}_\pi = \xi^\top$.
+1. **Computing the stationary distribution.** For the 3-state chain above, compute the stationary distribution $\xi$ satisfying $\xi^\top \mathbf{P}_\pi = \xi^\top$.
 
 2. **LSTD with stationary weighting.** Recompute the LSTD solution using the stationary distribution instead of uniform weighting. Compare the approximation error.
 
-3. **Two updates.** Implement {eq}`eq:projected-vi-matrix` and {eq}`eq:lspi` on a small MDP with two actions. Confirm that both converge to the same coefficients and compare the number of iterations.
+3. **Two updates.** On a small MDP with two actions and linear features, implement fitted value iteration and LSPI {eq}`eq:lspi`. Compare the number of iterations, and find features under which LSPI cycles between two policies.
 ```
 
-(sec-abe-convergence)=
-## When Does Projected Value Iteration Converge?
-
-Which approximation maps preserve the contraction of the Bellman operator, in
-which norm, and what happens when they do not?
-
-Value iteration converges because $\Bellman$ is a $\gamma$-contraction in the sup norm ({prf:ref}`banach-fixed-point`). Projected value iteration {eq}`eq:projected-vi` iterates the composed operator $\Proj \Bellman$ instead, and $\Proj$ depends on the method:
-
-- For **collocation**, $\Proj$ interpolates values at the collocation points
-- For **Galerkin**, $\Proj$ is orthogonal projection with respect to $\langle \cdot, \cdot \rangle_w$
-- For **least squares**, $\Proj$ minimizes the weighted residual norm
-
-The question is whether $\Proj \Bellman$ inherits the contraction. If not, the iteration may diverge, oscillate, or converge to a spurious fixed point even though the original problem is well-posed. The finite-horizon chapter met the same question for backward recursion: {prf:ref}`prop-interp-error-accumulation` showed that the error of the stored values is passed on unchanged from stage to stage when the interpolation weights are nonnegative ($\Lambda = 1$) and can be amplified by $\Lambda > 1$ otherwise. Over an infinite horizon, amplification at every stage is fatal, and the $\Lambda = 1$ condition becomes the first of two sufficient conditions below.
-
-### Monotone Projections Preserve the Sup-Norm Contraction
-
-The answer depends on structural properties of the approximation operator $\Proj$. This theory was developed independently across several research communities: computational economics {cite}`Judd1992,Judd1996,McGrattan1997,SantosVigoAguiar1998`, economic dynamics {cite}`Stachurski2009`, and reinforcement learning {cite}`Gordon1995,Gordon1999`. They arrived at essentially the same conditions.
-
-```{prf:proposition} Monotone operators are nonexpansive (Stachurski)
-:label: monotone-nonexpansive
-
-Let $\Proj: \mathcal{V} \to \mathcal{V}$ be a linear operator on the space $\mathcal{V}$ of bounded real-valued functions on $\mathcal{S}$. If $\Proj$ satisfies:
-
-1. **Monotonicity**: $f \leq g$ pointwise implies $\Proj f \leq \Proj g$
-2. **Constant preservation**: $\Proj\mathbf{1} = \mathbf{1}$ where $\mathbf{1}$ is the constant function equal to $1$
-
-Then $\Proj$ is nonexpansive in the sup norm: $\|\Proj f - \Proj g\|_\infty \leq \|f - g\|_\infty$ for all $f, g \in \mathcal{V}$.
-```
-
-```{prf:proof}
-Let $M = \|f - g\|_\infty$. Then $-M \leq f(s) - g(s) \leq M$ for all $s$, which can be written as $g - M\mathbf{1} \leq f \leq g + M\mathbf{1}$. By monotonicity, $\Proj(g - M\mathbf{1}) \leq \Proj f \leq \Proj(g + M\mathbf{1})$. By linearity and constant preservation, $\Proj g - M\mathbf{1} \leq \Proj f \leq \Proj g + M\mathbf{1}$, which means $|\Proj f(s) - \Proj g(s)| \leq M$ for all $s$. Therefore $\|\Proj f - \Proj g\|_\infty \leq \|f - g\|_\infty$.
-```
-
-The intuition is that a monotone, constant-preserving operator acts like a weighted average that respects order and cannot amplify differences between functions. For an interpolation operator $(\Proj f)(s) = \sum_j \ell_j(s) f(s_j)$ with cardinal functions $\ell_j$, the two conditions say that the weights are nonnegative and sum to one, which is exactly $\Lambda = \sup_s \sum_j |\ell_j(s)| = 1$ in the finite-horizon chapter. Combining nonexpansiveness with the contraction of the Bellman operator yields the main stability result.
-
-```{prf:theorem} Stability of projected value iteration (Santos-Vigo-Aguiar)
-:label: santos-vigo-aguiar-stability
-
-Let $\Bellman: \mathcal{V} \to \mathcal{V}$ be a $\gamma$-contraction on the space $\mathcal{V}$ of bounded functions with respect to the sup norm. Let $\Proj: \mathcal{V} \to \mathcal{V}$ be a linear approximation operator satisfying monotonicity and constant preservation.
-
-Then the composed operator $\Proj \Bellman$ is a $\gamma$-contraction, and projected value iteration $v_{k+1} = \Proj \Bellman v_k$ converges globally to a unique fixed point $v_\Proj \in \text{Range}(\Proj)$ with approximation error:
-
-$$
-\|v_\Proj - v^*\|_\infty \leq \frac{1}{1-\gamma} \|\Proj v^* - v^*\|_\infty,
-$$
-
-where $v^*$ is the true value function.
-```
-
-```{prf:proof}
-By {prf:ref}`monotone-nonexpansive`, $\Proj$ is nonexpansive. Since $\Bellman$ is a $\gamma$-contraction,
-
-$$
-\|\Proj \Bellman f - \Proj \Bellman g\|_\infty \leq \|\Bellman f - \Bellman g\|_\infty \leq \gamma\|f-g\|_\infty,
-$$
-
-so $\Proj \Bellman$ is a $\gamma$-contraction and {prf:ref}`banach-fixed-point` gives the unique fixed point and global convergence. For the error bound, use $v_\Proj = \Proj\Bellman v_\Proj$ and $v^* = \Bellman v^*$:
-
-$$
-\|v_\Proj - v^*\|_\infty \leq \|\Proj\Bellman v_\Proj - \Proj\Bellman v^*\|_\infty + \|\Proj \Bellman v^* - v^*\|_\infty \leq \gamma \|v_\Proj - v^*\|_\infty + \|\Proj v^* - v^*\|_\infty,
-$$
-
-and rearranging gives the claim.
-```
-
-The fixed-point error is controlled by how well $\Proj$ can represent $v^*$. If $v^* \in \text{Range}(\Proj)$, then $\Proj v^* = v^*$ and the error vanishes. Otherwise the error is the best-approximation error amplified by $(1-\gamma)^{-1}$, the infinite-horizon counterpart of the sum $\delta_2 + \cdots + \delta_T$ in {prf:ref}`prop-interp-error-accumulation`.
-
-For discrete-state problems, the monotonicity conditions have a natural reading as **averaging with nonnegative weights**. This characterization is due to Gordon.
-
-```{prf:definition} Averager (Gordon)
-:label: gordon-averager
-
-An operator $\Proj: \mathbb{R}^{|\mathcal{S}|} \to \mathbb{R}^{|\mathcal{S}|}$ is an **averager** if $\Proj v = Wv$ where $W$ is a $|\mathcal{S}| \times |\mathcal{S}|$ stochastic matrix: $w_{ij} \geq 0$ and $\sum_j w_{ij} = 1$ for all $i$.
-```
-
-Averagers automatically satisfy the monotonicity conditions: linearity follows from matrix multiplication, monotonicity from nonnegativity of the entries, and constant preservation from the row sums.
-
-```{prf:theorem} Stability with averagers (Gordon)
-:label: gordon-stability
-
-If $\Proj$ is an averager and $\Bellman$ is the Bellman operator (a $\gamma$-contraction), then $\Proj \Bellman$ is a $\gamma$-contraction, and value iteration $v_{k+1} = \Proj \Bellman v_k$ converges to a unique fixed point.
-```
-
-This specializes the Santos-Vigo-Aguiar theorem to discrete states in the language of stochastic matrices, and it gives the averaging a Markov-chain reading: $\Proj v$ is an expected value after one random transition, and expectations preserve order. The finite-horizon chapter made the same observation about linear interpolation, which replaces a deterministic successor by a random grid node with the interpolation weights as probabilities. Composing that chain with the model's own transitions gives $\Proj\Bellman$ as the Bellman operator of a finite-state MDP, which is why it contracts.
-
-**Examples of averagers** include state aggregation (averaging values within groups), $k$-nearest neighbors (averaging over nearest states), kernel smoothing with positive kernels, and multilinear interpolation on grids (barycentric weights are nonnegative and sum to one). **Counterexamples** include linear least squares regression (the projection matrix may have negative entries) and high-order polynomial interpolation (the Runge phenomenon produces negative weights). The table summarizes which common approximation operators satisfy the monotonicity conditions:
-
-| **Method** | **Monotone?** | **Notes** |
-|:-----------|:--------------|:----------|
-| Piecewise linear interpolation | Yes | Always an averager; guaranteed stability |
-| Multilinear interpolation (grid) | Yes | Barycentric weights are nonnegative and sum to one |
-| Shape-preserving splines (Schumaker) | Yes | Designed to maintain monotonicity |
-| State aggregation | Yes | Exact averaging within groups |
-| Kernel smoothing (positive kernels) | Yes | If kernel integrates to one |
-| High-order polynomial interpolation | No | Oscillations violate monotonicity (Runge phenomenon) |
-| Least squares projection (arbitrary basis) | No | Projection matrix may have negative entries |
-| Fourier/spectral methods | No | Not monotone-preserving in general |
-| Neural networks | No | Highly flexible but no monotonicity guarantees |
-
-Read against the three methods of this chapter, the table says the following. **Collocation with piecewise linear interpolation is monotone.** Between grid points $s_i$ and $s_{i+1}$ the interpolant is
-
-$$
-(\Proj v)(s) = \frac{s_{i+1} - s}{s_{i+1} - s_i} v(s_i) + \frac{s - s_i}{s_{i+1} - s_i} v(s_{i+1}),
-$$
-
-an averager in Gordon's sense, so {prf:ref}`santos-vigo-aguiar-stability` applies and the folk wisdom that linear interpolation is safe for value iteration has a rigorous foundation. Collocation with the cubic through four Chebyshev nodes in the worked example is *not* monotone, and the iteration there converged because the operator happened to be mild, not because the theory guaranteed it. **Galerkin projection is generally not monotone.** The projection matrix $\Proj = \boldsymbol{\Phi}(\boldsymbol{\Phi}^\top \boldsymbol{\Xi} \boldsymbol{\Phi})^{-1} \boldsymbol{\Phi}^\top \boldsymbol{\Xi}$ typically has negative entries: for the polynomial basis $\{1, x, x^2\}$ on $[-1, 1]$ it maps some nonnegative functions to functions with negative values, the same sign oscillation as in the Runge phenomenon. **Least squares shares the problem**, since its projection has the same form. So the sup-norm theory covers collocation with simple bases and leaves Galerkin and least squares, the projections behind LSTD and linear function approximation in reinforcement learning, without a guarantee.
-
-The choice of solver also matters. Function iteration needs $\Proj\Bellman$ to contract. Newton's method does not; its convergence depends on the conditioning of the Jacobian and on the starting point. This is the reason for the hybrid strategy of {ref}`sec-wr-solve`: a few iterations with a monotone, low-order approximation to get a starting guess, then Newton's method with a smooth, high-order one.
-
-```{admonition} Exercises: Monotonicity and Convergence
-:class: hint dropdown
-
-1. **Verifying monotonicity.** Consider piecewise linear interpolation on a 5-point grid. Write out the interpolation weights for a point between grid points 2 and 3. Verify that all weights are nonnegative and sum to one.
-
-2. **A non-monotone example.** Using Lagrange interpolation with 4 equally spaced nodes on $[0, 1]$, compute the interpolation weights for the point $x = 0.1$. Show that some weights are negative.
-
-3. **State aggregation.** Consider a discrete MDP with states $\{1, 2, 3, 4\}$ aggregated into two groups: $\{1, 2\}$ and $\{3, 4\}$. Write out the aggregation operator as a matrix.
-
-4. **Contraction constant.** For the composed operator $\Proj \Bellman$ with a monotone $\Proj$, prove that the contraction constant is exactly $\gamma$.
-```
-
-### Orthogonal Projection and Policy Evaluation: The On-Policy Condition
-
-If an orthogonal projection is not monotone, what can still make the projected Bellman operator contract? For the special case of **policy evaluation**, the answer is to change the norm. We work with the finite-state Galerkin setting of {ref}`sec-abe-lstd`, where the projected equation is {eq}`eq:projected-bellman-pi` and $\Proj$ is the $\xi$-orthogonal projection {eq}`eq:xi-projection`. The result below is due to {cite:t}`TsitsiklisVanRoy1997`, who proved it to explain the convergence of TD(0) with linear function approximation.
-
-In reinforcement learning the weighting $\xi$ is not a free choice. Data come from trajectories $(s_0, a_0, r_1, s_1, a_1, r_2, \ldots)$ generated by following $\pi$, and if the Markov chain induced by $\pi$ is ergodic, the state distribution converges to the stationary distribution $\xi$ satisfying $\xi^\top \mathbf{P}_\pi = \xi^\top$. States visited often contribute more samples and weigh more in any fit; states visited rarely contribute little. Suppose, then, that $\xi$ is the stationary distribution of $\pi$. We will show that $\Proj$ is nonexpansive in $\|\cdot\|_\xi$ and that $\BellmanPi$ is a $\gamma$-contraction in $\|\cdot\|_\xi$, so that their composition is a $\gamma$-contraction:
-
-$$
-\|\Proj \BellmanPi v - \Proj \BellmanPi w\|_\xi \leq \|\BellmanPi v - \BellmanPi w\|_\xi \leq \gamma \|v - w\|_\xi.
-$$
-
-**Orthogonal projection is nonexpansive.** For any vector $v$, decompose $v = \Proj v + (v - \Proj v)$, where $(v - \Proj v)$ is $\xi$-orthogonal to $\text{span}(\boldsymbol{\Phi})$. By the Pythagorean theorem in the $\xi$-inner product,
-
-$$
-\|v\|_\xi^2 = \|\Proj v\|_\xi^2 + \|v - \Proj v\|_\xi^2 \geq \|\Proj v\|_\xi^2,
-$$
-
-so $\|\Proj v\|_\xi \leq \|v\|_\xi$ for all $v$. Note what was *not* needed: no sign condition on the entries of $\Proj$. The sup-norm argument failed for this projection; the $\xi$-norm argument does not see the negative weights at all.
-
-**$\BellmanPi$ contracts in $\|\cdot\|_\xi$.** Since $\BellmanPi v - \BellmanPi w = \gamma \mathbf{P}_\pi (v - w)$, it suffices to show that $\mathbf{P}_\pi$ is nonexpansive: $\|\mathbf{P}_\pi z\|_\xi \leq \|z\|_\xi$ for every $z$.
-
-*Before reading on, try to show this yourself. Hint: what property of $\xi$ relates it to $\mathbf{P}_\pi$?*
-
-The $s$-th component of $\mathbf{P}_\pi z$ is $\sum_{s'} p(s'|s,\pi(s)) z(s')$, a weighted average of the values $z(s')$. Since $x \mapsto x^2$ is convex, Jensen's inequality for the distribution $p(\cdot|s,\pi(s))$ gives
-
-$$
-\left[\sum_{s'} p(s'|s,\pi(s)) z(s')\right]^2 \leq \sum_{s'} p(s'|s,\pi(s)) z(s')^2.
-$$
-
-Weighting by $\xi$ and summing over $s$,
-
-$$
-\|\mathbf{P}_\pi z\|_\xi^2 \leq \sum_s \xi(s) \sum_{s'} p(s'|s,\pi(s)) z(s')^2 = \sum_{s'} z(s')^2 \sum_s \xi(s) p(s'|s,\pi(s)) = \sum_{s'} z(s')^2 \xi(s') = \|z\|_\xi^2,
-$$
-
-where the last step is stationarity, $\sum_s \xi(s) p(s'|s,\pi(s)) = \xi(s')$. So $\mathbf{P}_\pi$ is nonexpansive and $\BellmanPi$ is a $\gamma$-contraction in $\|\cdot\|_\xi$. Composing with the nonexpansive projection, $\Proj \BellmanPi$ is a $\gamma$-contraction in $\|\cdot\|_\xi$, and by {prf:ref}`banach-fixed-point` it has a unique fixed point to which projected policy evaluation converges from any initialization. That fixed point is the LSTD solution {eq}`eq:lstd-galerkin`, and the argument of {prf:ref}`santos-vigo-aguiar-stability` gives $\|v_\Proj - v_\pi\|_\xi \leq (1-\gamma)^{-1} \|\Proj v_\pi - v_\pi\|_\xi$; the sharper constant $(1-\gamma^2)^{-1/2}$ of {cite:t}`TsitsiklisVanRoy1997` uses the inner-product structure.
-
-**The on-policy condition.** Convergence depends on matching the weighting to the operator. We cannot choose an arbitrary weighted $L^2$ norm and expect $\Proj \BellmanPi$ to be a contraction: $\xi$ must be the stationary distribution of the very $\mathbf{P}_\pi$ that appears in $\BellmanPi$. In reinforcement learning this is **on-policy learning**. When we collect transitions by following $\pi$, the empirical weighting is the stationary distribution of $\pi$, and the projection is compatible with the operator. When $\xi$ is the stationary distribution of a different behavior policy, as in off-policy learning, the Jensen step fails, $\mathbf{P}_\pi$ need not be nonexpansive in $\|\cdot\|_\xi$, and $\Proj\BellmanPi$ may fail to contract. This is the mechanism behind divergence examples such as Baird's counterexample {cite}`Baird1995`.
-
-This is a different kind of result from the monotone theory. There, the structure of $\Proj$ (nonnegative weights) preserved the sup-norm contraction of any Bellman operator. Here, nothing is assumed about $\Proj$ beyond orthogonality, and the compatibility between the weighting and the operator does the work.
-
-```{admonition} Exercises: The On-Policy Condition
-:class: hint dropdown
-
-1. **Non-expansiveness fails off-policy.** For the 3-state chain of the LSTD example and the weighting $\xi' = (0.9, 0.05, 0.05)$, find a vector $z$ such that $\|\mathbf{P}_\pi z\|_{\xi'} > \|z\|_{\xi'}$.
-
-2. **Losing the argument is not losing convergence.** Implement projected policy evaluation $v_{k+1} = \Proj \BellmanPi v_k$ for the same chain with $\xi'$. It still converges: compute the spectral radius of $\gamma \Proj \mathbf{P}_\pi$ and check that it equals $\gamma$ for this feature set whatever the weighting. Explain why losing nonexpansiveness does not imply divergence. Then drop the constant feature, keep $\varphi(s) = s$ alone, and find a weighting concentrated on state 1 under which the spectral radius exceeds one and the iteration diverges.
-
-3. **Baird's counterexample.** Look up Baird's star MDP and reproduce the divergence of projected policy evaluation under its off-policy weighting.
-```
-
-### The Optimality Operator
-
-Can the weighted $L^2$ argument be extended to the Bellman optimality operator $\Bellman v = \max_a [\mathbf{r}_a + \gamma \mathbf{P}_a v]$? Not with this approach. The obstacle is the Jensen step. For policy evaluation, the inner term $\sum_{s'} p(s'|s,\pi(s)) z(s')$ is a convex combination of the values $z(s')$. For the optimality operator we would need to bound
-
-$$
-\left[\max_{a} \sum_{s'} p(s'|s,a) z(s')\right]^2,
-$$
-
-and the maximum of convex combinations is not a convex combination. Jensen's inequality does not apply, and there is no single stationary distribution to match, since each action has its own transition matrix. We cannot conclude that $\Bellman$ is nonexpansive in any weighted $L^2$ norm.
-
-Is convergence of $\Proj \Bellman$ with a non-monotone projection impossible, or merely unproved? Both happen. Projected value iteration with linear least squares can diverge on small examples, and Q-learning with linear function approximation can diverge. Yet fitted Q-iteration and approximate value iteration with neural networks often work well in practice. No general guarantee like the policy-evaluation result exists; results are available for restricted function classes or under strong assumptions on the MDP, and the interplay between the max, the projection, and the norm is an active research area. The alternative solver does not escape the problem: LSPI {eq}`eq:lspi` replaces the max by a sequence of policy evaluations, each of which converges under the on-policy condition, but the sequence of policies has no monotonicity guarantee and can cycle.
-
-Despite these gaps, the algorithm template is the same for every projection method, and it is simple. We now state it in the form used by the rest of the book.
-
-## Nonlinear Approximators
-
-What remains of the residual formulation when the value function is represented
-by a neural network rather than a linear basis expansion?
-
-The methods so far used linear function classes: polynomial bases, piecewise-linear interpolants, linear combinations of fixed features. Neural networks, kernel methods, and decision trees do not fit this template. The right way to extend it is through the projection step of {eq}`eq:projected-vi`, not through the Galerkin conditions themselves.
-
-Recall what projected value iteration does in coordinates, {eq}`eq:projected-vi-matrix`: it fits $\hat{v}(\cdot;\theta)$ to the fixed targets $y = \Bellman\hat{v}_k$ by minimizing $\|\hat{v}(\cdot;\theta) - y\|_w^2$. For any model $v_{\boldsymbol{\theta}}$ with parameters $\boldsymbol{\theta} \in \mathbb{R}^p$, the same fit is
-
-$$
-\boldsymbol{\theta}_{k+1} = \arg\min_{\boldsymbol{\theta}} \|v_{\boldsymbol{\theta}} - \Bellman v_{\boldsymbol{\theta}_k}\|_w^2,
-$$
-
-and its first-order stationarity condition is an orthogonality condition:
-
-$$
-\Big\langle v_{\boldsymbol{\theta}} - \Bellman v_{\boldsymbol{\theta}_k}, \frac{\partial v_{\boldsymbol{\theta}}}{\partial \theta_i} \Big\rangle_w = 0 \quad \text{for all } i.
-$$
-
-The test functions are the partial derivatives $\partial v_{\boldsymbol{\theta}}/\partial\theta_i$, which span the tangent space of the manifold $\{v_{\boldsymbol{\theta}}\}$ at the current parameters. In the linear case $v_{\boldsymbol{\theta}} = \sum_i \theta_i \varphi_i$ the derivatives are the fixed basis functions and we recover Galerkin. For a nonlinear model the test functions move with $\boldsymbol{\theta}$, the condition is nonlinear, and it is solved by gradient descent on the squared error. Because the target $\Bellman v_{\boldsymbol{\theta}_k}$ is held fixed during the fit, the gradient only differentiates $v_{\boldsymbol{\theta}}$. This is the **semi-gradient** of temporal difference learning. Bellman residual minimization, the least-squares criterion of {ref}`sec-wr-conditions`, would instead minimize $\|v_{\boldsymbol{\theta}} - \Bellman v_{\boldsymbol{\theta}}\|_w^2$ with the same $\boldsymbol{\theta}$ on both sides. Its test functions are $\partial v_{\boldsymbol{\theta}}/\partial\theta_i - \partial(\Bellman v_{\boldsymbol{\theta}})/\partial\theta_i$, the **full gradient**, and computing them requires differentiating through the operator, which with a hard max means the envelope theorem and with the smooth operator of the [regularized DP chapter](regularized-dp.md) is an ordinary derivative. The two criteria have different fixed points; the chapters on [fitted Q iteration](fitted-q-iteration.md) use the first, and the semi-gradient versus full-gradient distinction returns there.
-
-The **dual pairing** formulation {cite}`LegrandJunca2025` extends this framework to settings where test objects need not be regular functions. We have been informal about this distinction in our treatment of collocation, but the Dirac deltas $\delta(x - x_i)$ used there are not classical functions. They are distributions, defined rigorously only through their action on test functions via $\langle \Residual(v), \delta(x - x_i) \rangle = (\Residual v)(x_i)$. The simple calculus argument for orthogonality does not apply directly to such objects; the dual pairing framework provides the proper mathematical foundation. The induced dual norm $\|\Residual(v)\|_* = \sup_{\|w\|=1} |\langle \Residual(v), w \rangle|$ measures residuals by their worst-case effect on test functions, a perspective that has inspired adversarial formulations {cite}`Zang2020` where both trial and test functions are learned.
-
-The unifying principle across linear and nonlinear methods is orthogonality of a residual to a set of test functions. Linear methods use fixed test functions and admit closed-form solutions. Nonlinear methods use parameter-dependent test functions and require iterative optimization. In both cases, the convergence theory of {ref}`sec-abe-convergence` is what is given up: a neural network is not an averager, and nothing matches its fitting norm to the operator.
-
-## Fitted Value Iteration
-
-How does projected fixed-point iteration become a repeated supervised fitting
-problem for values or action values?
-
-We have developed projection methods through functional equations: choose test functions, impose orthogonality conditions, solve for coefficients. Solved by function iteration, every one of them computes the same thing: **Bellman targets, then a fit**. In parameter space, with a finite state space of $m$ states, $n$ features, and weighting $\boldsymbol{\Xi}$, the Galerkin projection of the targets $\mathbf{y}$ with $y_s = (\Bellman v_k)(s)$ is {eq}`eq:projected-vi-matrix`,
-
-$$
-\boldsymbol{\theta}_{k+1} = (\boldsymbol{\Phi}^\top \boldsymbol{\Xi} \boldsymbol{\Phi})^{-1} \boldsymbol{\Phi}^\top \boldsymbol{\Xi} \mathbf{y},
-$$
-
-a weighted least-squares regression of $\boldsymbol{\Phi}\boldsymbol{\theta}$ on the targets. Collocation instead requires the exact interpolation $\boldsymbol{\Phi}\boldsymbol{\theta}_{k+1} = \mathbf{y}$ at the selected points. In continuous state spaces, sampled states replace the Galerkin integrals and again produce a regression problem. Neural networks, decision trees, and kernel methods all implement the same procedure with a different fitting rule: given data $\{(s_i, y_i)\}$ with $y_i = (\Bellman v_k)(s_i)$, each produces a function $v_{k+1}: \mathcal{S} \to \mathbb{R}$ from the targets.
-
-```{prf:algorithm} Fitted-Value Iteration
-:label: fitted-value-iteration
-
-**Inputs:** Finite state set $\mathcal{S}$ (or sample $\{s_i\}_{i=1}^m$), discount factor $\gamma$, function class $\mathcal{F}$, fitting procedure $\mathtt{fit}$, convergence tolerance $\epsilon$
-
-**Output:** Approximate value function $\hat{v} \approx v^*$
-
-1. Initialize $v_0 \in \mathcal{F}$ arbitrarily
-2. Set $k \leftarrow 0$
-3. **repeat**
-4. $\quad$ **for** each state $s_i \in \mathcal{S}$ **do**
-5. $\quad\quad$ Compute target: $y_i \leftarrow \displaystyle\max_{a \in \mathcal{A}} \Big\{ r(s_i, a) + \gamma \sum_{s'} p(s' \mid s_i, a) v_k(s') \Big\}$
-6. $\quad$ **end for**
-7. $\quad$ Fit new approximation: $v_{k+1} \leftarrow \mathtt{fit}\big(\{(s_i, y_i)\}_{i=1}^m; \mathcal{F}\big)$
-8. $\quad$ $k \leftarrow k+1$
-9. **until** $\|v_k - v_{k-1}\| < \epsilon$ (or maximum iterations reached)
-10. **return** $v_k$
-```
-
-The operation $\mathtt{fit}$ may solve a linear system, run gradient descent,
-or train an ensemble. For a linear space $\mathcal{F}$, weighted squared-error
-fitting gives the Galerkin projection. A square collocation system gives exact
-interpolation when its evaluation matrix is nonsingular. The convergence
-results of {ref}`sec-abe-convergence` apply when $\mathtt{fit}$ is an averager,
-and not otherwise. The following code runs fitted-value iteration on the
-optimal stopping problem with polynomial regression of increasing degree, a
-non-monotone fit that converges here all the same:
-
-```{code-cell} python
-:tags: [hide-input]
-import numpy as np
-from sklearn.linear_model import Ridge
-from sklearn.preprocessing import PolynomialFeatures
-from sklearn.pipeline import make_pipeline
-
-gamma = 0.9
-v_bar_exact = (1 - np.sqrt(1 - gamma**2)) / gamma**2
-s_star_exact = gamma * v_bar_exact
-def v_exact(s):
-    return np.where(s >= s_star_exact, s, gamma * v_bar_exact)
-
-def fitted_value_iteration(s_grid, gamma, degree, max_iter=50, tol=1e-6):
-    X = s_grid.reshape(-1, 1)
-    v = np.zeros(len(s_grid))
-    
-    for k in range(max_iter):
-        # Use trapezoidal rule for E[v] under uniform distribution on [0,1]
-        v_bar = np.trapezoid(v, s_grid)
-        targets = np.maximum(s_grid, gamma * v_bar)
-        
-        model = make_pipeline(PolynomialFeatures(degree), Ridge(alpha=1e-6))
-        model.fit(X, targets)
-        v_new = model.predict(X)
-        
-        if np.linalg.norm(v_new - v) < tol:
-            return v_new, k + 1
-        v = v_new
-    return v, max_iter
-
-s_grid = np.linspace(0, 1, 50)
-print(f"{'Degree':<10} {'Iterations':<12} {'Max Error':<12}")
-print("-" * 34)
-for deg in [3, 5, 8]:
-    v, iters = fitted_value_iteration(s_grid, gamma, deg)
-    max_error = np.max(np.abs(v - v_exact(s_grid)))
-    print(f"{deg:<10} {iters:<12} {max_error:<12.6f}")
-```
-
-Replacing the state value by the action value $q(s,a)$ turns the target into $y_i = r(s_i,a_i) + \gamma \sum_{s'} p(s'|s_i,a_i) \max_{a'} q_k(s',a')$ and the algorithm into **fitted Q-iteration**, which the [chapter of that name](fitted-q-iteration.md) develops from batch data to DQN. Both assume that the Bellman operator can be evaluated exactly: computing $y_i$ requires the transition probabilities and a sum over next states. In practice we often have only a simulator or observed data. The next chapter shows how to approximate these expectations from samples.
+(sec-abe-roadmap)=
+## From Fitted Value Iteration to FQI and NFQCA
+
+Which steps separate the algorithm of this chapter from the fitted Q-iteration
+methods used in practice, and where is each taken?
+
+Fitted value iteration, as stated here, assumes four things that NFQCA does
+not.
+
+**It learns values of states, not of actions.** To act greedily with respect
+to $v(\cdot;\theta)$ requires, at every decision, the expectation
+$r(s,a) + \gamma\,\mathbb{E}[v(s';\theta) \mid s,a]$ for every action: the
+model and an integral at decision time. Storing an action-value function
+$q(s,a;\theta)$ instead moves that work into training, so that acting is a
+maximization over $q(s,\cdot;\theta)$. The Bellman operator on
+$q$-functions, $(\Bellman q)(s,a) = r(s,a) + \gamma\,\mathbb{E}[\max_{a'} q(s',a') \mid s,a]$,
+is again a $\gamma$-contraction, and everything in this chapter applies to it
+unchanged. Fitted value iteration on $q$ is fitted Q-iteration.
+
+**It computes expectations exactly.** The targets contain
+$\mathbb{E}[\,\cdot \mid s,a]$, which the eight-dimensional example already
+replaced by an average over draws. With a simulator, or with logged data, a
+target typically uses a single sampled successor. The
+[Monte Carlo chapter](monte-carlo-bellman-estimation.md) studies what this
+costs: variance, and a bias that comes from maximizing over noisy estimates.
+
+**It chooses the states at which targets are computed.** Batch reinforcement
+learning receives a fixed set of transitions instead, and online
+reinforcement learning a buffer that changes as the agent acts. The error
+analysis of this chapter said that a fit is controlled only where there are
+data. The [fitted Q-iteration chapter](fitted-q-iteration.md) builds the
+batch algorithms on this template, the tree-based FQI of {cite:t}`ernst2005tree`
+(an averager) and NFQ {cite}`riedmiller2005neural` (a neural network), and
+then DQN, whose design choices respond to the deadly triad.
+
+**It maximizes over a finite set of actions.** Every target contains
+$\max_{a'} q(s',a';\theta)$. When the action is continuous, a torque or a
+dose, that maximum is a nonlinear program, to be solved once for every
+target at every iteration. NFQCA {cite}`Hafner2011` trains a second network,
+an actor $\pi_{\boldsymbol w}(s) \approx \arg\max_a q(s,a;\theta)$, and uses it
+in the target in place of the maximum. The critic $q$ is fitted by regression
+against fixed targets, exactly as in this chapter, and the actor by gradient
+ascent on the critic. In the terms of {ref}`sec-abe-api`, NFQCA is
+approximate policy iteration with one fitted evaluation sweep per
+improvement, that is, a fitted version of modified policy iteration
+({prf:ref}`alg-modified-policy-iteration`) in which the improvement step is
+learned as well. The [amortized action optimization chapter](amortized-action-optimization.md)
+develops it, together with its online descendants DDPG and TD3. The smooth
+Bellman operator meets the same obstacle in the partition function over a
+continuous action set ({ref}`sec-continuous-actions`), and soft actor-critic
+resolves it in the same way.
+
+| What this chapter assumes | What replaces it | Where |
+|:--------------------------|:-----------------|:------|
+| State values $v(s)$ | Action values $q(s,a)$, so acting needs no model | [Monte Carlo](monte-carlo-bellman-estimation.md), [FQI](fitted-q-iteration.md) |
+| Exact expectation in the target | One sampled successor per transition | [Monte Carlo](monte-carlo-bellman-estimation.md) |
+| Targets at chosen states | A fixed batch (FQI, NFQ) or a replay buffer (DQN) | [FQI](fitted-q-iteration.md) |
+| Maximum over a finite action set | A learned actor in the target (NFQCA, DDPG, TD3) | [Amortized action optimization](amortized-action-optimization.md) |
 
 ## Summary and Outlook
 
-Inserting a projection into the Bellman equation turns the two generic
-solvers of the previous chapter into projected value iteration,
-$\hat{v}_{k+1} = \Proj\Bellman\hat{v}_k$, and projected policy iteration,
-which evaluates each greedy policy within the span of the basis. For a finite
-state space and Galerkin projection these are the LSTD and LSPI algorithms.
-Whether the projected iteration converges depends on whether $\Proj$ keeps the
-contraction of $\Bellman$: monotone interpolation and state aggregation keep it
-in the sup norm, orthogonal projection keeps it in the $\xi$-norm for policy
-evaluation under the on-policy weighting, and the optimality operator with a
-non-monotone projection has no general guarantee. Fitted value and Q iteration
-expose the computational pattern shared by all of these methods: evaluate
-Bellman targets, fit an approximator, repeat.
+Replacing the table by a parametric function turns value iteration into
+fitted value iteration: compute Bellman targets at chosen states, fit the
+function to them, repeat. Collocation and Galerkin projection are two fitting
+rules, and regression with trees or neural networks is the one that scales,
+as the eight-dimensional stopping problem showed. If each fit is accurate to
+$\varepsilon$ in the sup norm, the value error stays below
+$\varepsilon/(1-\gamma)$ and the greedy policy loses at most
+$2\gamma\varepsilon/(1-\gamma)^2$. The fit can, however, stretch differences
+and make the iteration diverge, even when it represents the solution exactly.
+Averagers cannot, and for policy evaluation, least squares weighted by the
+stationary distribution of the policy cannot either. Neither argument covers
+the optimality operator with a neural network, which is the setting of
+practical fitted Q-iteration. Newton's method becomes approximate policy
+iteration, with LSTD and LSPI as its linear case.
 
 Exact target evaluation still assumes access to the transition probabilities
 or an exact expectation. How can the same Bellman update be estimated when the
@@ -708,23 +968,35 @@ maximization bias explicit.
 :::{exercise} Weighting shift
 :label: ex-projection-check-3
 
-If the projection weighting distribution puts almost no mass on an important state region, what failure should you expect?
+If the fitting distribution puts almost no mass on an important region of the state space, what failure should you expect?
 :::
 
 :::{solution} ex-projection-check-3
 :class: dropdown
 
-The approximation may be accurate under the weighted norm yet poor in that neglected region, leading to bad values or decisions there.
+The fit may be accurate under the weighted norm yet poor in that neglected region, leading to bad values or decisions there. In the error bound of fitted value iteration, this shows up as a large sup-norm error, or, in the weighted analysis, as a large concentrability coefficient.
 :::
 
-:::{exercise} Two solvers, two algorithms
+:::{exercise} Accurate fits, bad iteration
 :label: ex-projection-check-4
 
-Projected value iteration and LSPI both use the greedy policy of the current coefficients. What does each do with it?
+In the two-state counterexample, the function class contains $v^*$ exactly. Why does fitted value iteration still diverge, and why does {prf:ref}`thm-approximate-vi` not prevent it?
 :::
 
 :::{solution} ex-projection-check-4
 :class: dropdown
 
-Projected value iteration uses it once, to compute Bellman targets, and then fits the basis to those targets. LSPI solves the projected policy evaluation equation {eq}`eq:lstd-galerkin` for that policy, which is a Newton step on the projected optimality equation.
+The least-squares fit is not an averager: it stretches the constant target into a line that overshoots at state 2, by a factor $6/5$, which beats the contraction $\gamma$ when $\gamma > 5/6$. The fit error at iteration $k$ is proportional to $\theta_k$, so there is no single $\varepsilon$ that bounds it for all $k$, and the theorem's assumption fails.
+:::
+
+:::{exercise} Where the actor enters
+:label: ex-projection-check-5
+
+Which part of fitted Q-iteration does the actor of NFQCA replace, and why is it needed only for continuous actions?
+:::
+
+:::{solution} ex-projection-check-5
+:class: dropdown
+
+It replaces the maximization over next actions inside each Bellman target. With a finite action set the maximum is computed by enumeration; with a continuous action set it is a nonlinear program for every target, and the actor amortizes those programs into one trained network.
 :::
