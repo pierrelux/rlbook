@@ -17,7 +17,9 @@ unknown is a function rather than a finite vector. How can such an equation be
 approximated by finitely many coefficients while retaining a precise condition
 on its residual?
 
-The Bellman optimality equation $\Bellman v = v$, whose contraction property underlies the convergence of value iteration, is a functional equation: an equation where the unknown is an entire function rather than a finite-dimensional vector. When the state space is continuous or very large, we cannot represent the value function exactly on a computer. We must instead work with finite-dimensional approximations. This motivates weighted residual methods (also called minimum residual methods), a general framework for transforming infinite-dimensional problems into tractable finite-dimensional ones {cite}`Chakraverty2019,AtkinsonPotra1987`.
+The Bellman optimality equation $\Bellman v = v$, whose contraction property underlies the convergence of value iteration, is a functional equation: an equation where the unknown is an entire function rather than a finite-dimensional vector. The same is true of the smooth Bellman equation of the [previous chapter](regularized-dp.md), which replaces the max by a log-sum-exp but still has a function as its unknown. When the state space is continuous or very large, we cannot represent the value function exactly on a computer. We must instead work with finite-dimensional approximations.
+
+We have already done this once. The [finite-horizon chapter](finite-horizon-dp.md#handling-continuous-spaces-with-interpolation) stored the cost-to-go at grid states, reconstructed it between them with cardinal functions, and evaluated Bellman's equation only at the grid. That was one representation (nodal values) and one way of enforcing the equation (exactly at the nodes). This chapter asks the general question: given any finite set of basis functions, what does it mean for a function built from them to "satisfy" an equation it cannot satisfy exactly? Weighted residual methods (also called minimum residual methods) answer it with a framework for transforming infinite-dimensional problems into tractable finite-dimensional ones {cite}`Chakraverty2019,AtkinsonPotra1987`. The framework is independent of the equation; the [next chapter](approximate-bellman-equations.md) specializes it to Bellman equations and asks what the contraction property buys.
 
 ::::{admonition} Learning Goals
 :class: note
@@ -25,11 +27,9 @@ The Bellman optimality equation $\Bellman v = v$, whose contraction property und
 After completing this chapter, you should be able to:
 - Explain why functional equations require finite-dimensional approximation and how weighted residual methods provide a systematic framework
 - Distinguish between Galerkin, collocation, and least-squares methods by their choice of test functions
-- Apply function iteration and Newton's method to solve projected Bellman equations
-- State conditions under which projected value iteration converges (monotonicity for sup-norm, on-policy weighting for weighted $L^2$)
-- Derive the LSTD equations as Galerkin projection with stationary distribution weighting
+- Set up function iteration and Newton's method for the resulting finite-dimensional system, and explain when each applies
 
-**Prerequisites:** Bellman operator and contraction property, basic numerical quadrature, linear algebra (matrix inverses, orthogonal projection).
+**Prerequisites:** Bellman operator and contraction property ([infinite-horizon MDPs](infinite-horizon-mdps.md)), interpolation with cardinal functions ([finite-horizon DP](finite-horizon-dp.md)), basic numerical quadrature, linear algebra (matrix inverses, orthogonal projection).
 ::::
 
 ## A Motivating Example: Optimal Stopping with Continuous States
@@ -43,7 +43,7 @@ $$
 v^*(s) = \max\left\{ s, \; \gamma \int_0^1 v^*(s') \, ds' \right\}.
 $$
 
-The first term is the immediate payoff from stopping; the second is the discounted expected continuation value. Since the continuation value $\bar{v} = \int_0^1 v^*(s') ds'$ is a constant (it doesn't depend on the current state $s$), the optimal policy has a **threshold structure**: stop if $s \geq s^*$ for some threshold $s^*$, continue otherwise.
+The first term is the immediate payoff from stopping; the second is the discounted expected continuation value. This is an optimal stopping problem of the same kind as the [storm-surge barrier](stochastic-dp.md#example-closing-a-storm-surge-barrier), reduced to its simplest form. Since the continuation value $\bar{v} = \int_0^1 v^*(s') ds'$ is a constant (it doesn't depend on the current state $s$), the optimal policy has a **threshold structure**: stop if $s \geq s^*$ for some threshold $s^*$, continue otherwise.
 
 At the threshold, the agent is indifferent: $s^* = \gamma \bar{v}$. Computing $\bar{v}$ by integrating $v^*$:
 
@@ -263,6 +263,7 @@ $$
 
 This residual measures how far our candidate solution is from satisfying the equation at each point $x$. As we discussed in the introduction, we want to make this residual small—an optimization problem whose formulation depends on how we measure "small."
 
+(sec-wr-conditions)=
 ### Step 3: Impose Conditions on the Residual
 
 The basis and residual reduce the functional equation to $n$ scalar conditions
@@ -349,23 +350,7 @@ This directly minimizes how far our approximation is from satisfying the equatio
 
 The gradient $\frac{\partial R}{\partial \theta_j}$ involves differentiating the operator $\Residual$. For the Bellman operator with its max, this requires the Envelope Theorem (discussed in Step 4). The need to differentiate through the operator distinguishes least squares from Galerkin and collocation.
 
-#### Fitted Q-Iteration: Project, Then Iterate
-
-For iterative methods, there is a computationally simpler alternative to minimizing the residual directly. **Fitted Q-Iteration (FQI)** uses a two-step iteration:
-
-1. Apply the Bellman operator to get a target: $f_k = \Bellman \hat{v}_k$
-2. Project the target back onto the approximation space: $\hat{v}_{k+1} = \arg\min_\theta \lVert \hat{v}(\cdot; \theta) - f_k \rVert_w^2$
-
-The projection step solves $\min_\theta \lVert \hat{v} - f_k \rVert_w^2$, whose first-order conditions are $\langle \hat{v} - f_k, \varphi_j \rangle_w = 0$. This is a standard least-squares fit of the basis to the target values. Combining these steps gives:
-
-$$
-\hat{v}_{k+1} = \Pi_w \, \Bellman \hat{v}_k,
-$$
-
-where $\Pi_w$ denotes orthogonal projection onto $\text{span}\{\varphi_j\}$ with respect to the weighted inner product.
-
-FQI does **not** minimize the Bellman residual $\lVert \Bellman\hat{v} - \hat{v} \rVert^2$ directly. It projects, then iterates. FQI's projection step uses only the gradient of $\hat{v}$ with respect to $\theta$ (the "semi-gradient"), while Bellman residual minimization requires differentiating through $\Bellman$ (the "full gradient"). We return to this distinction when discussing temporal difference learning.
-
+(sec-wr-solve)=
 ### Step 4: Solve the Finite-Dimensional Problem
 
 The conditions from Step 3 give us a finite-dimensional problem to solve:
@@ -397,6 +382,7 @@ When test functions are orthogonal (or nearly so), the Jacobian tends to be well
 
 We have two fundamentally different ways to solve the projection equations: **function iteration** (exploiting fixed-point structure) and **Newton's method** (exploiting smoothness). The choice depends on whether the original operator equation has contraction properties and how well those properties are preserved by the finite-dimensional approximation.
 
+(sec-wr-function-iteration)=
 ##### Method 1: Function Iteration (Successive Approximation)
 
 When the operator equation has the form $f = \Contraction f$ where $\Contraction$ is a contraction, the most natural approach is to iterate the operator directly:
@@ -415,12 +401,19 @@ Different weighted residual methods answer this differently. For **collocation**
 
 In matrix form: $\boldsymbol{\Phi} \theta^{(k+1)} = t^{(k)}$, where $\boldsymbol{\Phi}$ is the collocation matrix with entries $\Phi_{ij} = \varphi_j(x_i)$. Solving this system gives $\theta^{(k+1)} = \boldsymbol{\Phi}^{-1} t^{(k)}$.
 
-For **Galerkin**, the projection condition $\langle \hat{f}^{(k+1)} - \Contraction \hat{f}^{(k+1)}, \varphi_i \rangle_w = 0$ directly gives a system for $\theta^{(k+1)}$. When $\Contraction$ is linear in its argument (as in many integral equations), this is a linear system. When $\Contraction$ is nonlinear (as in the Bellman equation), we must solve a nonlinear system at each iteration, though each solution still only involves $n$ unknowns rather than an infinite-dimensional function.
+For **Galerkin**, the target $\Contraction \hat{f}^{(k)}$ is a function rather than $n$ numbers, and the next iterate is its projection: $\theta^{(k+1)}$ solves $\langle \hat{f}^{(k+1)} - \Contraction \hat{f}^{(k)}, \varphi_i \rangle_w = 0$ for $i = 1, \ldots, n$. Because the target is held fixed at the previous iterate, this is a linear system whatever $\Contraction$ is: $M \theta^{(k+1)} = b^{(k)}$ with the mass matrix $M_{ij} = \langle \varphi_i, \varphi_j \rangle_w$ and $b_i^{(k)} = \langle \Contraction \hat{f}^{(k)}, \varphi_i \rangle_w$. It is the weighted least-squares fit of the basis to the target. Least squares in the sense of Step 3 would instead fit $\Contraction \hat{f}^{(k+1)}$, which depends on the unknown coefficients through $\Contraction$; the two differ exactly in whether the operator is differentiated.
 
-When $\Contraction$ is a contraction in the infinite-dimensional space with constant $\gamma < 1$, iterating it pulls any starting function toward the unique fixed point. The hope is that the finite-dimensional operator, evaluating $\Contraction$ and projecting back onto the span of the basis functions, inherits this contraction property. When it does, function iteration converges globally from any initial guess, with each iteration reducing the error by a factor of roughly $\gamma$. This is computationally attractive: we only evaluate the operator and solve a linear system (for collocation) or a relatively simple system (for other methods).
+Both cases have the same shape. Write $\Proj$ for the map that takes a function to its representative in $\text{span}\{\varphi_1, \ldots, \varphi_n\}$: the interpolant through the collocation points, or the $w$-orthogonal projection for Galerkin. Then function iteration is
+
+$$
+\hat{f}^{(k+1)} = \Proj\, \Contraction \hat{f}^{(k)},
+$$
+
+the original iteration with a projection inserted after each application of the operator. When $\Contraction$ is a contraction in the infinite-dimensional space with constant $\gamma < 1$, iterating it pulls any starting function toward the unique fixed point. The hope is that the composed operator $\Proj\,\Contraction$ inherits this contraction property. When it does, function iteration converges globally from any initial guess, with each iteration reducing the error by a factor of roughly $\gamma$. This is computationally attractive: we only evaluate the operator and solve a linear system. Whether $\Proj$ preserves the contraction is the main question of the [next chapter](approximate-bellman-equations.md).
 
 However, the finite-dimensional approximation doesn't always preserve contraction. High-order polynomial bases, in particular, can create oscillations between basis functions that amplify rather than contract errors. Even when contraction is preserved, convergence can be painfully slow when $\gamma$ is close to 1, the "weak contraction" regime common in economic problems with patient agents ($\gamma \approx 0.95$ or higher). Finally, not all operator equations naturally present themselves as contractions; some require reformulation (like $f = f - \alpha \Residual(f)$), and finding a good $\alpha$ can be problem-specific.
 
+(sec-wr-newton)=
 ##### Method 2: Newton's Method
 
 Alternatively, we can treat the projection equations as a rootfinding problem $G(\theta) = 0$ where $G_i(\theta) = P_i(\theta)$ for test function methods, or solve the first-order conditions for least squares. **Newton's method** uses the update:
@@ -509,10 +502,15 @@ selected points, Galerkin methods test against basis functions, and least
 squares minimizes an aggregate residual. Each choice specifies what it means
 for an approximate function to satisfy the original equation.
 
-The framework is independent of the equation being solved. What additional
-stability questions arise when the residual is a Bellman residual and the
-underlying operator is a contraction? [Approximate Bellman equations](approximate-bellman-equations.md)
-connect the projection to value and Q iteration.
+The framework is independent of the equation being solved, and Step 4 left
+two things open. Function iteration becomes $\hat{f}^{(k+1)} = \Proj\,\Contraction \hat{f}^{(k)}$,
+and we hoped, without proof, that $\Proj$ keeps the contraction. Newton's
+method needs the Jacobian of the operator, and for a Bellman operator the
+envelope theorem gave it in terms of the greedy action. [Approximate Bellman
+equations](approximate-bellman-equations.md) takes up both: the two solvers
+become projected value iteration and projected policy iteration, and the
+contraction survives projection under conditions that the chapter makes
+precise.
 
 ## Self-checks
 
