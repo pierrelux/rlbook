@@ -18,7 +18,7 @@ operator is nondifferentiable at ties and produces a deterministic greedy
 choice. Can a modified control objective produce both a smooth Bellman operator
 and a stochastic optimal policy? Convex regularization supplies the link.
 
-While the standard Bellman optimality equations use the max operator to determine the best action, an alternative formulation known as the smooth or soft Bellman optimality equations replaces this with a softmax operator. This approach originated from {cite}`rust1987optimal` and was later rediscovered in the context of maximum entropy inverse reinforcement learning {cite}`ziebart2008maximum`, which then led to soft Q-learning {cite}`haarnoja2017reinforcement` and soft actor-critic {cite}`haarnoja2018soft`, a state-of-the-art deep reinforcement learning algorithm.
+While the standard Bellman optimality equations use the max operator to determine the best action, an alternative formulation known as the smooth or soft Bellman optimality equations replaces it with a smooth approximation of the maximum. The history of these equations runs across two communities that rarely read each other. They appear in the work of the structural econometrician John Rust on the replacement of bus engines {cite}`rust1987optimal`, together with an inverse problem and an algorithm to solve it. {cite:t}`NgRussell2000`, who are usually credited with introducing inverse reinforcement learning, cite Rust, but the connection was then largely lost. {cite:t}`ziebart2008maximum` rediscovered the same equations as maximum entropy inverse reinforcement learning, named after the maximum entropy principle. {cite:t}`haarnoja2017reinforcement` built on Ziebart to obtain soft Q-learning, and soft actor-critic {cite}`haarnoja2018soft`, one of the most widely used deep RL algorithms for continuous control, followed a year later.
 
 In the infinite-horizon setting, the smooth Bellman optimality equations take the form:
 
@@ -32,67 +32,67 @@ As $\beta \to \infty$, $\mathrm{L}_\beta$ converges to the standard Bellman oper
 
    $$ \pi(a|s) = \frac{\exp\left(\beta\left(r(s,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a) v_\gamma^\star(j)\right)\right)}{\sum_{a' \in \mathcal{A}_s} \exp\left(\beta\left(r(s,a') + \gamma \sum_{j \in \mathcal{S}} p(j|s,a') v_\gamma^\star(j)\right)\right)} $$
 
-Despite the confusing terminology, the above "softmax" policy is simply the smooth counterpart to the argmax operator in the original optimality equation: it acts as a soft-argmax. 
+Despite the confusing terminology, the above "softmax" policy is the smooth counterpart of the argmax in the original optimality equation, not of the max: it is a soft-argmax. The smooth counterpart of the max is the log-sum-exp. The same policy is also called a Boltzmann or Gibbs policy. As the temperature $1/\beta$ goes to zero, the softmax concentrates on the maximizing actions and we recover the greedy policy and the hard Bellman equation.
+
+### Stochastic Policies: Exploration and the Partition Function
+
+Moving from the argmax to the softmax turns deterministic policies into stochastic ones, which is both useful and costly. It is useful because noise in the actions is a way to explore. In RL the agent usually gathers its own data, and if it always took the action it currently believes best it would never learn about the others. The problem is not specific to RL. An engineer identifying a model of a plant must also choose inputs that reveal the dynamics, and in system identification this is called *exciting* the system: a persistently exciting input is one rich enough for the parameters to be identifiable from the data.
+
+It is costly when the action set is continuous. The softmax policy is then a density $\pi(a \mid s) \propto \exp(\beta q(s,a))$ whose normalizing constant, the partition function $\int \exp(\beta q(s,a))\, da$, is an integral with no closed form in general. The log-sum-exp value has the same problem, since it is the logarithm of that integral. This is the intractable partition function familiar from energy-based models and probabilistic graphical models. Numerical quadrature is an option in low dimension but is rarely used. {cite:t}`haarnoja2017reinforcement` sampled from the softmax policy over continuous actions with amortized Stein variational gradient descent, which proved expensive; soft actor-critic {cite}`haarnoja2018soft` instead fits a tractable parametric policy to the softmax, an idea we return to in the chapters on fitted value methods and policy learning.
+
+
 
 This formulation is interesting for several reasons. First, smoothness is a desirable property from an optimization standpoint. Unlike $\gamma$, we view $\beta$ as a hyperparameter of our algorithm, which we can control to achieve the desired level of accuracy.
 
-Second, while presented from an intuitive standpoint where we replace the max by the log-sum-exp (a smooth maximum) and the argmax by the softmax (a smooth argmax), this formulation can also be obtained from various other perspectives, offering theoretical tools and solution methods. For example, {cite:t}`rust1987optimal` derived this algorithm by considering a setting in which the rewards are stochastic and perturbed by a Gumbel noise variable. When considering the corresponding augmented state space and integrating the noise, we obtain smooth equations. This interpretation is leveraged by Rust for modeling purposes.
+Second, we presented the equations pragmatically, by replacing the max with the log-sum-exp (a smooth maximum) and the argmax with the softmax (a smooth argmax). The same equations come out of two other starting points, and this chapter follows all three routes:
+
+1. **Smoothing the operator.** Replace every max by a log-sum-exp, as above. This is the route of the next subsection, and the justification is computational: a smooth operator has gradients everywhere.
+2. **Noise on the rewards.** Keep the hard Bellman equation, but suppose that each action's reward is perturbed by independent Gumbel noise that the decision maker sees and the modeler does not. Integrating the noise out gives the log-sum-exp ({ref}`sec-gumbel-rewards`). This is how {cite:t}`rust1987optimal` motivated the equations, following the discrete choice models of econometrics.
+3. **Entropy regularization.** Keep the rewards, but add a bonus proportional to the entropy of the policy in every state. The regularized Bellman equation is again the log-sum-exp equation ({ref}`sec-regularized-mdps`). This is the reading behind maximum entropy RL and soft actor-critic.
+
+Each route brings its own tools: smoothness gives differentiability, the noise model gives a likelihood for observed behavior, and the regularization view gives convex duality. A fourth reading, close to the third, starts from the energy-based models of supervised learning, where a softmax turns unnormalized scores into a distribution; this is essentially what {cite:t}`ziebart2008maximum` did. It connects to probabilistic graphical models, where finding an optimal smooth policy becomes an inference problem. This is the idea of control as inference, whose converse, inference as control, is now used to derive samplers and amortized inference methods with RL {cite}`levine2018reinforcement`.
 
 ### Smooth Value Iteration Algorithm
 
-The smooth value iteration algorithm replaces the max operator in standard value iteration with the logsumexp operator. Here's the algorithm structure:
+Before iterating $\mathrm{L}_\beta$, we should check that iterating it is the right thing to do, that is, that it is a contraction. It is, in the sup-norm and with the same factor $\gamma$ as the hard Bellman operator. The proof uses the same three facts as for $\Bellman$. The log-sum-exp is monotone, it commutes with adding a constant to all of its arguments, and $\mathrm{L}_\beta$ maps a uniform shift $c\mathbf{1}$ of $v$ into a shift $\gamma c\mathbf{1}$ of $\mathrm{L}_\beta v$. From $v \le u + \|v-u\|_\infty\mathbf{1}$ we get $\mathrm{L}_\beta v \le \mathrm{L}_\beta u + \gamma\|v-u\|_\infty\mathbf{1}$, and exchanging $u$ and $v$ gives the contraction. A word of caution about the converse: failing to show that an operator is a contraction does not mean that its fixed point fails to exist or that no algorithm finds it. Contraction is a convenient sufficient condition, and other fixed-point theorems cover other cases.
+
+Successive approximation applied to $\mathrm{L}_\beta$ is **smooth value iteration**. It has the structure of value iteration, with a log-sum-exp wherever value iteration had a max and a softmax policy at the end where value iteration returned a greedy one.
 
 ```{prf:algorithm} Smooth Value Iteration
 :label: smooth-value-iteration
 
-**Input:** MDP $(S, A, r, p, \gamma)$, inverse temperature $\beta > 0$, tolerance $\epsilon > 0$
+**Input:** MDP $(S, A, r, p, \gamma)$, inverse temperature $\beta > 0$, tolerance $\varepsilon > 0$
 
-**Output:** Approximate optimal value function $v$ and stochastic policy $\pi$
+**Output:** Value function $v$ within $\varepsilon/2$ of $v^\star_\beta$ and stochastic policy $\pi$
 
 1. Initialize $v(s) \leftarrow 0$ for all $s \in S$
 2. **repeat**
-3. $\quad \Delta \leftarrow 0$
-4. $\quad$ **for** each state $s \in S$ **do**
-5. $\quad\quad$ **for** each action $a \in A_s$ **do**
-6. $\quad\quad\quad q(s,a) \leftarrow r(s,a) + \gamma \sum_{j \in S} p(j|s,a) v(j)$
-7. $\quad\quad$ **end for**
-8. $\quad\quad v_{\text{new}}(s) \leftarrow \frac{1}{\beta} \log \sum_{a \in A_s} \exp(\beta \cdot q(s,a))$ 
-9. $\quad\quad \Delta \leftarrow \max(\Delta, |v_{\text{new}}(s) - v(s)|)$
-10. $\quad\quad v(s) \leftarrow v_{\text{new}}(s)$
-11. $\quad$ **end for**
-12. **until** $\Delta < \epsilon$
-13. Extract policy: **for** each state $s \in S$ **do**
-14. $\quad$ Compute $q(s,a)$ for all $a \in A_s$ as in lines 5-7
-15. $\quad \pi(a|s) \leftarrow \frac{\exp(\beta \cdot q(s,a))}{\sum_{a' \in A_s} \exp(\beta \cdot q(s,a'))}$ for all $a \in A_s$
-16. **end for**
-17. **return** $v, \pi$
+3. $\quad$ **for** each state $s \in S$ and action $a \in A_s$ **do**
+4. $\quad\quad q(s,a) \leftarrow r(s,a) + \gamma \sum_{j \in S} p(j|s,a) v(j)$
+5. $\quad$ **end for**
+6. $\quad v_{\text{new}}(s) \leftarrow \frac{1}{\beta} \log \sum_{a \in A_s} \exp(\beta \cdot q(s,a))$ for all $s \in S$
+7. $\quad \Delta \leftarrow \max_s |v_{\text{new}}(s) - v(s)|$
+8. $\quad v \leftarrow v_{\text{new}}$
+9. **until** $\Delta < \frac{\varepsilon(1-\gamma)}{2\gamma}$
+10. Extract policy: compute $q(s,a)$ from $v$ as in line 4, and set $\pi(a|s) \leftarrow \frac{\exp(\beta \cdot q(s,a))}{\sum_{a' \in A_s} \exp(\beta \cdot q(s,a'))}$
+11. **return** $v, \pi$
 ```
 
 **Differences from standard value iteration:**
-- Line 8 uses $\frac{1}{\beta} \log \sum_a \exp(\beta \cdot q(s,a))$ instead of $\max_a q(s,a)$
-- Line 15 extracts a stochastic policy using softmax instead of a deterministic argmax policy
+- Line 6 uses $\frac{1}{\beta} \log \sum_a \exp(\beta \cdot q(s,a))$ instead of $\max_a q(s,a)$
+- Line 10 extracts a stochastic policy using softmax instead of a deterministic argmax policy
 - As $\beta \to \infty$, the algorithm converges to standard value iteration
 - Lower $\beta$ values produce more stochastic policies with higher entropy
 
-There is also a way to obtain this equation by starting from the energy-based formulation often used in supervised learning, in which we convert an unnormalized probability distribution into a distribution using the softmax transformation. This is essentially what {cite:t}`ziebart2008maximum` did in their paper. Furthermore, this perspective bridges with the literature on probabilistic graphical models, in which we can now cast the problem of finding an optimal smooth policy into one of maximum likelihood estimation (an inference problem). This is the idea of control as inference, which also admits the converse - that of inference as control - used nowadays for deriving fast samples and amortized inference techniques using reinforcement learning {cite}`levine2018reinforcement`.
-
-Finally, it's worth noting that we can also derive this form by considering an entropy-regularized formulation in which we penalize for the entropy of our policy in the reward function term. This formulation admits a solution that coincides with the smooth Bellman equations {cite}`haarnoja2017reinforcement`.
-
-## Alternative Soft Maximum: Gaussian Uncertainty-Weighted Aggregation
-
-Can uncertainty-dependent action weights smooth selection differently from a
-single global softmax temperature?
-
-The logsumexp operator provides one way to soften the hard maximum, but alternative approaches exist. When Q-value estimates have heterogeneous uncertainty (some actions estimated more precisely than others), we can weight actions by the probability they are optimal under a Gaussian uncertainty model. {cite}`deramo2016estimating` proposed computing weights as:
+**What the stopping rule guarantees.** Because $\mathrm{L}_\beta$ is a $\gamma$-contraction, the a posteriori bound of the Banach fixed-point theorem applies unchanged, and the stopping test of line 9 guarantees $\|v - v^\star_\beta\|_\infty \le \varepsilon/2$. The proof that value iteration returns an $\varepsilon$-optimal policy also carries over, with one change of meaning. The softmax policy satisfies $\mathrm{L}_{\pi,\Omega} v = \mathrm{L}_\beta v$ for the entropy-regularized evaluation operator of {ref}`sec-regularized-operators`, with regularizer $\Omega(\pi(\cdot|s)) = \frac{1}{\beta}\sum_a \pi(a|s)\log\pi(a|s)$,, just as a greedy policy satisfies $\mathrm{L}_\pi v = \Bellman v$. Repeating the proof of {prf:ref}`value-iteration-convergence` with these operators shows that the returned policy is $\varepsilon$-optimal *for the entropy-regularized objective*. How far is that from optimal for the original rewards? Since $\max_a x_a \le \frac{1}{\beta}\log\sum_a e^{\beta x_a} \le \max_a x_a + \frac{\log|\mathcal{A}|}{\beta}$, where $|\mathcal{A}|$ is the largest number of actions in any state, the two fixed points satisfy
 
 $$
-w_{a'} = \int_{-\infty}^{+\infty} \phi\left(\frac{x - \hat{\mu}_{a'}}{\hat{\sigma}_{a'}/\sqrt{n}}\right) \prod_{b \neq a'} \Phi\left(\frac{x - \hat{\mu}_b}{\hat{\sigma}_b/\sqrt{n}}\right) dx
+v^*_\gamma \;\le\; v^\star_\beta \;\le\; v^*_\gamma + \frac{\log |\mathcal{A}|}{\beta(1-\gamma)}\mathbf{1},
 $$
 
-where $\hat{\mu}_{a'}$ and $\hat{\sigma}_{a'}$ are the sample mean and standard deviation of Q-value estimates, $n$ is the sample size, and $\phi$, $\Phi$ are the standard normal PDF and CDF. The soft Bellman target becomes $v(s') = \sum_{a'} w_{a'} q(s', a')$, a probability-weighted expectation rather than a hard maximum.
+and the softmax policy returned by the algorithm loses at most $\varepsilon + \frac{\log|\mathcal{A}|}{\beta(1-\gamma)}$ against the optimal value of the unregularized MDP. The temperature therefore adds a bias that does not shrink with more iterations; it is the price of smoothness and of exploration.
 
-This differs from logsumexp in that it adapts to state-action-specific uncertainty (actions with tighter confidence intervals receive more weight), whereas logsumexp applies uniform smoothing via temperature $\beta$. The Gaussian-weighted approach requires maintaining variance estimates and computing integrals, making it more expensive than logsumexp. However, it provides a principled way to reduce overestimation bias in Q-learning while avoiding the pessimism of double Q-learning. We return to this estimator in the [simulation-based methods chapter](monte-carlo-bellman-estimation.md) when discussing overestimation bias mitigation strategies.
-
+(sec-gumbel-rewards)=
 ## Gumbel Noise on the Rewards
 
 Why does adding independent Gumbel perturbations to action rewards produce a
@@ -377,6 +377,7 @@ After normalization, and assuming a uniform prior $p(a_t | s_t)$, we obtain the 
 
 $$ d(a_t | s_t) = \frac{\exp(\beta (r(s_t, a_t) + \gamma \sum_{s_{t+1}} p(s_{t+1} | s_t, a_t) V_{t+1}(s_{t+1})))}{\sum_{a'_t} \exp(\beta (r(s_t, a'_t) + \gamma \sum_{s_{t+1}} p(s_{t+1} | s_t, a'_t) V_{t+1}(s_{t+1})))} $$ -->
 
+(sec-regularized-mdps)=
 ## Regularized Markov Decision Processes
 
 Which convex penalty on action distributions generates a desired smooth
@@ -411,6 +412,7 @@ $$ \nabla \Omega^*(q(s, \cdot)) = \arg\max_\pi \langle \pi(\cdot | s), q(s, \cdo
 
 An important example of a regularizer is the negative entropy, which gives rise to the smooth Bellman equations as we are about to see. 
 
+(sec-regularized-operators)=
 ## Regularized Bellman Operators
 
 How do the regularizer and its convex conjugate alter Bellman evaluation,
@@ -556,6 +558,26 @@ Now that we've seen how the regularized MDP framework leads to smooth Bellman eq
    - Lower $\beta$ produces more stochastic policies (higher entropy)
    - As $\beta \to \infty$, the method recovers standard policy iteration
 4. **Convergence**: Like standard policy iteration, this algorithm converges to the unique optimal regularized value function and policy
+5. **Partial improvement**: As in the hard case, the improvement does not need to be applied in every state for the method to make progress. The policy-iteration loops hidden inside actor-critic methods make use of this.
+
+(sec-smooth-pi-newton)=
+### Smooth Policy Iteration Is Newton's Method
+
+The link between policy iteration and the Newton-Kantorovich method ({ref}`sec-newton-kantorovich-pi`) is easier to see here than in the hard case, because $\mathrm{L}_\beta$ is differentiable everywhere and there are no ties to worry about. The derivative of the log-sum-exp with respect to its arguments is the softmax, so the Fréchet derivative of $\mathrm{L}_\beta$ at $v$ is
+
+$$
+\mathrm{L}_\beta'(v) = \gamma \mathbf{P}_{\pi_v}, \qquad \pi_v(a \mid s) = \frac{\exp(\beta q_v(s,a))}{\sum_{a'}\exp(\beta q_v(s,a'))}, \quad q_v(s,a) = r(s,a) + \gamma\sum_j p(j\mid s,a) v(j),
+$$
+
+the transition matrix of the softmax policy. A Newton step on $v - \mathrm{L}_\beta v = 0$ solves
+
+$$
+(\mathbf{I} - \gamma\mathbf{P}_{\pi_v})\, v_{\text{new}} = \mathrm{L}_\beta v - \gamma\mathbf{P}_{\pi_v} v.
+$$
+
+At the softmax policy the log-sum-exp equals the expected $q$ plus the entropy bonus, $\mathrm{L}_\beta v = \mathbf{r}_{\pi_v} + \gamma\mathbf{P}_{\pi_v} v + \frac{1}{\beta}\mathbf{H}_{\pi_v}$. The right-hand side is therefore $\mathbf{r}_{\pi_v} + \frac{1}{\beta}\mathbf{H}_{\pi_v}$, and the Newton step is exactly the entropy-regularized evaluation of the softmax policy. Smooth policy iteration is the Newton-Kantorovich method applied to the smooth Bellman equation, without the semismooth machinery that the hard max requires.
+
+{cite:t}`rust1987optimal` solved his smooth Bellman equation this way. He did not call it policy iteration. He recognized an operator equation, a root-finding problem in a function space, and applied Newton-Kantorovich to it, after a few rounds of successive approximation to get close enough for Newton's method to converge quickly.
 
 ### Equivalence Between Smooth Bellman Equations and Entropy-Regularized MDPs
 
@@ -757,12 +779,65 @@ While the smooth Bellman equations (using logsumexp) and entropy-regularized for
 - The algorithm alternates between evaluating the current stochastic policy and improving it
 - Converges to the unique optimal entropy-regularized policy
 
+(sec-rust-inverse)=
+## Rust's Bus Engines and Inverse Reinforcement Learning
+
+What can we learn about a decision maker's goals from records of what they did?
+
+Rust's 1987 paper is worth reading for three reasons: it contains the smooth Bellman equation, it poses what is now called inverse reinforcement learning, and it solves that problem with a bilevel method that relies on implicit differentiation, a tool that became popular in machine learning three decades later for hyperparameter optimization.
+
+**The problem.** Harold Zurcher was the superintendent of maintenance at the Madison Metropolitan bus company. Rust had his maintenance records: for each bus, the odometer reading each month, and the months in which Zurcher replaced the engine. Replacing an engine is expensive, while keeping an old engine running costs more and more as the mileage grows. The question was how Zurcher decided when to replace. Rust is a structural econometrician. Structural econometrics does not stop at predicting behavior; it posits a mechanism that generates it, here a decision maker solving an MDP, and fits the parameters of that mechanism to data. The fitted mechanism can then answer questions the data alone cannot, such as how behavior would change if the price of an engine changed.
+
+**The model.** The state $s$ is the mileage since the last replacement, discretized into bins. Each month there are two actions, keep ($a=0$) or replace ($a=1$). Keeping costs $c(s;\theta)$, increasing in $s$; replacing costs a fixed amount $RC$ and resets the mileage. With parameters $\theta$ collecting $RC$ and those of $c$, the reward is $r_\theta(s,0) = -c(s;\theta)$ and $r_\theta(s,1) = -RC - c(0;\theta)$, and the mileage transitions are estimated directly from the odometer data. The data contradict any deterministic policy: two buses with the same mileage are sometimes treated differently. Rust's answer was the Gumbel model of {ref}`sec-gumbel-rewards`. Zurcher sees, in addition to $s$, a shock $\epsilon(a)$ for each action that the econometrician does not see, and acts optimally given both. Integrating out the shocks gives the smooth Bellman equation and the softmax choice probabilities
+
+$$
+v_\theta = \mathrm{L}_{\beta,\theta}\, v_\theta, \qquad \pi_\theta(a \mid s) = \frac{\exp(\beta q_\theta(s,a))}{\sum_{a'}\exp(\beta q_\theta(s,a'))}.
+$$
+
+This is the second, deeper reason Rust used these equations. Besides being smooth, they follow from the random-utility models of {cite:t}`McFadden1974`, the standard statistical basis of discrete choice in econometrics, in the same way that least squares follows from assuming Gaussian noise. In machine learning terms, McFadden's conditional logit is multiclass logistic regression with a structural interpretation.
+
+**The estimator.** Given observed pairs $(s_t, a_t)$, maximize the log-likelihood $\ell(\theta) = \sum_t \log \pi_\theta(a_t \mid s_t)$. Every evaluation of $\ell$ requires solving the smooth Bellman equation for the current $\theta$, so the problem is bilevel: an outer maximization over $\theta$ around an inner fixed-point problem. Rust called his algorithm the nested fixed point (NFXP) algorithm. The gradient of $\ell$ needs $\partial v_\theta / \partial\theta$, which the implicit function theorem provides without differentiating through the iterations of the inner solver. Differentiating $v_\theta = \mathrm{L}_{\beta,\theta} v_\theta$ and using the derivative of $\mathrm{L}_\beta$ from {ref}`sec-smooth-pi-newton`,
+
+$$
+\frac{\partial v_\theta}{\partial \theta} = (\mathbf{I} - \gamma\mathbf{P}_{\pi_\theta})^{-1}\, \frac{\partial \mathbf{r}_{\pi_\theta}}{\partial\theta}, \qquad \frac{\partial \mathbf{r}_{\pi_\theta}}{\partial\theta}(s) = \sum_a \pi_\theta(a\mid s)\, \frac{\partial r_\theta(s,a)}{\partial \theta}.
+$$
+
+The matrix to invert is the one of policy evaluation, already factored by the Newton steps of the inner solver. For rewards linear in the parameters, $r_\theta(s,a) = \theta^\top\phi(s,a)$, this derivative is the vector of expected discounted feature counts under the softmax policy, the quantity that {cite:t}`ziebart2008maximum` matches to the empirical feature counts. The score of one observation is then
+
+$$
+\nabla_\theta \log\pi_\theta(a\mid s) = \beta\Big(\nabla_\theta q_\theta(s,a) - \sum_{a'}\pi_\theta(a'\mid s)\,\nabla_\theta q_\theta(s,a')\Big), \qquad \nabla_\theta q_\theta(s,a) = \nabla_\theta r_\theta(s,a) + \gamma\sum_j p(j\mid s,a)\,\frac{\partial v_\theta}{\partial \theta}(j).
+$$
+
+````{prf:algorithm} Nested Fixed Point (NFXP) Maximum Likelihood
+:label: nfxp
+
+**Input:** Observed state-action pairs $\{(s_t, a_t)\}$, transition model $p$, discount $\gamma$, scale $\beta$, initial parameters $\theta_0$  
+**Output:** Estimated reward parameters $\hat\theta$
+
+1. **repeat** for $k = 0, 1, \ldots$
+    1. (Inner problem) Solve $v = \mathrm{L}_{\beta,\theta_k} v$: a few sweeps of {prf:ref}`smooth-value-iteration`, then Newton steps ({ref}`sec-smooth-pi-newton`), warm-started from the previous $v$
+    2. Compute $\pi_{\theta_k}$, $q_{\theta_k}$ and $\partial v_{\theta_k}/\partial\theta$ by the implicit-function formula above
+    3. Compute $\nabla \ell(\theta_k) = \sum_t \nabla_\theta\log\pi_{\theta_k}(a_t\mid s_t)$
+    4. (Outer step) $\theta_{k+1} \leftarrow \theta_k + H_k^{-1}\nabla\ell(\theta_k)$, with $H_k$ a positive definite curvature estimate (Rust used the outer product of the scores, the BHHH method)
+2. **until** $\|\nabla\ell(\theta_k)\|$ is small
+3. **return** $\hat\theta = \theta_k$
+````
+
+**What the model assumes.** The setup is a strong one, and naming its assumptions explains why inverse RL is hard in general.
+
+- *Rationality.* The decision maker is assumed to solve the MDP exactly. People do not; the literature on bounded rationality studies how they fall short, and Rust himself has written skeptically about whether people follow Bellman's principle of optimality. The assumption is still a useful starting point, in the same way a linear model is.
+- *Observability.* Rust observes the state and the action. In many applications one or both are missing. With logged prices, for instance, an unchanged price may be a decision to keep it or simply the absence of a decision, and the action itself must be inferred, which makes the problem partially observable.
+- *Identifiability.* Many reward functions explain the same behavior equally well. With hard maxima, a constant reward makes every policy optimal, and adding a shaping term $\gamma\Phi(s') - \Phi(s)$ to any reward leaves the optimal policies unchanged {cite}`NgHaradaRussell1999`. The map from rewards to behavior is many-to-one, so the data can at best single out a set of candidate rewards. Structural econometrics restores identification by restricting the reward to a parametric family, fixing the discount factor and the scale $\beta$, and normalizing one action's reward. Whether such restrictions are acceptable depends on the goal: predicting what Zurcher would do under new engine prices is a weaker demand than recovering what he "really" wanted.
+
 ## Summary and Outlook
 
 Entropy regularization replaces hard action selection with a smooth conjugate
 operator and produces a stochastic optimal policy. Gumbel perturbations,
 log-sum-exp Bellman updates, and regularized policy iteration describe the same
 construction from probabilistic, variational, and algorithmic viewpoints.
+Smooth policy iteration is Newton's method on the smooth Bellman equation, and
+Rust's nested fixed-point estimator uses the same derivative to recover reward
+parameters from observed behavior.
 
 The same log-sum-exp form appears over whole trajectories in continuous time.
 [Path-integral stochastic control](path-integral-stochastic-control.md) examines

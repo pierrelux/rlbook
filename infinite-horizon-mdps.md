@@ -130,7 +130,22 @@ $$
 ````
 
 
-Under this geometric horizon the expected length is $\mathbb{E}[\nu] = 1/(1-\gamma)$, often called the **effective horizon** of the discounted problem: $\gamma = 0.99$ corresponds to planning about 100 steps ahead on average. The construction can be simulated directly. After collecting each reward, flip a coin that comes up heads with probability $\gamma$: continue on heads and end the episode on tails. The undiscounted return of such an episode is an unbiased estimate of $v_\gamma^{\boldsymbol{\pi}}(s)$.
+Under this geometric horizon the expected length is $\mathbb{E}[\nu] = 1/(1-\gamma)$, often called the **effective horizon** of the discounted problem: $\gamma = 0.99$ corresponds to planning about 100 steps ahead on average. The construction can be simulated directly. After collecting each reward, flip a coin that comes up heads with probability $\gamma$: continue on heads and end the episode on tails. The undiscounted return of such an episode is an unbiased estimate of $v_\gamma^{\boldsymbol{\pi}}(s)$. In practice we rarely simulate this way. Truncating episodes at random throws away the rewards that come after the coin lands on tails, which increases the variance of the estimate, and in learning it discards signal that could have been used. The equivalence is still useful to keep in mind, because it lets an algorithm trade a discount factor for a stopping probability and back.
+
+### Drawing an MDP as a graph, and the cemetery state
+
+Small MDPs are often drawn as directed graphs, as Puterman does for his toy examples. Each state is a node. Each action available in a state contributes arrows out of that node, one for every possible next state, labeled with the probability $p(j \mid s, a)$. The action sets may differ across states: in {numref}`fig-mdp-graph-absorbing`(a), state $s_1$ has two actions and state $s_2$ only one, as allowed by the state-dependent sets $\mathcal{A}_s$. Without the actions, such a picture is the transition graph of a Markov chain. Fixing a decision rule $\pi$ chooses (or randomizes over) the arrows out of each node and leaves exactly that Markov chain, whose transition matrix is the $\mathbf{P}_\pi$ of the next section. A controlled system is a family of Markov chains, one per decision rule, and $\mathbf{P}_\pi$ folds the choice of action into the transition probabilities.
+
+:::{figure} _static/mdp-graph-absorbing.svg
+:label: fig-mdp-graph-absorbing
+:alt: Left, a two-state MDP drawn as a graph with action-labeled arrows. Right, the same graph with every probability multiplied by gamma and an extra absorbing state reached with probability one minus gamma from every state.
+
+(a) A two-state MDP drawn as a graph. In $s_1$, action $a_1$ keeps the system in $s_1$ and action $a_2$ moves it to $s_2$; in $s_2$ only $a_1$ is available. (b) The same MDP with a cemetery state $\Delta$. Every original transition probability is multiplied by $\gamma$, and from every state the system moves to $\Delta$ with probability $1-\gamma$, whatever the action. $\Delta$ is absorbing and pays no reward.
+:::
+
+The graph gives a third reading of discounting. Add a new state $\Delta$, sometimes called a cemetery or sink state. From every state $s$ and every action $a$, move to $\Delta$ with probability $1-\gamma$, and otherwise follow the original dynamics, so that the new transition probabilities are $\tilde p(j \mid s,a) = \gamma\, p(j \mid s,a)$ for $j \in \mathcal{S}$ and $\tilde p(\Delta \mid s,a) = 1-\gamma$. Once in $\Delta$ the system stays there forever and collects reward zero. In this auxiliary MDP, the undiscounted expected total reward of any policy equals its discounted value in the original MDP, because the probability of still being alive at step $t$ is $\gamma^{t-1}$. This is the construction of {prf:ref}`prop-5-3-1` written as a state rather than as a random variable, and it is how discounted problems are reduced to total-reward problems with absorbing states, sometimes called stochastic shortest-path problems.
+
+Not every process has an absorbing state. A system can run forever, and for its long-run behavior to be well defined we need some structure. The usual assumption is ergodicity: the chain $\mathbf{P}_\pi$ settles into a stationary distribution that spreads its mass over many states, and long-run averages are averages under that distribution. This is the setting of the average-reward criterion mentioned at the start of the chapter, which we do not pursue.
 
 ## Vector Representation in Markov Decision Processes
 
@@ -453,6 +468,8 @@ $$
 (\BellmanPi v)(s) = r(s,\pi(s)) + \gamma \sum_{j \in \mathcal{S}} p(j|s,\pi(s)) v(j)
 $$
 
+Terminology varies here. Bertsekas and Sutton and Barto call $\BellmanPi$ the Bellman operator for $\pi$, and part of the RL theory literature calls it the Bellman consistency operator. In this book we keep the name Bellman operator for the operator with the maximum, defined next, which is closer to Bellman's own usage, and call $\BellmanPi$ the policy-evaluation operator because evaluating a policy is what it is used for.
+
 The **Bellman optimality operator** is then:
 
 $$
@@ -552,7 +569,7 @@ $$
 
 and a conserving rule can be read off directly as $\pi^*(s) \in \arg\max_{a \in \mathcal{A}_s} q^*(s,a)$. Probabilistically, $q^*$ conditions on both the state and the first action, while $v^*_\gamma$ averages the action out. Optimality is still defined through $v$, because that is how policies are ordered.
 
-When $\mathbf{P}$ and $r$ are known, as in the examples of this chapter, there is no reason to prefer $q$: computing $v$ is cheaper and the greedy rule follows from it. The Q-function matters in model-free RL, where we observe sampled transitions and rewards but not the transition probabilities. Extracting a greedy action from $v$ requires the expectation $\sum_j p(j \mid s,a)\, v(j)$, which needs the model. Extracting it from $q$ only requires a maximum over the action argument, which works for a learned $q$, a neural network for instance, without knowing $p$. This is why the Q-function form is the starting point of the [simulation-based chapters](monte-carlo-bellman-estimation.md).
+When $\mathbf{P}$ and $r$ are known, as in the examples of this chapter, there is no reason to prefer $q$: computing $v$ is cheaper and the greedy rule follows from it. The Q-function matters in model-free RL, where we observe sampled transitions and rewards but not the transition probabilities. Extracting a greedy action from $v$ requires the expectation $\sum_j p(j \mid s,a)\, v(j)$, which needs the model. Extracting it from $q$ only requires a maximum over the action argument, which works for a learned $q$, a neural network for instance, without knowing $p$. This is why the Q-function form is the starting point of the [simulation-based chapters](monte-carlo-bellman-estimation.md). The convenience has a price. A Q-function has one value per state-action pair instead of one per state, and it keeps the detail that $v$ averages away, so learning $q^*$ typically takes more capacity, more samples and better coverage of the actions than learning $v^*_\gamma$ would.
 
 ## Algorithms for Solving the Optimality Equations
 
@@ -590,6 +607,10 @@ The optimality equations are operator equations. Therefore, we can apply general
 The termination criterion in this algorithm is based on a specific bound that provides guarantees on the quality of the solution. This is in contrast to supervised learning, where we often use arbitrary termination criteria based on computational budget or early stopping when the learning curve flattens. This is because establishing implementable generalization bounds in supervised learning is challenging.
 
 However, in the dynamic programming context, we can derive various bounds that can be implemented in practice. These bounds help us terminate our procedure with a guarantee on the precision of our value function and, correspondingly, on the optimality of the resulting policy.
+
+This detail is easy to miss. The value iteration in {cite:t}`SuttonBarto2018` stops when the change falls below a small threshold $\theta$, without relating $\theta$ to the quality of the returned policy. The threshold $\varepsilon(1-\gamma)/(2\gamma)$ above is chosen so that the answer comes with a certificate: you fix the accuracy $\varepsilon$ in advance, the loop runs until the test passes, and the greedy policy it returns is then guaranteed to be $\varepsilon$-optimal ({prf:ref}`value-iteration-convergence`). Two caveats apply. The guarantee concerns the exact arithmetic; floating-point rounding is not part of the analysis, and with $\gamma$ close to one a very small $\varepsilon$ may be below what float32 or even float64 can resolve. And whether a certificate matters depends on the application. Nobody needs one to solve a grid world, but an economist who reports a policy's monetary value, or an engineer who must document a safety margin, does.
+
+The value function is only an instrument. What we want in the end is a policy, and given $v^*_\gamma$ (or any approximation of it) we obtain one by the greedy step $\mathrm{Greedy}(v)$: for each state, compute the one-step lookahead $r(s,a) + \gamma \sum_j p(j \mid s,a) v(j)$ for every action and keep the best. With arrays of shape $(|\mathcal{S}|, |\mathcal{A}|)$ this is a single `argmax` along the action axis. Nothing is simulated forward, because $v$ already summarizes the future.
 
 ````{prf:proposition} Convergence of Value Iteration 
 :label: value-iteration-convergence
@@ -703,6 +724,28 @@ $$\|v^{\pi_\varepsilon}_\gamma - v^*_\gamma\|_\infty \leq \frac{\varepsilon}{2} 
 This completes the proof, showing that $v_{n+1}$ is within $\varepsilon/2$ of $v^*_\gamma$ (part 4) and $\pi_\varepsilon$ is $\varepsilon$-optimal (part 3).
 ````
 
+### A Sharper Stopping Rule: the Span Seminorm
+
+A good stopping rule stops as early as possible while still delivering the requested accuracy. The sup-norm test is not the best one available. A sharper test measures the change between iterates with the **span seminorm**
+
+$$
+\operatorname{sp}(u) = \max_{s} u(s) - \min_{s} u(s).
+$$
+
+It is a seminorm rather than a norm because $\operatorname{sp}(c\mathbf{1}) = 0$ for every constant $c$: the span ignores a uniform shift of all values. Let $d = v_{n+1} - v_n$ be the last change made by value iteration, with smallest and largest components $m = \min_s d(s)$ and $M = \max_s d(s)$. Two properties of $\Bellman$ give two-sided bounds. It is monotone ($u \le w$ componentwise implies $\Bellman u \le \Bellman w$), and it shifts constants by $\gamma$: $\Bellman(u + c\mathbf{1}) = \Bellman u + \gamma c \mathbf{1}$. From $v_{n+1} \ge v_n + m\mathbf{1}$ we get $\Bellman v_{n+1} \ge v_{n+1} + \gamma m \mathbf{1}$, and repeating the argument,
+
+$$
+v_{n+1} + \frac{\gamma}{1-\gamma}\, m\, \mathbf{1} \;\le\; v^*_\gamma \;\le\; v_{n+1} + \frac{\gamma}{1-\gamma}\, M\, \mathbf{1}.
+$$
+
+The same argument with $\mathrm{L}_\pi$ in place of $\Bellman$, for $\pi = \mathrm{Greedy}(v_{n+1})$, shows that $v^{\pi}_\gamma \ge v_{n+1} + \frac{\gamma}{1-\gamma} m \mathbf{1}$. Subtracting,
+
+$$
+\|v^*_\gamma - v^{\pi}_\gamma\|_\infty \le \frac{\gamma}{1-\gamma}\operatorname{sp}(v_{n+1} - v_n).
+$$
+
+So stopping when $\operatorname{sp}(v_{n+1} - v_n) < \varepsilon(1-\gamma)/\gamma$ also returns an $\varepsilon$-optimal greedy policy ({cite:t}`Puterman1994`, Section 6.6). Since $\operatorname{sp}(d) \le 2\|d\|_\infty$, this test is never later than the sup-norm test, and it is often much earlier: value iteration tends to spend many iterations shifting all values by nearly the same amount, which the span ignores. On a random MDP with 30 states, 4 actions, $\gamma = 0.95$ and rewards around 5, the sup-norm test with $\varepsilon = 10^{-3}$ needs 242 iterations and the span test needs 11, and both return an optimal policy. The bounds also give a better value estimate than $v_{n+1}$ itself: the midpoint $v_{n+1} + \frac{\gamma}{1-\gamma}\frac{m+M}{2}\mathbf{1}$ is within $\frac{\gamma}{2(1-\gamma)}\operatorname{sp}(d)$ of $v^*_\gamma$.
+
 ### Bellman contraction laboratory
 
 Use the controls below to change the discount factor, transition persistence, reward asymmetry, and starting value. Before moving $\gamma$, predict how it will change the slope of the error envelope. The middle panel compares the observed error and Bellman residual with the contraction bound; the text below reports the final greedy policy.
@@ -806,6 +849,89 @@ mo.vstack([
 
 Static preview of value-iteration traces and a geometric contraction bound. The online book provides controls for $\gamma$, transitions, rewards, and the initial value.
 :::
+
+(sec-policy-iteration)=
+### Policy Iteration
+
+Value iteration searches the space of value functions and reads a policy off at the end, so it reaches the policy indirectly. Policy iteration searches the space of policies directly. Bellman called this idea approximation in policy space, and {cite:t}`Howard1960` turned it into the algorithm below. Each iteration has two steps. The first evaluates the current policy, which is the linear problem we already know how to solve, so any policy-evaluation routine can be reused as a subroutine. The second improves the policy by acting greedily with respect to the value just computed.
+
+````{prf:algorithm} Policy Iteration
+:label: policy-iteration-standard
+
+**Input:** MDP $(S, A, P, R, \gamma)$
+**Output:** Optimal policy $\pi^*$
+
+1. Initialize: $n = 0$, select an arbitrary decision rule $\pi_0 \in \Pi^{MD}$
+2. **repeat**
+   3. (Policy evaluation) Obtain $\mathbf{v}^n$ by solving:
+   
+      $$(\mathbf{I}-\gamma \mathbf{P}_{\pi_n}) \mathbf{v} = \mathbf{r}_{\pi_n}$$
+
+   4. (Policy improvement) Choose $\pi_{n+1} = \mathrm{Greedy}(\mathbf{v}^n)$ where:
+
+       $$\pi_{n+1} \in \arg\max_{\pi \in \Pi^{MD}}\left\{\mathbf{r}_\pi+\gamma \mathbf{P}_\pi \mathbf{v}^n\right\}$$
+       
+       equivalently, for each $s$:
+       
+       $$\pi_{n+1}(s) \in \arg\max_{a \in \mathcal{A}_s}\left\{r(s,a)+\gamma \sum_j p(j|s,a) \mathbf{v}^n(j)\right\}$$
+       
+       Set $\pi_{n+1} = \pi_n$ if possible.
+
+   5. If $\pi_{n+1} = \pi_n$, **return** $\pi^* = \pi_n$
+
+   6. $n = n + 1$
+7. **until** convergence
+````
+
+Recall that $\mathbf{P}_{\pi_n}$ and $\mathbf{r}_{\pi_n}$ are built by averaging over the actions the rule selects: $[\mathbf{P}_{\pi}]_{s,j} = \sum_a \pi(a \mid s)\, p(j \mid s,a)$ and $\mathbf{r}_\pi(s) = \sum_a \pi(a \mid s)\, r(s,a)$. The tie-breaking instruction in step 4 ("keep $\pi_n$ if it is among the maximizers") matters for the stopping test. Without it, the algorithm could cycle among equally good greedy rules and never see the same rule twice.
+
+````{prf:theorem} Finite termination of policy iteration
+:label: thm-pi-finite
+
+Suppose $S$ and every $\mathcal{A}_s$ are finite and $0 \le \gamma < 1$. Then the values produced by policy iteration are nondecreasing, $\mathbf{v}^{n+1} \ge \mathbf{v}^n$, and the algorithm stops after finitely many iterations with an optimal policy.
+````
+
+````{prf:proof}
+Since $\pi_{n+1}$ is greedy with respect to $\mathbf{v}^n$, $\mathrm{L}_{\pi_{n+1}} \mathbf{v}^n = \Bellman \mathbf{v}^n \ge \mathrm{L}_{\pi_n}\mathbf{v}^n = \mathbf{v}^n$. Rearranged, $\mathbf{r}_{\pi_{n+1}} \ge (\mathbf{I} - \gamma \mathbf{P}_{\pi_{n+1}})\mathbf{v}^n$. The inverse $(\mathbf{I} - \gamma \mathbf{P}_{\pi_{n+1}})^{-1} = \sum_t (\gamma\mathbf{P}_{\pi_{n+1}})^t$ has nonnegative entries, so multiplying both sides by it preserves the inequality and gives $\mathbf{v}^{n+1} \ge \mathbf{v}^n$. The improvement is strict in some state unless $\Bellman \mathbf{v}^n = \mathbf{v}^n$, in which case $\mathbf{v}^n = v^*_\gamma$ and $\pi_n$ is optimal. A strictly improving sequence never repeats a rule, and there are finitely many deterministic Markov rules, so the algorithm must stop. See {cite:t}`Puterman1994`, Section 6.4.
+````
+
+Two remarks follow from the proof. First, the stopping rule is exact. When the same rule appears twice, $\mathbf{v}^n$ solves the optimality equation and the policy is optimal, not merely $\varepsilon$-optimal. This argument counts policies, so it is specific to finite state and action spaces; for continuous spaces, convergence needs the Newton-Kantorovich machinery of {ref}`sec-newton-kantorovich-pi`. Second, the proof never used that $\pi_{n+1}$ is greedy in *every* state. Any $\pi_{n+1}$ with $\mathrm{L}_{\pi_{n+1}}\mathbf{v}^n \ge \mathbf{v}^n$, strictly in at least one state, improves the policy. Improving a single state per iteration is enough for convergence. This matters later, because many RL algorithms contain a policy-iteration loop whose improvement step is only partial: a small change at each step, perhaps only in the states that were visited.
+
+In practice policy iteration converges in very few iterations, often a handful, even for large problems. The reason is that it is Newton's method in disguise, a connection made by {cite:t}`PutermanBrumelle1979` and developed in {ref}`sec-newton-kantorovich-pi`. Each iteration costs more than a value-iteration step, though. Both algorithms pay about $|\mathcal{S}|^2|\mathcal{A}|$ operations for a greedy step, but policy iteration adds a direct policy evaluation, a linear solve of order $|\mathcal{S}|^3$.
+
+### Modified Policy Iteration
+
+Policy evaluation can also be done by successive approximation, and nothing forces us to run that inner loop to convergence. Stopping it after a few sweeps gives **modified policy iteration** (MPI) {cite}`PutermanShin1978`. One way to see what this does is through the Neumann series. Write the exact evaluation of the greedy rule $\pi = \mathrm{Greedy}(\mathbf{v})$ as a correction to the current guess:
+
+$$
+\mathbf{v}^{\pi}_\gamma = \mathbf{v} + (\mathbf{I} - \gamma\mathbf{P}_\pi)^{-1}(\Bellman \mathbf{v} - \mathbf{v}) = \mathbf{v} + \sum_{k=0}^{\infty} (\gamma \mathbf{P}_\pi)^k\, (\Bellman \mathbf{v} - \mathbf{v}).
+$$
+
+The step is the Bellman residual $\Bellman\mathbf{v} - \mathbf{v}$, propagated through the inverse. MPI truncates the series after $m+1$ terms:
+
+$$
+\mathbf{v}^{n+1} = \mathbf{v}^n + \sum_{k=0}^{m} (\gamma \mathbf{P}_{\pi_{n+1}})^k\, (\Bellman \mathbf{v}^n - \mathbf{v}^n) = (\mathrm{L}_{\pi_{n+1}})^{m+1}\, \mathbf{v}^n,
+$$
+
+where the second form, $m+1$ sweeps of policy evaluation started from $\mathbf{v}^n$, is how it is implemented. The integer $m \ge 0$ is a hyperparameter that interpolates between the two algorithms we have seen. With $m = 0$ the update is $\mathbf{v}^{n+1} = \mathrm{L}_{\pi_{n+1}}\mathbf{v}^n = \Bellman\mathbf{v}^n$, which is value iteration. With $m = \infty$ it is exact evaluation, which is policy iteration. In between, each iteration costs $m+1$ matrix-vector products and no linear solve.
+
+````{prf:algorithm} Modified Policy Iteration
+:label: modified-policy-iteration
+
+**Input:** MDP $(S, A, P, R, \gamma)$, number of evaluation sweeps $m \ge 0$, tolerance $\varepsilon > 0$  
+**Output:** An $\varepsilon$-optimal policy
+
+1. Initialize $\mathbf{v}^0$ with $\Bellman\mathbf{v}^0 \ge \mathbf{v}^0$, for example $\mathbf{v}^0 = \frac{\min_{s,a} r(s,a)}{1-\gamma}\mathbf{1}$; set $n = 0$
+2. **repeat**
+    1. (Improvement) $\pi_{n+1} \leftarrow \mathrm{Greedy}(\mathbf{v}^n)$, so that $\mathrm{L}_{\pi_{n+1}}\mathbf{v}^n = \Bellman\mathbf{v}^n$
+    2. If $\|\Bellman\mathbf{v}^n - \mathbf{v}^n\|_\infty < \frac{\varepsilon(1-\gamma)}{2\gamma}$, **return** $\mathrm{Greedy}(\Bellman\mathbf{v}^n)$
+    3. (Partial evaluation) $\mathbf{u} \leftarrow \Bellman\mathbf{v}^n$; repeat $m$ times: $\mathbf{u} \leftarrow \mathbf{r}_{\pi_{n+1}} + \gamma\mathbf{P}_{\pi_{n+1}}\mathbf{u}$
+    4. $\mathbf{v}^{n+1} \leftarrow \mathbf{u}$; $n \leftarrow n+1$
+````
+
+The stopping test is the one from value iteration, and it gives the same guarantee, provided the returned policy is greedy with respect to $\Bellman\mathbf{v}^n$ (one more greedy step), exactly as value iteration returns the policy greedy with respect to its last iterate. Started from a $\mathbf{v}^0$ with $\Bellman\mathbf{v}^0 \ge \mathbf{v}^0$, the iterates increase monotonically to $v^*_\gamma$ and the returned policy is $\varepsilon$-optimal ({cite:t}`Puterman1994`, Section 6.5). The number of sweeps $m$ can also change from one iteration to the next.
+
+Why should a truncated evaluation work at all? In Newton's method, the inverse Hessian (or inverse Jacobian) rescales the gradient step, a step-size schedule adapted to the local curvature. Here $(\mathbf{I} - \gamma\mathbf{P}_\pi)^{-1}$ plays that role for the Bellman residual, and value iteration replaces it by the identity. Truncating the Neumann series replaces it by an approximation, in the same way that quasi-Newton and inexact Newton methods use approximate Hessians or approximate linear solves. {ref}`sec-newton-kantorovich-pi` makes this precise.
 
 ## Exact Scheduling MDP for Inference Serving
 
@@ -1084,7 +1210,7 @@ optimality proof.
 (sec-newton-kantorovich-pi)=
 ## Newton-Kantorovich and Policy Iteration
 
-Value iteration is successive approximation applied to the Bellman optimality equation. This section develops the other general tool for operator equations, the Newton-Kantorovich method, and shows that applying it to the same equation gives policy iteration.
+Value iteration is successive approximation applied to the Bellman optimality equation. This section develops the other general tool for operator equations, the Newton-Kantorovich method, and shows that applying it to the same equation gives the policy iteration algorithm of {ref}`sec-policy-iteration`. This explains why policy iteration needs so few iterations, and why modified policy iteration, which solves the Newton system only approximately, still works.
 
 ### Newton-Kantorovich Method
 
@@ -1390,7 +1516,7 @@ This theoretical result explains an empirical observation that has long been not
 
 The semismooth Newton framework also suggests a spectrum of methods interpolating between value iteration and policy iteration. Value iteration can be interpreted as a Newton-like method where we choose $J_k = I$ at every iteration, ignoring the dependence of $\Bellman$ on $v$ entirely. This choice guarantees global convergence through the contraction property but sacrifices the quadratic local convergence rate. Policy iteration, at the other extreme, uses the full generalized Jacobian $J_k = I - \gamma P_{\pi_k}$, achieving quadratic convergence but at the cost of solving a linear system at each iteration.
 
-Between these extremes lie methods that use approximate Jacobians. One natural variant is to choose $J_k = \alpha I$ for some scalar $\alpha > 0$. This leads to the update
+Between these extremes lie methods that use approximate Jacobians or solve the Newton system only approximately. Modified policy iteration is one of them: it keeps the Jacobian $I - \gamma P_{\pi_k}$ but replaces its inverse by the first $m+1$ terms of the Neumann series. Another natural variant is to choose $J_k = \alpha I$ for some scalar $\alpha > 0$. This leads to the update
 
 $$
 v_{k+1} = \frac{\alpha - 1}{\alpha} v_k + \frac{1}{\alpha} \Bellman v_k.
@@ -1400,41 +1526,9 @@ This is relaxed value iteration with step size $1/\alpha$. Taking $\alpha > 1$ d
 
 The connection to semismooth Newton methods places policy iteration within a broader mathematical framework that extends far beyond dynamic programming. Semismooth Newton methods are used in optimization (for complementarity problems and variational inequalities), in PDE-constrained optimization (for problems with control constraints), and in economics (for equilibrium problems). The Bellman equation, viewed through this lens, is simply one instance of a piecewise smooth equation, and the tools developed for such equations apply directly.
 
-### Policy Iteration 
+### Policy Iteration as a Newton Method
 
-While we derived policy iteration-like steps from the Newton-Kantorovich method, it's worth examining policy iteration as a standalone algorithm, as it has been traditionally presented in the field of dynamic programming.
-
-The policy iteration algorithm for discounted Markov decision problems is as follows:
-
-````{prf:algorithm} Policy Iteration
-:label: policy-iteration-standard
-
-**Input:** MDP $(S, A, P, R, \gamma)$
-**Output:** Optimal policy $\pi^*$
-
-1. Initialize: $n = 0$, select an arbitrary decision rule $\pi_0 \in \Pi^{MD}$
-2. **repeat**
-   3. (Policy evaluation) Obtain $\mathbf{v}^n$ by solving:
-   
-      $$(\mathbf{I}-\gamma \mathbf{P}_{\pi_n}) \mathbf{v} = \mathbf{r}_{\pi_n}$$
-
-   4. (Policy improvement) Choose $\pi_{n+1} = \mathrm{Greedy}(\mathbf{v}^n)$ where:
-
-       $$\pi_{n+1} \in \arg\max_{\pi \in \Pi^{MD}}\left\{\mathbf{r}_\pi+\gamma \mathbf{P}_\pi \mathbf{v}^n\right\}$$
-       
-       equivalently, for each $s$:
-       
-       $$\pi_{n+1}(s) \in \arg\max_{a \in \mathcal{A}_s}\left\{r(s,a)+\gamma \sum_j p(j|s,a) \mathbf{v}^n(j)\right\}$$
-       
-       Set $\pi_{n+1} = \pi_n$ if possible.
-
-   5. If $\pi_{n+1} = \pi_n$, **return** $\pi^* = \pi_n$
-
-   6. $n = n + 1$
-7. **until** convergence
-````
-
-As opposed to value iteration, this algorithm produces a sequence of both deterministic Markovian decision rules $\{\pi_n\}$ and value functions $\{\mathbf{v}^n\}$. We recognize in this algorithm the linearization step of the Newton-Kantorovich procedure, which takes place here in the policy evaluation step 3 where we solve the linear system $(\mathbf{I}-\gamma \mathbf{P}_{\pi_n}) \mathbf{v} = \mathbf{r}_{\pi_n}$. In practice, this linear system could be solved either using direct methods (eg. Gaussian elimination), using simple iterative methods such as the successive approximation method for policy evaluation, or more sophisticated methods such as GMRES.
+Comparing the Newton step above with {prf:ref}`policy-iteration-standard`, the linearization happens in the policy evaluation step 3, where we solve $(\mathbf{I}-\gamma \mathbf{P}_{\pi_n}) \mathbf{v} = \mathbf{r}_{\pi_n}$, and the improvement step recomputes the point at which the operator is linearized. The linear system can be solved by direct methods (Gaussian elimination), by successive approximation, or by Krylov methods such as GMRES. Solving it only approximately, with a few sweeps of successive approximation, is {prf:ref}`modified-policy-iteration`: an inexact Newton method whose direction comes from a truncated Neumann series.
 
 (sec-sailing-wind-shifts)=
 ## Example: Sailing to a Windward Mark in a Shifting Wind
@@ -2028,7 +2122,10 @@ estimated from samples, which is the subject of
 Discounting converts an infinite stream of rewards into a bounded value and
 makes the Bellman maps contractions in the sup norm. Value iteration applies
 successive approximation; policy iteration alternates a fixed-policy linear
-solve with greedy improvement. The inference-scheduling example used that
+solve with greedy improvement, and modified policy iteration interpolates
+between the two by truncating that solve. Value iteration's stopping rule comes
+with a certificate of $\varepsilon$-optimality, and the span seminorm gives a
+sharper one. The inference-scheduling example used that
 linear solve as a check: no heuristic policy beat the value-iteration policy in
 any of the 49 states. It also showed the price of state reduction: a smaller
 MDP averages over distinctions that can still affect future completions.
