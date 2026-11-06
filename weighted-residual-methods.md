@@ -55,7 +55,7 @@ land managers face have hundreds of reaches. Continuous states hit the same
 wall through the grid. The reservoir of the
 [finite-horizon chapter](finite-horizon-dp.md) stored its value on 181 storage
 levels; five reservoirs in one valley, managed jointly on the same grid, would
-need $181^5 pprox 2 	imes 10^{11}$ grid states, each with its own one-step
+need $181^5 \approx 2 \times 10^{11}$ grid states, each with its own one-step
 optimization at every stage. A grid with $N$ nodes per axis in $D$ dimensions
 has $N^D$ nodes. This is the curse of dimensionality that Bellman named, and
 it belongs to the representation rather than to the problem: the value
@@ -116,7 +116,7 @@ $$
 v^*(s) = \max\left\{ s, \; \gamma \int_0^1 v^*(s') \, ds' \right\}.
 $$
 
-The first term is the immediate payoff from stopping; the second is the discounted expected continuation value. This is an optimal stopping problem of the same kind as the [storm-surge barrier](stochastic-dp.md#example-closing-a-storm-surge-barrier), reduced to its simplest form. Since the continuation value $\bar{v} = \int_0^1 v^*(s') ds'$ is a constant (it doesn't depend on the current state $s$), the optimal policy has a **threshold structure**: stop if $s \geq s^*$ for some threshold $s^*$, continue otherwise.
+The first term is the immediate payoff from stopping; the second is the discounted expected continuation value. This is an optimal stopping problem of the same kind as the storm-surge barrier of {ref}`sec-storm-surge-barrier`, reduced to its simplest form. Since the continuation value $\bar{v} = \int_0^1 v^*(s') ds'$ is a constant (it doesn't depend on the current state $s$), the optimal policy has a **threshold structure**: stop if $s \geq s^*$ for some threshold $s^*$, continue otherwise.
 
 At the threshold, the agent is indifferent: $s^* = \gamma \bar{v}$. Computing $\bar{v}$ by integrating $v^*$:
 
