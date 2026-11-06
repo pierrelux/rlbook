@@ -744,7 +744,64 @@ $$
 \|v^*_\gamma - v^{\pi}_\gamma\|_\infty \le \frac{\gamma}{1-\gamma}\operatorname{sp}(v_{n+1} - v_n).
 $$
 
-So stopping when $\operatorname{sp}(v_{n+1} - v_n) < \varepsilon(1-\gamma)/\gamma$ also returns an $\varepsilon$-optimal greedy policy ({cite:t}`Puterman1994`, Section 6.6). Since $\operatorname{sp}(d) \le 2\|d\|_\infty$, this test is never later than the sup-norm test, and it is often much earlier: value iteration tends to spend many iterations shifting all values by nearly the same amount, which the span ignores. On a random MDP with 30 states, 4 actions, $\gamma = 0.95$ and rewards around 5, the sup-norm test with $\varepsilon = 10^{-3}$ needs 242 iterations and the span test needs 11, and both return an optimal policy. The bounds also give a better value estimate than $v_{n+1}$ itself: the midpoint $v_{n+1} + \frac{\gamma}{1-\gamma}\frac{m+M}{2}\mathbf{1}$ is within $\frac{\gamma}{2(1-\gamma)}\operatorname{sp}(d)$ of $v^*_\gamma$.
+So stopping when $\operatorname{sp}(v_{n+1} - v_n) < \varepsilon(1-\gamma)/\gamma$ also returns an $\varepsilon$-optimal greedy policy ({cite:t}`Puterman1994`, Section 6.6). Since $\operatorname{sp}(d) \le 2\|d\|_\infty$, this test is never later than the sup-norm test, and it is often much earlier. Value iteration tends to spend many iterations shifting all values by nearly the same amount, which the span ignores. How much earlier depends on how fast the chains $\mathbf{P}_\pi$ mix: when every state quickly reaches every other, the changes $d$ become nearly constant across states after a few iterations and their span collapses, while their sup-norm still shrinks only like $\gamma^n$. The bounds also give a better value estimate than $v_{n+1}$ itself: the midpoint $v_{n+1} + \frac{\gamma}{1-\gamma}\frac{m+M}{2}\mathbf{1}$ is within $\frac{\gamma}{2(1-\gamma)}\operatorname{sp}(d)$ of $v^*_\gamma$.
+
+The experiment below checks both claims. It draws random MDPs with 30 states and 4 actions, runs value iteration from $v_0 = 0$ with $\gamma = 0.95$ and $\varepsilon = 10^{-3}$ under each stopping test, and evaluates the returned greedy policy exactly by a linear solve. To vary how fast the chains mix, each transition matrix is mixed with the identity: with probability `stay` the system remains where it is. Each row averages five random MDPs, and the last two columns report the worst optimality gap $\max_s (v^*_\gamma(s) - v^\pi_\gamma(s))$ over those five, which the theory says must not exceed $\varepsilon$.
+
+```{code-cell} python
+import numpy as np
+
+
+def random_mdp(seed, n_states=30, n_actions=4, stay=0.0):
+    """Random transitions P[s, a, j] and rewards r[s, a]; `stay` adds self-loops."""
+    rng = np.random.default_rng(seed)
+    P = rng.dirichlet(0.3 * np.ones(n_states), size=(n_states, n_actions))
+    P = (1 - stay) * P + stay * np.eye(n_states)[:, None, :]
+    r = rng.normal(size=(n_states, n_actions))
+    return P, r
+
+
+def value_iteration(P, r, gamma, eps, test):
+    """Value iteration from v = 0 until the chosen stopping test passes."""
+    v = np.zeros(P.shape[0])
+    n = 0
+    while True:
+        n += 1
+        v_next = (r + gamma * P @ v).max(axis=1)
+        d = v_next - v
+        if test == "sup" and np.abs(d).max() < eps * (1 - gamma) / (2 * gamma):
+            break
+        if test == "span" and d.max() - d.min() < eps * (1 - gamma) / gamma:
+            break
+        v = v_next
+    greedy = (r + gamma * P @ v_next).argmax(axis=1)  # greedy w.r.t. the last iterate
+    return n, greedy
+
+
+def policy_value(P, r, gamma, policy):
+    """Exact evaluation: solve (I - gamma P_pi) v = r_pi."""
+    idx = np.arange(P.shape[0])
+    return np.linalg.solve(np.eye(P.shape[0]) - gamma * P[idx, policy], r[idx, policy])
+
+
+gamma, eps = 0.95, 1e-3
+print(f"{'stay':>5} | {'sup-norm iters':>14} {'span iters':>10} | {'worst gap (sup)':>15} {'worst gap (span)':>16}")
+for stay in (0.0, 0.5, 0.9, 0.99):
+    iters = {"sup": [], "span": []}
+    gaps = {"sup": [], "span": []}
+    for seed in range(5):
+        P, r = random_mdp(seed, stay=stay)
+        _, pi_star = value_iteration(P, r, gamma, 1e-10, "sup")  # reference optimal policy
+        v_star = policy_value(P, r, gamma, pi_star)
+        for test in ("sup", "span"):
+            n, pi = value_iteration(P, r, gamma, eps, test)
+            iters[test].append(n)
+            gaps[test].append((v_star - policy_value(P, r, gamma, pi)).max())
+    print(f"{stay:>5} | {np.mean(iters['sup']):>14.0f} {np.mean(iters['span']):>10.0f} | "
+          f"{max(gaps['sup']):>15.1e} {max(gaps['span']):>16.1e}")
+```
+
+With fast-mixing random transitions (`stay = 0`) the span test stops after about 10 iterations, against about 200 for the sup-norm test. As the chains become stickier the advantage shrinks, and at `stay = 0.99` the two tests stop within about 15% of each other. In every case both returned policies are within $\varepsilon$ of optimal.
 
 ### Bellman contraction laboratory
 
