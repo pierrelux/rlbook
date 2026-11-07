@@ -850,7 +850,7 @@ average, over all weeks, grid states and releases. The successors that the
 maximization selects are moved by $+45$ hm³ on average, out of a possible
 $50$, and $94\%$ of them are rounded up. The same selection effect reappears as
 overestimation bias in
-[fitted Q-iteration](fitted-q-iteration.md#double-deep-q-network-double-dqn).
+[fitted Q-iteration](fitted-q-iteration.md#sec-fqi-double-dqn).
 
 These bounds do not remove the curse of dimensionality from the opening of
 this chapter. A grid with $N$ levels per coordinate still has $N^n$ nodes, each

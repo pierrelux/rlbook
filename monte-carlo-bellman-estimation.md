@@ -13,427 +13,302 @@ kernelspec:
 
 # Monte Carlo Bellman Estimation
 
-The projection methods from the previous chapter showed how to transform the infinite-dimensional fixed-point problem $\Bellman v = v$ into a finite-dimensional one by choosing basis functions $\{\varphi_i\}$ and imposing conditions that make the residual $R(s) = \Bellman v(s) - v(s)$ small. Different projection conditions (Galerkin orthogonality, collocation at points, least squares minimization) yield different finite-dimensional systems to solve.
-
-However, we left unresolved the question of how to evaluate the Bellman operator itself. Applying $\Bellman$ at any state requires computing an expectation:
+The two previous chapters assumed that the Bellman operator could be
+evaluated exactly at any state. Every target $(\Bellman v_k)(s_i)$ contains
+an expectation over the successor state,
 
 $$
-(\Bellman v)(s) = \max_{a \in \mathcal{A}_s} \left\{r(s,a) + \gamma \int v(s')p(ds'|s,a)\right\}
+(\Bellman v)(s) = \max_{a \in \mathcal{A}_s} \left\{r(s,a) + \gamma \int v(s')\,p(ds'|s,a)\right\},
 $$
 
-Can that expectation and the outer projection integrals be estimated when the
-model supplies samples rather than an explicit transition density?
+and the fishery computed it with a 21-node quadrature rule, while the
+eight-dimensional stopping problem already replaced it by an average over 32
+random draws. This chapter asks what that replacement costs, and what it
+makes possible. When the transition density is unavailable, because the model
+is a simulator or a log of recorded transitions, sampling is the only way to
+evaluate the operator, and the sample average is the estimator. Its error is
+random rather than systematic, its rate does not depend on the dimension of
+the state, and it adds to the per-iteration error that the
+[previous chapter](approximate-bellman-equations.md) bounded. Replacing
+exact expectations by samples is what turns the approximate dynamic
+programming of the previous chapters into what the operations research
+community calls simulation-based dynamic programming and the machine learning
+community calls reinforcement learning.
 
-For discrete state spaces with a manageable number of states, this expectation is a finite sum we can compute exactly. For continuous or high-dimensional state spaces, we need numerical integration. The projection methods framework is compatible with any quadrature scheme, but leaves the choice of integration method unspecified.
+Two consequences of sampling organize the chapter. Acting on a value function
+$v$ requires the expectation for every action at every decision, so with
+samples it requires simulation at decision time; storing the value of each
+action instead, the **action-value function** $q(s,a)$, moves that work into
+training. And the maximum over noisy estimates is biased upward, even though
+each estimate is unbiased, so the targets of every sampled Bellman update
+overestimate, and the chapter ends with the ways to correct it.
 
-This chapter addresses the **integration subproblem** that arises at two levels in approximate dynamic programming. First, we must evaluate the transition expectation $\int v(s')p(ds'|s,a)$ within the Bellman operator itself. Second, when using projection methods like Galerkin or least squares, we encounter outer integrations for enforcing orthogonality conditions or minimizing residuals over distributions of states. Both require numerical approximation in continuous or high-dimensional spaces.
+::::{admonition} Learning Goals
+:class: note
 
-We begin by examining deterministic numerical integration methods: quadrature rules that approximate integrals by evaluating integrands at carefully chosen points with associated weights. We discuss how to coordinate the choice of quadrature with the choice of basis functions to balance approximation accuracy and computational cost. Then we turn to **Monte Carlo integration**, which approximates expectations using random samples rather than deterministic quadrature points. This shift from deterministic to stochastic integration is what brings us into machine learning territory. When we replace exact transition probabilities with samples drawn from simulations or real interactions, projection methods combined with Monte Carlo integration become what the operations research community calls **simulation-based approximate dynamic programming** and what the machine learning community calls **reinforcement learning**. By relying on samples rather than explicit probability functions, we move from model-based planning to data-driven learning.
+After completing this chapter, you should be able to:
+- Locate the two expectations in a fitted Bellman update, inside the operator and over the states, and bound the effect of estimating either one on the fixed point
+- Replace an expectation by a sample average, state the bias and variance of the result, and explain why its rate is independent of the dimension
+- Define the action-value function and its Bellman operator, and explain what it saves at decision time
+- Derive the upward bias of a maximum over noisy estimates, and explain how decoupling selection from evaluation removes part of it
 
-## Evaluating the Bellman Operator with Numerical Quadrature
+**Prerequisites:** fitted value iteration and its error bound ([previous chapter](approximate-bellman-equations.md)), basic probability (expectation, variance, the central limit theorem, Jensen's inequality).
+::::
 
-Before introducing random samples, which deterministic nodes and weights can
-approximate the transition expectation?
+## Two Expectations in Every Fitted Update
 
-Before turning to Monte Carlo methods, we examine the structure of the numerical integration problem. When we apply the Bellman operator to an approximate value function $\hat{v}(s; \theta) = \sum_i \theta_i \varphi_i(s)$, we must evaluate integrals of the form:
+Where do integrals appear in a fitted Bellman update, and what does
+approximating them do to the fixed point?
 
-$$ \int \hat{v}(s'; \theta) \, p(s'|s,a) \, ds' = \int \left(\sum_i \theta_i \varphi_i(s')\right) p(s'|s,a) \, ds' = \sum_i \theta_i \int \varphi_i(s') \, p(s'|s,a) \, ds' $$
+They appear in two places. The first is inside the operator: the transition
+expectation $\int v(s')\,p(ds'|s,a)$ that every target contains. The second
+is over the states: Galerkin and least-squares conditions integrate the
+residual against test functions, and a regression averages the fitting error
+over the states where targets were computed. Collocation has only the first
+integral, which is one reason it was the simplest case.
 
-This shows two independent approximations:
-
-1. **Value function approximation**: We represent $v$ using basis functions $\{\varphi_i\}$ and coefficients $\theta$
-2. **Quadrature approximation**: We approximate each integral $\int \varphi_i(s') p(s'|s,a) ds'$ numerically
-
-These choices are independent but should be coordinated. To see why, consider what happens in projection methods when we iterate $\hat{v}^{(k+1)} = \Proj \Bellman \hat{v}^{(k)}$. In practice, we cannot evaluate $\Bellman$ exactly due to the integrals, so we compute $\hat{v}^{(k+1)} = \Proj \BellmanQuad \hat{v}^{(k)}$ instead, where $\BellmanQuad$ denotes the Bellman operator with numerical quadrature.
-
-The error in a single iteration can be bounded by the triangle inequality. Let $v$ denote the true fixed point $v = \Bellman v$. Then:
+Write $\BellmanQuad$ for the Bellman operator with the transition
+expectation replaced by a numerical rule, deterministic or random, and let
+fitted value iteration run with it, $v_{k+1} = \Proj\,\BellmanQuad v_k$. The
+error after one iteration splits into three pieces by the triangle
+inequality. With $v^\star = \Bellman v^\star$,
 
 $$
 \begin{aligned}
-\|v - \hat{v}^{(k+1)}\| &= \|v - \Proj \BellmanQuad \hat{v}^{(k)}\| \\
-&\le \|v - \Proj \Bellman v\| + \|\Proj \Bellman v - \Proj \Bellman \hat{v}^{(k)}\| + \|\Proj \Bellman \hat{v}^{(k)} - \Proj \BellmanQuad \hat{v}^{(k)}\| \\
-&= \underbrace{\|v - \Proj \Bellman v\|}_{\text{best approximation error}} + \underbrace{\|\Proj \Bellman v - \Proj \Bellman \hat{v}^{(k)}\|}_{\text{contraction of iterate error}} + \underbrace{\|\Proj \Bellman \hat{v}^{(k)} - \Proj \BellmanQuad \hat{v}^{(k)}\|}_{\text{quadrature error}}
+\|v^\star - v_{k+1}\| &= \|v^\star - \Proj \BellmanQuad v_k\| \\
+&\le \underbrace{\|v^\star - \Proj \Bellman v^\star\|}_{\text{best approximation}} + \underbrace{\|\Proj \Bellman v^\star - \Proj \Bellman v_k\|}_{\text{contraction of the current error}} + \underbrace{\|\Proj \Bellman v_k - \Proj \BellmanQuad v_k\|}_{\text{integration error}} .
 \end{aligned}
 $$
 
-The first term is the best we can do with our basis (how well $\Proj$ approximates the true solution). The second term decreases with iterations when $\Proj \Bellman$ is a contraction. The third term is the error from replacing exact integrals with quadrature, and it does not vanish as iterations proceed.
+The first term is the best the basis can do, the second shrinks with the
+iterations when $\Proj\Bellman$ is a contraction, and the third is the error
+of the integration rule, which does not shrink as the iterations proceed. In
+the language of {prf:ref}`thm-approximate-vi`, the integration error is one
+more contribution to the per-iteration error $\varepsilon$, and it is
+amplified by the same $1/(1-\gamma)$. This is why the accuracy of the
+integration rule should match the accuracy of the basis. A degree-10
+Chebyshev basis represents a smooth value function to about $10^{-8}$, but
+with a rectangle rule for the expectation the integration error, of order
+$h^2$, dominates the sum, and the basis is wasted.
 
-To make this concrete, consider evaluating $(\Bellman \hat{v})(s)$ for our current approximation $\hat{v}(s; \theta) = \sum_i \theta_i \varphi_i(s)$. We want:
+For low-dimensional problems with a smooth, explicit transition density,
+deterministic quadrature is the right tool, and the rule is chosen to match
+the basis: Gauss–Chebyshev nodes with Chebyshev polynomials, Gauss–Legendre
+with Legendre, Gauss–Hermite with Hermite polynomials and Gaussian shocks,
+midpoint or trapezoidal rules with piecewise-constant or piecewise-linear
+elements. With orthogonal collocation the nodes of the basis double as the
+nodes of the quadrature, and the expectations of the basis functions at the
+successors of each node can be precomputed once into a matrix, so that each
+iteration costs a matrix product and a maximization. The fishery used
+Gauss–Hermite quadrature over its log-normal shock in this way. The same
+pairing principle governed continuous-time trajectory optimization, where the
+cost integral and the dynamics were discretized on the same nodes.
 
-$$ (\Bellman \hat{v})(s) = \max_{a \in \mathcal{A}_s} \left\{r(s,a) + \gamma \sum_i \theta_i \int \varphi_i(s') p(s'|s,a) ds' \right\} $$
-
-But we compute instead:
-
-$$ (\BellmanQuad \hat{v})(s) = \max_{a \in \mathcal{A}_s} \left\{r(s,a) + \gamma \sum_i \theta_i \sum_j w_j \varphi_i(s'_j) \right\} $$
-
-where $\{(s'_j, w_j)\}$ are quadrature nodes and weights. If the quadrature error $\|(\Bellman \hat{v})(s) - (\BellmanQuad \hat{v})(s)\|$ is large relative to the basis approximation quality, we cannot exploit the expressive power of the basis. For instance, degree-10 Chebyshev polynomials represent smooth functions to $O(10^{-8})$ accuracy, but combined with rectangle-rule quadrature (error $O(h^2) \approx 10^{-2}$), the quadrature term dominates the error bound. We pay the cost of storing and manipulating 10 coefficients but achieve only $O(h^2)$ convergence in the quadrature mesh size.
-
-This echoes the coordination principle from continuous optimal control (Chapter on trajectory optimization): when transcribing a continuous-time problem, we use the same quadrature nodes for both the running cost integral and the dynamics integral. There, coordination ensures that "where we pay" aligns with "where we enforce" the dynamics. Here, coordination ensures that integration accuracy matches approximation accuracy. Both are instances of balancing multiple sources of error in numerical methods.
-
-Standard basis-quadrature pairings achieve this balance:
-
-- Piecewise constant or linear elements with midpoint or trapezoidal rules
-- Chebyshev polynomials with Gauss-Chebyshev quadrature
-- Legendre polynomials with Gauss-Legendre quadrature
-- Hermite polynomials with Gauss-Hermite quadrature (for Gaussian shocks)
-
-To make this concrete, we examine what these pairings look like in practice for collocation and Galerkin projection.
-
-### Orthogonal Collocation with Chebyshev Polynomials
-
-Consider approximating the value function using Chebyshev polynomials of degree $n-1$:
-
-$$
-\hat{v}(s; \theta) = \sum_{i=0}^{n-1} \theta_i T_i(s)
-$$
-
-For orthogonal collocation, we place collocation points at the zeros of $T_n(s)$, denoted $\{s_j\}_{j=1}^n$. At each collocation point, we require the Bellman equation to hold exactly:
-
-$$
-\hat{v}(s_j; \theta) = \max_{a \in \mathcal{A}} \left\{r(s_j,a) + \gamma \int \hat{v}(s'; \theta) p(ds'|s_j,a)\right\}
-$$
-
-The integral on the right must be approximated using quadrature. With Chebyshev-Gauss quadrature using the same nodes $\{s_k\}_{k=1}^n$ and weights $\{w_k\}_{k=1}^n$, this becomes:
-
-$$
-\hat{v}(s_j; \theta) = \max_{a \in \mathcal{A}} \left\{r(s_j,a) + \gamma \sum_{k=1}^n w_k \hat{v}(s_k; \theta) p(s_k|s_j,a)\right\}
-$$
-
-Substituting the basis representation $\hat{v}(s_k; \theta) = \sum_{i=0}^{n-1} \theta_i T_i(s_k)$:
-
-$$
-\sum_{i=0}^{n-1} \theta_i T_i(s_j) = \max_{a \in \mathcal{A}} \left\{r(s_j,a) + \gamma \sum_{k=1}^n w_k p(s_k|s_j,a) \sum_{i=0}^{n-1} \theta_i T_i(s_k)\right\}
-$$
-
-Rearranging:
-
-$$
-\sum_{i=0}^{n-1} \theta_i T_i(s_j) = \max_{a \in \mathcal{A}} \left\{r(s_j,a) + \gamma \sum_{i=0}^{n-1} \theta_i \underbrace{\sum_{k=1}^n w_k T_i(s_k) p(s_k|s_j,a)}_{B_{ji}^a}\right\}
-$$
-
-This yields a system of $n$ nonlinear equations (one per collocation point):
-
-$$
-\sum_{i=0}^{n-1} T_i(s_j) \theta_i = \max_{a \in \mathcal{A}} \left\{r(s_j,a) + \gamma \sum_{i=0}^{n-1} B_{ji}^a \theta_i\right\}, \quad j=1,\ldots,n
-$$
-
-The matrix elements $B_{ji}^a$ can be precomputed once the quadrature nodes, weights, and transition probabilities are known. Solving this system gives the coefficient vector $\theta$.
-
-### Galerkin Projection with Hermite Polynomials
-
-For a problem with Gaussian shocks, we might use Hermite polynomials $\{H_i(s)\}_{i=0}^{n-1}$ weighted by the Gaussian density $\phi(s)$. The Galerkin condition requires:
-
-$$
-\int \left(\Bellman \hat{v}(s; \theta) - \hat{v}(s; \theta)\right) H_j(s) \phi(s) ds = 0, \quad j=0,\ldots,n-1
-$$
-
-Expanding the Bellman operator:
-
-$$
-\int \left[\max_{a \in \mathcal{A}} \left\{r(s,a) + \gamma \int \hat{v}(s'; \theta) p(ds'|s,a)\right\} - \hat{v}(s; \theta)\right] H_j(s) \phi(s) ds = 0
-$$
-
-We approximate this outer integral using Gauss-Hermite quadrature with nodes $\{s_\ell\}_{\ell=1}^m$ and weights $\{w_\ell\}_{\ell=1}^m$:
-
-$$
-\sum_{\ell=1}^m w_\ell \left[\max_{a \in \mathcal{A}} \left\{r(s_\ell,a) + \gamma \int \hat{v}(s'; \theta) p(ds'|s_\ell,a)\right\} - \hat{v}(s_\ell; \theta)\right] H_j(s_\ell) = 0
-$$
-
-The inner integral (transition expectation) is also approximated using Gauss-Hermite quadrature:
-
-$$
-\int \hat{v}(s'; \theta) p(ds'|s_\ell,a) \approx \sum_{k=1}^m w_k \hat{v}(s_k; \theta) p(s_k|s_\ell,a)
-$$
-
-Substituting the basis representation and collecting terms:
-
-$$
-\sum_{\ell=1}^m w_\ell H_j(s_\ell) \max_{a \in \mathcal{A}} \left\{r(s_\ell,a) + \gamma \sum_{i=0}^{n-1} \theta_i \sum_{k=1}^m w_k H_i(s_k) p(s_k|s_\ell,a)\right\} = \sum_{\ell=1}^m w_\ell H_j(s_\ell) \sum_{i=0}^{n-1} \theta_i H_i(s_\ell)
-$$
-
-This gives $n$ nonlinear equations in $n$ unknowns. The right-hand side simplifies using orthogonality: when using the same quadrature nodes for projection and integration, $\sum_{\ell=1}^m w_\ell H_j(s_\ell) H_i(s_\ell) = \delta_{ij} \|H_j\|^2$.
-
-In both cases, the basis-quadrature pairing ensures that:
-1. The quadrature nodes appear in both the transition expectation and the outer projection
-2. The quadrature accuracy matches the polynomial approximation order
-3. Precomputed matrices capture the dynamics, making iterations efficient
+Deterministic quadrature needs three things: a state of low dimension, a
+density that can be evaluated at the nodes, and a cheap model. The problems
+this part of the book is heading for have none of them. The state of the
+eight-dimensional stopping problem needs $N^8$ quadrature nodes for a product
+rule with $N$ nodes per axis. A simulator provides draws of $s'$ and no
+density. And a logged transition provides exactly one draw, which cannot be
+chosen. Monte Carlo integration handles all three.
 
 ## Monte Carlo Integration
 
-How do independent random samples trade deterministic quadrature bias for
-sampling variance and dimension-independent convergence?
+How do random samples trade the bias of a deterministic rule for variance,
+and why does their rate not depend on the dimension?
 
-Deterministic quadrature rules work well when the state space has low dimension, the transition density is smooth, and we can evaluate it cheaply at arbitrary points. In many stochastic control problems none of these conditions truly hold. The state may be high dimensional, the dynamics may be given by a simulator rather than an explicit density, and the cost of each call to the model may be large. In that regime, deterministic quadrature becomes brittle. Monte Carlo methods offer a different way to approximate expectations, one that relies only on the ability to **sample** from the relevant distributions.
-
-### Monte Carlo as randomized quadrature
-
-Consider a single expectation of the form
+Monte Carlo integration approximates an expectation by the average of
+independent draws. For $J = \mathbb{E}[f(X)]$ with $X \sim p$, draw
+$X^{(1)}, \ldots, X^{(N)} \sim p$ and form
 
 $$
-J = \int f(x)\,p(dx) = \mathbb{E}[f(X)],
+\hat{J}_N = \frac{1}{N}\sum_{n=1}^N f\big(X^{(n)}\big).
 $$
 
-where $X \sim p$ and $f$ is some integrable function. Monte Carlo integration approximates $J$ by drawing independent samples $X^{(1)},\ldots,X^{(N)} \sim p$ and forming the sample average
-
-$$
-\hat{J}_N \equiv \frac{1}{N}\sum_{n=1}^N f\bigl(X^{(n)}\bigr).
-$$
-
-This estimator has two basic properties that will matter throughout this chapter.
-
-First, it is **unbiased**:
-
-$$
-\mathbb{E}[\hat{J}_N]
-= \mathbb{E}\left[\frac{1}{N}\sum_{n=1}^N f(X^{(n)})\right]
-= \frac{1}{N}\sum_{n=1}^N \mathbb{E}[f(X^{(n)})]
-= \mathbb{E}[f(X)]
-= J.
-$$
-
-Second, its variance scales as $1/N$. If we write
-
-$$
-\sigma^2 \equiv \mathrm{Var}[f(X)],
-$$
-
-then independence of the samples gives
-
-$$
-\mathrm{Var}(\hat{J}_N)
-= \frac{1}{N^2}\sum_{n=1}^N \mathrm{Var}\bigl(f(X^{(n)})\bigr)
-= \frac{\sigma^2}{N}.
-$$
-
-The central limit theorem then says that for large $N$,
+Two properties of this estimator carry the whole chapter. It is unbiased,
+$\mathbb{E}[\hat{J}_N] = J$, by linearity of expectation. And its variance is
+$\sigma^2/N$ with $\sigma^2 = \mathrm{Var}[f(X)]$, by independence of the
+draws, so by the central limit theorem
 
 $$
 \sqrt{N}\,(\hat{J}_N - J) \Longrightarrow \mathcal{N}(0,\sigma^2),
 $$
 
-so the integration error decays at rate $O(N^{-1/2})$. This rate is slow compared to high-order quadrature in low dimension, but it has one crucial advantage: it does not explicitly depend on the dimension of $x$. Monte Carlo integration pays in variance, not in an exponential growth in the number of nodes.
+and the error decays as $N^{-1/2}$. The rate is slow next to high-order
+quadrature in one dimension, and it is the same in every dimension: Monte
+Carlo pays in variance, never in an exponential number of nodes. It is also a
+quadrature rule, with random nodes and equal weights $1/N$. Importance
+sampling changes the distribution of the nodes and compensates with unequal
+weights, and the view of Monte Carlo as randomized quadrature covers it too.
 
-It is often helpful to view Monte Carlo as **randomized quadrature**. A deterministic quadrature rule selects nodes $x_j$ and weights $w_j$ in advance and computes
-
-$$
-\sum_j w_j f(x_j).
-$$
-
-Monte Carlo can be written in the same form: if we draw $X^{(n)}$ from density $p$, the sample average
-
-$$
-\hat{J}_N = \frac{1}{N}\sum_{n=1}^N f(X^{(n)})
-$$
-
-is just a quadrature rule with random nodes and equal weights. More advanced Monte Carlo schemes, such as importance sampling, change both the sampling distribution and the weights, but the basic idea remains the same.
-
-### Monte Carlo evaluation of the Bellman operator
-
-We now apply this to the Bellman operator. For a fixed value function $v$ and a given state-action pair $(s,a)$, the transition part of the Bellman operator is
-
-$$
-\int v(s')\,p(ds' \mid s,a)
-= \mathbb{E}\left[v(S') \mid S = s, A = a\right].
-$$
-
-If we can simulate next states $S'^{(1)},\ldots,S'^{(N)}$ from the transition kernel $p(\cdot \mid s,a)$, either by calling a simulator or by interacting with the environment, we can approximate this expectation by
-
-$$
-\widehat{\mathbb{E}}_N\bigl[v(S') \mid s,a\bigr]
-\equiv
-\frac{1}{N}\sum_{n=1}^N v\bigl(S'^{(n)}\bigr).
-$$
-
-If the immediate reward is also random, say
-
-$$
-r = r(S,A,S') \quad \text{with} \quad (S', r) \sim p(\cdot \mid s,a),
-$$
-
-we can approximate the full one-step return
-
-$$
-\mathbb{E}\bigl[r + \gamma v(S') \mid S = s, A = a\bigr]
-$$
-
-by
-
-$$
-\widehat{G}_N(s,a)
-\equiv
-\frac{1}{N}\sum_{n=1}^N \bigl[r^{(n)} + \gamma v(S'^{(n)})\bigr],
-$$
-
-where $(r^{(n)}, S'^{(n)})$ are independent samples given $(s,a)$. Again, this is an unbiased estimator of the Bellman expectation for fixed $v$.
-
-Plugging this into the Bellman operator gives a **Monte Carlo Bellman operator**:
-
-$$
-(\widehat{\Bellman}_N v)(s)
-\equiv
-\max_{a \in \mathcal{A}_s}
-\left\{
-\widehat{G}_N(s,a)
-\right\}.
-$$
-
-The expectation inside the braces is now replaced by a random sample average. In model-based settings, we implement this by simulating many next states for each candidate action $a$ at state $s$. In model-free settings, we obtain samples from real interactions and re-use them to estimate the expectation.
-
-At this stage nothing about approximation or projection has entered yet. For a fixed value function $v$, Monte Carlo provides unbiased, noisy evaluations of $(\Bellman v)(s)$. The approximation question arises once we couple this stochastic evaluation with basis functions and projections.
-
-### Sampling the outer expectations
-
-Projection methods introduce a second layer of integration. In Galerkin and least squares schemes, we choose a distribution $\mu$ over states (and sometimes actions) and enforce conditions of the form
-
-$$
-\int R(s; \theta)\,p_i(s)\, \mu(ds) = 0
-\quad \text{or} \quad
-\int R(s; \theta)^2\,\mu(ds) \text{ is minimized}.
-$$
-
-Here $R(s; \theta)$ is the residual function, such as
-
-$$
-R(s; \theta) = (\Bellman \hat{v})(s;\theta) - \hat{v}(s;\theta),
-$$
-
-and $p_i$ are test functions or derivatives of the residual with respect to parameters.
-
-Note a subtle but important shift in perspective from the previous chapter. There, the weight function $w(s)$ in the inner product $\langle f, g \rangle_w = \int f(s) g(s) w(s) ds$ could be any positive weight function (not necessarily normalized). For Monte Carlo integration, however, we need a probability distribution we can sample from. We write $\mu$ for this sampling distribution and express projection conditions as integrals with respect to $\mu$: $\int R(s; \theta) p_i(s) \mu(ds)$. If a problem was originally formulated with an unnormalized weight $w(s)$, we must either (i) normalize it to define $\mu$, or (ii) use importance sampling with a different $\mu$ and reweight samples by $w(s)/\mu(s)$. In reinforcement learning, $\mu$ is typically the empirical state visitation distribution from collected trajectories.
-
-These outer integrals over $s$ are generally not easier to compute than the inner transition expectations. Monte Carlo gives a way to approximate them as well. If we can draw states $S^{(1)},\ldots,S^{(M)} \sim \mu$, we can approximate, for example, the Galerkin orthogonality conditions by
-
-$$
-\int R(s; \theta)\,p_i(s)\,\mu(ds)
-\approx
-\frac{1}{M}\sum_{m=1}^M R\bigl(S^{(m)}; \theta\bigr)\,p_i\bigl(S^{(m)}\bigr).
-$$
-
-Similarly, a least squares objective
-
-$$
-\int R(s; \theta)^2\,\mu(ds)
-$$
-
-is approximated by the empirical risk
-
-$$
-\frac{1}{M}\sum_{m=1}^M R\bigl(S^{(m)}; \theta\bigr)^2.
-$$
-
-If we now substitute Monte Carlo estimates for both the inner transition expectations and the outer projection conditions, we obtain fully simulation-based schemes. We no longer need explicit access to the transition kernel $p(\cdot \mid s,a)$ or the state distribution $\mu$. It is enough to be able to **sample** from them, either through a simulator or by interacting with the real system. 
-
-### Simulation-Based Projection Methods
-
-Monte Carlo integration replaces both levels of integration in approximate dynamic programming. The transition expectation in the Bellman operator becomes $\frac{1}{N}\sum_{n=1}^N v(S'^{(n)})$, and the outer integrals for projection become empirical averages over sampled states. Writing $\Proj_M$ for projection using $M$ state samples and $\widehat{\Bellman}_N$ for the Monte Carlo Bellman operator with $N$ transition samples, the iteration becomes
-
-$$
-\hat{v}^{(k+1)} = \Proj_M\,\widehat{\Bellman}_N \hat{v}^{(k)}.
-$$
-
-In the typical reinforcement learning setting, $N=1$: each observed transition $(s_i, a_i, r_i, s'_i)$ provides exactly one sample of the next state. This means we work with high-variance single-sample estimates $r_i + \gamma v(s'_i)$ rather than averaged returns. Variance reduction comes from aggregating information across different transitions through the function approximator and from collecting long trajectories with many transitions. We examine this single-sample constraint in detail after introducing Q-functions below.
-
-Unlike deterministic quadrature, which introduces a fixed bias at each iteration, Monte Carlo introduces random error with zero mean but nonzero variance. However, combining Monte Carlo with the maximization in the Bellman operator creates a systematic problem: while the estimate of the expected return for any individual action is unbiased, taking the maximum over these noisy estimates introduces upward bias. This overestimation compounds through value iteration and degrades the resulting policies. We address this challenge in the [next chapter on fitted Q-iteration](fitted-q-iteration.md).
-
-### Interactive sample-size diagnostic
-
-Before moving across the figure, predict what multiplying $N$ by four should do to the root mean squared error. Hover over a point to compare the empirical result with the $1/\sqrt{N}$ prediction.
+The cell below checks both properties on a Gaussian with mean $2$ and
+standard deviation $3$, with 4,000 repetitions for each sample size. Before
+looking at the figure, predict what multiplying $N$ by four does to the root
+mean squared error.
 
 ```{code-cell} python
 :tags: [hide-input]
+:label: fig-mc-rate
+:caption: The sample mean of $N$ draws from a Gaussian with mean 2 and standard deviation 3, over 4,000 repetitions for each $N$. (a) The average estimate stays at the true mean whatever $N$: the estimator is unbiased. (b) Its root mean squared error (dots) follows $\sigma/\sqrt{N}$ (line), a slope of $-1/2$ in log-log axes, so four times as many draws halve the error.
 
-import altair as alt
+import sys
+from pathlib import Path
+
+import matplotlib.pyplot as plt
 import numpy as np
-import pandas as pd
+
+code_directory = Path.cwd() / "code"
+if str(code_directory) not in sys.path:
+    sys.path.insert(0, str(code_directory))
+from book_figure_theme import INK, MUTED, PALETTE, figure_style, show
 
 rng = np.random.default_rng(2026)
 true_mean, sigma, trials = 2.0, 3.0, 4000
 sample_sizes = 2 ** np.arange(0, 11)
-summary = []
-
+means, rmse = [], []
 for n in sample_sizes:
     estimates = rng.normal(true_mean, sigma, size=(trials, n)).mean(axis=1)
-    summary.append({
-        "N": int(n),
-        "Mean estimate": estimates.mean(),
-        "Empirical RMSE": np.sqrt(np.mean((estimates - true_mean) ** 2)),
-        "Theory RMSE": sigma / np.sqrt(n),
-    })
+    means.append(estimates.mean())
+    rmse.append(np.sqrt(np.mean((estimates - true_mean) ** 2)))
 
-mc_summary = pd.DataFrame(summary)
-hover_n = alt.selection_point(fields=["N"], nearest=True, on="pointerover", empty=False)
+with figure_style():
+    fig, (ax, bx) = plt.subplots(1, 2, figsize=(7.0, 2.4))
+    ax.axhline(true_mean, color=MUTED, lw=.8, ls="--")
+    ax.plot(sample_sizes, means, "o-", color=PALETTE["blue"], ms=3.5, lw=1)
+    ax.text(1.2, true_mean + .045, "true mean", color=MUTED, fontsize=8.5)
+    ax.set_xscale("log", base=2)
+    ax.set_xticks([1, 4, 16, 64, 256, 1024], ["1", "4", "16", "64", "256", "1024"])
+    ax.set_ylim(true_mean - .15, true_mean + .15)
+    ax.set_xlabel("draws $N$")
+    ax.set_ylabel("average estimate")
+    ax.set_title("(a) No bias at any $N$")
 
-mean_chart = (
-    alt.Chart(mc_summary)
-    .mark_line(point=True, color="#2563eb")
-    .encode(
-        x=alt.X("N:Q", scale=alt.Scale(type="log", base=2), title="Samples N"),
-        y=alt.Y("Mean estimate:Q", scale=alt.Scale(zero=False)),
-        opacity=alt.condition(hover_n, alt.value(1), alt.value(0.55)),
-        tooltip=["N:Q", alt.Tooltip("Mean estimate:Q", format=".4f")],
-    )
-    .add_params(hover_n)
-    .properties(height=180, title="The sample mean remains unbiased")
-)
-
-rmse_long = mc_summary.melt(
-    id_vars="N", value_vars=["Empirical RMSE", "Theory RMSE"],
-    var_name="Series", value_name="RMSE"
-)
-rmse_chart = (
-    alt.Chart(rmse_long)
-    .mark_line(point=True)
-    .encode(
-        x=alt.X("N:Q", scale=alt.Scale(type="log", base=2), title="Samples N"),
-        y=alt.Y("RMSE:Q", scale=alt.Scale(type="log")),
-        color=alt.Color("Series:N", legend=alt.Legend(orient="top")),
-        tooltip=["Series:N", "N:Q", alt.Tooltip("RMSE:Q", format=".4f")],
-    )
-    .properties(height=180, title="Error falls at the Monte Carlo rate")
-)
-
-alt.vconcat(mean_chart, rmse_chart).resolve_scale(color="independent")
+    bx.plot(sample_sizes, sigma / np.sqrt(sample_sizes), color=INK, lw=1)
+    bx.plot(sample_sizes, rmse, "o", color=PALETTE["blue"], ms=3.5)
+    bx.text(40, 1.0, r"$\sigma/\sqrt{N}$", color=INK, fontsize=9)
+    bx.set_xscale("log", base=2)
+    bx.set_yscale("log")
+    bx.set_xticks([1, 4, 16, 64, 256, 1024], ["1", "4", "16", "64", "256", "1024"])
+    bx.set_xlabel("draws $N$")
+    bx.set_ylabel("root mean squared error")
+    bx.set_title(r"(b) Error falls as $N^{-1/2}$")
+    fig.tight_layout(w_pad=2)
+show(fig)
 ```
 
-### Amortizing Action Selection via Q-Functions
+### The Sampled Bellman Operator
 
-Monte Carlo integration enables model-free approximate dynamic programming: we no longer need explicit transition probabilities $p(s'|s,a)$, only the ability to sample next states. However, one computational challenge remains. The standard formulation of an optimal decision rule is
-
-$$
-\pi(s) = \arg\max_{a \in \mathcal{A}} \left\{r(s,a) + \gamma \int v(s')p(ds'|s,a)\right\}.
-$$
-
-Even with an optimal value function $v^*$ in hand, extracting an action at state $s$ requires evaluating the transition expectation for each candidate action. In the model-free setting, this means we must draw Monte Carlo samples from each action's transition distribution every time we select an action. This repeated sampling "at inference time" wastes computation, especially when the same state is visited multiple times.
-
-We can amortize this computation by working at a different level of representation. Define the **state-action value function** (or **Q-function**)
+For a fixed value function $v$ and a state-action pair $(s,a)$, the
+transition part of the Bellman operator is the expectation
+$\mathbb{E}[v(S') \mid S = s, A = a]$. If next states
+$S'^{(1)}, \ldots, S'^{(N)}$ can be drawn from $p(\cdot \mid s,a)$, by calling
+a simulator or by acting in the real system, the sample average estimates it.
+When the reward is random as well, the draws are pairs
+$(r^{(n)}, S'^{(n)})$, and the one-step return is estimated by
 
 $$
-q(s,a) = r(s,a) + \gamma \int v(s')p(ds'|s,a).
+\widehat{G}_N(s,a) = \frac{1}{N}\sum_{n=1}^N \Big[r^{(n)} + \gamma\, v\big(S'^{(n)}\big)\Big],
 $$
 
-The Q-function caches the result of evaluating each action at each state. Once we have $q$, action selection reduces to a finite maximization:
+which is unbiased for $\mathbb{E}[r + \gamma v(S') \mid s, a]$ as long as
+$v$ is fixed. Substituting it into the operator gives the **Monte Carlo
+Bellman operator**
 
 $$
-\pi(s) = \arg\max_{a \in \mathcal{A}(s)} q(s,a).
+(\widehat{\Bellman}_N v)(s) = \max_{a \in \mathcal{A}_s} \widehat{G}_N(s,a).
 $$
 
-No integration appears in this expression. The transition expectation has been precomputed and stored in $q$ itself.
+Nothing about approximation or projection has entered yet. For a fixed $v$,
+Monte Carlo provides unbiased, noisy evaluations of $(\Bellman v)(s)$ at any
+state, from draws alone. The maximum over the noisy estimates, however, is
+not unbiased, and the last section of the chapter is about that.
 
-The optimal Q-function $q^*$ satisfies its own Bellman equation. Substituting the definition of $v^*(s) = \max_a q^*(s,a)$ into the expression for $q$:
+### Sampling the States
+
+The second expectation, over the states, is estimated the same way. Galerkin
+and least-squares conditions have the form
+$\int R(s;\theta)\, p_i(s)\, \xi(ds) = 0$ for a distribution $\xi$ over
+states, and the weighted norm of the residual is $\int R(s;\theta)^2\,\xi(ds)$.
+The weight $w$ of the previous chapters could be any positive function; for
+sampling it must be a probability distribution that can be drawn from, which
+is $\xi$ after normalization, or any other distribution with importance
+weights $w/\xi$. If states $S^{(1)}, \ldots, S^{(M)}$ are drawn from $\xi$,
+each condition becomes a sample average,
 
 $$
-q^*(s,a) = r(s,a) + \gamma \int p(ds'|s,a) \max_{a' \in \mathcal{A}(s')} q^*(s', a').
+\int R(s;\theta)\, p_i(s)\, \xi(ds) \approx \frac{1}{M}\sum_{m=1}^M R\big(S^{(m)};\theta\big)\, p_i\big(S^{(m)}\big),
 $$
 
-This defines a Bellman operator on Q-functions:
+and the least-squares objective becomes the empirical risk
+$\frac{1}{M}\sum_m R(S^{(m)};\theta)^2$. This is the regression of the
+previous chapter: targets at sampled states, and a fit that minimizes the
+average error over them. In reinforcement learning $\xi$ is rarely chosen; it
+is the distribution of the states that the data happen to contain, which the
+previous chapter showed to matter for convergence and the
+[next chapter](fitted-q-iteration.md) shows to matter for coverage.
+
+With both expectations sampled, the fitted update is
 
 $$
-(\Bellman q)(s,a) = r(s,a) + \gamma \int p(ds'|s,a)\max_{a' \in \mathcal{A}(s')} q(s', a').
+v_{k+1} = \Proj_M\, \widehat{\Bellman}_N\, v_k,
 $$
 
-Like the Bellman operator on value functions, $\Bellman$ is a $\gamma$-contraction in the sup-norm, guaranteeing a unique fixed point $q^*$. We can thus apply the same projection and Monte Carlo techniques developed for value functions to Q-functions. The computational cost shifts from action selection (repeated sampling at decision time) to training (evaluating expectations during the iterations of approximate value iteration). Once $q$ is learned, acting is cheap.
+a fit at $M$ sampled states of targets that each average $N$ sampled
+successors. It needs no transition density and no state distribution in
+closed form, only the ability to draw from them. In the typical
+reinforcement-learning setting $N = 1$: each recorded transition
+$(s_i, a_i, r_i, s'_i)$ supplies one successor, and the target
+$r_i + \gamma v(s'_i)$ has the full variance of a single draw. The variance
+is then reduced by the fit, which pools information across neighboring
+states, and by the number of transitions rather than by averaging at a fixed
+$(s,a)$. The section after next returns to this choice.
 
-```{prf:algorithm} Parametric Q-Value Iteration
+(sec-mc-q-functions)=
+## Action Values
+
+Once the operator is evaluated from samples, what does acting on the result
+cost, and how can that cost be moved into training?
+
+The greedy policy of a value function $v$ is
+
+$$
+\pi(s) = \arg\max_{a \in \mathcal{A}_s} \Big\{ r(s,a) + \gamma \int v(s')\,p(ds'|s,a) \Big\},
+$$
+
+one transition expectation per action at every decision. With a model and a
+quadrature rule this is a computation; with a simulator it is a Monte Carlo
+estimate per action, repeated each time the state is visited; with a log it
+is impossible, because no new successors can be drawn at decision time. The
+expectation can instead be computed once, during training, and stored. The
+**action-value function** of $v$,
+
+$$
+q(s,a) = r(s,a) + \gamma \int v(s')\,p(ds'|s,a),
+$$
+
+caches the backup of every action, and the greedy policy becomes
+$\pi(s) = \arg\max_{a} q(s,a)$, a maximization over stored values with no
+integral and no model. The optimal action-value function $q^\star$ satisfies
+its own Bellman equation, obtained by substituting $v^\star(s') = \max_{a'}
+q^\star(s',a')$:
+
+$$
+q^\star(s,a) = r(s,a) + \gamma \int p(ds'|s,a)\, \max_{a' \in \mathcal{A}_{s'}} q^\star(s',a').
+$$
+
+The right-hand side defines the Bellman operator on action-value functions,
+$(\Bellman q)(s,a) = r(s,a) + \gamma\,\mathbb{E}[\max_{a'} q(s',a') \mid s,a]$,
+and it is a $\gamma$-contraction in the sup norm by the same argument as for
+$v$: the maximum over $a'$ does not increase sup-norm distances, and the
+expectation does not either. Everything in the previous chapter transfers.
+Fitted value iteration on $q$ is **fitted Q-iteration**, its error bounds
+hold with $(s,a)$ in place of $s$, averagers remain safe, and the function
+class now takes the action as an input or has one output per action. What
+changes is the cost accounting: the expectations are evaluated during the
+iterations, at the state-action pairs where targets are computed, and acting
+afterwards is cheap.
+
+```{prf:algorithm} Fitted Q-Iteration with a Model
 :label: simadp-parametric-q-value-iteration
 
 **Input** Given an MDP $(S, A, P, R, \gamma)$, base points $\mathcal{B} \subset S$, function approximator class $q(s,a; \boldsymbol{\theta})$, maximum iterations $N$, tolerance $\varepsilon > 0$, initial parameters $\boldsymbol{\theta}_0$
@@ -454,259 +329,176 @@ Like the Bellman operator on value functions, $\Bellman$ is a $\gamma$-contracti
 5. **return** $\boldsymbol{\theta}_n$
 ```
 
-The algorithm above evaluates the expectation $\int p(ds'|s,a)\max_{a'} q(s',a'; \boldsymbol{\theta}_n)$ at each state-action pair. In principle, we could approximate this integral using many Monte Carlo samples: draw $N$ next states from $p(\cdot|s,a)$ and average $\frac{1}{N}\sum_{i=1}^N \max_{a'} q(s'_i, a')$ to reduce variance. This is standard Monte Carlo integration applied to the Bellman operator.
+The expectation in the target can be computed by quadrature when the model
+allows it, or estimated by $N$ draws of the successor from $p(\cdot|s,a)$,
+averaging $\max_{a'} q(s'_i, a')$ over them. The fitting step is the one of
+the previous chapter, with its initialization $\boldsymbol\theta_{\text{init}}$
+and its optimization budget $K$ written out because the
+[next chapter](fitted-q-iteration.md) varies both.
 
 ### The Single-Sample Paradigm
 
-Most reinforcement learning algorithms do not follow this pattern. Instead, they work with datasets of **transition tuples** $\mathcal{D} = \{(s_i, a_i, r_i, s'_i)\}_{i=1}^M$, where each tuple records a single observed next state $s'_i$ from executing action $a_i$ in state $s_i$. Each transition provides exactly one sample of the dynamics: the target becomes $y_i = r_i + \gamma \max_{a'} q(s'_i, a')$ using only the single observed $s'_i$.
+Most reinforcement learning algorithms do not draw $N$ successors per
+state-action pair. They work with a data set of **transition tuples**
+$\mathcal{D} = \{(s_i, a_i, r_i, s'_i)\}_{i=1}^M$, each recording the one
+successor that was observed when $a_i$ was executed in $s_i$, and the target
+of a tuple is $y_i = r_i + \gamma \max_{a'} q(s'_i, a')$, with $N = 1$.
 
-This design choice has two origins. First, it reflects genuine constraints in some problem settings. A robot executing action $a$ in state $s$ observes one outcome $s'$ and cannot rewind to the exact same state to sample alternative continuations. Real physical systems, biological experiments, and costly interactions (clinical trials, manufacturing processes) provide one sample per executed action. However, many domains where RL is applied do not face this constraint. Game emulators support state saving and restoration, physics simulators can reset to arbitrary configurations, and software environments can be cloned cheaply. The single-sample pattern persists in these settings not from necessity but from algorithmic convention.
+This design has two origins. In some settings it is a constraint. A robot
+that executes an action observes one outcome and cannot rewind to the same
+state to sample another; the same holds for a clinical trial, a
+manufacturing process, or any interaction that costs something. Many settings
+in which reinforcement learning is applied have no such constraint. Game
+emulators save and restore states, physics simulators reset to any
+configuration, and software environments are cloned for free. The second
+origin is historical. Reinforcement learning grew out of models of animal
+learning, in which an organism experiences one consequence per action and
+learns from a stream of experience, and temporal-difference learning,
+Q-learning and the actor-critic methods were designed for that stream.
 
-Second, and perhaps more fundamentally, the single-sample paradigm emerged from reinforcement learning's roots in computational neuroscience and models of biological intelligence. Early work viewed RL as a model of animal learning, where organisms experience one consequence per action and must learn from streaming sensory data. This perspective shaped the field's algorithmic agenda: develop methods that learn from single sequential experiences, as biological agents do. Temporal difference learning, Q-learning, and actor-critic methods all follow this template.
+The convention persisted where the constraint did not, and it shaped the
+algorithms. They store and manipulate tuples rather than state-action pairs
+with several successors. They reduce variance through the function
+approximator, which pools targets from nearby states, and through the number
+of transitions, rather than by averaging at a fixed $(s,a)$. And they treat
+the two expectations asymmetrically: the outer one, over states, is sampled
+with whatever budget is convenient, a whole data set, a replay buffer of a
+million transitions, or one transition per step, while the inner one is
+sampled once. In a domain with a cheap, resettable simulator and
+high-variance targets, averaging several successors per $(s,a)$ is a direct
+variance reduction that current practice rarely uses.
 
-These origins matter because they established design choices that persist even when the original constraints do not apply. In many practical applications, we have fast simulators that support arbitrary state initialization (e.g., physics engines for robotics, game emulators for Atari). We could collect multiple next-state samples per $(s,a)$ pair to reduce variance in target computation. However, most algorithms do not exploit this capability. The transition tuple $(s_i, a_i, r_i, s'_i)$ with $N=1$ remains the standard data structure, and methods compensate for high variance through other means: larger replay buffers, function approximation that pools information across samples, multi-step returns, and careful optimization strategies.
+(sec-mc-overestimation)=
+## Maximization Bias
 
-This creates an asymmetry in how algorithms use Monte Carlo integration. For the outer expectation (sampling which states to evaluate at), algorithms freely adjust sample size: offline methods reuse entire datasets, replay buffers store thousands of transitions, online methods process one sample per step. For the inner expectation (sampling next states to evaluate the Bellman operator at a given $(s,a)$), the overwhelming majority of practical methods use $N=1$ regardless of whether the environment permits larger samples.
+What systematic error appears when the same noisy estimates are used both to
+select an action and to value it?
 
-The single-sample paradigm shapes three aspects of algorithm design:
-
-1. **Data structure**: Algorithms store and manipulate tuples $\{(s_i, a_i, r_i, s'_i)\}$, not state-action pairs with multiple next-state samples
-2. **Variance reduction**: Comes from aggregation across different samples through function approximation and from trajectory length, not from repeated sampling at fixed $(s,a)$
-3. **Target computation**: Each transition yields exactly one target $y_i = r_i + \gamma \max_{a'} q(s'_i, a')$ evaluated at the single observed $s'_i$
-
-The algorithms that follow in the next chapters all adopt this single-sample structure. Understanding its origins clarifies when the design choice might be revisited: in domains with cheap, resettable simulators and high target variance, averaging multiple next-state samples per $(s,a)$ pair offers a direct variance reduction mechanism that is rarely exploited in current practice.
-
-## Overestimation Bias and Mitigation Strategies
-
-What systematic bias appears when the same noisy action estimates are used for
-both selection and evaluation?
-
-Monte Carlo integration provides unbiased estimates of individual expectations, but when we apply the Bellman operator's maximization to these noisy estimates, a systematic problem arises: taking the maximum over noisy values creates upward bias. This overestimation compounds through iterative algorithms and can severely degrade the quality of learned policies. This section examines the sources of this bias and presents two approaches for mitigating it.
-
-### Sources of Overestimation Bias
-
-When we apply Monte Carlo integration to the Bellman operator, each individual expectation is unbiased. The problem arises when we maximize over these noisy estimates. To make this precise, consider a given state-action pair $(s,a)$ and value function $v$. Define the true continuation value
-
-$$
-\mu(s,a) \equiv \int v(s')\,p(ds' \mid s,a),
-$$
-
-and its Monte Carlo approximation with $N$ samples:
-
-$$
-\hat{\mu}_N(s,a) \equiv \frac{1}{N}\sum_{i=1}^N v(s'_i), \quad s'_i \sim p(\cdot|s,a).
-$$
-
-Each estimator is unbiased: $\mathbb{E}[\hat{\mu}_N(s,a)] = \mu(s,a)$. The Monte Carlo Bellman operator is
-
-$$
-(\widehat{\Bellman}_N v)(s) = \max_{a \in \mathcal{A}_s} \left\{ r(s,a) + \gamma \hat{\mu}_N(s,a)\right\}.
-$$
-
-While each $\hat{\mu}_N(s,a)$ is unbiased, the maximization introduces systematic overestimation. To see why, let $a^*$ be the truly optimal action. The maximum of any collection is at least as large as any particular element:
+Each estimate $\widehat{G}_N(s,a)$ is unbiased, and the maximum over them is
+not. Fix a state $s$ and a value function $v$, and write the true continuation
+value and its estimate as
 
 $$
-\mathbb{E}\big[\max_a \{r(s,a) + \gamma \hat{\mu}_N(s,a)\}\big] \ge \mathbb{E}\big[r(s,a^*) + \gamma \hat{\mu}_N(s,a^*)\big] = r(s,a^*) + \gamma \mu(s,a^*) = (\Bellman v)(s).
+\mu(s,a) = \int v(s')\,p(ds' \mid s,a), \qquad \hat{\mu}_N(s,a) = \frac{1}{N}\sum_{i=1}^N v(s'_i), \quad s'_i \sim p(\cdot|s,a),
 $$
 
-The inequality is strict whenever multiple actions have nonzero variance. The maximization selects whichever action happens to receive a positive noise realization, and that inflated estimate contributes to the target value. This is Jensen's inequality for the max operator: $\mathbb{E}[\max_a Y_a] \ge \max_a \mathbb{E}[Y_a]$ for random variables $\{Y_a\}$, since the max is convex. Even though we start with unbiased estimators, taking the maximum breaks unbiasedness.
+so that $(\widehat{\Bellman}_N v)(s) = \max_a \{r(s,a) + \gamma \hat{\mu}_N(s,a)\}$.
+Let $a^\star$ be the action that maximizes the true backup. The maximum of a
+collection is at least as large as any of its members, so
 
-The next diagnostic holds every true action value at zero. Use the legend to isolate an estimator and hover over the points. The maximum estimator becomes increasingly optimistic as the number of actions grows, while independent evaluation removes that effect in expectation.
+$$
+\mathbb{E}\big[\max_a \{r(s,a) + \gamma \hat{\mu}_N(s,a)\}\big] \ge \mathbb{E}\big[r(s,a^\star) + \gamma \hat{\mu}_N(s,a^\star)\big] = r(s,a^\star) + \gamma \mu(s,a^\star) = (\Bellman v)(s).
+$$
+
+The inequality is strict whenever more than one action has a nonzero
+variance: the maximization picks whichever action received a positive noise,
+and that inflated estimate becomes the target. This is Jensen's inequality
+for the maximum, $\mathbb{E}[\max_a Y_a] \ge \max_a \mathbb{E}[Y_a]$, since
+the maximum is convex. The same inequality is the reason that deterministic
+policies are optimal in MDPs ({prf:ref}`stoch-policy-reduction`), where it
+says that randomizing over actions cannot beat the best one; here it says
+that maximizing over noisy estimates cannot be unbiased.
+
+The bias does not average out with more draws of the same estimate, and it
+compounds. Monte Carlo value iteration $v_{k+1} = \widehat{\Bellman}_N v_k$
+builds its targets at iteration $k+1$ from a $v_k$ that is already biased
+upward, so $\mathbb{E}[v_k] \ge \mathbb{E}[v_{k-1}] \ge \cdots \ge v^\star$,
+and the inflated values feed back into the next maximization. The cell below
+holds every true action value at zero, draws five noisy samples per action,
+and measures the bias of the maximum as the number of actions grows, next to
+the estimator of the next subsection.
 
 ```{code-cell} python
 :tags: [hide-input]
-
-import altair as alt
-import numpy as np
-import pandas as pd
+:label: fig-mc-max-bias
+:caption: Bias of two estimators of $\max_a \mu_a$ when every true action value $\mu_a$ is zero and each is estimated from five standard Gaussian draws, over 6,000 repetitions. The maximum of the estimates (vermilion) is biased upward, and more so with more actions. Selecting the action with one set of draws and evaluating it with an independent set (blue) removes the bias in this case, where all actions are equally good. Two standard errors of each estimate are smaller than the dots.
 
 rng = np.random.default_rng(2026)
 replications, samples_per_action = 6000, 5
-bias_rows = []
+action_counts = [2, 4, 8, 16, 32]
+bias = {"maximum": [], "double": []}
+se = {"maximum": [], "double": []}
+for actions in action_counts:
+    selection = rng.normal(size=(replications, actions, samples_per_action)).mean(axis=2)
+    evaluation = rng.normal(size=(replications, actions, samples_per_action)).mean(axis=2)
+    chosen = selection.argmax(axis=1)
+    for name, values in (("maximum", selection.max(axis=1)),
+                         ("double", evaluation[np.arange(replications), chosen])):
+        bias[name].append(values.mean())
+        se[name].append(values.std(ddof=1) / np.sqrt(replications))
 
-for actions in [2, 4, 8, 16, 32]:
-    selection_estimates = rng.normal(
-        size=(replications, actions, samples_per_action)
-    ).mean(axis=2)
-    evaluation_estimates = rng.normal(
-        size=(replications, actions, samples_per_action)
-    ).mean(axis=2)
-    selected = selection_estimates.argmax(axis=1)
-    maximum = selection_estimates.max(axis=1)
-    double = evaluation_estimates[np.arange(replications), selected]
-    for name, values in [("Maximum estimator", maximum), ("Double estimator", double)]:
-        bias_rows.append({
-            "Actions": actions,
-            "Estimator": name,
-            "Bias": values.mean(),
-            "Monte Carlo SE": values.std(ddof=1) / np.sqrt(replications),
-        })
-
-bias_data = pd.DataFrame(bias_rows)
-estimator_pick = alt.selection_point(fields=["Estimator"], bind="legend")
-
-(
-    alt.Chart(bias_data)
-    .mark_line(point=alt.OverlayMarkDef(size=70))
-    .encode(
-        x=alt.X("Actions:Q", scale=alt.Scale(type="log", base=2)),
-        y=alt.Y("Bias:Q", scale=alt.Scale(zero=True)),
-        color=alt.Color("Estimator:N", legend=alt.Legend(orient="top")),
-        opacity=alt.condition(estimator_pick, alt.value(1), alt.value(0.18)),
-        tooltip=["Estimator:N", "Actions:Q", alt.Tooltip("Bias:Q", format=".4f")],
-    )
-    .add_params(estimator_pick)
-    .properties(height=320, title="Selection and evaluation with independent noise")
-)
+with figure_style():
+    fig, ax = plt.subplots(figsize=(4.6, 2.7))
+    ax.axhline(0, color=MUTED, lw=.8)
+    for name, color in (("maximum", PALETTE["vermilion"]), ("double", PALETTE["blue"])):
+        ax.errorbar(action_counts, bias[name], yerr=2 * np.array(se[name]), fmt="o-", color=color,
+                    ms=3.5, lw=1, capsize=0, elinewidth=1)
+    ax.text(32, bias["maximum"][-1] - .06, "maximum of the\nestimates", color=PALETTE["vermilion"],
+            fontsize=8.5, ha="right", va="top")
+    ax.text(32, .06, "select with one estimate,\nevaluate with the other", color=PALETTE["blue"],
+            fontsize=8.5, ha="right", va="bottom")
+    ax.set_xscale("log", base=2)
+    ax.set_xticks(action_counts, [str(a) for a in action_counts])
+    ax.set_xlabel("number of actions")
+    ax.set_ylabel("bias")
+show(fig)
 ```
 
-Operationally, this means that repeatedly sampling fresh states and taking the max will not, on average, converge to the true value but systematically land above it. Unlike noise that averages out, this bias persists no matter how many samples we draw. Worse, it compounds across iterations as overestimates feed into future target computations.
+### Decoupling Selection from Evaluation
 
-```{prf:remark} Connection to deterministic policies
-This inequality also underlies why deterministic policies are optimal in MDPs ({prf:ref}`stoch-policy-reduction`): $\max_a w(a) \ge \sum_a q(a) w(a)$ shows randomization cannot improve expected returns. The same mathematical principle appears in two contexts: (1) deterministic policies suffice, (2) maximization over noisy estimates creates upward bias.
-```
-
-Monte Carlo value iteration applies $v_{k+1} = \widehat{\Bellman}_N v_k$ repeatedly. The overestimation bias does not stay confined to a single iteration: it accumulates through the recursion. At iteration 2, we compute Monte Carlo estimates $\hat{\mu}_N(s,a) = \frac{1}{N}\sum_{i=1}^N v_1(s'_i)$, but $v_1$ is already biased upward from iteration 1. Averaging an overestimated function and then maximizing over noisy estimates compounds the bias: $\mathbb{E}[v_k] \ge \mathbb{E}[v_{k-1}] \ge \cdots \ge v^*$. Without correction, this feedback loop can produce severely inflated value estimates that yield poor policies.
-
-### Learning the Bias Correction
-
-One approach, developed by Keane and Wolpin {cite}`Keane1994` in the context of dynamic discrete choice models, treats the bias itself as a quantity to be learned and subtracted. For a given value function $v$ and Monte Carlo sample size $N$, define the bias at state $s$ as
+The bias comes from using one noisy estimate for two jobs. Decompose the
+estimate into its mean and its noise, $\hat{\mu}_N(s,a) = \mu(s,a) + \varepsilon_a$
+with $\mathbb{E}[\varepsilon_a] = 0$. The standard target is
 
 $$
-\delta(s) = \mathbb{E}\big[(\widehat{\Bellman}_N v)(s)\big] - (\Bellman v)(s) \ge 0.
+Y = r(s,\hat a) + \gamma \mu(s,\hat a) + \gamma \varepsilon_{\hat a}, \qquad \hat a = \arg\max_a \{r(s,a) + \gamma \mu(s,a) + \gamma \varepsilon_a\},
 $$
 
-While we cannot compute $\delta(s)$ directly (we lack both the expectation and the exact Bellman application), the bias has structure. It depends on observable quantities: the number of actions $|\mathcal{A}_s|$, the sample size $N$, and the spread of action values. When one action dominates, $\delta(s)$ is small. When several actions have similar values, noise is more likely to flip the maximizer, increasing $\delta(s)$.
-
-Rather than deriving $\delta(s)$ analytically, Keane and Wolpin proposed learning it empirically. The strategy follows a "simulate on a subset, interpolate everywhere" template common in econometric dynamic programming. At a carefully chosen set of states, we run both high-fidelity simulation (many samples or exact integration) and the low-fidelity $N$-sample estimate used in value iteration. The gap between these estimates provides training data for the bias. We then fit a regression model $g_\eta$ that predicts $\delta(s)$ from features of the state and action-value distribution. During value iteration, we subtract the predicted bias from the raw Monte Carlo maximum.
-
-Useful features for predicting the bias include the spread of action values (from a separate high-fidelity simulation), the number of actions, and gaps to the best action. These features are cheap to compute, and they track regimes where maximization bias is large. The procedure can be summarized as:
-
-```{prf:algorithm} Keane-Wolpin Bias-Corrected Value Iteration
-:label: keane-wolpin-bias-correction
-
-**Input:** MDP, current value $v_k$, sample size $N$, learned bias correction $g_\eta$
-
-**Output:** Bias-corrected next value $v_{k+1}$
-
-1. **For** each state $s$ **do**:
-   - **For** each action $a$ **do**:
-     - Draw $N$ samples: $s'_1, \ldots, s'_N \sim p(\cdot|s,a)$
-     - Compute $\hat{\mu}_N(s,a) = \frac{1}{N}\sum_{i=1}^N v_k(s'_i)$
-   - Compute raw max: $M(s) = \max_a \{r(s,a) + \gamma \hat{\mu}_N(s,a)\}$
-   - Construct features $\phi(s)$ from action-value spread (using separate high-fidelity estimate)
-   - Bias-corrected value: $v_{k+1}(s) = M(s) - g_\eta(\phi(s))$
-```
-
-The regression model $g_\eta$ is trained offline by comparing high and low-fidelity simulations at a grid of states, then applied during each value iteration step. This approach has been influential in econometrics for structural estimation problems. However, it has seen limited adoption in reinforcement learning. The computational overhead is substantial: it requires high-fidelity simulation at training states, careful feature engineering, and maintaining the regression model throughout learning. More critically, the circular dependency between the bias estimate and the value function can amplify errors if $g_\eta$ is misspecified.
-
-### Analytical Bias Correction
-
-{cite}`lee2013bias,lee2019biascorrected` developed an alternative that derives the bias analytically using extreme value theory rather than learning it empirically. Their analysis considers the distributional structure of the noise in Monte Carlo estimates. When rewards are Gaussian with variance $\sigma^2$, the bias in $\max_a \widehat{R}(s,a)$ can be computed from extreme value theory.
-
-For a single-state MDP where all randomness comes from stochastic rewards, suppose that for each action $a$, the observed reward is $\widehat{R}(s,a) = \mu_a + \varepsilon_a$ where $\varepsilon_a \sim \mathcal{N}(0, \sigma^2)$. When we form the target $\max_a \widehat{R}(s,a)$, we are taking the maximum of $M = |\mathcal{A}(s)|$ independent Gaussians. After appropriate centering and scaling, this maximum converges in distribution to a Gumbel random variable. The expected bias can be computed as:
+and the same $\varepsilon_{\hat a}$ that made $\hat a$ win is added to its
+value. Double Q-learning {cite}`van2016deep` breaks this coupling with two
+independent estimates of every action, $\hat{\mu}^{(1)}_N(s,a) = \mu(s,a) +
+\varepsilon^{(1)}_a$ and $\hat{\mu}^{(2)}_N(s,a) = \mu(s,a) + \varepsilon^{(2)}_a$,
+with $\varepsilon^{(1)}$ and $\varepsilon^{(2)}$ independent. The first
+selects and the second evaluates:
 
 $$
-\mathbb{E}\left[\max_{a} \varepsilon_a\right] \approx \sigma \left(\frac{\xi}{b_M} + b_M\right)
+\hat a = \arg\max_{a} \big\{r(s,a) + \gamma \hat{\mu}^{(1)}_N(s,a)\big\}, \qquad Y = r(s,\hat a) + \gamma \hat{\mu}^{(2)}_N(s,\hat a).
 $$
 
-where $b_M = \sqrt{2\log M - \log\log M - \log 4\pi}$ and $\xi \approx 0.5772$ is the Euler-Mascheroni constant. This quantity is positive and grows with the number of actions $M$. The bias scales with the noise level $\sigma$ and with the action space size.
-
-The corrected target becomes:
-
-$$
-\tilde{y}_i = r_i + \gamma \max_{a'} q(s'_i, a'; \boldsymbol{\theta}^{(n)}) - B(s_i, a_i)
-$$
-
-where the bias correction term is:
+The selected action $\hat a$ is random, a function of $\varepsilon^{(1)}$
+alone. Conditioning on it,
 
 $$
-B(s,a) = \left(\frac{\xi}{b_{|A(s)|}} + b_{|A(s)|}\right) \hat{\sigma}(s,a)
+\mathbb{E}[Y] = \mathbb{E}_{\varepsilon^{(1)}}\Big[\mathbb{E}_{\varepsilon^{(2)}}\big[r(s,\hat a) + \gamma \mu(s,\hat a) + \gamma \varepsilon^{(2)}_{\hat a} \mid \hat a\big]\Big] = \mathbb{E}_{\varepsilon^{(1)}}\big[r(s,\hat a) + \gamma \mu(s,\hat a)\big],
 $$
 
-Here $\hat{\sigma}(s,a) = \sqrt{\widehat{\text{Var}}[R(s,a)]}$ is the estimated standard deviation of the reward at state-action pair $(s,a)$. This can be computed from multiple observed reward samples at the same $(s,a)$ pair if available.
+because $\varepsilon^{(2)}$ is independent of $\hat a$, so that
+$\mathbb{E}[\varepsilon^{(2)}_{\hat a} \mid \hat a] = \mathbb{E}[\varepsilon^{(2)}_{\hat a}] = 0$.
+The evaluation noise contributes nothing on average. What remains is the
+**selection bias**: $\hat a$ is more often an action whose $\varepsilon^{(1)}$
+was positive than one whose true value is highest, so
+$\mathbb{E}[\mu(s,\hat a)] \le \max_a \mu(s,a)$, and the double estimator is
+biased downward. In {numref}`fig-mc-max-bias` the maximum estimator grows
+more optimistic as the number of actions grows, while the double estimator
+has no bias: every action has the same true value there, so selecting the
+wrong one costs nothing and the selection bias is zero. When the true values
+differ, the double estimator is biased downward instead, by much less than
+the maximum is biased upward. Removing the **evaluation bias**, the reuse of
+the winning noise, removes most of the overestimation.
 
-This approach is exact for single-state MDPs where Q-values equal expected rewards and all bias comes from reward noise. For general multi-state MDPs, the situation is more complex. The bias arises from the max operator over Q-values at the next state $s'$, not from reward stochasticity at the current state. Lee and Powell's multistate extension addresses this by introducing a separate correction term $B^T$ for transition stochasticity, estimated empirically by averaging $\max_{a'} q(s', a')$ over multiple sampled next states from the same $(s,a)$ pair, rather than using an analytical formula. The single-state analytical correction remains valuable for bandit problems and as a first-order approximation when reward variance dominates, but does not directly address max-operator bias from function approximation error in the Q-values themselves. The correction is optimal specifically for Gaussian errors. If the true errors have heavier tails, the correction may be insufficient.
-
-Lee-Powell's analytical formula can be viewed as deriving what Keane-Wolpin learned empirically, replacing the regression model with a closed-form expression from extreme value theory. The trade-off is generality versus computational cost: Keane-Wolpin adapts to any noise structure but requires expensive high-fidelity simulations at training states; Lee-Powell assumes Gaussian noise but evaluates instantly once $\hat{\sigma}$ is estimated. Both subtract a correction term from targets while preserving squared error loss.
-
-An alternative to explicit bias correction is to replace the hard max operator with a soft maximum. The [regularized MDP chapter](regularized-dp.md) discusses smooth Bellman operators that use logsumexp, and the weighted estimator described later in this chapter uses Gaussian uncertainty-weighted aggregation; both avoid the discontinuity and overestimation inherent in taking a hard maximum. These approaches modify the Bellman operator itself rather than correcting its bias after the fact, preserving squared error loss while constructing smoother targets. Another approach, examined in the [next chapter](fitted-q-iteration.md), changes the loss function itself to match the noise structure in TD targets.
-
-### Decoupling Selection and Evaluation
-
-An alternative approach modifies the estimator itself to break the coupling that creates bias. In the standard Monte Carlo update $\max_a \{r(s,a) + \gamma \hat{\mu}_N(s,a)\}$, the same noisy estimate both selects which action looks best and provides the value assigned to that action. To see the problem, decompose the estimator into its mean and noise:
-
-$$
-\hat{\mu}_N(s,a) = \mu(s,a) + \varepsilon_a,
-$$
-
-where $\varepsilon_a$ is zero-mean noise. Whichever action happens to have the largest $\varepsilon_a$ gets selected, and that same positive noise inflates the target value:
-
-$$
-Y = r(s,a^\star) + \gamma \mu(s,a^\star) + \gamma \varepsilon_{a^\star},
-$$
-
-where $a^\star = \arg\max_a \{r(s,a) + \gamma \mu(s,a) + \gamma \varepsilon_a\}$. This coupling (using the same random variable $\varepsilon_{a^\star}$ for both selection and evaluation) produces $\mathbb{E}[Y] \ge \max_a \{r(s,a) + \gamma \mu(s,a)\}$.
-
-Double Q-learning {cite}`van2016deep` breaks this coupling by maintaining two independent Monte Carlo estimates. Conceptually, for each action $a$ at state $s$, we would draw two separate sets of samples from $p(\cdot|s,a)$:
-
-$$
-\hat{\mu}^{(1)}_N(s,a) = \mu(s,a) + \varepsilon^{(1)}_a, \quad \hat{\mu}^{(2)}_N(s,a) = \mu(s,a) + \varepsilon^{(2)}_a,
-$$
-
-where $\varepsilon^{(1)}_a$ and $\varepsilon^{(2)}_a$ are **independent zero-mean noise terms**. We use the first estimate to select the action but the second to evaluate it:
-
-$$
-a^\star = \arg\max_{a} \left\{r(s,a) + \gamma \hat{\mu}^{(1)}_N(s,a)\right\}, \quad Y = r(s,a^\star) + \gamma \hat{\mu}^{(2)}_N(s,a^\star).
-$$
-
-Note that $a^\star$ is a random variable. It is the result of maximizing over noisy estimates $\hat{\mu}^{(1)}_N(s,a)$, and therefore depends on the noise $\varepsilon^{(1)}$. The target value $Y$ uses the second estimator $\hat{\mu}^{(2)}_N(s,a^\star)$, evaluating it at the randomly selected action $a^\star$. Expanding the target value to make the dependencies explicit:
-
-$$
-Y = r(s,a^\star) + \gamma \hat{\mu}^{(2)}_N(s,a^\star) = r(s,a^\star) + \gamma \mu(s,a^\star) + \gamma \varepsilon^{(2)}_{a^\star},
-$$
-
-where $a^\star$ itself depends on $\varepsilon^{(1)}$. To see why this eliminates evaluation bias, write the expectation as a nested expectation:
-
-$$
-\mathbb{E}[Y] = \mathbb{E}_{\varepsilon^{(1)}}\Big[\mathbb{E}_{\varepsilon^{(2)}}\big[r(s,a^\star) + \gamma \mu(s,a^\star) + \gamma \varepsilon^{(2)}_{a^\star} \mid a^\star\big]\Big].
-$$
-
-The inner expectation, conditioned on the selected action $a^\star$, equals:
-
-$$
-\mathbb{E}_{\varepsilon^{(2)}}\big[r(s,a^\star) + \gamma \mu(s,a^\star) + \gamma \varepsilon^{(2)}_{a^\star} \mid a^\star\big] = r(s,a^\star) + \gamma \mu(s,a^\star),
-$$
-
-because $\mathbb{E}[\varepsilon^{(2)}_{a^\star} \mid a^\star] = 0$. Why does this conditional expectation vanish? Because $a^\star$ is a random variable determined entirely by $\varepsilon^{(1)}$ (through the argmax operation), while $\varepsilon^{(2)}$ is independent of $\varepsilon^{(1)}$. Therefore, $\varepsilon^{(2)}$ is independent of $a^\star$. By the fundamental property of independence, for any random variables $X$ and $Y$ where $X \perp Y$, we have $\mathbb{E}[X \mid Y] = \mathbb{E}[X]$. Applying this:
-
-$$
-\mathbb{E}[\varepsilon^{(2)}_{a^\star} \mid a^\star] = \mathbb{E}[\varepsilon^{(2)}_{a^\star}] = 0,
-$$
-
-where the final equality holds because each $\varepsilon^{(2)}_a$ has zero mean. Taking the outer expectation:
-
-$$
-\mathbb{E}[Y] = \mathbb{E}_{\varepsilon^{(1)}}\big[r(s,a^\star) + \gamma \mu(s,a^\star)\big].
-$$
-
-The evaluation noise contributes zero on average because it is independent of the selection. However, double Q-learning does not eliminate all bias. Two distinct sources of bias arise when maximizing over noisy estimates:
-
-1. **Selection bias**: Using $\arg\max_a \{r(s,a) + \gamma \mu(s,a) + \gamma \varepsilon^{(1)}_a\}$ tends to select actions that received positive noise. The noise $\varepsilon^{(1)}$ causes us to favor actions that got lucky, so $a^\star$ is not uniformly distributed but skewed toward actions with positive $\varepsilon^{(1)}_a$. This means $\mathbb{E}_{\varepsilon^{(1)}}[\mu(s,a^\star)] \ge \max_a \mu(s,a)$.
-
-2. **Evaluation bias**: In the standard estimator, we use the *same* noisy estimate $\hat{\mu}_N(s,a^\star)$ that selected $a^\star$ to also evaluate it. If $a^\star$ was selected because $\varepsilon_{a^\star}$ happened to be large and positive, that same inflated estimate provides the target value. This creates additional bias beyond the selection effect.
-
-Double Q-learning eliminates evaluation bias by using independent noise for evaluation: even though $a^\star$ is biased toward actions with positive $\varepsilon^{(1)}$, the evaluation uses $\varepsilon^{(2)}$ which is independent of the selection, so $\mathbb{E}[\varepsilon^{(2)}_{a^\star} \mid a^\star] = 0$. Selection bias remains, but removing evaluation bias substantially reduces total overestimation.
-
-```{prf:remark} Implementation via different Q-functions
+```{prf:remark} Two Q-functions instead of two sets of draws
 :class: dropdown
 
-The conceptual framework above assumes we can draw multiple independent samples from $p(\cdot|s,a)$ for each state-action pair. In practice, this would require resetting a simulator to the same state and sampling multiple times, which is often infeasible. The practical implementation achieves the same effect differently: maintain two Q-functions that are trained on different data or updated at different times (e.g., one is a slowly-updating target network). Since the two Q-functions experience different noise realizations during training, their errors remain less correlated than if we used a single Q-function for both selection and evaluation. This is how Double DQN works, as developed in the [FQI chapter](fitted-q-iteration.md#double-deep-q-network-double-dqn).
+The argument assumes two independent sets of draws from $p(\cdot|s,a)$ for every state-action pair, which a log never provides and a simulator provides only by resetting. The practical implementation keeps two Q-functions instead, trained on different data or updated at different times, for instance an online network and a slowly updated copy of it. Their errors are then less correlated than the errors of a single network used twice, which gives part of the independence that the argument needs. This is Double DQN, in the [next chapter](fitted-q-iteration.md) ({ref}`sec-fqi-double-dqn`).
 ```
 
-The following algorithm implements this principle with Monte Carlo integration. We maintain two Q-functions and alternate which one selects actions and which one evaluates them. The bias reduction mechanism applies whether we store Q-values in a table or use function approximation.
-
-Note that this algorithm is written in the theoretical form that assumes we can draw $N$ samples from each $(s,a)$ pair. In practice with single-trajectory data ($N=1$, one quadruple $(s,a,r,s')$ per transition), the double Q-learning principle still applies but we work with the single observed next state $s'$ and maintain two Q-functions that are trained on different subsets of data or updated at different frequencies to achieve the independence needed for bias reduction.
+The algorithm below writes the principle out with Monte Carlo targets. Two
+Q-functions alternate roles: at line 9 the first selects the action and at
+line 12 the second evaluates it, and lines 10 and 13 do the same with the
+roles exchanged. The mechanism is the same whether the Q-functions are tables
+or fitted functions, and with single-sample data ($N = 1$) the two
+Q-functions are trained on different subsets or at different frequencies to
+approximate the independence.
 
 ```{prf:algorithm} Double Q Value Iteration with Monte Carlo
 :label: double-q-value-iteration
@@ -735,72 +527,83 @@ Note that this algorithm is written in the theoretical form that assumes we can 
 18. **return** $q^{(1)}_k$, $q^{(2)}_k$
 ```
 
-At lines 9 and 12, $q^{(1)}$ selects the action but $q^{(2)}$ evaluates it. The noise in $q^{(1)}$ influences which action is chosen, but the independent noise in $q^{(2)}$ does not inflate the evaluation. Lines 10 and 13 apply the same principle symmetrically for updating $q^{(2)}$.
+### Other Corrections
 
-### Weighted Estimators: A Third Approach
+Three other approaches keep a single estimate and correct the maximum
+itself. They differ in how much they assume about the noise.
 
-The Keane-Wolpin and double Q-learning approaches represent two strategies for addressing overestimation bias: explicit correction and decoupled estimation. A third approach, developed by D'Eramo et al. {cite}`deramo2016estimating`, replaces the hard maximum with a probability-weighted average that accounts for uncertainty in value estimates.
+The correction can be learned. {cite:t}`Keane1994` treated the bias
+$\delta(s) = \mathbb{E}[(\widehat{\Bellman}_N v)(s)] - (\Bellman v)(s) \ge 0$
+as a quantity to estimate and subtract. It cannot be computed directly, but
+it depends on observable features of the state: the number of actions, the
+sample size, and the spread of the action values, since the bias is large
+when several actions are close and small when one dominates. At a small set
+of states, they ran both a high-fidelity evaluation of the backup, with many
+draws, and the $N$-draw estimate used by the iteration, and regressed the gap
+on those features; during value iteration the predicted bias is subtracted
+from the raw maximum. The template, simulate on a subset and interpolate
+everywhere, is common in econometric dynamic programming. It has seen little
+use in reinforcement learning, because the high-fidelity evaluations are
+expensive and a misspecified regression feeds its own error back into the
+values.
 
-The **maximum estimator (ME)** used in standard Q-learning takes the maximum of sample mean Q-values:
-
-$$
-\hat{\mu}^{ME}_* = \max_{a \in \mathcal{A}} \hat{\mu}_a
-$$
-
-where $\hat{\mu}_a$ is the sample mean Q-value for action $a$. While each individual $\hat{\mu}_a$ may be unbiased, the maximum is systematically upward biased. The bias can be bounded by:
-
-$$
-\text{Bias}(\hat{\mu}^{ME}_*) \leq \sqrt{\frac{M-1}{M}\sum_{a=1}^M \frac{\sigma_a^2}{n_a}}
-$$
-
-where $M = |\mathcal{A}|$ is the number of actions, $\sigma_a^2$ is the variance of Q-values for action $a$, and $n_a$ is the number of samples used to estimate it.
-
-The **double estimator (DE)** from double Q-learning reduces this bias by decoupling selection and evaluation, but introduces negative bias:
-
-$$
-\mathbb{E}[\hat{\mu}^{DE}_*] \leq \max_a \mu_a
-$$
-
-This pessimism can be problematic when one action is clearly superior to others, as the estimator may systematically undervalue the optimal action.
-
-The **weighted estimator (WE)** provides a middle ground. Instead of taking a hard maximum, compute a weighted average where weights reflect the probability that each action is optimal. Under a Gaussian approximation for the sampling distribution of Q-value estimates, the weight for action $a$ is:
+The correction can be derived, under a distributional assumption.
+{cite:t}`lee2013bias,lee2019biascorrected` assumed Gaussian noise of
+standard deviation $\sigma$ on the estimates of $M$ actions, in which case
+the expected maximum of the noises follows from extreme value theory,
 
 $$
-w_a = \mathbb{P}\left(a \in \arg\max_{a' \in \mathcal{A}} \hat{\mu}_{a'}\right) = \int_{-\infty}^{+\infty} \phi\left(\frac{x - \hat{\mu}_a}{\hat{\sigma}_a/\sqrt{n_a}}\right) \prod_{b \neq a} \Phi\left(\frac{x - \hat{\mu}_b}{\hat{\sigma}_b/\sqrt{n_b}}\right) dx
+\mathbb{E}\Big[\max_{a} \varepsilon_a\Big] \approx \sigma \left(\frac{C_{\mathrm{E}}}{b_M} + b_M\right), \qquad b_M = \sqrt{2\log M - \log\log M - \log 4\pi},
 $$
 
-where $\phi$ and $\Phi$ are the standard normal PDF and CDF. This integral computes the probability that action $a$ achieves the maximum by integrating over all possible true values $x$. For each $x$, the $\phi$ term gives the probability density that action $a$ has true value $x$, while the product of $\Phi$ terms gives the probability that all other actions have true values below $x$.
+with $C_{\mathrm{E}} \approx 0.5772$ the Euler–Mascheroni constant, and the
+target is corrected by subtracting this amount with $\sigma$ estimated from
+repeated rewards at the same $(s,a)$. The formula is exact for a
+single-state problem whose only noise is in the rewards, and it is a
+first-order correction otherwise; with heavier tails than Gaussian it
+undercorrects. It replaces the regression of the learned correction by a
+closed form, at the price of the Gaussian assumption.
 
-The weighted estimator then becomes:
-
-$$
-\hat{\mu}^{WE}_* = \sum_{a \in \mathcal{A}} w_a \hat{\mu}_a
-$$
-
-D'Eramo et al. established that this estimator satisfies $\text{Bias}(\hat{\mu}^{WE}_*) \leq \text{Bias}(\hat{\mu}^{ME}_*)$ and $\text{Bias}(\hat{\mu}^{WE}_*) \geq \text{Bias}(\hat{\mu}^{DE}_*)$. The weighted estimator thus provides a middle ground between the optimism of ME and the pessimism of DE.
-
-The relative performance depends on the problem structure. When one action is clearly superior ($\mu_1 - \mu_2 \gg \sigma$), the signal dominates the noise and ME performs well with minimal overestimation. When multiple actions have similar values ($\mu_1 \approx \mu_2$), eliminating overestimation becomes critical and DE excels despite its pessimism. In intermediate cases, which represent most practical scenarios, WE adapts to the actual uncertainty and avoids both extremes.
-
-The weighted estimator can be incorporated into Q-learning by maintaining variance estimates alongside Q-values and computing the weighted target at each step. The weights $w_a$ themselves can serve as an exploration policy that naturally adapts to estimation uncertainty. This approach adapts automatically to heterogeneous uncertainty across actions and provides balanced bias, but requires maintaining variance estimates (adding memory overhead) and computing integrals (expensive for large action spaces). The method assumes Gaussian sampling distributions, though it proves robust in practice even when this assumption is violated.
-
-The weighted estimator relates to the smooth Bellman operators discussed in the [regularized MDP chapter](regularized-dp.md). Both replace the discontinuous hard maximum with smooth aggregation, but weighted estimation adapts to state-action-specific uncertainty while logsumexp applies uniform smoothing via temperature. The choice among ME, DE, and WE depends on computational constraints and problem characteristics. When variance estimates are available and action spaces are small, WE offers a principled approach that balances the extremes of overestimation and underestimation. When maintaining variance is expensive or action spaces are large, double Q-learning provides a simpler alternative that eliminates evaluation bias without explicit probability weighting.
+The maximum can be replaced. {cite:t}`deramo2016estimating` weight each
+action by the probability that it is the best one under a Gaussian model of
+the estimates,
+$w_a = \mathbb{P}\big(a \in \arg\max_{a'} \hat{\mu}_{a'}\big)$, and use
+$\sum_a w_a \hat{\mu}_a$ in place of $\max_a \hat{\mu}_a$. The weighted
+estimator sits between the optimism of the maximum and the pessimism of the
+double estimator, and adapts to the gaps between actions: when one action
+dominates its weight is near one and the estimator is the maximum, and when
+several are close their estimates are averaged. It needs a variance estimate
+per action and one integral per action, which limits it to small action sets.
+The smooth Bellman operator of the [regularized chapter](regularized-dp.md)
+also replaces the hard maximum by an average, with weights set by a
+temperature rather than by estimated uncertainty. A last option changes
+neither the target nor the operator but the loss of the fit, so that
+overestimates are penalized more than underestimates; the
+[next chapter](fitted-q-iteration.md) takes it up with Gumbel regression.
 
 ## Summary and Forward Look
 
-This chapter developed the simulation-based approach to approximate dynamic programming by replacing analytical integration with Monte Carlo sampling. We showed how deterministic quadrature rules give way to randomized estimation when transition densities are expensive to evaluate or the state space is high-dimensional. We need only the ability to **sample** from transition distributions, not to compute their densities explicitly.
+Fitted Bellman updates contain two expectations, inside the operator and over
+the states, and either can be estimated from samples. The sample average is
+unbiased, its error falls as $N^{-1/2}$ whatever the dimension, and it adds a
+per-iteration error that the bound of the previous chapter absorbs. Sampling
+makes the model optional: a simulator or a log of transitions suffices, which
+is the setting of reinforcement learning. Acting on a sampled value function
+would require sampling at decision time, so the action-value function
+$q(s,a)$ stores the backup of each action instead, and fitted Q-iteration is
+fitted value iteration on $q$. The maximum over noisy estimates is biased
+upward, and the bias compounds through the iterations; using one estimate to
+select the action and an independent one to value it removes the larger part
+of the bias, and learned, analytic or weighted corrections are the
+alternatives.
 
-Three foundational components emerged:
-
-1. **Monte Carlo Bellman operator**: Replace exact expectations $\int v(s')p(ds'|s,a)$ with sample averages $\frac{1}{N}\sum v(s'_i)$, typically with $N=1$ in practice
-2. **Q-functions**: Cache state-action values to amortize the cost of action selection, eliminating the need for repeated sampling at decision time
-3. **Bias mitigation**: Address the systematic overestimation that arises from maximizing over noisy estimates through four approaches: learning empirical corrections (Keane-Wolpin), analytical adjustment from extreme value theory (Lee-Powell), decoupling selection from evaluation (double Q-learning), and probability-weighted aggregation (weighted estimators)
-
-The algorithms presented here still assume that repeated samples can be drawn
-from each state-action pair and that optimization budgets are unconstrained.
-What changes when each stored transition contains one realized successor and a
-function approximator must be fitted from a finite buffer? [Fitted Q-iteration
-and DQN](fitted-q-iteration.md) make those data and optimization choices
-explicit.
+The algorithms of this chapter still choose the states at which targets are
+computed, and still draw as many successors as they like. [Fitted Q-iteration
+and DQN](fitted-q-iteration.md) take the data as given: a fixed log of
+transitions with one successor each, or a buffer that fills as the agent
+acts, and a fit that is warm-started and stopped early. The remaining design
+choices of the practical algorithms are choices about that data and that
+fit.
 
 ## Self-checks
 
@@ -831,11 +634,11 @@ Positive. Maximization preferentially selects estimates with favorable noise, so
 :::{exercise} Double estimation
 :label: ex-montecarlo-check-3
 
-Which dependence is broken when one estimate selects the maximizing action and an independent estimate evaluates it?
+Which dependence is broken when one estimate selects the maximizing action and an independent estimate evaluates it, and which bias remains?
 :::
 
 :::{solution} ex-montecarlo-check-3
 :class: dropdown
 
-The evaluation noise is made independent of the lucky noise that caused selection. This removes the reuse of the same positive error for both selection and evaluation.
+The evaluation noise is made independent of the lucky noise that caused the selection, which removes the reuse of the same positive error for both jobs. The selection bias remains: the chosen action is still more often one whose first estimate was lucky, so the double estimator is biased slightly downward.
 :::

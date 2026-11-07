@@ -13,39 +13,37 @@ kernelspec:
 # Approximate Bellman Equations
 
 The [previous chapter](weighted-residual-methods.md) replaced the value
-function by a parametric function $v(\cdot;\theta)$ and asked which finite set
-of conditions should determine $\theta$. This chapter asks how to compute
-$\theta$, and when the result can be trusted. The answer that scales is also
-the simplest. Run value iteration, but after each application of the Bellman
-operator, fit the parametric function to the result. Each iteration is then an
-ordinary regression problem whose targets are Bellman backups, and any
-regressor can do the fitting: a grid interpolant, a tree ensemble, a neural
-network. This is **fitted value iteration**, and fitted Q-iteration, NFQ, DQN
-and NFQCA in the chapters ahead are elaborations of it.
+function by a parametric function $v(\cdot;\theta)$ and asked which finite
+set of conditions should determine $\theta$. Its Step 4 solved those
+conditions by function iteration, a Bellman backup at chosen states followed
+by a fit, with two particular fits: interpolation at the nodes of a basis, and
+least squares on a basis. This chapter drops the basis. Any regressor can do
+the fit, a grid interpolant, a tree ensemble or a neural network, and the
+result is **fitted value iteration**. Each iteration is an ordinary regression
+problem whose targets are Bellman backups, and fitted Q-iteration, NFQ, DQN and
+NFQCA in the chapters ahead are elaborations of it.
 
 The fit is not free. Value iteration converges because $\Bellman$ is a
 contraction in the sup norm ({prf:ref}`value-iteration-convergence`), and the
-fit can undo that. The chapter therefore follows the algorithm with three
-results. If every fit is accurate to $\varepsilon$, the errors do not
-accumulate beyond $\varepsilon/(1-\gamma)$, which is what licenses an
-arbitrary regressor. Least squares can nonetheless make the errors grow
-without bound, on a two-state problem whose value function it represents
-exactly. And two kinds of fit are provably safe: averagers, which include grid
-interpolation and the tree ensembles of the first fitted Q-iteration
-algorithm, and least squares weighted by the state distribution of the policy
-being evaluated. Neural networks belong to neither kind. What keeps neural
-fitted Q-iteration stable in practice is a set of design choices that the
-[fitted Q-iteration chapter](fitted-q-iteration.md) examines. We then turn to
-the other solver of the previous chapter, Newton's method, which becomes
-approximate policy iteration and, for linear features, the LSTD and LSPI
-algorithms. The chapter closes with the steps that separate fitted value
-iteration from NFQCA, and the chapter in which each is taken.
+fishery of the previous chapter showed a fit undoing that. The chapter
+therefore follows the algorithm with three results. If every fit is accurate
+to $\varepsilon$, the errors do not accumulate beyond $\varepsilon/(1-\gamma)$,
+which is what licenses an arbitrary regressor. Least squares can nonetheless
+make the errors grow without bound, on a two-state problem whose value
+function it represents exactly. And two kinds of fit are provably safe:
+averagers, which include grid interpolation and the tree ensembles of the
+first fitted Q-iteration algorithm, and least squares weighted by the state
+distribution of the policy being evaluated. Neural networks belong to neither
+kind. What keeps neural fitted Q-iteration stable in practice is a set of
+design choices that the [fitted Q-iteration chapter](fitted-q-iteration.md)
+examines. We then turn to the other solver of the previous chapter, Newton's
+method, which becomes approximate policy iteration and, for linear features,
+the LSTD and LSPI algorithms. The chapter closes with the steps that separate
+fitted value iteration from NFQCA, and the chapter in which each is taken.
 
-Two examples use real data. The model with which the U.S. Fish and Wildlife
+One example uses real data. The model with which the U.S. Fish and Wildlife
 Service sets duck-hunting regulations is small enough to solve exactly, so the
-error bounds can be checked against what actually happens. The collision
-warnings that ESA logged for its satellites come with no model at all, and
-fitted Q-iteration learns from them when to maneuver.
+error bounds can be checked against what actually happens.
 
 ::::{admonition} Learning Goals
 :class: note
@@ -56,7 +54,6 @@ After completing this chapter, you should be able to:
 - Construct a fitted value iteration that diverges, and state two conditions that prevent divergence: averagers in the sup norm, and on-policy weighting for policy evaluation
 - Explain approximate policy iteration as Newton's method on the approximate Bellman equation, and LSTD and LSPI as its linear case
 - Name the steps from fitted value iteration to FQI, NFQ and NFQCA, and the chapter in which each is taken
-- Run fitted Q-iteration on a log of transitions, and scale its targets so that a few rare, costly events do not dominate the fit
 
 **Prerequisites:** the weighted-residual template ([previous chapter](weighted-residual-methods.md)), the contraction and Newton-Kantorovich material of [infinite-horizon MDPs](infinite-horizon-mdps.md), interpolation with cardinal functions in [finite-horizon DP](finite-horizon-dp.md).
 ::::
@@ -105,49 +102,37 @@ $s_1, \ldots, s_m$, to the fitted function. Then fitted value iteration is
 
 $$
 v_{k+1} = \Proj \Bellman v_k,
-$$ (eq:projected-vi)
+$$ (eq:fitted-vi)
 
-value iteration with a fit after each sweep. Two choices define the algorithm:
-where the targets are computed, and how the function is fitted to them.
-Nothing depends on the max. Replacing $\Bellman$ by the policy evaluation
-operator $\BellmanPi$ gives fitted policy evaluation, and replacing it by the
-smooth operator $\mathrm{L}_\beta$ of {ref}`sec-regularized-operators` gives
-fitted smooth value iteration. The weighted-residual methods of the previous
-chapter are two particular fitting rules.
+the projected value iteration {eq}`eq:projected-vi` of the previous chapter,
+with $\Proj$ now any fitting rule. Two choices define the algorithm: where
+the targets are computed, and how the function is fitted to them. Nothing
+depends on the max. Replacing $\Bellman$ by the policy evaluation operator
+$\BellmanPi$ gives fitted policy evaluation, and replacing it by the smooth
+operator $\mathrm{L}_\beta$ of {ref}`sec-regularized-operators` gives fitted
+smooth value iteration.
 
-### Collocation and Galerkin as Fitting Rules
+The two fits of the previous chapter mark the ends of a range. Collocation
+computes targets at exactly $n$ states, as many as there are basis functions,
+and interpolates them: $\Proj$ is the interpolation operator, and with
+piecewise-linear cardinal functions on a grid the algorithm is the stationary
+version of the interpolated backward recursion {eq}`eq:interpolated-bellman`
+of the finite-horizon chapter. Galerkin projection computes targets at as
+many states as the quadrature needs and fits the basis to them by weighted
+least squares: $\Proj$ is the $w$-orthogonal projection onto the span of the
+basis, and when the states are sampled from $w$ the fit is an ordinary
+regression. Collocation computes few targets and matches them exactly;
+regression computes many and matches them on average. Regression is what
+scales, because it decouples the number of targets from the number of
+parameters, and because it applies unchanged to any model that can be fitted
+to data.
 
-**Collocation** computes targets at exactly $n$ states, as many as there are
-basis functions, and interpolates them: with $\boldsymbol{\Phi}$ the $n \times n$
-matrix with entries $\Phi_{ij} = \varphi_j(s_i)$, the fit solves
-$\boldsymbol{\Phi}\theta_{k+1} = y$. Here $\Proj$ is the interpolation
-operator. With piecewise-linear cardinal functions on a grid, this is the
-stationary version of the interpolated backward recursion
-{eq}`eq:interpolated-bellman` of the finite-horizon chapter.
-
-```{prf:algorithm} Collocation with Function Iteration
-:label: collocation-function-iteration
-
-**Input** Collocation points $\{s_1, \ldots, s_n\}$, basis functions $\{\varphi_1, \ldots, \varphi_n\}$, initial $\theta^{(0)}$, tolerance $\varepsilon > 0$
-
-**Output** Converged coefficients $\theta^*$
-
-1. Form collocation matrix $\boldsymbol{\Phi}$ with $\Phi_{ij} = \varphi_j(s_i)$
-2. $k \leftarrow 0$
-3. **repeat**
-    1. For each $i = 1, \ldots, n$:
-        1. $t_i^{(k)} \leftarrow \max_{a \in \mathcal{A}_{s_i}} \left\{ r(s_i, a) + \gamma \sum_{s' \in \mathcal{S}} p(s'|s_i, a) \sum_{\ell=1}^n \theta_\ell^{(k)} \varphi_\ell(s') \right\}$
-    2. Solve $\boldsymbol{\Phi} \theta^{(k+1)} = t^{(k)}$
-    3. $k \leftarrow k + 1$
-4. **until** $\|\theta^{(k)} - \theta^{(k-1)}\| < \varepsilon$
-5. **return** $\theta^{(k)}$
-```
-
-The fishery of {ref}`sec-wr-fishery` runs this algorithm with the hat
-functions and with Chebyshev polynomials. The maximization over the
-escapement and the quadrature over the shock are done by the module that
-produced the figures of the previous chapter. The cell prints how much the
-fitted values at the nodes change from one iteration to the next.
+The fishery of {ref}`sec-wr-fishery` ran the collocation version with the
+hat functions and with Chebyshev polynomials, and its sweep over $n$ showed
+the polynomial diverging for some $n$. The cell below measures what happens
+to the fitted values at the nodes from one iteration to the next. The
+maximization over the escapement and the quadrature over the shock are done
+by the module that produced the figures of the previous chapter.
 
 ```{code-cell} python
 :tags: [hide-input]
@@ -200,25 +185,6 @@ contracts by $\gamma$. It is the interpolation step that expands, by a
 factor of at least $1.049/0.95 \approx 1.10$, enough to undo the contraction.
 {ref}`sec-abe-convergence` explains which fitting rules can do this and which cannot.
 
-**Galerkin projection** fits by weighted least squares. Given a weight $w(s)$
-over states, $\theta_{k+1}$ minimizes
-$\int (v(s;\theta) - (\Bellman v_k)(s))^2 w(s)\,ds$, whose first-order
-conditions are the Galerkin conditions
-$\langle v(\cdot;\theta_{k+1}) - \Bellman v_k, \varphi_i \rangle_w = 0$, a
-linear system $M\theta_{k+1} = b^{(k)}$ with mass matrix
-$M_{ij} = \langle \varphi_i, \varphi_j \rangle_w$ and
-$b_i^{(k)} = \langle \Bellman v_k, \varphi_i \rangle_w$. The integrals need
-quadrature. If the states $s_i$ are drawn from $w$, the sample average
-replaces the integral and the fit becomes an ordinary least-squares
-regression on the pairs $(s_i, y_i)$. Here $\Proj$ is the $w$-orthogonal
-projection onto the span of the basis.
-
-The two rules mark the ends of a range. Collocation computes few targets and
-matches them exactly; regression computes many and matches them on average.
-Regression is what scales, because it decouples the number of targets from
-the number of parameters and it applies unchanged to any model that can be
-fitted to data.
-
 ### Fitting a Neural Network: Fixed Targets and the Semi-Gradient
 
 For a model $v(\cdot;\boldsymbol\theta)$ that is nonlinear in its parameters,
@@ -246,12 +212,13 @@ instead minimize $\sum_i \big(v(s_i;\boldsymbol\theta) - (\Bellman v(\cdot;\bold
 with the same parameters on both sides. Its test functions,
 $\partial v/\partial\theta_j - \partial(\Bellman v)/\partial\theta_j$, form the
 **full gradient**, and computing them requires differentiating through the
-max, by the envelope theorem, or through the log-sum-exp of the
-[smooth Bellman operator](regularized-dp.md). The two criteria have different
-solutions. Every algorithm in the chapters ahead, from NFQ to NFQCA, fits to
-fixed targets, and the [fitted Q-iteration chapter](fitted-q-iteration.md)
-studies what happens when the fit is warm-started and stopped after a few
-gradient steps instead of run to convergence.
+max, by the envelope theorem ({prf:ref}`thm-envelope`), or through the
+log-sum-exp of the [smooth Bellman operator](regularized-dp.md). The two
+criteria have different solutions. Every algorithm in the chapters ahead,
+from NFQ to NFQCA, fits to fixed targets, and the
+[fitted Q-iteration chapter](fitted-q-iteration.md) studies what happens
+when the fit is warm-started and stopped after a few gradient steps instead
+of run to convergence.
 
 (sec-abe-high-dim)=
 ### Example: A Stopping Problem in Eight Dimensions
@@ -358,16 +325,19 @@ for D, n_nodes, e in rows:
     cell = lambda key: f"{e[key].mean():.3f} ({e[key].max():.3f})" if key in e else "out of reach"
     print(f"{D:>2} {n_nodes:>12,}  {cell('grid'):^16} {cell('trees'):^20} {cell('network'):^20}")
 
+from book_figure_theme import INK, PALETTE, figure_style, show
+
 mean_s, v_hat, v_true = scatter
 order = np.argsort(mean_s)
-fig, ax = plt.subplots(figsize=(6, 3.5))
-ax.scatter(mean_s, v_hat, s=3, alpha=0.3, label="network, D = 8")
-ax.plot(mean_s[order], v_true[order], color="black", lw=1.5, label="exact $v^*$")
-ax.set_xlabel("average of the coordinates of $s$")
-ax.set_ylabel("value")
-ax.legend(frameon=False)
-fig.tight_layout()
-plt.show()
+with figure_style():
+    fig, ax = plt.subplots(figsize=(4.6, 2.8))
+    ax.scatter(mean_s, v_hat, s=4, alpha=0.25, color=PALETTE["blue"], edgecolor="none")
+    ax.plot(mean_s[order], v_true[order], color=INK, lw=1.4)
+    ax.text(0.2, 0.74, "network, $D = 8$", color=PALETTE["blue"], fontsize=8.5)
+    ax.text(0.72, 0.6, "exact $v^*$", color=INK, fontsize=8.5)
+    ax.set_xlabel(r"average of the coordinates, $\bar s$")
+    ax.set_ylabel("value")
+show(fig)
 ```
 
 The grid is the most accurate method while it fits in memory, and it is out of
@@ -521,7 +491,7 @@ that we compute against the reference.
 
 The table supports three observations.
 
-1. **Both bounds hold, and both are loose.** The value error is 18 to 63
+1. **Both bounds hold, and both are loose.** The value error is 18 to 118
    times smaller than $\varepsilon/(1-\gamma)$, and the policy loss is four to
    five orders of magnitude below $2\gamma\varepsilon/(1-\gamma)^2$. The bounds
    charge every iteration's error at its worst state and let the errors add up
@@ -535,17 +505,18 @@ The table supports three observations.
    four packages, because their successor states are close.
 3. **The regressors do about as well as the coarsest grid.** With 2,000
    targets per iteration, the trees and the network have fitting errors of
-   $0.73$ and $1.32$, close to the $0.79$ of the 45-node grid. The network's
+   $0.76$ and $1.47$, of the same order as the $0.79$ of the 45-node grid. The network's
    greedy policy reproduces the reference map (panel (c)): it picks the
-   reference package in 97% of the states and loses at most $0.06$. The trees
-   lose more, $0.30$ at worst. Their fit is piecewise constant, so it is flat
+   reference package in 98% of the states and loses at most $0.03$. The trees
+   lose more, $0.26$ at worst. Their fit is piecewise constant, so it is flat
    where the value has a slope, and the greedy choice between two packages
    depends on that slope.
 
 With two state variables the Service's grid is the right tool, and the
 regressors bring nothing. They become necessary when the state has many
 dimensions, as in the eight-dimensional stopping problem, or when there is no
-model at all to compute targets from, as in the last example of this chapter.
+model at all to compute targets from, as in the collision-avoidance example
+of the [fitted Q-iteration chapter](fitted-q-iteration.md).
 
 - {download}`Mallard harvest model and solvers <code/mallard_harvest.py>`
 - {download}`Mallard harvest experiment builder <scripts/build_mallard_harvest_artifacts.py>`
@@ -589,49 +560,53 @@ The counterexample suggests asking which fitting rules cannot stretch
 differences between functions. The answer was found independently in
 computational economics {cite}`Judd1992,Judd1996,McGrattan1997,SantosVigoAguiar1998`,
 economic dynamics {cite}`Stachurski2009`, and reinforcement learning
-{cite}`Gordon1995,Gordon1999`, and the communities arrived at essentially the
-same conditions.
+{cite}`Gordon1995,Gordon1999`, and the communities arrived at the same
+condition under different names.
 
-```{prf:proposition} Monotone operators are nonexpansive (Stachurski)
+```{prf:definition} Averager
+:label: gordon-averager
+
+A linear operator $\Proj$ on the space of bounded real-valued functions on $\mathcal{S}$ is an **averager** if it is monotone, that is $f \leq g$ pointwise implies $\Proj f \leq \Proj g$, and preserves constants, $\Proj\mathbf{1} = \mathbf{1}$. On a finite state space, $\Proj$ is an averager exactly when $\Proj v = Wv$ for a stochastic matrix $W$: $w_{ij} \geq 0$ and $\sum_j w_{ij} = 1$ for every row $i$.
+```
+
+The name is Gordon's. The finite-state characterization follows because a
+linear map is monotone exactly when its matrix has nonnegative entries, and
+preserves constants exactly when its rows sum to one. An interpolation
+operator $(\Proj f)(s) = \sum_j \ell_j(s) f(s_j)$ with cardinal functions
+$\ell_j$ is an averager exactly when the weights are nonnegative and sum to
+one, which is the condition $\Lambda = 1$ of the finite-horizon chapter and
+the property that separated the hat functions from the polynomial in the
+fishery.
+
+```{prf:proposition} Averagers are nonexpansive
 :label: monotone-nonexpansive
 
-Let $\Proj: \mathcal{V} \to \mathcal{V}$ be a linear operator on the space $\mathcal{V}$ of bounded real-valued functions on $\mathcal{S}$. If $\Proj$ satisfies:
-
-1. **Monotonicity**: $f \leq g$ pointwise implies $\Proj f \leq \Proj g$
-2. **Constant preservation**: $\Proj\mathbf{1} = \mathbf{1}$ where $\mathbf{1}$ is the constant function equal to $1$
-
-Then $\Proj$ is nonexpansive in the sup norm: $\|\Proj f - \Proj g\|_\infty \leq \|f - g\|_\infty$ for all $f, g \in \mathcal{V}$.
+If $\Proj$ is an averager, then $\|\Proj f - \Proj g\|_\infty \leq \|f - g\|_\infty$ for all bounded $f, g$.
 ```
 
 ```{prf:proof}
-Let $M = \|f - g\|_\infty$. Then $-M \leq f(s) - g(s) \leq M$ for all $s$, which can be written as $g - M\mathbf{1} \leq f \leq g + M\mathbf{1}$. By monotonicity, $\Proj(g - M\mathbf{1}) \leq \Proj f \leq \Proj(g + M\mathbf{1})$. By linearity and constant preservation, $\Proj g - M\mathbf{1} \leq \Proj f \leq \Proj g + M\mathbf{1}$, which means $|\Proj f(s) - \Proj g(s)| \leq M$ for all $s$. Therefore $\|\Proj f - \Proj g\|_\infty \leq \|f - g\|_\infty$.
+Let $M = \|f - g\|_\infty$. Then $-M \leq f(s) - g(s) \leq M$ for all $s$, which can be written as $g - M\mathbf{1} \leq f \leq g + M\mathbf{1}$. By monotonicity, $\Proj(g - M\mathbf{1}) \leq \Proj f \leq \Proj(g + M\mathbf{1})$. By linearity and constant preservation, $\Proj g - M\mathbf{1} \leq \Proj f \leq \Proj g + M\mathbf{1}$, which means $|\Proj f(s) - \Proj g(s)| \leq M$ for all $s$.
 ```
 
-A monotone, constant-preserving operator acts like a weighted average: it
-respects order and cannot amplify differences. For an interpolation operator
-$(\Proj f)(s) = \sum_j \ell_j(s) f(s_j)$ with cardinal functions $\ell_j$, the
-two conditions say that the weights are nonnegative and sum to one, which is
-the condition $\Lambda = 1$ of the finite-horizon chapter. The least-squares
-fit of the counterexample violates them: it maps the constant function
-$(1, 1)$ to $(3/5, 6/5)$. Polynomial interpolation at Chebyshev nodes
-preserves constants but is not monotone: its cardinal functions dip below
-zero between the nodes, and its Lebesgue constant is about $2.4$ for ten
-nodes. That is how the ten-coefficient polynomial of the fishery
-({ref}`sec-abe-fvi`) could undo the contraction of the Bellman backup, while
-the hat functions, whose cardinal functions are nonnegative, could not.
+An averager acts like a weighted average: it respects order and cannot
+amplify differences. The least-squares fit of the counterexample is not one.
+It maps the constant function $(1, 1)$ to $(3/5, 6/5)$, so it does not
+preserve constants, and it does not respect order either. Polynomial
+interpolation at Chebyshev nodes preserves constants but is not monotone: its
+cardinal functions dip below zero between the nodes, and its Lebesgue
+constant is about $2.4$ for ten nodes. That is how the ten-coefficient
+polynomial of the fishery ({ref}`sec-abe-fvi`) could undo the contraction of
+the Bellman backup, while the hat functions, whose cardinal functions are
+nonnegative, could not.
 
-```{prf:theorem} Stability of projected value iteration (Santos-Vigo-Aguiar)
+```{prf:theorem} Fitted value iteration with an averager converges
 :label: santos-vigo-aguiar-stability
 
-Let $\Bellman: \mathcal{V} \to \mathcal{V}$ be a $\gamma$-contraction on the space $\mathcal{V}$ of bounded functions with respect to the sup norm. Let $\Proj: \mathcal{V} \to \mathcal{V}$ be a linear approximation operator satisfying monotonicity and constant preservation.
-
-Then the composed operator $\Proj \Bellman$ is a $\gamma$-contraction, and projected value iteration $v_{k+1} = \Proj \Bellman v_k$ converges globally to a unique fixed point $v_\Proj \in \text{Range}(\Proj)$ with approximation error:
+Let $\Bellman$ be a $\gamma$-contraction in the sup norm on the bounded functions on $\mathcal{S}$, and let $\Proj$ be an averager. Then $\Proj \Bellman$ is a $\gamma$-contraction, so fitted value iteration $v_{k+1} = \Proj \Bellman v_k$ converges from any $v_0$ to the unique fixed point $v_\Proj \in \text{Range}(\Proj)$, and
 
 $$
-\|v_\Proj - v^*\|_\infty \leq \frac{1}{1-\gamma} \|\Proj v^* - v^*\|_\infty,
+\|v_\Proj - v^*\|_\infty \leq \frac{1}{1-\gamma} \|\Proj v^* - v^*\|_\infty .
 $$
-
-where $v^*$ is the true value function.
 ```
 
 ```{prf:proof}
@@ -650,28 +625,13 @@ $$
 and rearranging gives the claim.
 ```
 
-The fixed-point error is the best-approximation error
-$\|\Proj v^* - v^*\|_\infty$ amplified by $(1-\gamma)^{-1}$. For a monotone
-fit the per-iteration error stays bounded, and the result is the special case
-of {prf:ref}`thm-approximate-vi` in which the third difficulty above cannot
-arise. For a finite state space, the monotonicity conditions describe
-**averaging with nonnegative weights**, a characterization due to Gordon.
-
-```{prf:definition} Averager (Gordon)
-:label: gordon-averager
-
-An operator $\Proj: \mathbb{R}^{|\mathcal{S}|} \to \mathbb{R}^{|\mathcal{S}|}$ is an **averager** if $\Proj v = Wv$ where $W$ is a $|\mathcal{S}| \times |\mathcal{S}|$ stochastic matrix: $w_{ij} \geq 0$ and $\sum_j w_{ij} = 1$ for all $i$.
-```
-
-Averagers satisfy the monotonicity conditions: linearity follows from matrix
-multiplication, monotonicity from nonnegativity of the entries, and constant
-preservation from the row sums.
-
-```{prf:theorem} Stability with averagers (Gordon)
-:label: gordon-stability
-
-If $\Proj$ is an averager and $\Bellman$ is the Bellman operator (a $\gamma$-contraction), then $\Proj \Bellman$ is a $\gamma$-contraction, and value iteration $v_{k+1} = \Proj \Bellman v_k$ converges to a unique fixed point.
-```
+The theorem is due to {cite:t}`SantosVigoAguiar1998` for monotone
+approximation operators and to {cite:t}`Gordon1995` for averagers; the proof
+of the proposition follows {cite:t}`Stachurski2009`. The fixed-point error is
+the best-approximation error $\|\Proj v^* - v^*\|_\infty$ amplified by
+$(1-\gamma)^{-1}$. For an averager the per-iteration error stays bounded, so
+the result is the special case of {prf:ref}`thm-approximate-vi` in which the
+third difficulty above cannot arise.
 
 The stochastic matrix gives the averaging a Markov-chain reading: $\Proj v$ is
 an expected value after one random transition, and expectations preserve
@@ -681,7 +641,7 @@ with the interpolation weights as probabilities. Composing that chain with
 the model's own transitions makes $\Proj\Bellman$ the Bellman operator of a
 finite-state MDP, which is why it contracts.
 
-**Which regressors are averagers?** State aggregation, $k$-nearest neighbors,
+Which regressors are averagers? State aggregation, $k$-nearest neighbors,
 kernel smoothing with nonnegative kernels normalized to sum to one, and
 multilinear interpolation on a grid all predict a convex combination of
 training targets whose weights depend only on the states. So does a
@@ -705,20 +665,16 @@ polynomial interpolation, and neural networks are not averagers.
 | Least squares on an arbitrary basis | No | The counterexample above |
 | Neural networks | No | No sign or normalization constraint on the fit |
 
-The table puts the methods of this chapter in their place. Collocation with
-piecewise-linear interpolation is an averager, and the folk wisdom that
+The table puts the fits of the two chapters in their place. Collocation
+with piecewise-linear interpolation is an averager, and the folk wisdom that
 linear interpolation is safe for value iteration is a theorem. Collocation
-with the cubic through four Chebyshev nodes is not, and its convergence in
-the worked example was not guaranteed. Galerkin projection and least squares
-are not averagers. The tree ensemble in the eight-dimensional example sits on
-the boundary, and the network is outside.
-
-The solver matters too. Fitted value iteration needs $\Proj\Bellman$ to
-contract. Newton's method does not; its convergence depends on the
-conditioning of the Jacobian and on the starting point. This is the reason for
-the hybrid strategy of {ref}`sec-wr-solve`: a few iterations with a monotone,
-low-order approximation to get a starting guess, then Newton's method with a
-smooth, high-order one.
+with a high-order polynomial is not, and its convergence in the fishery, when
+it happened, was not guaranteed. Galerkin projection and least squares are
+not averagers. The tree ensemble of the eight-dimensional example sits on the
+boundary, and the network is outside. The solver matters too: Newton's method
+never iterates $\Proj\Bellman$, so it does not need the contraction, which is
+why the hybrid strategy of {ref}`sec-wr-solve` starts with a monotone,
+low-order fit and switches to Newton with the accurate one.
 
 ```{admonition} Exercises: Divergence and Averagers
 :class: hint dropdown
@@ -766,7 +722,7 @@ $$
 \|\Proj \BellmanPi v - \Proj \BellmanPi w\|_\xi \leq \|\BellmanPi v - \BellmanPi w\|_\xi \leq \gamma \|v - w\|_\xi.
 $$
 
-**Orthogonal projection is nonexpansive.** For any vector $v$, decompose
+Orthogonal projection is nonexpansive. For any vector $v$, decompose
 $v = \Proj v + (v - \Proj v)$, where $v - \Proj v$ is $\xi$-orthogonal to
 the span of $\boldsymbol\Phi$. By the Pythagorean theorem,
 
@@ -778,7 +734,7 @@ No sign condition on the entries of $\Proj$ was needed. The sup-norm argument
 fails for this projection; the $\xi$-norm argument does not see the negative
 weights at all.
 
-**$\BellmanPi$ contracts in $\|\cdot\|_\xi$.** Since
+$\BellmanPi$ contracts in $\|\cdot\|_\xi$. Since
 $\BellmanPi v - \BellmanPi w = \gamma \mathbf{P}_\pi (v - w)$, it suffices to
 show $\|\mathbf{P}_\pi z\|_\xi \leq \|z\|_\xi$ for every $z$.
 
@@ -810,16 +766,15 @@ $v_\pi$ by $(1-\gamma)^{-1}\|\Proj v_\pi - v_\pi\|_\xi$, and the inner-product
 structure improves the constant to $(1-\gamma^2)^{-1/2}$
 {cite}`TsitsiklisVanRoy1997`.
 
-**The on-policy condition.** Convergence came from matching the weighting to
-the operator, not from any property of the fit beyond orthogonality: $\xi$
-must be the stationary distribution of the very $\mathbf{P}_\pi$ that appears
-in $\BellmanPi$. When the data are collected by following $\pi$, this holds
-automatically, which is **on-policy** learning. When they come from another
-behavior policy, as in the counterexample's equal weighting or in learning
-from a replay buffer filled by older policies, the Jensen step fails,
-$\mathbf{P}_\pi$ need not be nonexpansive in $\|\cdot\|_\xi$, and
-$\Proj\BellmanPi$ may not contract. Baird's counterexample {cite}`Baird1995` is
-the classical demonstration.
+Convergence came from matching the weighting to the operator, not from any
+property of the fit beyond orthogonality: $\xi$ must be the stationary
+distribution of the very $\mathbf{P}_\pi$ that appears in $\BellmanPi$. When
+the data are collected by following $\pi$, this holds automatically, which is
+**on-policy** learning. When they come from another behavior policy, as in
+the counterexample's equal weighting or in learning from a replay buffer
+filled by older policies, the Jensen step fails, $\mathbf{P}_\pi$ need not be
+nonexpansive in $\|\cdot\|_\xi$, and $\Proj\BellmanPi$ may not contract.
+Baird's counterexample {cite}`Baird1995` is the classical demonstration.
 
 ```{admonition} Exercises: The On-Policy Condition
 :class: hint dropdown
@@ -862,31 +817,22 @@ when the value function is parametric, and what does the linear case add?
 In the exact setting, Newton's method on the Bellman equation is policy
 iteration ({ref}`sec-newton-kantorovich-pi`): by the envelope theorem the
 Jacobian at $v_k$ involves the transition matrix of the greedy policy
-$\pi_k$, and the Newton step solves the evaluation equation of $\pi_k$. With a
-parametric value function the same holds, except that the evaluation is done
-within the function class. The algorithm alternates **approximate
-evaluation**, finding $\theta$ with $v(\cdot;\theta) \approx v_{\pi_k}$, and
-**greedy improvement**. This is approximate policy iteration. Its guarantee
-has the same form as for fitted value iteration: if every evaluation is
-accurate to $\varepsilon$ in the sup norm, the policies are eventually within
-$2\gamma\varepsilon/(1-\gamma)^2$ of optimal {cite}`BertsekasTsitsiklis1996`.
-Unlike exact policy iteration, the sequence of policies need not improve
-monotonically, and it can cycle among a few policies.
-
-Two remarks carry over from the exact case. With the smooth Bellman operator,
-the Jacobian is $\gamma\mathbf{P}_{\pi_k}$ for the softmax policy, with no
-ties to resolve ({ref}`sec-smooth-pi-newton`). And the recommendation at the
-end of {ref}`sec-wr-solve`, a few sweeps of function iteration before
-switching to Newton, is how Rust solved his bus-engine model
-({ref}`sec-rust-inverse`).
-
-For collocation, the Newton step reads as follows. Let $a_i^*$ be the greedy
-action at collocation point $s_i$ for the current coefficients. The envelope
-theorem gives the Jacobian of the targets,
-$[J]_{ij} = \gamma \sum_{s'} p(s'|s_i, a_i^*) \varphi_j(s')$, and the Newton
-step solves $(\boldsymbol\Phi - J)\theta^{(k+1)} = \mathbf{r}_{\pi_k}$, the
-evaluation equation of the greedy policy restricted to the collocation points
-and solved within the span of the basis.
+$\pi_k$, and the Newton step solves the evaluation equation of $\pi_k$. The
+previous chapter showed the same for collocation, where the Newton step
+{eq}`eq:collocation-newton` is the evaluation equation of $\pi_k$ imposed at
+the nodes and solved within the span of the basis. With an arbitrary
+parametric value function the pattern is the same, except that the evaluation
+is done within the function class by whatever means are available. The
+algorithm alternates **approximate evaluation**, finding $\theta$ with
+$v(\cdot;\theta) \approx v_{\pi_k}$, and **greedy improvement**. This is
+approximate policy iteration. Its guarantee has the same form as for fitted
+value iteration: if every evaluation is accurate to $\varepsilon$ in the sup
+norm, the policies are eventually within $2\gamma\varepsilon/(1-\gamma)^2$ of
+optimal {cite}`BertsekasTsitsiklis1996`. Unlike exact policy iteration, the
+sequence of policies need not improve monotonically, and it can cycle among a
+few policies. With the smooth Bellman operator, the Jacobian is
+$\gamma\mathbf{P}_{\pi_k}$ for the softmax policy, with no ties to resolve
+({ref}`sec-smooth-pi-newton`).
 
 (sec-abe-lstd)=
 ### The Linear Case: LSTD and LSPI
@@ -905,18 +851,13 @@ $$ (eq:lstd-galerkin)
 
 This is the **LSTD (least-squares temporal difference)** solution of
 {cite:t}`BradtkeBarto1996`, an $n\times n$ linear system
-$\mathbf{A}\theta = \mathbf{b}$. The practical algorithm never forms
-$\boldsymbol\Phi$ over all states or $\mathbf{P}_\pi$ explicitly. It
+$\mathbf{A}\theta = \mathbf{b}$, and the Galerkin counterpart of the
+collocation step {eq}`eq:collocation-newton`. The practical algorithm never
+forms $\boldsymbol\Phi$ over all states or $\mathbf{P}_\pi$ explicitly. It
 accumulates $\mathbf{A} = \mathbb{E}_{s \sim \xi}[\boldsymbol{\varphi}(s)(\boldsymbol{\varphi}(s) - \gamma \boldsymbol{\varphi}(s'))^\top]$
 and $\mathbf{b} = \mathbb{E}_{s \sim \xi}[\boldsymbol{\varphi}(s) r]$ from
 sampled transitions $(s, r, s')$, which is possible because the system is
-linear in the unknown.
-
-*Check that the dimensions work out: with $m$ states and $n$ features, what
-are the dimensions of $\boldsymbol{\Phi}$, $\boldsymbol{\Xi}$,
-$\mathbf{P}_\pi$, and $\mathbf{A}$?*
-
-On a 3-state chain under a fixed policy, with
+linear in the unknown. On a 3-state chain under a fixed policy, with
 $\mathbf{P}_\pi = \begin{pmatrix} 0.7 & 0.2 & 0.1 \\ 0.3 & 0.4 & 0.3 \\ 0.1 & 0.3 & 0.6 \end{pmatrix}$,
 $\mathbf{r}_\pi = (1, 2, 0)$, features $\varphi(s) = (1, s)$ and uniform weights:
 
@@ -959,8 +900,7 @@ With the max back in, Newton's method on the projected optimality equation
 $\boldsymbol{\Phi}^\top \boldsymbol{\Xi}\big(\Bellman(\boldsymbol\Phi\theta) - \boldsymbol{\Phi} \theta\big) = \mathbf{0}$
 uses the envelope-theorem Jacobian
 $\boldsymbol{\Phi}^\top \boldsymbol{\Xi} (\gamma \mathbf{P}_{\pi_k} \boldsymbol{\Phi} - \boldsymbol{\Phi})$
-at the greedy policy $\pi_k$. After the terms in $\theta^{(k)}$ cancel, the
-Newton step is
+at the greedy policy $\pi_k$, and the Newton step is
 
 $$
 \boldsymbol{\Phi}^\top \boldsymbol{\Xi} (\boldsymbol{\Phi} - \gamma \mathbf{P}_{\pi_k} \boldsymbol{\Phi})\, \theta^{(k+1)} = \boldsymbol{\Phi}^\top \boldsymbol{\Xi} \mathbf{r}_{\pi_k},
@@ -974,10 +914,11 @@ $\boldsymbol{\Phi}^\top \boldsymbol{\Xi} \boldsymbol{\Phi}\, \theta^{(k+1)} = \b
 both use the greedy policy, but fitted value iteration applies its Bellman
 operator once and regresses, while LSPI solves for its value.
 
-The closed forms need the features to enter linearly. With a neural network,
-the evaluation step has no closed form, and the natural replacement is a few
-sweeps of fitted policy evaluation, $q \leftarrow \Proj\BellmanPi q$, which is
-what the critic of NFQCA does.
+The closed forms need the features to enter linearly, and linear features
+are rarely what practice uses. With a neural network the evaluation step has
+no closed form, and the natural replacement is a few sweeps of fitted policy
+evaluation, $q \leftarrow \Proj\BellmanPi q$, which is what the critic of
+NFQCA does.
 
 ```{admonition} Exercises: LSTD and LSPI
 :class: hint dropdown
@@ -998,15 +939,16 @@ methods used in practice, and where is each taken?
 Fitted value iteration, as stated here, assumes four things that NFQCA does
 not.
 
-**It learns values of states, not of actions.** To act greedily with respect
-to $v(\cdot;\theta)$ requires, at every decision, the expectation
+**It learns values of states.** To act greedily with respect to
+$v(\cdot;\theta)$ requires, at every decision, the expectation
 $r(s,a) + \gamma\,\mathbb{E}[v(s';\theta) \mid s,a]$ for every action: the
-model and an integral at decision time. Storing an action-value function
-$q(s,a;\theta)$ instead moves that work into training, so that acting is a
-maximization over $q(s,\cdot;\theta)$. The Bellman operator on
-$q$-functions, $(\Bellman q)(s,a) = r(s,a) + \gamma\,\mathbb{E}[\max_{a'} q(s',a') \mid s,a]$,
-is again a $\gamma$-contraction, and everything in this chapter applies to it
-unchanged. Fitted value iteration on $q$ is fitted Q-iteration.
+model and an integral at decision time. The
+[Monte Carlo chapter](monte-carlo-bellman-estimation.md) moves that work into
+training by learning the value of each action, $q(s,a;\theta)$, so that
+acting is a maximization over the stored values and needs no model. The
+Bellman operator on action values is again a $\gamma$-contraction, and
+everything in this chapter applies to it unchanged. Fitted value iteration on
+$q$ is fitted Q-iteration.
 
 **It computes expectations exactly.** The targets contain
 $\mathbb{E}[\,\cdot \mid s,a]$, which the eight-dimensional example already
@@ -1021,8 +963,9 @@ reinforcement learning a buffer that changes as the agent acts. The error
 analysis of this chapter said that a fit is controlled only where there are
 data. The [fitted Q-iteration chapter](fitted-q-iteration.md) builds the
 batch algorithms on this template, the tree-based FQI of {cite:t}`ernst2005tree`
-(an averager) and NFQ {cite}`riedmiller2005neural` (a neural network), and
-then DQN, whose design choices respond to the deadly triad.
+(an averager) and NFQ {cite}`riedmiller2005neural` (a neural network), runs
+them on a scheduling log and on ESA's collision warnings, and then develops
+DQN, whose design choices respond to the deadly triad.
 
 **It maximizes over a finite set of actions.** Every target contains
 $\max_{a'} q(s',a';\theta)$. When the action is continuous, a torque or a
@@ -1048,116 +991,6 @@ resolves it in the same way.
 | Targets at chosen states | A fixed batch (FQI, NFQ) or a replay buffer (DQN) | [FQI](fitted-q-iteration.md) |
 | Maximum over a finite action set | A learned actor in the target (NFQCA, DDPG, TD3) | [Amortized action optimization](amortized-action-optimization.md) |
 
-(sec-abe-conjunctions)=
-### Example: Collision Avoidance Learned from Logged Warnings
-
-What does fitted Q-iteration look like when there is no model, only a log?
-When a satellite and another object, most often a piece of debris, are
-predicted to pass close to each other, the operator receives about three
-conjunction data messages per day over the week before the time of closest
-approach. Each message gives a collision probability estimated from the latest
-tracking. The operator can plan an avoidance maneuver or wait for the next
-message. Waiting buys information, because most alarms go away as the
-tracking improves. It also makes the maneuver more expensive: closer to the
-encounter, a larger change of velocity is needed for the same miss distance,
-and there is less time to plan. ESA plans its maneuvers at least two days
-before closest approach, and its missions in low orbit react to collision
-probabilities between $10^{-5}$ and $10^{-4}$ {cite}`Uriot2022`. ESA released
-the messages of 13,154 conjunctions of its satellites for a machine-learning
-competition {cite}`Uriot2022`, and we use them as the log.
-
-We pose an optimal stopping problem on these sequences. A decision is taken at
-each message received at least two days before closest approach, and once
-more at the two-day deadline with the latest message. A maneuver $t$ days
-before closest approach costs $c(t) = (1 + 2/t)/2$, in units of a maneuver two
-days out. An event without a maneuver costs $C = 10^5$ times the collision
-probability of its last message, the best estimate available, so that a
-maneuver at the deadline breaks even at a probability of $10^{-5}$. The state
-is what the operator knows at a decision: the time $t$ to closest approach,
-the latest log-probability $\rho$, and the age of that message. The costs are
-teaching choices, and ESA's analysts look at much more than one number.
-
-Two features of the problem let fitted Q-iteration work from the log alone.
-A maneuver ends the problem at a known cost, so $q(s, \text{maneuver}) = c(t)$
-needs no learning. And waiting does not change which messages arrive: the
-released sequences contain no maneuvers, so each one shows what follows
-"wait". Fitted Q-iteration only has to learn $W(s) = q(s, \text{wait})$, by
-regression on the logged transitions $(s_i, s_i')$ with targets
-
-$$
-y_i = \begin{cases} C\, p_{\text{final}} & \text{if } s_i \text{ is the deadline,} \\
-\min\{c(t_i'),\, W_k(s_i')\} & \text{otherwise,} \end{cases}
-\qquad W_{k+1} = \operatorname{fit}\big(\{(s_i, y_i)\}\big).
-$$
-
-The minimum over the two actions is the $\max$ of the Bellman operator for
-costs. There is no expectation to compute: each logged successor is one draw
-of $s'$, as in the second row of the table above. We fit extra trees, the
-averager of tree-based FQI {cite}`ernst2005tree`, on the logged decision
-epochs, and judge every policy out of sample: each event is decided by a
-policy fitted without it.
-
-:::{figure} _static/conjunction_wait_or_burn/wait_or_burn.svg
-:label: fig-conjunction-wait-or-burn
-
-Collision avoidance from ESA's conjunction messages. (a) The collision
-probability of the 742 events whose estimate crossed the break-even
-probability, about $10^{-5}$ (dashed), before the deadline. The 59 in color
-ended above it. (b) Total cost of each policy over all events, split into the
-cost of maneuvers and of expected collisions. Never maneuvering costs 2,668.
-(c) The policy learned by fitted Q-iteration on all events, at a message that
-has just arrived. Above the blue boundary it maneuvers. The dashed line is the
-break-even probability of the message taken at face value.
-:::
-
-:::{include} artifacts/conjunction_wait_or_burn/results.md
-:::
-
-Maneuvering at the first alarm is safe but wasteful: it makes 742
-maneuvers for 62 events that needed one, because 92 of every 100 alarms
-resolve ({numref}`fig-conjunction-wait-or-burn`, panel (a)). Waiting until the
-deadline and then acting on the latest message halves the cost. This rule is
-what an operator would write by hand. Fitted Q-iteration was told neither
-that waiting pays nor at what probability to act, and it comes within about 6% of
-the hand rule, 309 against 291. Its learned rule (panel (c)) waits through a
-new alarm more than three days out unless the probability is twenty to forty
-times the break-even value, in which case it maneuvers early, while a
-maneuver is still cheap. The bar comes down as the deadline nears, but at the
-deadline it still asks for about three times the break-even probability, a
-bet that later messages will come down, and that bet misses more of the
-events that needed a maneuver, 18 against 6 for the hand rule. Two choices
-decide whether fitted Q-iteration works here at all, and both are lessons of
-this chapter.
-
-1. **The fit must fit the right thing.** The raw target $C\, p_{\text{final}}$
-   is heavy-tailed. One event in the log ends at a probability of 2% and
-   costs about 2,070 if nothing is done, more than three times the cost of
-   all other events together. Extra trees predict the average of the targets
-   in a leaf, so this one cost is shared by every state in the leaves where
-   its epochs fall, and those states look dangerous. Fitted on all events,
-   the raw-target policy makes 391 maneuvers; fitted without that single
-   event, 141. Out of sample it makes 381 maneuvers and costs 444, half again
-   as much as the hand rule. The second version fits the ratio
-   $y_i / (C\, 10^{\rho_i})$, the cost relative to what the current message
-   alone predicts, and multiplies the fit back. The regressor then learns a
-   correction factor to the operator's own estimate. For the dangerous event
-   this factor stays between 0.7 and 7, an ordinary value, and the policy
-   makes 171 maneuvers with the event in the data and 162 without it.
-2. **The fit is only as good as the data where decisions are made.** Five
-   in six of the 123,882 decision epochs have probabilities below $10^{-7}$,
-   where waiting is obviously right, and we leave them out of the fit. Only
-   62 events needed a maneuver. This is the coverage problem behind the
-   concentrability coefficients of {ref}`sec-abe-error`: the regression
-   error that matters is the one at the few states where the two actions are
-   close, and no amount of data elsewhere reduces it. The hindsight policy,
-   at 147, is not a target: it knows the estimate of the messages that arrive
-   after the deadline, which no policy can use.
-
-- {download}`Conjunction model and fitted Q-iteration <code/conjunction_wait_or_burn.py>`
-- {download}`Conjunction experiment builder <scripts/build_conjunction_wait_or_burn_artifacts.py>`
-- {download}`Conjunction results <artifacts/conjunction_wait_or_burn/metrics.json>`
-- {download}`Conjunction messages used (columns of the ESA training set, CC BY 4.0) <data/conjunctions/kelvins_cdm_extract.csv.gz>`
-
 ## Summary and Outlook
 
 Replacing the table by a parametric function turns value iteration into
@@ -1175,10 +1008,7 @@ Averagers cannot, and for policy evaluation, least squares weighted by the
 stationary distribution of the policy cannot either. Neither argument covers
 the optimality operator with a neural network, which is the setting of
 practical fitted Q-iteration. Newton's method becomes approximate policy
-iteration, with LSTD and LSPI as its linear case. On ESA's collision
-warnings, fitted Q-iteration learned from the log alone a maneuver rule
-within about 6% of the one an operator would write by hand, once its
-targets were scaled so that one rare event could not dominate the fit.
+iteration, with LSTD and LSPI as its linear case.
 
 Exact target evaluation still assumes access to the transition probabilities
 or an exact expectation. How can the same Bellman update be estimated when the

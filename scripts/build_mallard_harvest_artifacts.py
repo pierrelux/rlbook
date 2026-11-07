@@ -2,6 +2,8 @@
 """Rebuild the mallard-harvest solves, policy maps and error table.
 
 Run from the repository root: uv run python scripts/build_mallard_harvest_artifacts.py
+Run it alone: with another builder running at the same time, the tree and network fits
+came out differently (Nov 2026), and the published numbers were not reproduced.
 """
 from __future__ import annotations
 
@@ -15,12 +17,11 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from matplotlib.colors import ListedColormap
-from matplotlib.patches import Patch
 import numpy as np
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "code"))
-from book_figure_theme import INK, MUTED, PALETTE, apply_style, save  # noqa: E402
+from book_figure_theme import INK, PALETTE, TEXT_WIDTH, apply_style, save  # noqa: E402
 from mallard_harvest import (  # noqa: E402
     CLOSED_BELOW, CODES, GAMMA, GOAL, MODEL_WEIGHTS, MODELS, N_MAX, N_MIN, P_MAX, PACKAGES,
     Grid, GridFit, NetworkFit, TreeFit, evaluate_policy, fitted_value_iteration, greedy,
@@ -76,15 +77,18 @@ def draw_map(ax, actions, title):
     cmap = ListedColormap(COLORS)
     ax.imshow(actions, origin="lower", aspect="auto", cmap=cmap, vmin=-.5, vmax=3.5, interpolation="nearest",
               extent=(MAP_P[0], MAP_P[-1], MAP_N[0], MAP_N[-1]))
+    ax.axhline(CLOSED_BELOW, color=INK, lw=.7, ls=":")
     ax.set_title(title)
     ax.set_xlabel("May ponds $P$ (millions)")
-    ax.grid(False)
+    ax.set_xticks([2, 4, 6])
+    ax.set_yticks([4, 5, 6, 7, 8, 9])
+    for side in ("left", "bottom"):
+        ax.spines[side].set_visible(False)
 
 
-def figure_policies(reference, network):
+def published_map():
+    """The published 2012 table drawn over the pond and population ranges that each cell covers."""
     population, ponds, table = published_2012()
-    fig, axes = plt.subplots(1, 3, figsize=(7.4, 2.6), sharey=True)
-    # Published table: each cell drawn over the pond and population ranges it covers.
     pub = np.full((MAP_N.size, MAP_P.size), -1)
     for i, n in enumerate(population):
         lo = n - 0.125 if i > 0 else MAP_N[0]
@@ -97,16 +101,23 @@ def figure_policies(reference, network):
             plo = p - 0.25 if j > 0 else MAP_P[0]
             phi = p + 0.25 if j < len(ponds) - 1 else MAP_P[-1]
             pub[np.ix_((MAP_N >= lo) & (MAP_N <= hi), (MAP_P >= plo) & (MAP_P <= phi))] = table[i, j]
-    draw_map(axes[0], np.ma.masked_less(pub, 0), "(a) Published, USFWS 2012")
-    draw_map(axes[1], policy_map(reference.v), "(b) Grid solution, step 0.1")
-    draw_map(axes[2], policy_map(network), "(c) Network, 2,000 states")
+    return np.ma.masked_less(pub, 0)
+
+
+def figure_policies(published, reference_map, network_map):
+    fig, axes = plt.subplots(1, 3, figsize=(TEXT_WIDTH, 2.5), sharey=True)
+    draw_map(axes[0], published, "(a) Published by USFWS, 2012")
+    draw_map(axes[1], reference_map, "(b) Grid, step 0.1")
+    draw_map(axes[2], network_map, "(c) Network, 2,000 states")
     axes[0].set_ylabel("breeding population $N$ (millions)")
-    for ax in axes:
-        ax.axhline(CLOSED_BELOW, color=INK, lw=.6, ls=":")
-    handles = [Patch(color=c, label=p) for c, p in zip(COLORS, PACKAGES)]
-    fig.legend(handles=handles, loc="lower center", ncol=4, fontsize=7.5, handlelength=1.2,
-               bbox_to_anchor=(.5, -.03))
-    fig.tight_layout(rect=(0, .07, 1, 1), w_pad=1.2)
+    # Direct labels on the published map; the other two use the same colors.
+    ax = axes[0]
+    ax.text(1.3, 8.45, "liberal", color="white", fontsize=8.5, va="center")
+    ax.text(1.3, 5.6, "restrictive", color=INK, fontsize=8.5, va="center")
+    ax.text(1.3, 4.38, "closed", color="white", fontsize=8.5, va="center")
+    ax.annotate("moderate", xy=(5.9, 6.47), xytext=(4.1, 7.55), color="white", fontsize=8.5, va="center",
+                arrowprops=dict(arrowstyle="-", color="white", lw=.7, shrinkA=1, shrinkB=1))
+    fig.tight_layout(w_pad=1.0)
     save(fig, STATIC, "policies")
 
 
@@ -159,7 +170,7 @@ def main():
         raise SystemExit("\n".join(issues))
 
     apply_style("mallard-harvest")
-    figure_policies(reference, values["neural network"])
+    figure_policies(published_map(), policy_map(reference.v), policy_map(values["neural network"]))
     write_results(rows)
     (ARTIFACTS / "metrics.json").write_text(json.dumps({
         "schema_version": 1,

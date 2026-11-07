@@ -2,6 +2,8 @@
 """Rebuild the wait-or-burn collision-avoidance experiment, figure and table.
 
 Run from the repository root: uv run python scripts/build_conjunction_wait_or_burn_artifacts.py
+Run it alone: with another builder running at the same time, the tree and network fits
+came out differently (Nov 2026), and the published numbers were not reproduced.
 """
 from __future__ import annotations
 
@@ -18,7 +20,7 @@ import pandas as pd
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "code"))
-from book_figure_theme import INK, MUTED, PALETTE, RULE, apply_style, save  # noqa: E402
+from book_figure_theme import INK, MUTED, PALETTE, TEXT_WIDTH, apply_style, save  # noqa: E402
 from conjunction_wait_or_burn import (  # noqa: E402
     COLLISION_COST, DATA, DEADLINE, RISK_FLOOR, burn_cost, cross_validated_fqi, fitted_q_iteration,
     load_epochs, realized_costs, rule_as_soon_as_above, rule_at_deadline, rule_hindsight,
@@ -75,64 +77,75 @@ def dominant_event(epochs):
     return out
 
 
-def figure(epochs, results, full_fit):
+def decision_map(full_fit):
+    """Maneuver (True) or wait at a message that has just arrived, on a grid of time and log-probability."""
+    t = np.linspace(DEADLINE, 7, 120)
+    r = np.linspace(-7, -2, 160)
+    TT, RR = np.meshgrid(t, r)
+    X = np.column_stack([TT.ravel(), RR.ravel(), np.zeros(TT.size)])
+    return TT, RR, full_fit(X).reshape(TT.shape) > burn_cost(TT)
+
+
+def figure(epochs, results, burn_map):
     raw = pd.read_csv(DATA).sort_values(["event_id", "time_to_tca"], ascending=[True, False])
     alarmed = np.unique(epochs.event[rule_as_soon_as_above(epochs)])     # the events of the first-alarm rule
     final = raw.groupby("event_id").risk.last()
-    fig, axes = plt.subplots(1, 3, figsize=(7.4, 2.6), gridspec_kw={"width_ratios": [1.15, 1, 1]})
+    fig, axes = plt.subplots(1, 3, figsize=(TEXT_WIDTH, 2.55), gridspec_kw={"width_ratios": [1.15, 1, 1]})
 
     ax = axes[0]
-    ax.axvspan(0, DEADLINE, color=RULE, alpha=.5, lw=0)
+    ax.axvspan(0, DEADLINE, color=PALETTE["gray"], alpha=.12, lw=0)
     for needed in (False, True):
         for e in alarmed:
             if (final[e] >= BREAK_EVEN) != needed:
                 continue
             g = raw[raw.event_id == e]
-            ax.plot(g.time_to_tca, g.risk.clip(lower=-8), lw=.5 if not needed else .8,
-                    color=PALETTE["vermilion"] if needed else MUTED, alpha=.9 if needed else .18)
-    ax.axhline(BREAK_EVEN, color=INK, lw=.7, ls="--")
+            ax.plot(g.time_to_tca, g.risk.clip(lower=-8), lw=.7 if needed else .4,
+                    color=PALETTE["vermilion"] if needed else PALETTE["gray"], alpha=.75 if needed else .12)
+    ax.axhline(BREAK_EVEN, color=INK, lw=.8, ls="--")
     ax.set_xlim(7, 0), ax.set_ylim(-8, -1)
+    ax.set_xticks([6, 4, 2, 0])
     ax.set_xlabel("days to closest approach")
     ax.set_ylabel(r"$\log_{10}$ collision probability")
     ax.set_title("(a) Alarms before the deadline")
-    ax.text(DEADLINE / 2, -1.4, "too late\nto plan", ha="center", va="top", fontsize=6.5, color=MUTED)
+    ax.text(DEADLINE / 2, -1.3, "too late\nto plan", ha="center", va="top", fontsize=8, color=MUTED)
 
     ax = axes[1]
     order = ["soon", "fqi_raw", "deadline", "fqi_relative", "hindsight"]
-    labels = ["first\nalarm", "FQI\nraw", "dead-\nline", "FQI\nrelative", "hind-\nsight"]
+    labels = ["first alarm", "FQI, raw", "deadline", "FQI, relative", "hindsight"]
     y = np.arange(len(order))
-    man = [results[k]["maneuver_cost"] for k in order]
-    col = [results[k]["collision_cost"] for k in order]
-    ax.barh(y, man, color=PALETTE["blue"], height=.62, label="maneuvers")
-    ax.barh(y, col, left=man, color=PALETTE["vermilion"], height=.62, label="collisions")
+    man = np.array([results[k]["maneuver_cost"] for k in order])
+    col = np.array([results[k]["collision_cost"] for k in order])
+    ax.barh(y, man, color=PALETTE["blue"], height=.6)
+    ax.barh(y, col, left=man, color=PALETTE["vermilion"], height=.6)
     for yi, k in zip(y, order):
-        ax.text(results[k]["total_cost"] + 8, yi, f"{results[k]['total_cost']:.0f}", va="center", fontsize=7)
-    ax.set_yticks(y, labels, fontsize=7)
-    ax.set_xlim(0, 1.3 * max(results[k]["total_cost"] for k in order))
-    ax.invert_yaxis()
-    ax.set_xlabel("total cost, all events")
+        ax.text(results[k]["total_cost"] + 10, yi, f"{results[k]['total_cost']:.0f}", va="center", fontsize=8.5)
+    ax.text(man[0] / 2, -.62, "maneuvers", color=PALETTE["blue"], fontsize=8, ha="center", va="bottom")
+    ax.text(man[0] + col[0] / 2, -.62, "collisions", color=PALETTE["vermilion"], fontsize=8,
+            ha="left", va="bottom")
+    ax.set_yticks(y, labels)
+    ax.tick_params(axis="y", length=0)
+    ax.spines["left"].set_visible(False)
+    ax.set_ylim(len(order) - .5, -1.1)
+    ax.set_xlim(0, 1.25 * max(results[k]["total_cost"] for k in order))
+    ax.set_xlabel("total cost over all events")
     ax.set_title(f"(b) Cost (never: {results['never']['total_cost']:,.0f})")
-    ax.legend(loc="lower right", fontsize=6.5, handlelength=1)
-    ax.grid(axis="y", visible=False)
 
     ax = axes[2]
-    t = np.linspace(DEADLINE, 7, 120)
-    r = np.linspace(-7, -2, 160)
-    TT, RR = np.meshgrid(t, r)
-    X = np.column_stack([TT.ravel(), RR.ravel(), np.zeros(TT.size)])
-    W = full_fit(X).reshape(TT.shape)
-    burn = W > burn_cost(TT)
-    ax.contourf(TT, RR, burn.astype(float), levels=[.5, 1.5], colors=[PALETTE["blue"]], alpha=.35)
-    ax.contour(TT, RR, burn.astype(float), levels=[.5], colors=[PALETTE["blue"]], linewidths=1.0)
-    ax.plot(t, np.log10(burn_cost(t) / COLLISION_COST), color=INK, lw=.9, ls="--")
+    TT, RR, burn = burn_map
+    t = TT[0]
+    ax.contourf(TT, RR, burn.astype(float), levels=[.5, 1.5], colors=[PALETTE["blue"]], alpha=.25)
+    ax.contour(TT, RR, burn.astype(float), levels=[.5], colors=[PALETTE["blue"]], linewidths=1.2)
+    ax.plot(t, np.log10(burn_cost(t) / COLLISION_COST), color=INK, lw=.8, ls="--")
     ax.set_xlim(7, DEADLINE), ax.set_ylim(-7, -2)
+    ax.set_xticks([7, 6, 5, 4, 3, 2])
     ax.set_xlabel("days to closest approach")
+    ax.set_ylabel(r"$\log_{10}$ collision probability")
     ax.set_title("(c) Learned rule at a new message")
-    ax.text(6.8, -2.3, "maneuver", color=PALETTE["blue"], fontsize=7, va="top")
-    ax.text(6.8, -6.7, "wait", color=INK, fontsize=7)
-    ax.text(2.1, np.log10(burn_cost(2.1) / COLLISION_COST) - .2, "break-even\nof the message", fontsize=6.5,
+    ax.text(6.8, -2.3, "maneuver", color=PALETTE["blue"], fontsize=8.5, va="top")
+    ax.text(6.8, -6.75, "wait", color=INK, fontsize=8.5)
+    ax.text(2.1, np.log10(burn_cost(2.1) / COLLISION_COST) - .2, "break-even\nof the message", fontsize=8,
             color=INK, ha="right", va="top")
-    fig.tight_layout(w_pad=1.2)
+    fig.tight_layout(w_pad=1.0)
     save(fig, STATIC, "wait_or_burn")
 
 
@@ -176,7 +189,7 @@ def main():
                                      return_model=True, **FQI)
 
     apply_style("conjunction-wait-or-burn")
-    figure(epochs, results, full_fit)
+    figure(epochs, results, decision_map(full_fit))
     write_results(results, epochs)
     (ARTIFACTS / "metrics.json").write_text(json.dumps({
         "schema_version": 1,

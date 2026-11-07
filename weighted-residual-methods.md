@@ -19,19 +19,23 @@ part of the book replaces the table by a function with a fixed number of
 parameters, and it builds up to the algorithms used in practice: fitted
 Q-iteration with trees or neural networks, its online form DQN, and its
 continuous-action form NFQCA. This chapter starts with why the replacement is
-needed and what it must provide. It then asks the first question the
-replacement raises: a function with finitely many parameters cannot satisfy
+needed and what it must provide. It then asks the first question that the
+replacement raises. A function with finitely many parameters cannot satisfy
 the Bellman equation at every state, so which equations should determine its
-parameters?
+parameters? Numerical analysis answers this question for operator equations in
+general with the method of weighted residuals, a template of five steps. We
+present the template directly on the Bellman equation. One problem, a fishery
+near a tipping point, motivates it and then follows it through every step, in
+boxes that the method does not depend on.
 
 ::::{admonition} Learning Goals
 :class: note
 
 After completing this chapter, you should be able to:
 - Explain why tabular dynamic programming fails for large or continuous state spaces, and what a function approximator must provide in its place
-- Explain why functional equations require finite-dimensional approximation and how weighted residual methods provide a systematic framework
-- Distinguish between Galerkin, collocation, and least-squares methods by their choice of test functions
-- Set up function iteration and Newton's method for the resulting finite-dimensional system, and explain when each applies
+- Write the Bellman residual of a parametric value function, and derive the collocation, Galerkin and least-squares conditions that determine its parameters
+- Solve the resulting equations by function iteration or by Newton's method, and state what each requires of the problem
+- Judge an approximate value function by its residual, its value error and the loss of its greedy policy, and explain why the three can disagree
 
 **Prerequisites:** Bellman operator and contraction property ([infinite-horizon MDPs](infinite-horizon-mdps.md)), interpolation with cardinal functions ([finite-horizon DP](finite-horizon-dp.md)), basic numerical quadrature, linear algebra (matrix inverses, orthogonal projection).
 ::::
@@ -96,8 +100,8 @@ Replacing $v$ by $v(\cdot;\theta)$ raises two questions. The Bellman equation
 $v = \Bellman v$ imposes one condition per state, infinitely many when the
 state space is continuous, while $\theta$ has finitely many components. Which
 finite set of conditions should determine $\theta$? This chapter answers it
-with the weighted-residual framework of numerical analysis
-{cite}`Chakraverty2019,AtkinsonPotra1987`, using linear bases, where the
+with the weighted-residual template of numerical analysis
+{cite}`Chakraverty2019,AtkinsonPotra1987`, using linear bases, for which the
 conditions can be written out and solved in closed form. Once the conditions
 are fixed, which algorithm finds $\theta$, and does the contraction that made
 value iteration converge survive the approximation? The
@@ -203,9 +207,8 @@ We use the Chebyshev nodes for the polynomial and the interpolation nodes for
 the hat functions, and we solve the $n$ nonlinear equations by function
 iteration. Each iteration computes the Bellman backup at the nodes with the
 current $\hat v$, then chooses the $\theta$ that reproduces those targets at
-the nodes. This is the simplest case of the fitted value iteration of the
-[next chapter](approximate-bellman-equations.md).
-{numref}`fig-fishery-collocation` shows both approximations with $n = 12$.
+the nodes. {numref}`fig-fishery-collocation` shows both approximations with
+$n = 12$.
 
 :::{figure} _static/fishery_tipping_point/collocation.svg
 :label: fig-fishery-collocation
@@ -230,412 +233,603 @@ is coarse between its nodes, but it follows the cliff, and its greedy policy
 loses at most $0.064$ anywhere. That worst case is near $x = 0.21$, where the
 policy closes the fishery a little too early.
 
-:::{figure} _static/fishery_tipping_point/sweep.svg
-:label: fig-fishery-sweep
-
-The same experiment for $n$ from 4 to 64. (a) Largest error of the
-approximate value. (b) Largest loss of its greedy policy, evaluated exactly.
-Crosses mark the $n$ for which function iteration with the polynomial diverged.
-:::
-
-{numref}`fig-fishery-sweep` repeats the experiment for $n$ from 4 to 64.
-Piecewise-linear interpolation improves steadily as nodes are added. The
-polynomial is erratic. Adding one coefficient can multiply its error by five,
-and for $n = 4$ and $n = 9, 10, 11$ function iteration does not converge: the
-coefficients grow without bound, although every iteration fits its targets
-exactly. Once $n$ is large enough to resolve the cliff, from about 40
-coefficients on, the polynomial overtakes the hat functions and converges much
-faster. The table summarizes a few cases.
-
-:::{include} artifacts/fishery_tipping_point/results.md
-:::
-
-The example raises the three questions that organize this chapter and the
-next.
-
-1. **Where should the residual be small?** With finitely many coefficients
-   the residual cannot vanish everywhere. Collocation makes it vanish at
-   chosen points. The rest of this chapter treats collocation, Galerkin and
-   least squares as three ways of testing the residual, and the choice of test
-   is a choice of where the approximation spends its accuracy.
-2. **Which basis?** A global polynomial spreads the difficulty of the cliff
-   over the whole interval, while local hat functions confine it to the nodes
-   next to the cliff. The basis also decides whether the iteration converges.
-   The [next chapter](approximate-bellman-equations.md) shows that
-   piecewise-linear interpolation belongs to a class of fits, the averagers,
-   for which function iteration is always a contraction, and that polynomial
-   interpolation does not.
-3. **What should be measured?** The residual is what the method controls,
-   the value error is what the residual bounds, and the policy loss is what
-   the regulator pays. At $n = 12$, the polynomial has the smaller residual of
-   the two approximations and a policy loss eighteen times larger. The next
-   chapter bounds the policy loss by the fitting error.
+The example leaves three questions open, and the rest of the chapter takes
+them in order. Collocation asked for a zero residual at twelve points; where
+else could the residual be made small, and what does that choice decide? The
+twelve coefficients were found by repeating a backup and a fit; when does that
+repetition converge, and what else could find them? And the polynomial had the
+smaller residual of the two approximations and a policy loss eighteen times
+larger; which quantity should judge an approximation?
 
 - {download}`Fishery model, reference solver and collocation <code/fishery_tipping_point.py>`
 - {download}`Fishery experiment builder <scripts/build_fishery_tipping_point_artifacts.py>`
 - {download}`Fishery results for every basis size <artifacts/fishery_tipping_point/metrics.json>`
 
-## Testing Whether a Residual Vanishes
+(sec-wr-framework)=
+## From One Equation per State to $n$ Equations
 
-Which scalar conditions can certify that a functional residual is zero, small,
-or orthogonal to selected directions?
+The Bellman optimality equation $v = \Bellman v$ holds at every state. For
+the fishery, that is one equation for every stock in $[0, 1.6]$, and the
+unknown is the whole function $v^\star$. Replacing $v$ by $v(\cdot;\theta)$
+leaves $n$ unknowns, so only $n$ conditions can be imposed, and the choice of
+those conditions is the method.
 
-Consider a functional equation $\Residual(f) = 0$, where $\Residual$ is an operator and the unknown $f$ is an entire function (in our case, the Bellman optimality equation $\Bellman v = v$, which we can write as $\Residual(v) \equiv \Bellman v - v = 0$). Suppose we have found a candidate approximate solution $\hat{f}$. To verify it satisfies $\Residual(\hat{f}) = 0$, we compute the **residual function** $R(s) = \Residual(\hat{f})(s)$. For a true solution, this residual should be the **zero function**: $R(s) = 0$ for every state $s$. 
+The earlier chapters made the same move for trajectories. A continuous-time
+trajectory cannot be chosen one instant at a time, so
+[direct collocation](continuous-time-collocation.md) represented the state
+and the control by polynomial pieces with finitely many coefficients,
+enforced the differential equation at selected points of each interval, and
+replaced the integrals of the cost by quadrature. The value function is
+treated in the same way: a basis for the unknown function, finitely many
+conditions in place of the equation, and quadrature for the expectations.
+The method of weighted residuals {cite}`Chakraverty2019,AtkinsonPotra1987`
+organizes these choices into five steps. Each step below is stated for a
+general Bellman equation and names the alternatives at that fork. The fishery
+took one path through the steps, and a box after each step picks the example
+up where it went through that step; the steps themselves need nothing from
+the boxes.
 
-How might we test whether a function is zero? One approach: sample many input points $\{s_1, s_2, \ldots, s_m\}$, check whether $R(s_i) = 0$ at each, and summarize the results into a single scalar test by computing a weighted sum $\sum_{i=1}^m w_i R(s_i)$ with weights $w_i > 0$. If $R$ is zero everywhere, this sum is zero. If $R$ is nonzero somewhere, we can choose points and weights to make the sum nonzero. For vectors in finite dimensions, the inner product $\langle \mathbf{r}, \mathbf{y} \rangle = \sum_{i=1}^n r_i y_i$ implements exactly this idea: it tests $\mathbf{r}$ by weighting and summing. Indeed, a vector $\mathbf{r} \in \mathbb{R}^n$ equals zero if and only if $\langle \mathbf{r}, \mathbf{y} \rangle = 0$ for every vector $\mathbf{y} \in \mathbb{R}^n$. To see why, suppose $\mathbf{r} \neq \mathbf{0}$. Choosing $\mathbf{y} = \mathbf{r}$ gives $\langle \mathbf{r}, \mathbf{r} \rangle = \|\mathbf{r}\|^2 > 0$, contradicting the claim that all inner products vanish.
+### Step 1: Choose a Parametric Value Function
 
-The same principle extends to functions. A function $R$ equals the zero function if and only if its "inner product" with every "test function" $p$ vanishes:
-
-$$
-R = 0 \quad \text{if and only if} \quad \langle R, p \rangle_w = \int_{\mathcal{S}} R(s) p(s) w(s) ds = 0 \quad \text{for all test functions } p,
-$$
-
-where $w(s) > 0$ is a weight function that is part of the inner product definition. Why does this work? For the same reason as in finite dimensions: if $R$ is not the zero function, there must be some region where $R(s) \neq 0$. We can then choose a test function $p$ that is nonzero in that same region (for instance, $p(s) = R(s)$ itself), which will produce $\langle R, p \rangle_w = \int R(s) p(s) w(s) ds > 0$, witnessing that $R$ is nonzero. Conversely, if $R$ is the zero function, then $\langle R, p \rangle_w = 0$ for any test function $p$.
-
-This ability to **distinguish between different functions using inner products** is a fundamental principle from functional analysis. Just as we can test a vector by taking inner products with other vectors, we can test a function by taking inner products with other functions.
-
-```{admonition} Connection to Functional Analysis
-:class: dropdown
-
-The principle that "a function equals zero if and only if it has zero inner product with all test functions" is a consequence of the **Hahn-Banach theorem**, one of the cornerstones of functional analysis. The theorem guarantees that for any nonzero function $R$ in a suitable function space, there exists a continuous linear functional (which can be represented as an inner product with some test function $p$) that produces a nonzero value when applied to $R$. This is often phrased as "the dual space separates points."
-
-While you don't need to know the Hahn-Banach theorem to use weighted residual methods, it provides the rigorous mathematical foundation ensuring that our inner product tests are theoretically sound. The constructive argument we gave above (choosing $p = R$) works in simple cases with well-behaved functions, but the Hahn-Banach theorem extends this guarantee to much more general settings.
-```
-
-This transforms the pointwise condition "$R(s) = 0$ for all $s$" (infinitely many conditions, one per state) into an equivalent condition about inner products. We still cannot test against *all* possible test functions, since there are infinitely many of those too. But the inner product perspective suggests a natural computational strategy: choose a finite collection of test functions $\{p_1, \ldots, p_n\}$ and use them to construct $n$ conditions that we can actually compute.
-
-### From Variational Conditions to Optimization
-
-Making a residual "small" is an optimization problem. We want to find $\theta$ that minimizes $\lVert R(\cdot; \theta) \rVert$ for some norm. Different methods correspond to different choices of norm:
-
-- Minimize the weighted $L^2$ norm $\lVert R \rVert_w^2 = \int R(s)^2 w(s) ds$
-- Minimize a discrete norm $\sum_j \omega_j R(s_j)^2$ at selected points
-- Minimize $\lVert R \rVert$ in a dual norm induced by the approximation space
-
-The first-order conditions for these optimization problems take the form $\langle R, p_j \rangle_w = 0$ for appropriate "test functions" $p_j$. The variational formulation is useful for analysis, but we are simply minimizing the residual in a chosen norm.
-
-The rest of this chapter develops the computational framework: how to parameterize the unknown function, define the residual, choose a norm, and solve the resulting finite-dimensional problem. 
-
-## The General Framework
-
-How do an approximation space, residual, test space, and solver combine into a
-reusable finite-dimensional method?
-
-Consider an operator equation of the form
+The approximation is a linear combination of $n$ basis functions,
 
 $$
-\Residual(f) = 0,
+v(s;\theta) = \sum_{j=1}^n \theta_j \varphi_j(s),
 $$
 
-where $\Residual: B_1 \to B_2$ is a continuous operator between complete normed vector spaces $B_1$ and $B_2$. For the Bellman equation, we have $\Residual(v) = \Bellman v - v$, so that solving $\Residual(v) = 0$ is equivalent to finding the fixed point $v = \Bellman v$.
+and the only unknowns are the coefficients $\theta \in \mathbb{R}^n$. Two
+kinds of basis are in common use. A global basis, such as Chebyshev
+polynomials or Fourier modes, gives every coefficient influence over the whole
+state space, and its error decreases exponentially in $n$ when the function
+is smooth. A local basis, such as the hat functions of piecewise-linear
+interpolation, splines with small support, or radial basis functions, lets
+each coefficient act near one node, and its error decreases at a rate set by
+the node spacing, whatever the smoothness of the function.
 
-Just as we transcribed infinite-dimensional continuous optimal control problems into finite-dimensional discrete optimal control problems in earlier chapters, we seek a finite-dimensional approximation to this infinite-dimensional functional equation. Recall that for continuous optimal control, we adopted control parameterization: we represented the control trajectory using a finite set of basis functions (piecewise constants, polynomials, splines) and searched over the finite-dimensional coefficient space instead of the infinite-dimensional function space. For integrals in the objective and constraints, we used numerical quadrature to approximate them with finite sums.
+Nothing in the steps requires $\theta$ to enter linearly. A neural network
+$v(s;\theta)$ is a function class with $n$ parameters as well, and every
+condition below applies to it. Linearity matters for solving: with a linear
+basis, each condition reduces to linear algebra and can be written out, which
+is why this chapter uses one. The [next chapter](approximate-bellman-equations.md)
+shows that the solver that carries over to neural networks needs nothing from
+the representation beyond the ability to fit it to data.
 
-We follow the same strategy here. We parameterize the value function using a finite set of basis functions $\{\varphi_1, \ldots, \varphi_n\}$, commonly polynomials (Chebyshev, Legendre), though other function classes (splines, radial basis functions, neural networks) are possible, and search for coefficients $\theta = (\theta_1, \ldots, \theta_n)$ in $\mathbb{R}^n$. When integrals appear in the Bellman operator or projection conditions, we approximate them using numerical quadrature. The projection method approach consists of several conceptual steps that accomplish this transcription.
+::::{admonition} The fishery at Step 1
+:class: note
 
-### Step 1: Choose a Finite-Dimensional Approximation Space
+The fishery used one basis of each kind, with $n = 12$: the Chebyshev
+polynomials $\varphi_j(x) = T_{j-1}(2x/1.6 - 1)$, and the hat functions of
+twelve uniform nodes, for which $\theta_j$ is the value at node $j$. Its value
+function has a kink at $\hat x$ and a cliff at the tipping point, which is why
+the two bases behaved so differently with the same $n$: the polynomial spread
+the cliff over the whole interval, and the hat functions confined it to the
+two nodes around it.
+::::
 
-We begin by selecting a basis $\Phi = \{\varphi_1, \varphi_2, \ldots, \varphi_n\}$ and approximating the unknown function as a linear combination:
+### Step 2: Define the Bellman Residual
+
+Substituting the approximation into the Bellman equation leaves a function of
+the state,
 
 $$
-\hat{f}(x) = \sum_{i=1}^n \theta_i \varphi_i(x).
+R(s;\theta) = (\Bellman v_\theta)(s) - v(s;\theta),
+$$ (eq:bellman-residual)
+
+the **Bellman residual**, where $v_\theta$ abbreviates $v(\cdot;\theta)$. It
+measures by how much the approximation fails the equation at $s$, and it is
+the zero function exactly when $v_\theta$ is a fixed point of $\Bellman$. One
+evaluation of it costs one evaluation of the Bellman operator, a maximization
+over the actions and an expectation over the successor, with the current
+coefficients inside both. The coefficients enter $R$ twice, directly through
+$v(s;\theta)$ and again through the expectation inside the maximum, and the
+maximum makes $R$ nonlinear in $\theta$ even though $v_\theta$ is linear in
+it.
+
+::::{admonition} The fishery at Step 2
+:class: note
+
+With the stock as the state and the escapement as the action, the residual is
+
+$$
+R(x;\theta) = \max_{0 \le s \le x}\Big\{x - s + \gamma\,\mathbb{E}_z\big[v(z f(s);\theta)\big]\Big\} - v(x;\theta),
 $$
 
-The choice of basis functions $\varphi_i$ is problem-dependent. Common choices include:
-- **Polynomials**: For smooth problems, we might use Chebyshev polynomials or other orthogonal polynomial families
-- **Splines**: For problems where we expect the solution to have regions of different smoothness
-- **Radial basis functions**: For high-dimensional problems where tensor product methods become intractable
-
-The number of basis functions $n$ determines the flexibility of our approximation. In practice, we start with small $n$ and increase it until the approximation quality is satisfactory. The only unknowns now are the coefficients $\theta = (\theta_1, \ldots, \theta_n)$.
-
-Nothing in the framework requires $\theta$ to enter linearly. A neural network $\hat{f}(x; \theta)$ defines a function class just as a basis does, and each residual condition below makes sense for it. What changes is how the conditions are solved: linear coefficients give linear systems with closed-form solutions, while adaptive features give nonlinear systems solved by gradient descent. This chapter uses linear bases because they make the conditions explicit. The [next chapter](approximate-bellman-equations.md) shows that the algorithm that carries over to neural networks, fitted value iteration, needs nothing from the representation beyond the ability to fit it to data.
-
-
-### Step 2: Define the Residual Function
-
-Since we are approximating $f$ with $\hat{f}$, the operator $\Residual$ will generally not vanish exactly. Instead, we obtain a **residual function**:
-
-$$
-R(x; \theta) = \Residual(\hat{f}(\cdot; \theta))(x).
-$$
-
-This residual measures how far our candidate solution is from satisfying the equation at each point $x$. As we discussed in the introduction, we want to make this residual small—an optimization problem whose formulation depends on how we measure "small."
+and one evaluation costs a maximization over the escapement and a 21-node
+quadrature over the shock. Panel (b) of {numref}`fig-fishery-collocation`
+plots this function for the two fits with $n = 12$.
+::::
 
 (sec-wr-conditions)=
-### Step 3: Impose Conditions on the Residual
+### Step 3: Impose $n$ Conditions on the Residual
 
-The basis and residual reduce the functional equation to $n$ scalar conditions
-on $\theta$. The choice of conditions determines the method:
-
-| **Method** | **Residual criterion** | **Conditions** ($n$ equations) |
-|:-----------|:------------------------|:-------------------------------|
-| Least squares | $\displaystyle\lVert R \rVert_w^2 = \int R(x; \theta)^2 w(x) dx$ | $\displaystyle\int R \cdot \frac{\partial R}{\partial \theta_j} \, w \, dx = 0$, $j = 1, \ldots, n$ |
-| Galerkin | $\lVert R \rVert_{\mathcal{V}^*}$ (dual norm of approx. space) | $\displaystyle\int R(x; \theta) \varphi_j(x) w(x) dx = 0$, $j = 1, \ldots, n$ |
-| Collocation | Exact pointwise satisfaction | $R(x_i; \theta) = 0$, $i = 1, \ldots, n$ |
-
-Each criterion yields $n$ equations in the $n$ unknowns
-$\theta_1,\ldots,\theta_n$.
-
-#### Collocation: Make the Residual Zero at Selected Points
-
-The simplest approach is to choose $n$ points $\{x_1, \ldots, x_n\}$ and require the residual to vanish exactly at each:
+The residual is a function and $\theta$ has $n$ components, so the condition
+$R(\cdot;\theta) = 0$ must be replaced by $n$ scalar conditions. The choices
+come from how a function can be tested for being zero. A vector
+$\mathbf{r} \in \mathbb{R}^m$ is zero if and only if
+$\langle \mathbf{r}, \mathbf{y} \rangle = 0$ for every $\mathbf{y}$, since
+$\mathbf{y} = \mathbf{r}$ gives $\|\mathbf{r}\|^2$. The same holds for
+functions with the weighted inner product
 
 $$
-R(x_i; \theta) = 0, \quad i = 1, \ldots, n.
+\langle R, p \rangle_w = \int_{\mathcal{S}} R(s)\, p(s)\, w(s)\, ds,
 $$
 
-This gives $n$ equations for $n$ unknowns. Collocation is computationally attractive because it avoids integration entirely—we only evaluate $R$ at discrete points. The resulting system is:
+where $w > 0$ is a weight over states: $R$ is the zero function if and only
+if $\langle R, p \rangle_w = 0$ for every **test function** $p$. Testing
+against every $p$ is as impossible as testing at every state, but testing
+against $n$ chosen test functions $p_1, \ldots, p_n$ gives exactly $n$
+equations,
 
 $$
-\Residual(\hat{f}(\cdot; \theta))(x_i) = 0, \quad i = 1, \ldots, n.
-$$
+\langle R(\cdot;\theta), p_i \rangle_w = 0, \qquad i = 1, \ldots, n.
+$$ (eq:weighted-residual-conditions)
 
-For a linear operator, this is a linear system; for the Bellman equation, it is nonlinear due to the max.
+The choice of test functions is the method, and three choices account for
+almost everything in use.
 
-*Verify for yourself: with $n = 2$ collocation points and $n = 2$ basis functions, the system $\boldsymbol{\Phi}\theta = t$ is a $2 \times 2$ linear system. What must be true about the collocation matrix $\boldsymbol{\Phi}$ for this system to have a unique solution?*
+| **Method** | **Test functions** $p_i$ | **Conditions** ($n$ equations) |
+|:-----------|:--------------------------|:-------------------------------|
+| Collocation | Point masses at chosen states $s_1, \ldots, s_n$ | $R(s_i; \theta) = 0$ |
+| Galerkin | The basis functions $\varphi_i$ | $\langle R(\cdot;\theta), \varphi_i \rangle_w = 0$ |
+| Least squares | The derivatives $\partial R / \partial \theta_i$ of the residual | $\langle R(\cdot;\theta), \partial R/\partial\theta_i \rangle_w = 0$ |
 
-The choice of collocation points matters. **Orthogonal collocation** (or **spectral collocation**) places points at the zeros of the $n$-th orthogonal polynomial in a family (Chebyshev, Legendre, etc.). For Chebyshev polynomials $T_0, T_1, \ldots, T_{n-1}$, we place collocation points at the zeros of $T_n(x)$. These points are also optimal nodes for Gauss quadrature, so:
+#### Collocation: a Zero Residual at Chosen States
 
-- We get the computational simplicity of pointwise evaluation $R(x_i) = 0$
-- When we need integrals (inside the Bellman operator), the collocation points double as quadrature nodes with exactness for polynomials up to degree $2n-1$
-- For smooth problems, spectral approximations achieve **exponential convergence**: the error decreases like $O(e^{-cn})$ as we add basis functions, compared to $O(h^{p+1})$ for piecewise polynomials
+Collocation picks $n$ states and asks the residual to vanish there,
+$R(s_i;\theta) = 0$ for $i = 1, \ldots, n$. A point mass at $s_i$ picks out
+the value $R(s_i)$, so this is {eq}`eq:weighted-residual-conditions` with
+point masses as test functions, as the dual-pairing formulation of
+{cite:t}`LegrandJunca2025` makes precise. No integral over states appears, so
+each condition costs one evaluation of the Bellman operator. What the
+conditions buy is a residual that vanishes at the nodes and is unconstrained
+between them.
 
-The Chebyshev interpolation theorem guarantees that forcing $R(x_i; \theta) = 0$ at these carefully chosen points makes $R(x; \theta)$ small everywhere, with well-conditioned systems and near-optimal interpolation error.
+Where to collocate is a choice of its own. For a polynomial of degree
+$n - 1$, the standard choice is the zeros of the $n$-th Chebyshev
+polynomial, the **Chebyshev nodes**, and the combination is called
+**orthogonal collocation**. The same nodes serve as the nodes of
+Gauss–Chebyshev quadrature, the interpolation matrix
+$\Phi_{ij} = \varphi_j(s_i)$ built on them is well conditioned, and the
+polynomial through them is within a small factor of the best polynomial
+approximation of a smooth function, so a residual that vanishes at them stays
+small between them. Equally spaced nodes have none of these properties once
+the degree is high. For a local basis the natural collocation points are the
+nodes of the basis itself, where one hat function equals one and the others
+vanish, so that the interpolation matrix is the identity and the coefficients
+are the values at the nodes.
 
-#### Galerkin: Make the Residual Orthogonal to the Approximation Space
-
-The Galerkin method requires the residual to be orthogonal to each basis function:
-
-$$
-\int_{\mathcal{S}} R(x; \theta) \varphi_i(x) w(x) dx = 0, \quad i = 1, \ldots, n.
-$$
-
-To understand why this is optimal, consider the approximation space $\mathcal{V} = \text{span}\{\varphi_1, \ldots, \varphi_n\}$ as an $n$-dimensional subspace. If the residual $R$ is orthogonal to all basis functions, then by linearity, $R$ is orthogonal to every function in $\mathcal{V}$:
-
-$$
-\langle R, g \rangle_w = \left\langle R, \sum_{i=1}^n c_i \varphi_i \right\rangle_w = \sum_{i=1}^n c_i \langle R, \varphi_i \rangle_w = 0 \quad \text{for all } g \in \mathcal{V}.
-$$
-
-The residual has "zero overlap" with our approximation space—it is as "invisible" to our basis as possible. This is the defining property of orthogonal projection.
-
-In what sense is Galerkin minimizing a norm? The **dual norm** of $R$ with respect to $\mathcal{V}$ measures $R$ by its largest inner product with functions in $\mathcal{V}$:
-
-$$
-\lVert R \rVert_{\mathcal{V}^*} = \sup_{\substack{g \in \mathcal{V} \\ \lVert g \rVert_w = 1}} \lvert \langle R, g \rangle_w \rvert.
-$$
-
-The Galerkin conditions $\langle R, \varphi_j \rangle_w = 0$ for all $j$ imply $\langle R, g \rangle_w = 0$ for all $g \in \mathcal{V}$, so $\lVert R \rVert_{\mathcal{V}^*} = 0$. Galerkin makes the residual "invisible" when measured against the approximation space—it minimizes the dual norm to zero.
-
-A finite-dimensional analogy: to approximate a vector $\mathbf{v} \in \mathbb{R}^3$ using only the $xy$-plane, the best approximation is $\hat{\mathbf{v}} = (v_1, v_2, 0)$. The error $\mathbf{r} = \mathbf{v} - \hat{\mathbf{v}} = (0, 0, v_3)$ points purely in the $z$-direction, orthogonal to the plane. The Galerkin condition generalizes this: the residual is orthogonal to the approximation space.
-
-Galerkin requires integration to compute the conditions, making it more expensive per iteration than collocation. However, when using orthogonal polynomial bases with matching weight functions, the integrals simplify and the resulting systems are well-conditioned.
-
-Collocation fits the same pattern if its test functions are taken to be Dirac deltas $\delta(x - x_i)$, since $\langle R, \delta(x - x_i) \rangle = R(x_i)$. Deltas are not functions but distributions, and the **dual pairing** formulation {cite}`LegrandJunca2025` makes this precise: test objects act on residuals through a pairing rather than an integral, and the induced dual norm $\|\Residual(v)\|_* = \sup_{\|w\|=1} |\langle \Residual(v), w \rangle|$ measures a residual by its worst-case effect on the test objects. The same perspective has inspired adversarial formulations {cite}`Zang2020` in which both trial and test functions are learned.
-
-#### Least Squares: Minimize the $L^2$ Norm of the Residual
-
-The most direct approach is to minimize the weighted $L^2$ norm of the residual:
+Write $\Proj$ for interpolation through the collocation points, the map that
+sends a function $g$ to the element of the span with $(\Proj g)(s_i) = g(s_i)$
+at every node. The collocation conditions say that $v_\theta$ and
+$\Bellman v_\theta$ agree at the nodes, that is,
 
 $$
-\min_\theta \int_{\mathcal{S}} R(x; \theta)^2 w(x) dx.
-$$
+v_\theta = \Proj\, \Bellman v_\theta .
+$$ (eq:projected-bellman)
 
-The first-order conditions are:
+The approximate solution is a fixed point of the Bellman operator followed by
+a projection, which is the form that Step 4 exploits.
 
-$$
-\int_{\mathcal{S}} R(x; \theta) \frac{\partial R(x; \theta)}{\partial \theta_j} w(x) dx = 0, \quad j = 1, \ldots, n.
-$$
+::::{admonition} The fishery at Step 3
+:class: note
 
-This directly minimizes how far our approximation is from satisfying the equation. For the Bellman equation $R = \Bellman\hat{v} - \hat{v}$, this is **Bellman residual minimization**: we minimize $\lVert \Bellman\hat{v} - \hat{v} \rVert_w^2$.
+The fishery used collocation, with the two standard choices of nodes: the
+Chebyshev nodes for the polynomial, and the interpolation nodes for the hat
+functions. Panel (b) of {numref}`fig-fishery-collocation` shows the residuals
+of the two fits: zero at the twelve nodes of each basis, and about $0.2$ at
+their peaks between the nodes, for both bases.
+::::
 
-The gradient $\frac{\partial R}{\partial \theta_j}$ involves differentiating the operator $\Residual$. For the Bellman operator with its max, this requires the Envelope Theorem (discussed in Step 4). The need to differentiate through the operator distinguishes least squares from Galerkin and collocation.
+#### Galerkin: a Residual Orthogonal to the Basis
 
-(sec-wr-solve)=
-### Step 4: Solve the Finite-Dimensional Problem
-
-The conditions from Step 3 give us a finite-dimensional problem to solve:
-
-- **Collocation**: $n$ equations $R(x_i; \theta) = 0$
-- **Galerkin**: $n$ equations $\int R(x; \theta) \varphi_i(x) w(x) dx = 0$
-- **Least squares**: minimize $\int R(x; \theta)^2 w(x) dx$
-
-In each case, we have $n$ equations (or first-order conditions) in $n$ unknowns $\theta_1, \ldots, \theta_n$. For the Bellman equation, these systems are nonlinear due to the max operator.
-
-#### Computational Cost and Conditioning
-
-The **computational cost per iteration** varies significantly across methods:
-- **Collocation**: Cheapest to evaluate since $P_i(\theta) = R(x_i; \theta)$ requires only pointwise evaluation (no integration). The Jacobian is also cheap: $J_{ij} = \frac{\partial R(x_i; \theta)}{\partial \theta_j}$.
-- **Galerkin and moments**: More expensive due to integration. Computing $P_i(\theta) = \int R(x; \theta) p_i(x) w(x) dx$ requires numerical quadrature. Each Jacobian entry requires integrating $\frac{\partial R}{\partial \theta_j} p_i w$.
-- **Least squares**: Most expensive when done via the objective function, which requires integrating $R^2 w$. However, the first-order conditions reduce it to a system like Galerkin, with test functions $p_i = \partial R / \partial \theta_i$.
-
-For methods requiring integration, the choice of quadrature rule should match the basis. Gaussian quadrature with nodes at orthogonal polynomial zeros is efficient. When combined with collocation at those same points, the quadrature is exact for polynomials up to a certain degree. This coordination between quadrature and collocation makes **orthogonal collocation** effective.
-
-The **conditioning** of the system depends on the choice of test functions. The Jacobian matrix has entries:
+Galerkin takes the basis functions themselves as test functions,
+$\langle R(\cdot;\theta), \varphi_i \rangle_w = 0$ for $i = 1, \ldots, n$.
+By linearity the residual is then orthogonal to every function in the
+approximation space $\mathcal{V} = \text{span}\{\varphi_1, \ldots, \varphi_n\}$,
 
 $$
-J_{ij} = \frac{\partial P_i}{\partial \theta_j} = \left\langle \frac{\partial R(\cdot; \theta)}{\partial \theta_j}, p_i \right\rangle_w.
+\Big\langle R, \sum_{i=1}^n c_i \varphi_i \Big\rangle_w = \sum_{i=1}^n c_i \langle R, \varphi_i \rangle_w = 0 \quad \text{for every } c \in \mathbb{R}^n,
 $$
 
-When test functions are orthogonal (or nearly so), the Jacobian tends to be well-conditioned. This is why orthogonal polynomial bases are preferred in Galerkin methods: they produce Jacobians with controlled condition numbers. Poorly chosen basis functions or collocation points can lead to nearly singular Jacobians, causing numerical instability. Orthogonal bases and carefully chosen collocation points (like Chebyshev nodes) help maintain good conditioning.
+which is the defining property of an orthogonal projection: the component of
+$\Bellman v_\theta$ that lies in $\mathcal{V}$ is $v_\theta$ itself. To
+approximate a vector of $\mathbb{R}^3$ by a vector in the $xy$-plane, one
+keeps $(v_1, v_2, 0)$, and the error $(0, 0, v_3)$ is orthogonal to the plane.
+With $\Proj$ now the $w$-orthogonal projection onto $\mathcal{V}$, the
+Galerkin conditions read again $v_\theta = \Proj\,\Bellman v_\theta$, the
+projected Bellman equation {eq}`eq:projected-bellman` with a different
+$\Proj$.
 
-#### Two Main Solution Approaches
+The conditions are integrals over the state space, so Galerkin needs a
+quadrature rule for them on top of the quadrature inside $\Bellman$. With an
+orthogonal polynomial basis and its matching weight, the inner products among
+basis functions are known in closed form and the systems are well
+conditioned. When the states are instead sampled from $w$, the integrals
+become sample averages and the Galerkin conditions become the normal
+equations of a least-squares regression: $v_\theta$ is the least-squares fit
+of the basis to the backups $(\Bellman v_\theta)(s_m)$ at the sampled states.
+The targets of that regression depend on its own solution, and Step 4 breaks
+the circularity.
 
-We have two fundamentally different ways to solve the projection equations: **function iteration** (exploiting fixed-point structure) and **Newton's method** (exploiting smoothness). The choice depends on whether the original operator equation has contraction properties and how well those properties are preserved by the finite-dimensional approximation.
+#### Least Squares: the Smallest Residual
 
-(sec-wr-function-iteration)=
-##### Method 1: Function Iteration (Successive Approximation)
-
-When the operator equation has the form $f = \Contraction f$ where $\Contraction$ is a contraction, the most natural approach is to iterate the operator directly:
-
-$$
-\hat{f}^{(k+1)} = \Contraction \hat{f}^{(k)}.
-$$
-
-The infinite-dimensional iteration becomes a finite-dimensional iteration in coefficient space once we choose our weighted residual method. Given a current approximation $\hat{f}^{(k)}(x; \theta^{(k)})$, how do we find the coefficients $\theta^{(k+1)}$ for the next iterate $\hat{f}^{(k+1)}$?
-
-Different weighted residual methods answer this differently. For **collocation**, we proceed in two steps:
-
-1. **Evaluate the operator**: At each collocation point $x_i$, compute what the next iterate should be: $t_i^{(k)} = (\Contraction \hat{f}^{(k)})(x_i)$. These $n$ target values tell us what $\hat{f}^{(k+1)}$ should equal at the collocation points.
-
-2. **Find matching coefficients**: Determine $\theta^{(k+1)}$ so that $\hat{f}^{(k+1)}(x_i; \theta^{(k+1)}) = t_i^{(k)}$ for all $i$. This is a linear system: $\sum_j \theta_j^{(k+1)} \varphi_j(x_i) = t_i^{(k)}$.
-
-In matrix form: $\boldsymbol{\Phi} \theta^{(k+1)} = t^{(k)}$, where $\boldsymbol{\Phi}$ is the collocation matrix with entries $\Phi_{ij} = \varphi_j(x_i)$. Solving this system gives $\theta^{(k+1)} = \boldsymbol{\Phi}^{-1} t^{(k)}$.
-
-For **Galerkin**, the target $\Contraction \hat{f}^{(k)}$ is a function rather than $n$ numbers, and the next iterate is its projection: $\theta^{(k+1)}$ solves $\langle \hat{f}^{(k+1)} - \Contraction \hat{f}^{(k)}, \varphi_i \rangle_w = 0$ for $i = 1, \ldots, n$. Because the target is held fixed at the previous iterate, this is a linear system whatever $\Contraction$ is: $M \theta^{(k+1)} = b^{(k)}$ with the mass matrix $M_{ij} = \langle \varphi_i, \varphi_j \rangle_w$ and $b_i^{(k)} = \langle \Contraction \hat{f}^{(k)}, \varphi_i \rangle_w$. It is the weighted least-squares fit of the basis to the target. Least squares in the sense of Step 3 would instead fit $\Contraction \hat{f}^{(k+1)}$, which depends on the unknown coefficients through $\Contraction$; the two differ exactly in whether the operator is differentiated.
-
-Both cases have the same shape. Write $\Proj$ for the map that takes a function to its representative in $\text{span}\{\varphi_1, \ldots, \varphi_n\}$: the interpolant through the collocation points, or the $w$-orthogonal projection for Galerkin. Then function iteration is
+The most direct choice minimizes the weighted norm of the residual,
 
 $$
-\hat{f}^{(k+1)} = \Proj\, \Contraction \hat{f}^{(k)},
+\min_\theta \int_{\mathcal{S}} R(s; \theta)^2\, w(s)\, ds,
 $$
 
-the original iteration with a projection inserted after each application of the operator. When $\Contraction$ is a contraction in the infinite-dimensional space with constant $\gamma < 1$, iterating it pulls any starting function toward the unique fixed point. The hope is that the composed operator $\Proj\,\Contraction$ inherits this contraction property. When it does, function iteration converges globally from any initial guess, with each iteration reducing the error by a factor of roughly $\gamma$. This is computationally attractive: we only evaluate the operator and solve a linear system. Whether $\Proj$ preserves the contraction is the main question of the [next chapter](approximate-bellman-equations.md).
-
-However, the finite-dimensional approximation doesn't always preserve contraction. High-order polynomial bases, in particular, can create oscillations between basis functions that amplify rather than contract errors. Even when contraction is preserved, convergence can be painfully slow when $\gamma$ is close to 1, the "weak contraction" regime common in economic problems with patient agents ($\gamma \approx 0.95$ or higher). Finally, not all operator equations naturally present themselves as contractions; some require reformulation (like $f = f - \alpha \Residual(f)$), and finding a good $\alpha$ can be problem-specific.
-
-(sec-wr-newton)=
-##### Method 2: Newton's Method
-
-Alternatively, we can treat the projection equations as a rootfinding problem $G(\theta) = 0$ where $G_i(\theta) = P_i(\theta)$ for test function methods, or solve the first-order conditions for least squares. **Newton's method** uses the update:
+whose first-order conditions are {eq}`eq:weighted-residual-conditions` with
+test functions $p_i = \partial R / \partial \theta_i$. For the Bellman
+residual this is **Bellman residual minimization**. Its test functions,
 
 $$
-\theta^{(k+1)} = \theta^{(k)} - J_G(\theta^{(k)})^{-1} G(\theta^{(k)}),
+\frac{\partial R(s;\theta)}{\partial \theta_i} = \frac{\partial (\Bellman v_\theta)(s)}{\partial \theta_i} - \varphi_i(s),
 $$
 
-where $J_G(\theta)$ is the Jacobian of $G$ at $\theta$.
+contain the derivative of the Bellman operator with respect to the
+coefficients, which Galerkin and collocation never need. Computing it means
+differentiating through the maximum, which Step 4 does with the envelope
+theorem. The solution also differs from the Galerkin solution, because the
+residual is made orthogonal to a different set of functions, and it is not a
+projected Bellman equation. The [next chapter](approximate-bellman-equations.md)
+returns to the difference between fitting a backup and minimizing the
+residual, which separates the algorithms used in practice from this one.
 
-To apply this update, we must compute the Jacobian entries $J_{ij} = \frac{\partial G_i}{\partial \theta_j}$. For collocation, $G_i(\theta) = \hat{f}(x_i; \theta) - (\Contraction \hat{f}(\cdot; \theta))(x_i)$, so:
+```{admonition} Why testing against functions is enough
+:class: dropdown
 
-$$
-\frac{\partial G_i}{\partial \theta_j} = \frac{\partial \hat{f}(x_i; \theta)}{\partial \theta_j} - \frac{\partial (\Contraction \hat{f}(\cdot; \theta))(x_i)}{\partial \theta_j}.
-$$
-
-The first term is straightforward (it's just $\varphi_j(x_i)$ for a linear approximation). The second term requires differentiating the operator $\Contraction$ with respect to the parameters.
-
-When $\Contraction$ involves optimization (as in the Bellman operator $\Bellman v = \max_a \{r(s,a) + \gamma \mathbb{E}[v(s')]\}$), computing this derivative appears problematic because the max operator is not differentiable. However, the **Envelope Theorem** resolves this difficulty.
-
-*Before reading the box below, try differentiating $v(\theta) = \max_x f(x, \theta)$ using the chain rule. What term involving $\partial x^*/\partial \theta$ appears? Why might this term vanish at an optimum?*
-
-```{admonition} The Envelope Theorem
-:class: important
-
-**Setup:** Consider a smooth objective function $f(\mathbf{x}, \boldsymbol{\theta})$ and define the optimal value:
-
-$$
-v(\boldsymbol{\theta}) = \max_{\mathbf{x}} f(\mathbf{x}, \boldsymbol{\theta}).
-$$
-
-Let $\mathbf{x}^*(\boldsymbol{\theta})$ denote the maximizer, satisfying the first-order condition $\nabla_{\mathbf{x}} f(\mathbf{x}^*(\boldsymbol{\theta}), \boldsymbol{\theta}) = \mathbf{0}$.
-
-**The Result:** To find how the optimal value changes with $\boldsymbol{\theta}$, we can compute:
+The constructive argument above, choosing $p = R$, needs $R$ to be a function
+with a finite norm. The general statement, that a nonzero element of a normed
+space is detected by some continuous linear functional, is a consequence of
+the **Hahn–Banach theorem**, often phrased as "the dual space separates
+points". It is also what makes Galerkin a minimization in its own right. The
+dual norm of $R$ with respect to $\mathcal{V}$,
 
 $$
-\nabla_{\boldsymbol{\theta}} v(\boldsymbol{\theta}) = \nabla_{\boldsymbol{\theta}} f(\mathbf{x}^*(\boldsymbol{\theta}), \boldsymbol{\theta}).
+\lVert R \rVert_{\mathcal{V}^*} = \sup_{g \in \mathcal{V},\, \lVert g \rVert_w = 1} \lvert \langle R, g \rangle_w \rvert,
 $$
 
-That is, differentiate the objective with respect to $\boldsymbol{\theta}$ while treating the maximizer $\mathbf{x}^*$ as constant. We don't need to compute $\frac{\partial \mathbf{x}^*}{\partial \boldsymbol{\theta}}$ because at the optimum, small changes in $\mathbf{x}$ don't affect the value (first-order condition), so the direct effect dominates.
-
-**Why it works:** By the chain rule, $\nabla_{\boldsymbol{\theta}} v = \nabla_{\boldsymbol{\theta}} f + \underbrace{(\nabla_{\mathbf{x}} f)^{\top}}_{\mathbf{0} \text{ at optimum}} \frac{\partial \mathbf{x}^*}{\partial \boldsymbol{\theta}}$.
-
-**Application to Bellman equations:** For $[\Bellman v](s) = \max_a \{r(s,a) + \gamma \mathbb{E}[v(s')]\}$, the derivative with respect to parameters in $v$ can be computed by treating the optimal action as constant. For example, if $v(s; \theta) = \sum_j \theta_j \varphi_j(s)$:
-
-$$
-\frac{\partial [\Bellman v](s)}{\partial \theta_j} = \gamma \mathbb{E}[\varphi_j(s') \mid s, a^*(s; \theta)],
-$$
-
-where $a^*(s; \theta)$ is the optimal action given parameters $\theta$.
-
-**Important assumptions:** The objective $f$ is smooth, the maximizer is unique and in the interior (or constraints are smooth with stable active sets), and the first-order condition holds.
+measures the residual by its largest inner product with the approximation
+space, and the Galerkin conditions make it zero. Point masses are not
+functions but distributions, and the dual-pairing formulation of
+{cite:t}`LegrandJunca2025` treats collocation and Galerkin uniformly: test
+objects act on the residual through a pairing, and the induced norm measures
+a residual by its worst case over the test objects. The same view motivates
+adversarial formulations {cite}`Zang2020` in which both the approximation and
+the test functions are learned.
 ```
 
-With the Envelope Theorem providing a tractable way to compute Jacobians for problems involving optimization, Newton's method becomes practical for weighted residual methods applied to Bellman equations and similar problems. The method offers **quadratic convergence** near the solution. Once in the neighborhood of the true fixed point, Newton's method typically converges in just a few iterations. Unlike function iteration, it doesn't rely on the finite-dimensional approximation preserving any contraction property, making it applicable to a broader range of problems, particularly those with high-order polynomial bases or large discount factors where function iteration struggles.
+(sec-wr-solve)=
+### Step 4: Solve the $n$ Equations
 
-However, Newton's method demands more from both the algorithm and the user. Each iteration requires computing and solving a full Jacobian system, making the per-iteration cost significantly higher than function iteration. The method is also sensitive to initialization: started far from the solution, Newton's method may diverge or converge to spurious fixed points that the finite-dimensional problem introduces but the original infinite-dimensional problem lacks. When we apply the Envelope Theorem, implementation becomes more complex. We must track the optimal action at each evaluation point and compute the Jacobian entries using the formula above (expected basis function values at next states under optimal actions), though the economic interpretation (tracking how value propagates through optimal decisions) often makes the computation conceptually clearer than explicit derivative calculations would be.
+The conditions of Step 3 are $n$ equations in the $n$ unknowns, $G(\theta) = 0$
+with $G_i(\theta) = \langle R(\cdot;\theta), p_i \rangle_w$, or $G_i(\theta) =
+R(s_i;\theta)$ for collocation. They are nonlinear, because the maximum in the
+Bellman operator is. The [infinite-horizon chapter](infinite-horizon-mdps.md)
+solved the exact Bellman equation with two general methods for operator
+equations, successive approximation, which gave value iteration, and the
+Newton–Kantorovich method, which gave policy iteration. Each has a counterpart
+for the $n$ equations.
 
-##### Comparison and Practical Recommendations
+(sec-wr-function-iteration)=
+#### Function Iteration
 
-| **Method** | **Convergence** | **Per-iteration cost** | **Initial guess sensitivity** |
-|:-----------|:----------------|:-----------------------|:------------------------------|
-| **Function iteration** | Linear (when contraction holds) | Low | Robust |
-| **Newton's method** | Quadratic (near solution) | Moderate (Jacobian + solve) | Requires good initial guess |
+For collocation and Galerkin, the conditions have the fixed-point form
+$v_\theta = \Proj\,\Bellman v_\theta$ of {eq}`eq:projected-bellman`, and the
+natural solver repeats the map,
 
-Which method to use? When the problem has strong contraction (small $\gamma$, well-conditioned bases, shape-preserving approximations like linear interpolation or splines), function iteration is simple and robust. For weak contraction (large $\gamma$, high-order polynomials), a hybrid approach works well: run function iteration for several iterations to enter the basin of attraction, then switch to Newton's method for rapid final convergence. When the finite-dimensional approximation destroys contraction entirely (common with non-monotone bases), Newton's method may be necessary from the start, though careful initialization (from a coarser approximation or perturbation methods) is required.
+$$
+v_{k+1} = \Proj\, \Bellman v_k,
+$$ (eq:projected-vi)
 
-Quasi-Newton methods like BFGS or Broyden offer a middle ground. They approximate the Jacobian using function evaluations only, avoiding explicit derivative computations while maintaining superlinear convergence. This can be useful when computing the exact Jacobian via the Envelope Theorem is expensive or when the approximation quality is acceptable.
+value iteration with a projection after each application of the operator. In
+coefficients, one iteration of the collocation version has two steps. The
+first evaluates the operator at the nodes with the current function,
+$t_i = (\Bellman v_k)(s_i)$ for $i = 1, \ldots, n$. The second chooses the
+coefficients that reproduce those $n$ targets, which is the linear system
+$\boldsymbol{\Phi}\theta_{k+1} = t$ with the interpolation matrix
+$\Phi_{ij} = \varphi_j(s_i)$. With hat functions collocated at their own
+nodes the solve is trivial, because $\boldsymbol\Phi$ is the identity. The
+Galerkin version replaces the second step by the projection of the target
+function, the linear system $M\theta_{k+1} = b_k$ with the mass matrix
+$M_{ij} = \langle \varphi_i, \varphi_j \rangle_w$ and
+$b_i = \langle \Bellman v_k, \varphi_i \rangle_w$. The system is linear
+whatever the operator is, because the target $\Bellman v_k$ is held fixed
+while $\theta_{k+1}$ is chosen. It is the weighted least-squares fit of the
+basis to the target, and with sampled states it is an ordinary regression of
+the backups on the basis. The circularity of Step 3 is gone: the targets come
+from the previous iterate. Fitting a parametric function to Bellman backups,
+then recomputing the backups, is the algorithm that the
+[next chapter](approximate-bellman-equations.md) calls fitted value iteration
+and generalizes to any regressor.
 
-### Step 5: Verify the Solution
+Whether the iteration converges is a separate question. The Bellman operator
+is a $\gamma$-contraction in the sup norm, so value iteration converges from
+any start ({prf:ref}`value-iteration-convergence`). If $\Proj$ does not
+increase sup-norm distances, then neither does the composition, and
+{eq}`eq:projected-vi` converges to the unique solution of the projected
+Bellman equation, with the error shrinking by $\gamma$ per iteration. Whether
+$\Proj$ stretches sup-norm distances depends on the sign of its weights. An
+interpolation operator with nonnegative cardinal functions returns a convex
+combination of the targets, which cannot exceed them; this is the condition
+$\Lambda = 1$ of {prf:ref}`prop-interp-error-accumulation`, and such a
+$\Proj$ cannot stretch. Polynomial interpolation through Chebyshev nodes has
+cardinal functions that dip below zero between the nodes, so it can amplify a
+difference between two target vectors, and the iteration can then diverge
+although every iteration reproduces its targets exactly. The
+[next chapter](approximate-bellman-equations.md) proves that the first kind
+of fit always preserves the contraction and shows what happens with the
+second. Even when it converges, function iteration is slow when $\gamma$ is
+near one: the error shrinks by $\gamma$ per iteration, so reducing it by
+$10^{-10}$ with $\gamma = 0.95$ takes about 450 iterations.
 
-Once we have computed a candidate solution $\hat{f}$, we must verify its quality. Projection methods optimize $\hat{f}$ with respect to specific criteria (specific test functions or collocation points), but we should check that the residual is small everywhere, including directions or points we did not optimize over.
+::::{admonition} The fishery at Step 4
+:class: note
 
-Typical diagnostic checks include:
-- Computing $\|R(\cdot; \theta)\|$ using a more accurate quadrature rule than was used in the optimization
-- Evaluating $R(x; \theta)$ at many points not used in the fitting process
-- If using Galerkin with the first $n$ basis functions, checking orthogonality against higher-order basis functions
+{numref}`fig-fishery-sweep` repeats the collocation experiment for $n$ from 4
+to 64, with function iteration as the solver.
 
-In summary, we have established a template: parameterize the unknown function using basis functions, define a residual measuring how far from a solution we are, and impose conditions via inner products with test functions. Different test functions yield different methods: Galerkin uses the basis itself, collocation uses delta functions at chosen points, and least squares uses residual gradients. We now apply this framework to the Bellman equation.
+:::{figure} _static/fishery_tipping_point/sweep.svg
+:label: fig-fishery-sweep
+
+Collocation by function iteration for $n$ from 4 to 64. (a) Largest error of
+the approximate value. (b) Largest loss of its greedy policy, evaluated
+exactly. Crosses mark the $n$ for which the iteration with the polynomial
+diverged.
+:::
+
+With the hat functions the iteration converged for every $n$, in about 410
+iterations. With the polynomial it diverged for $n = 4$ and for
+$n = 9, 10, 11$: the coefficients grew without bound, although every
+iteration reproduced its targets exactly. The backup still shrank the
+distance between two value functions by $\gamma$; the interpolation step
+stretched it, by enough to undo the contraction.
+
+The sweep also shows how the two bases spend their accuracy. Piecewise-linear
+interpolation improves steadily as nodes are added, because each node resolves
+the value locally. The polynomial is erratic: adding one coefficient can
+multiply its error by five, and the cliff at the tipping point is spread over
+the whole interval until the degree is high enough to resolve it. From about
+40 coefficients on, it overtakes the hat functions, and its error then falls
+much faster with $n$. Which basis is better therefore depends on $n$ and on
+the shape of the solution.
+::::
+
+(sec-wr-newton)=
+#### Newton's Method
+
+The alternative treats $G(\theta) = 0$ as a rootfinding problem and
+linearizes it,
+
+$$
+\theta_{k+1} = \theta_k - J_G(\theta_k)^{-1} G(\theta_k),
+$$
+
+where $J_G$ is the Jacobian of $G$. For collocation,
+$G_i(\theta) = v(s_i;\theta) - (\Bellman v_\theta)(s_i)$, and the Jacobian
+entries are
+
+$$
+\frac{\partial G_i}{\partial \theta_j} = \varphi_j(s_i) - \frac{\partial (\Bellman v_\theta)(s_i)}{\partial \theta_j}.
+$$
+
+The first term is a basis function at a node. The second is the derivative of
+the Bellman operator with respect to a coefficient, the quantity that the
+least-squares conditions of Step 3 also needed, and it contains a maximum.
+The maximum is not differentiable where two actions tie, but wherever the
+maximizer is unique its derivative is given by the envelope theorem.
+
+*Before reading on, differentiate $h(\theta) = \max_a g(a, \theta)$ with the
+chain rule, writing $a^*(\theta)$ for the maximizer. Which term involves
+$\partial a^*/\partial\theta$, and why does it vanish?*
+
+```{prf:theorem} Envelope theorem
+:label: thm-envelope
+
+Let $g(a, \theta)$ be continuously differentiable in both arguments and let
+$h(\theta) = \max_a g(a, \theta)$ be attained at a unique interior maximizer
+$a^*(\theta)$ that depends differentiably on $\theta$. Then
+
+$$
+\nabla_\theta h(\theta) = \nabla_\theta g(a, \theta)\big|_{a = a^*(\theta)} .
+$$
+
+The derivative of the maximum is the partial derivative of the objective at
+the maximizer, with the maximizer held fixed.
+```
+
+```{prf:proof}
+By the chain rule,
+$\nabla_\theta h = \nabla_\theta g(a^*(\theta), \theta) + \big(\nabla_a g(a^*(\theta), \theta)\big)^{\!\top} \partial a^*/\partial\theta$,
+and the second term vanishes because $\nabla_a g = 0$ at an interior maximizer.
+```
+
+For the Bellman operator,
+$(\Bellman v_\theta)(s) = \max_a \{ r(s,a) + \gamma\, \mathbb{E}[v(s';\theta) \mid s, a] \}$,
+the objective is linear in $\theta$ with coefficients
+$\gamma\,\mathbb{E}[\varphi_j(s') \mid s, a]$, so
+
+$$
+\frac{\partial (\Bellman v_\theta)(s)}{\partial \theta_j} = \gamma\, \mathbb{E}\big[\varphi_j(s') \mid s, a^*(s;\theta)\big],
+$$ (eq:envelope-bellman)
+
+where $a^*(s;\theta)$ is the greedy action at $s$ for the current
+coefficients. The derivative is the expected value of the basis function at
+the successor under the greedy action, and computing it costs one more
+quadrature per node and basis function. The same formula holds for the
+discrete-action case, and on a finite set of actions the maximizer is unique
+except at ties.
+
+Substituting {eq}`eq:envelope-bellman` into the Newton step gives it a
+familiar form. Let $\pi_k$ be the greedy policy for $v_{\theta_k}$, let
+$\mathbf{r}_{\pi_k}$ collect its rewards at the nodes, and let
+$\mathbf{P}_{\pi_k}\boldsymbol{\Phi}$ be the matrix with entries
+$\mathbb{E}[\varphi_j(s') \mid s_i, \pi_k(s_i)]$. Then
+$J_G = \boldsymbol{\Phi} - \gamma \mathbf{P}_{\pi_k}\boldsymbol{\Phi}$ and
+$G(\theta_k) = \boldsymbol\Phi\theta_k - \mathbf{r}_{\pi_k} - \gamma \mathbf{P}_{\pi_k}\boldsymbol\Phi\theta_k$,
+and the Newton update $J_G \theta_{k+1} = J_G\theta_k - G(\theta_k)$
+simplifies to
+
+$$
+(\boldsymbol{\Phi} - \gamma \mathbf{P}_{\pi_k}\boldsymbol{\Phi})\, \theta_{k+1} = \mathbf{r}_{\pi_k}.
+$$ (eq:collocation-newton)
+
+This is the policy evaluation equation of $\pi_k$, imposed at the collocation
+nodes and solved within the span of the basis. Newton's method on the
+collocation equations alternates a greedy improvement with an approximate
+evaluation, exactly as Newton's method on the exact Bellman equation is
+policy iteration ({ref}`sec-newton-kantorovich-pi`). With the smooth Bellman
+operator of the [regularized chapter](regularized-dp.md), the maximum is
+replaced by a log-sum-exp, the operator is differentiable everywhere, and the
+same step holds with the softmax policy in place of the greedy one
+({ref}`sec-smooth-pi-newton`).
+
+Newton's method converges quadratically near the solution, a few iterations
+instead of the hundreds of function iteration, and it does not need
+$\Proj\,\Bellman$ to be a contraction, since it never iterates that map. It
+pays for this in two ways. Each iteration forms and solves the Jacobian
+system, whose entries need the expectations of every basis function at every
+node. And it depends on the starting point: started far from the solution it
+can diverge, or converge to a fixed point that the $n$ equations have and the
+Bellman equation does not.
+
+| **Method** | **Convergence** | **Per-iteration cost** | **Needs** |
+|:-----------|:----------------|:-----------------------|:----------|
+| Function iteration | Linear, factor $\gamma$ | $n$ backups and one linear solve with a fixed matrix | $\Proj\,\Bellman$ to be a contraction |
+| Newton's method | Quadratic near the solution | $n$ backups, $n^2$ expectations and a fresh linear solve | A good starting point |
+
+The two are complementary. When the fit is monotone and $\gamma$ is moderate,
+function iteration is simple and robust. When $\gamma$ is near one or the
+basis is a high-order polynomial, a hybrid works well: a few function
+iterations with a coarse, monotone approximation to reach the basin of
+attraction, then Newton's method with the accurate basis. This is how Rust
+solved his bus-engine model ({ref}`sec-rust-inverse`), and the
+[next chapter](approximate-bellman-equations.md) develops the Newton side as
+approximate policy iteration.
+
+### Step 5: Check the Solution
+
+The conditions of Step 3 control the residual only where they were imposed,
+at the collocation nodes or against the chosen test functions. The first
+check is therefore to evaluate the residual where it was not controlled: at
+many states between the nodes, with a finer quadrature inside the operator
+than the one used in the fit, and against higher-order basis functions in the
+Galerkin case.
+
+A small residual everywhere does bound the value error. Since
+$v_\theta - v^\star = (v_\theta - \Bellman v_\theta) + (\Bellman v_\theta - \Bellman v^\star)$
+and $\Bellman$ is a $\gamma$-contraction,
+
+$$
+\|v_\theta - v^\star\|_\infty \le \frac{\|R(\cdot;\theta)\|_\infty}{1 - \gamma},
+$$
+
+where the norm of $R$ is taken over all states, not over the nodes. The
+bound is loose in general, and neither the residual nor the value error is
+what is used. The greedy policy is, and its loss is the difference between
+the optimal value and the value of acting on the approximation. The three
+quantities answer different questions. The residual is what the method
+controls. The value error is what the residual bounds, through
+$1/(1-\gamma)$. The policy loss is what matters, and it depends on the value
+error only through the differences between actions, which an approximation
+can get wrong while its values are accurate and right while they are not.
+The [next chapter](approximate-bellman-equations.md) bounds the policy loss
+by the value error and tests both bounds on a problem that a government
+agency solves every year.
+
+::::{admonition} The fishery at Step 5
+:class: note
+
+Panel (b) of {numref}`fig-fishery-collocation` is the residual check, and it
+finds residuals of about $0.2$ between the nodes for both bases. The bound
+on the value error is then $0.2 / 0.05 = 4$, against the full range of
+$v^\star$, which is $4.5$. The actual value errors are $1.66$ for the
+polynomial and $0.52$ for the hat functions, so the bound is loose, and it
+ranks the two approximations in the wrong order: the polynomial has the
+smaller residual.
+
+:::{include} artifacts/fishery_tipping_point/results.md
+:::
+
+The table adds the policy loss. At $n = 12$ the polynomial has a residual of
+$0.18$ against $0.21$ for the hat functions and a policy loss eighteen times
+larger, because its oscillations move the decision boundary past the tipping
+point (panel (c) of {numref}`fig-fishery-collocation`).
+::::
 
 ## Summary and Outlook
 
-Weighted-residual methods replace an unknown function by finitely many basis
-coefficients and determine them by testing the residual. Collocation tests at
-selected points, Galerkin methods test against basis functions, and least
-squares minimizes an aggregate residual. Each choice specifies what it means
-for an approximate function to satisfy the original equation.
+Replacing the value function by $v(\cdot;\theta)$ turns the Bellman equation
+into a residual $R(\cdot;\theta) = \Bellman v_\theta - v_\theta$ that no
+choice of $\theta$ makes zero everywhere. The method of weighted residuals
+imposes $n$ conditions on it instead: collocation makes it vanish at chosen
+states, Galerkin makes it orthogonal to the basis, and least squares
+minimizes its norm. The first two are projected Bellman equations
+$v_\theta = \Proj\,\Bellman v_\theta$, and their solvers are the two solvers
+of the exact equation with a projection inserted: function iteration, which
+is value iteration with a fit after each sweep, and Newton's method, which is
+policy iteration with each evaluation done within the span of the basis. The
+fishery showed that the fit decides both the accuracy of the solution and
+whether function iteration converges, and that a smaller residual does not
+mean a better policy.
 
-The framework is independent of the equation being solved, and Step 4 left
-two things open. Function iteration becomes $\hat{f}^{(k+1)} = \Proj\,\Contraction \hat{f}^{(k)}$,
-and we hoped, without proof, that $\Proj$ keeps the contraction. Newton's
-method needs the Jacobian of the operator, and for a Bellman operator the
-envelope theorem gave it in terms of the greedy action. [Approximate Bellman
-equations](approximate-bellman-equations.md) takes up both for an arbitrary
-fitting rule. Function iteration becomes fitted value iteration, a sequence of
-regression problems with Bellman targets that any regressor can solve, and
-the pattern behind fitted Q-iteration, NFQ and NFQCA. Newton's method becomes
-approximate policy iteration. The chapter then asks when the fit preserves the
-contraction, and shows what can go wrong when it does not.
+Nothing in the five steps is specific to the Bellman equation. Any operator
+equation $\Residual(f) = 0$ for an unknown function $f$ is treated the same
+way, with a basis for $f$, a residual $\Residual(\hat f)$, test functions, and
+one of the two solvers, and the collocation chapter did exactly this for
+differential equations, with polynomial pieces for the trajectory and the
+equation of motion enforced at the collocation points. What the Bellman
+equation adds is the maximum, which makes the equations nonlinear and the
+Jacobian a matter for the envelope theorem, and the contraction, which is
+what makes function iteration an option at all.
+
+Step 4 left two things open. Function iteration converged for one basis and
+not the other, and the explanation, that the fit must not stretch sup-norm
+distances, was asserted and not proved. Newton's method was shown to be
+policy iteration in coefficient space for collocation, without saying how
+accurate each evaluation must be for the policies to improve. The
+[next chapter](approximate-bellman-equations.md) takes up both for an
+arbitrary fitting rule. Function iteration becomes fitted value iteration, a
+sequence of regression problems with Bellman targets that any regressor can
+solve, and the pattern behind fitted Q-iteration, NFQ and NFQCA. The chapter
+bounds its error, shows when the fit makes it diverge and which fits cannot,
+and turns Newton's method into approximate policy iteration.
 
 ## Self-checks
 
 :::{exercise} Orthogonality condition
 :label: ex-projection-check-1
 
-In a Galerkin method with basis functions $\phi_i$, against which functions is the Bellman residual required to be orthogonal?
+In a Galerkin method with basis functions $\varphi_i$, against which functions is the Bellman residual required to be orthogonal, and what does that say about $\Proj\,\Bellman v_\theta$?
 :::
 
 :::{solution} ex-projection-check-1
 :class: dropdown
 
-Against the same basis functions: $\langle \phi_i,\Bellman v-v\rangle=0$ for every $i$.
+Against the basis functions themselves: $\langle \Bellman v_\theta - v_\theta, \varphi_i\rangle_w = 0$ for every $i$. The residual is then orthogonal to the whole span, so the $w$-orthogonal projection of $\Bellman v_\theta$ onto the span is $v_\theta$ itself.
 :::
 
 :::{exercise} Collocation versus least squares
 :label: ex-projection-check-2
 
-What is the main distinction between collocation and least-squares residual fitting?
+What is the main distinction between collocation and least-squares residual fitting, and which of the two needs the envelope theorem?
 :::
 
 :::{solution} ex-projection-check-2
 :class: dropdown
 
-Collocation forces the residual to vanish at selected points. Least squares minimizes an aggregate squared residual over a sampling or weighting distribution.
+Collocation forces the residual to vanish at selected states. Least squares minimizes the weighted squared residual over the state space. Least squares needs the envelope theorem, because its first-order conditions contain the derivative of the Bellman operator with respect to the coefficients; collocation needs it only if the collocation equations are solved by Newton's method.
+:::
+
+:::{exercise} Three measures of quality
+:label: ex-projection-check-6
+
+In the fishery with $n = 12$, the polynomial has the smaller residual and the larger policy loss. Which of residual, value error and policy loss does collocation control, which bounds which, and why can the ranking differ?
+:::
+
+:::{solution} ex-projection-check-6
+:class: dropdown
+
+Collocation controls the residual at the nodes only. The sup norm of the residual over all states bounds the value error through $1/(1-\gamma)$, and the value error bounds the policy loss (next chapter). Both bounds are loose, and the policy depends on differences between the values of actions rather than on the values themselves, so an approximation with a smaller residual can place a decision boundary in the wrong region, as the polynomial does across the tipping point.
 :::
