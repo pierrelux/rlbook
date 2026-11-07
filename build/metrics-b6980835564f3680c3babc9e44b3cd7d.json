@@ -1,0 +1,182 @@
+{
+  "schema_version": 1,
+  "model": "USFWS midcontinent mallard AHM, 2012 models and weights, four regulation packages",
+  "parameters": {
+    "gamma": 0.98,
+    "goal": 8.5,
+    "closed_below": 4.75,
+    "models": [
+      [
+        "additive",
+        "weak"
+      ],
+      [
+        "additive",
+        "strong"
+      ],
+      [
+        "compensatory",
+        "weak"
+      ],
+      [
+        "compensatory",
+        "strong"
+      ]
+    ],
+    "model_weights": [
+      0.6204,
+      0.03960000000000004,
+      0.31959999999999994,
+      0.020400000000000015
+    ],
+    "N_range": [
+      1.0,
+      16.0
+    ],
+    "P_range": [
+      0.0,
+      8.0
+    ]
+  },
+  "reference": {
+    "step": 0.1,
+    "states": 12231,
+    "iterations": 981,
+    "seconds": 7.4,
+    "change_when_step_doubled": 0.04717767086845015,
+    "value_range": [
+      29.879659337893347,
+      51.313320476240165
+    ]
+  },
+  "published_2012": {
+    "cells": 150,
+    "same_package": 0.84,
+    "within_one_package": 1.0,
+    "ours": [
+      "CCCCCCCCCC",
+      "RRRRRRRRRR",
+      "RRRRRRRRRR",
+      "RRRRRRRRRR",
+      "RRRRRRRRRR",
+      "RRRRRRRRRR",
+      "RRRRRRRRRR",
+      "RRRRRRRRRR",
+      "RRRRRRRRRR",
+      "RRRRRRRMMM",
+      "RMMMMMMMMM",
+      "MMMMMMMLLL",
+      "MLMMLLLLLL",
+      "LLLLLLLLLL",
+      "LLLLLLLLLL"
+    ],
+    "published": [
+      "CCCCCCCCCC",
+      "RRRRRRRRRR",
+      "RRRRRRRRRR",
+      "RRRRRRRRRR",
+      "RRRRRRRRRR",
+      "RRRRRRRRRR",
+      "RRRRRRRRRR",
+      "RRRRRRRRRM",
+      "RRRRRRRMMM",
+      "RRRRRMMMLL",
+      "RRRMMMLLLL",
+      "RRMMLLLLLL",
+      "RMLLLLLLLL",
+      "MLLLLLLLLL",
+      "LLLLLLLLLL"
+    ],
+    "population_rows": [
+      4.5,
+      4.75,
+      5.0,
+      5.25,
+      5.5,
+      5.75,
+      6.0,
+      6.25,
+      6.5,
+      6.75,
+      7.0,
+      7.25,
+      7.5,
+      7.75,
+      8.0
+    ],
+    "pond_columns": [
+      1.5,
+      2.0,
+      2.5,
+      3.0,
+      3.5,
+      4.0,
+      4.5,
+      5.0,
+      5.5,
+      6.0
+    ]
+  },
+  "fits": [
+    {
+      "fit": "bilinear grid, step 2",
+      "parameters": 45,
+      "fit_error": 0.7925631211716961,
+      "value_bound": 39.62815605858477,
+      "value_error": 2.2364204826057588,
+      "policy_bound": 3883.559293741304,
+      "policy_loss": 0.09822870485919566,
+      "policy_loss_mean": 0.05624070359925928,
+      "agreement": 0.9648434306270951,
+      "seconds": 22.1
+    },
+    {
+      "fit": "bilinear grid, step 1",
+      "parameters": 144,
+      "fit_error": 0.3285630841987768,
+      "value_bound": 16.428154209938825,
+      "value_error": 0.7204639107088084,
+      "policy_bound": 1609.9591125740033,
+      "policy_loss": 0.015345926222032347,
+      "policy_loss_mean": 0.005915472714220483,
+      "agreement": 0.9905159022156814,
+      "seconds": 21.1
+    },
+    {
+      "fit": "bilinear grid, step 0.5",
+      "parameters": 527,
+      "fit_error": 0.08565318026423085,
+      "value_bound": 4.282659013211539,
+      "value_error": 0.176602295271298,
+      "policy_bound": 419.70058329473045,
+      "policy_loss": 0.004638439887365564,
+      "policy_loss_mean": 0.0010125949721970632,
+      "agreement": 0.9954214700351566,
+      "seconds": 24.3
+    },
+    {
+      "fit": "extra trees",
+      "parameters": 2000,
+      "fit_error": 0.7640174497198586,
+      "value_bound": 38.200872485992896,
+      "value_error": 1.7742299509783237,
+      "policy_bound": 3743.6855036273,
+      "policy_loss": 0.2581128028969104,
+      "policy_loss_mean": 0.16149888607652474,
+      "agreement": 0.9361458588831657,
+      "seconds": 160.7
+    },
+    {
+      "fit": "neural network",
+      "parameters": 2000,
+      "fit_error": 1.4748900894195174,
+      "value_bound": 73.7445044709758,
+      "value_error": 0.6254586395462027,
+      "policy_bound": 7226.961438155621,
+      "policy_loss": 0.027541088730231422,
+      "policy_loss_mean": 0.014579141246817999,
+      "agreement": 0.9819311585316001,
+      "seconds": 131.6
+    }
+  ]
+}
