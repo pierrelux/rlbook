@@ -41,6 +41,12 @@ approximate policy iteration and, for linear features, the LSTD and LSPI
 algorithms. The chapter closes with the steps that separate fitted value
 iteration from NFQCA, and the chapter in which each is taken.
 
+Two examples use real data. The model with which the U.S. Fish and Wildlife
+Service sets duck-hunting regulations is small enough to solve exactly, so the
+error bounds can be checked against what actually happens. The collision
+warnings that ESA logged for its satellites come with no model at all, and
+fitted Q-iteration learns from them when to maneuver.
+
 ::::{admonition} Learning Goals
 :class: note
 
@@ -50,6 +56,7 @@ After completing this chapter, you should be able to:
 - Construct a fitted value iteration that diverges, and state two conditions that prevent divergence: averagers in the sup norm, and on-policy weighting for policy evaluation
 - Explain approximate policy iteration as Newton's method on the approximate Bellman equation, and LSTD and LSPI as its linear case
 - Name the steps from fitted value iteration to FQI, NFQ and NFQCA, and the chapter in which each is taken
+- Run fitted Q-iteration on a log of transitions, and scale its targets so that a few rare, costly events do not dominate the fit
 
 **Prerequisites:** the weighted-residual template ([previous chapter](weighted-residual-methods.md)), the contraction and Newton-Kantorovich material of [infinite-horizon MDPs](infinite-horizon-mdps.md), interpolation with cardinal functions in [finite-horizon DP](finite-horizon-dp.md).
 ::::
@@ -452,6 +459,97 @@ three places that the rest of this chapter and the next ones take up.
 3. **The error must stay bounded.** The theorem assumes one $\varepsilon$ for
    all iterations. If the fit error grows with $v_k$, the bound says nothing,
    and the next section shows that this happens.
+
+(sec-abe-mallard)=
+### Example: Setting Duck-Hunting Regulations
+
+How loose are these bounds on a problem that a government agency solves every
+year? Each summer, the U.S. Fish and Wildlife Service chooses the duck-hunting
+regulations for the Mississippi and Central Flyways from four packages: a
+closed season, or a restrictive, moderate or liberal one, which differ in
+season length and bag limit. Since 1995 the choice for mallards has come from
+a policy computed by stochastic dynamic programming, a program called adaptive
+harvest management {cite}`Johnson1997`. The state is two numbers from the May
+survey: the breeding population $N$ of midcontinent mallards and the number
+$P$ of ponds in Prairie Canada, both in millions. Ponds follow an
+autoregressive process driven by the weather. The population responds to
+ponds and to the harvest under four models. They disagree on whether hunting
+deaths add to natural deaths or replace them, and on how strongly reproduction
+falls as the population grows, and the Service weights them by how well each
+has predicted past surveys. The reward is the harvest, devalued in proportion
+when the population is expected to fall below the goal of 8.5 million birds,
+and the season must close below 4.75 million. We take these equations and
+numbers from the Service's report for the 2012 season {cite}`USFWS2012AHM`
+and discount future harvests by $\gamma = 0.98$. The model module lists the
+few details that the report leaves open.
+
+The Service solves this problem the way the finite-horizon chapter solved the
+reservoir: on a grid of states, with interpolation between the nodes. We do
+the same with steps of 0.1 million birds and ponds, 12,231 nodes, and bilinear
+interpolation. Bilinear interpolation is an averager, so value iteration on
+the grid converges ({prf:ref}`santos-vigo-aguiar-stability` below), and
+doubling the step changes the values by less than 0.05.
+{numref}`fig-mallard-policies` compares the result with the table that the
+Service published for 2012. The two policies prescribe the same package in
+126 of the 150 cells of the table and differ by one package in the
+others. The published policy reacts more strongly to ponds than ours.
+
+:::{figure} _static/mallard_harvest/policies.svg
+:label: fig-mallard-policies
+
+Regulation packages as a function of May ponds and breeding population.
+(a) The table published by the U.S. Fish and Wildlife Service for 2012.
+(b) The greedy policy of our reference solution, on a grid with steps of 0.1.
+(c) The greedy policy of fitted value iteration with a neural network
+trained on 2,000 sampled states. Below the dotted line the season must close.
+:::
+
+The reference solution lets us check {prf:ref}`thm-approximate-vi` and
+{prf:ref}`prop-greedy-loss` against what actually happens. We run fitted
+value iteration for 400 iterations with five fits. Three are bilinear
+interpolation on coarser grids, with steps of 2, 1 and 0.5. The other two are
+regressors trained, at each iteration, on targets at the same 2,000 states
+drawn uniformly at random: extra trees, which are averagers, and a network
+with two hidden layers of 64 units, warm-started from the previous iteration.
+For each fit we measure $\varepsilon$, the largest fitting error
+$|v_{k+1}(s) - (\Bellman v_k)(s)|$ over the reference grid in the last
+iterations, and compare both bounds with the value error and the policy loss
+that we compute against the reference.
+
+:::{include} artifacts/mallard_harvest/results.md
+:::
+
+The table supports three observations.
+
+1. **Both bounds hold, and both are loose.** The value error is 18 to 63
+   times smaller than $\varepsilon/(1-\gamma)$, and the policy loss is four to
+   five orders of magnitude below $2\gamma\varepsilon/(1-\gamma)^2$. The bounds
+   charge every iteration's error at its worst state and let the errors add up
+   in the same direction for $1/(1-\gamma) = 50$ years. Neither happens here.
+2. **The policy is much more accurate than the value function.** The
+   coarsest grid has 45 nodes and a value error of 2.2
+   million birds, yet it picks the reference package in 96.5% of the
+   states, and its worst policy loss is 0.10 million birds, about
+   a quarter of a percent of the value. A decision depends on the differences between
+   the values of the packages, and much of the fitting error is shared by all
+   four packages, because their successor states are close.
+3. **The regressors do about as well as the coarsest grid.** With 2,000
+   targets per iteration, the trees and the network have fitting errors of
+   $0.73$ and $1.32$, close to the $0.79$ of the 45-node grid. The network's
+   greedy policy reproduces the reference map (panel (c)): it picks the
+   reference package in 97% of the states and loses at most $0.06$. The trees
+   lose more, $0.30$ at worst. Their fit is piecewise constant, so it is flat
+   where the value has a slope, and the greedy choice between two packages
+   depends on that slope.
+
+With two state variables the Service's grid is the right tool, and the
+regressors bring nothing. They become necessary when the state has many
+dimensions, as in the eight-dimensional stopping problem, or when there is no
+model at all to compute targets from, as in the last example of this chapter.
+
+- {download}`Mallard harvest model and solvers <code/mallard_harvest.py>`
+- {download}`Mallard harvest experiment builder <scripts/build_mallard_harvest_artifacts.py>`
+- {download}`Mallard harvest results <artifacts/mallard_harvest/metrics.json>`
 
 (sec-abe-convergence)=
 ## When Fitting Diverges, and Which Fits Cannot
@@ -950,6 +1048,116 @@ resolves it in the same way.
 | Targets at chosen states | A fixed batch (FQI, NFQ) or a replay buffer (DQN) | [FQI](fitted-q-iteration.md) |
 | Maximum over a finite action set | A learned actor in the target (NFQCA, DDPG, TD3) | [Amortized action optimization](amortized-action-optimization.md) |
 
+(sec-abe-conjunctions)=
+### Example: Collision Avoidance Learned from Logged Warnings
+
+What does fitted Q-iteration look like when there is no model, only a log?
+When a satellite and another object, most often a piece of debris, are
+predicted to pass close to each other, the operator receives about three
+conjunction data messages per day over the week before the time of closest
+approach. Each message gives a collision probability estimated from the latest
+tracking. The operator can plan an avoidance maneuver or wait for the next
+message. Waiting buys information, because most alarms go away as the
+tracking improves. It also makes the maneuver more expensive: closer to the
+encounter, a larger change of velocity is needed for the same miss distance,
+and there is less time to plan. ESA plans its maneuvers at least two days
+before closest approach, and its missions in low orbit react to collision
+probabilities between $10^{-5}$ and $10^{-4}$ {cite}`Uriot2022`. ESA released
+the messages of 13,154 conjunctions of its satellites for a machine-learning
+competition {cite}`Uriot2022`, and we use them as the log.
+
+We pose an optimal stopping problem on these sequences. A decision is taken at
+each message received at least two days before closest approach, and once
+more at the two-day deadline with the latest message. A maneuver $t$ days
+before closest approach costs $c(t) = (1 + 2/t)/2$, in units of a maneuver two
+days out. An event without a maneuver costs $C = 10^5$ times the collision
+probability of its last message, the best estimate available, so that a
+maneuver at the deadline breaks even at a probability of $10^{-5}$. The state
+is what the operator knows at a decision: the time $t$ to closest approach,
+the latest log-probability $\rho$, and the age of that message. The costs are
+teaching choices, and ESA's analysts look at much more than one number.
+
+Two features of the problem let fitted Q-iteration work from the log alone.
+A maneuver ends the problem at a known cost, so $q(s, \text{maneuver}) = c(t)$
+needs no learning. And waiting does not change which messages arrive: the
+released sequences contain no maneuvers, so each one shows what follows
+"wait". Fitted Q-iteration only has to learn $W(s) = q(s, \text{wait})$, by
+regression on the logged transitions $(s_i, s_i')$ with targets
+
+$$
+y_i = \begin{cases} C\, p_{\text{final}} & \text{if } s_i \text{ is the deadline,} \\
+\min\{c(t_i'),\, W_k(s_i')\} & \text{otherwise,} \end{cases}
+\qquad W_{k+1} = \operatorname{fit}\big(\{(s_i, y_i)\}\big).
+$$
+
+The minimum over the two actions is the $\max$ of the Bellman operator for
+costs. There is no expectation to compute: each logged successor is one draw
+of $s'$, as in the second row of the table above. We fit extra trees, the
+averager of tree-based FQI {cite}`ernst2005tree`, on the logged decision
+epochs, and judge every policy out of sample: each event is decided by a
+policy fitted without it.
+
+:::{figure} _static/conjunction_wait_or_burn/wait_or_burn.svg
+:label: fig-conjunction-wait-or-burn
+
+Collision avoidance from ESA's conjunction messages. (a) The collision
+probability of the 742 events whose estimate crossed the break-even
+probability, about $10^{-5}$ (dashed), before the deadline. The 59 in color
+ended above it. (b) Total cost of each policy over all events, split into the
+cost of maneuvers and of expected collisions. Never maneuvering costs 2,668.
+(c) The policy learned by fitted Q-iteration on all events, at a message that
+has just arrived. Above the blue boundary it maneuvers. The dashed line is the
+break-even probability of the message taken at face value.
+:::
+
+:::{include} artifacts/conjunction_wait_or_burn/results.md
+:::
+
+Maneuvering at the first alarm is safe but wasteful: it makes 742
+maneuvers for 62 events that needed one, because 92 of every 100 alarms
+resolve ({numref}`fig-conjunction-wait-or-burn`, panel (a)). Waiting until the
+deadline and then acting on the latest message halves the cost. This rule is
+what an operator would write by hand. Fitted Q-iteration was told neither
+that waiting pays nor at what probability to act, and it comes within about 6% of
+the hand rule, 309 against 291. Its learned rule (panel (c)) waits through a
+new alarm more than three days out unless the probability is twenty to forty
+times the break-even value, in which case it maneuvers early, while a
+maneuver is still cheap. The bar comes down as the deadline nears, but at the
+deadline it still asks for about three times the break-even probability, a
+bet that later messages will come down, and that bet misses more of the
+events that needed a maneuver, 18 against 6 for the hand rule. Two choices
+decide whether fitted Q-iteration works here at all, and both are lessons of
+this chapter.
+
+1. **The fit must fit the right thing.** The raw target $C\, p_{\text{final}}$
+   is heavy-tailed. One event in the log ends at a probability of 2% and
+   costs about 2,070 if nothing is done, more than three times the cost of
+   all other events together. Extra trees predict the average of the targets
+   in a leaf, so this one cost is shared by every state in the leaves where
+   its epochs fall, and those states look dangerous. Fitted on all events,
+   the raw-target policy makes 391 maneuvers; fitted without that single
+   event, 141. Out of sample it makes 381 maneuvers and costs 444, half again
+   as much as the hand rule. The second version fits the ratio
+   $y_i / (C\, 10^{\rho_i})$, the cost relative to what the current message
+   alone predicts, and multiplies the fit back. The regressor then learns a
+   correction factor to the operator's own estimate. For the dangerous event
+   this factor stays between 0.7 and 7, an ordinary value, and the policy
+   makes 171 maneuvers with the event in the data and 162 without it.
+2. **The fit is only as good as the data where decisions are made.** Five
+   in six of the 123,882 decision epochs have probabilities below $10^{-7}$,
+   where waiting is obviously right, and we leave them out of the fit. Only
+   62 events needed a maneuver. This is the coverage problem behind the
+   concentrability coefficients of {ref}`sec-abe-error`: the regression
+   error that matters is the one at the few states where the two actions are
+   close, and no amount of data elsewhere reduces it. The hindsight policy,
+   at 147, is not a target: it knows the estimate of the messages that arrive
+   after the deadline, which no policy can use.
+
+- {download}`Conjunction model and fitted Q-iteration <code/conjunction_wait_or_burn.py>`
+- {download}`Conjunction experiment builder <scripts/build_conjunction_wait_or_burn_artifacts.py>`
+- {download}`Conjunction results <artifacts/conjunction_wait_or_burn/metrics.json>`
+- {download}`Conjunction messages used (columns of the ESA training set, CC BY 4.0) <data/conjunctions/kelvins_cdm_extract.csv.gz>`
+
 ## Summary and Outlook
 
 Replacing the table by a parametric function turns value iteration into
@@ -959,13 +1167,18 @@ rules, and regression with trees or neural networks is the one that scales,
 as the eight-dimensional stopping problem showed. If each fit is accurate to
 $\varepsilon$ in the sup norm, the value error stays below
 $\varepsilon/(1-\gamma)$ and the greedy policy loses at most
-$2\gamma\varepsilon/(1-\gamma)^2$. The fit can, however, stretch differences
+$2\gamma\varepsilon/(1-\gamma)^2$. On the duck-harvest model both bounds
+held with one to five orders of magnitude to spare, and the greedy policies
+were far more accurate than the values. The fit can, however, stretch differences
 and make the iteration diverge, even when it represents the solution exactly.
 Averagers cannot, and for policy evaluation, least squares weighted by the
 stationary distribution of the policy cannot either. Neither argument covers
 the optimality operator with a neural network, which is the setting of
 practical fitted Q-iteration. Newton's method becomes approximate policy
-iteration, with LSTD and LSPI as its linear case.
+iteration, with LSTD and LSPI as its linear case. On ESA's collision
+warnings, fitted Q-iteration learned from the log alone a maneuver rule
+within about 6% of the one an operator would write by hand, once its
+targets were scaled so that one rare event could not dominate the fit.
 
 Exact target evaluation still assumes access to the transition probabilities
 or an exact expectation. How can the same Bellman update be estimated when the
