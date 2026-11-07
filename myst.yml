@@ -93,7 +93,10 @@ site:
   template: book-theme
   options:
     logo_text: "RL & Control"
-    logo: _static/logo.png
+    logo: _static/logo.svg
+    logo_dark: _static/logo-dark.svg
+    logo_alt: "A trajectory spiralling into a fixed point"
+    favicon: _static/logo.svg
     numbered: true
     outline_maxdepth: 1
     style: _static/custom.css
