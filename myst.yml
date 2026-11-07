@@ -46,14 +46,14 @@ project:
         - file: modeling-controlled-systems.md
         - file: stochastic-dynamics-observation.md
         - file: model-interfaces.md
-    - title: Open-Loop Optimal Control
+    - title: Trajectory Optimization
       children:
         - file: discrete-time-optimal-control.md
         - file: discrete-time-pmp.md
         - file: numerical-trajectory-optimization.md
         - file: continuous-time-collocation.md
         - file: model-predictive-path-integral-control.md
-    - title: Feedback Control
+    - title: Model Predictive Control
       children:
         - file: receding-horizon-control.md
         - file: mpc-variants-reliability.md
@@ -68,13 +68,13 @@ project:
         - file: regularized-dp.md
           children:
             - file: path-integral-stochastic-control.md
-    - title: Approximate Value Methods
-      children:
-        - file: weighted-residual-methods.md
-        - file: approximate-bellman-equations.md
-        - file: monte-carlo-bellman-estimation.md
-        - file: fitted-q-iteration.md
-    - title: Parameterized Policy Optimization
+        - title: Approximate Dynamic Programming
+          children:
+            - file: weighted-residual-methods.md
+            - file: approximate-bellman-equations.md
+            - file: monte-carlo-bellman-estimation.md
+            - file: fitted-q-iteration.md
+    - title: Policy Optimization
       children:
         - file: amortized-action-optimization.md
         - file: gradient-estimation.md

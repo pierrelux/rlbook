@@ -209,11 +209,11 @@ live interaction.
 | Part | Question | Result |
 |---|---|---|
 | Modeling sequential decisions | What evolves, what can be observed, and where does an action enter? | A state, action, disturbance, objective, constraint set, and model interface |
-| Open-loop optimal control | What action sequence performs well from one initial condition? | A finite-horizon plan and the conditions and numerical methods used to compute it |
-| Feedback control | How can the plan respond when measurements reveal a different state? | Closed-loop behavior through repeated replanning |
+| Trajectory optimization | What action sequence performs well from one initial condition? | A finite-horizon plan and the conditions and numerical methods used to compute it |
+| Model predictive control | How can the plan respond when measurements reveal a different state? | Closed-loop behavior through repeated replanning |
 | Dynamic programming | Can state-contingent decisions be computed before the state is observed? | Value functions and policies defined over many possible states |
-| Approximate value methods | How can Bellman equations be solved when their functions or expectations cannot be represented exactly? | Projected, sampled, and fitted value functions |
-| Parameterized policy optimization | How can a restricted policy class be optimized when action selection or return evaluation is intractable? | Amortized action selectors, actor-critic methods, and direct policy gradients |
+| Approximate dynamic programming (within dynamic programming) | How can Bellman equations be solved when their functions or expectations cannot be represented exactly? | Projected, sampled, and fitted value functions |
+| Policy optimization | How can a restricted policy class be optimized when action selection or return evaluation is intractable? | Amortized action selectors, actor-critic methods, and direct policy gradients |
 
 This order does not assume a complete mechanistic model. It keeps the available
 information explicit: known conservation laws, geometry, and constraints stay
