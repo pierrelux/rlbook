@@ -1,0 +1,1523 @@
+---
+jupytext:
+  text_representation:
+    extension: .md
+    format_name: myst
+    format_version: 0.13
+    jupytext_version: 1.16.3
+kernelspec:
+  display_name: Python 3
+  language: python
+  name: python3
+---
+
+# Trajectory Optimization in Continuous Time
+
+The preceding chapter formulated trajectory optimization for systems that are
+already discrete in time. Physical models are often given instead by ordinary
+differential equations, so their states and controls are functions of time.
+A finite-dimensional optimizer cannot choose an entire function directly.
+Continuous-time trajectory optimization therefore begins by replacing those
+functions and their differential equations with finitely many variables and
+algebraic constraints.
+
+This replacement is called **transcription**, and the resulting finite
+optimization problem is a nonlinear program (NLP).
+
+Direct collocation performs this replacement by storing state and control
+values at selected times and interpolating between them with low-degree
+polynomials. The differential equation is enforced at selected points on each
+time interval. This chapter develops that construction from one simple example
+through Euler, trapezoidal, and Hermite--Simpson transcriptions, then applies it
+to the motion of an overhead crane.
+
+:::{admonition} Learning goals
+:class: note
+
+After studying this chapter, you should be able to:
+
+1. Explain why continuous-time optimal control requires transcription before it can be sent to an NLP solver.
+2. Represent one polynomial either by basis coefficients or by values at distinct nodes.
+3. Distinguish exact polynomial interpolation from least-squares regression.
+4. Construct differentiation and quadrature operators from Lagrange cardinal functions.
+5. Derive explicit Euler, implicit Euler, trapezoidal, and Hermite--Simpson defects from nodal slope values.
+6. Identify the actual decision variables and the sparse constraint structure in a direct-collocation implementation.
+:::
+
+:::{admonition} Prerequisites
+:class: tip
+
+The chapter uses ordinary differential equations, definite integrals, and the
+basic form of an equality-constrained nonlinear program. The preceding
+trajectory-optimization chapter, [](trajectories.md), supplies additional
+context on shooting and sparse simultaneous formulations. [](appendix_ivps.md)
+reviews the sequential integrators used inside shooting.
+:::
+
+## A One-Interval Example
+
+Consider a point that must move from $x(0)=0$ to $x(1)=1$. Its velocity is the
+control, so
+
+$$
+\dot x(t)=u(t),
+$$
+
+and the objective penalizes squared control effort,
+
+$$
+\underset{x(\cdot),u(\cdot)}{\operatorname{minimize}}
+\quad \int_0^1 u(t)^2\,dt.
+$$
+
+Both $x$ and $u$ are unknown functions. As a first finite approximation, retain
+only their endpoint values $X_0,X_1,U_0,U_1$ and let the control vary linearly
+between $U_0$ and $U_1$. Integrating $\dot x=u$ means that the change in state
+equals the area under this control. The shaded region below is a unit-width
+trapezoid. Its area is the average of its two endpoint heights, $U_0$ and
+$U_1$, multiplied by the width.
+
+```{code-cell} python
+:tags: [remove-input]
+:label: fig-linear-control-trapezoid
+:caption: Drag the endpoint controls or play the accumulation from left to right. The shaded rectangle and triangle sum to the state change implied by $\dot x=u$. Setting the interval width to $h=1$ recovers the chapter's defect $X_1-X_0=(U_0+U_1)/2$.
+
+from pathlib import Path
+import sys
+
+from IPython.display import HTML, display
+
+code_dir = Path.cwd() / "code"
+if str(code_dir) not in sys.path:
+    sys.path.insert(0, str(code_dir))
+
+from collocation_widgets import render_linear_control_area
+
+display(HTML(render_linear_control_area()))
+```
+
+:::{figure} _static/collocation/linear-control-area.svg
+:label: fig-linear-control-trapezoid-fallback
+:class: pdf-fallback
+:alt: A linear control between two endpoint values forms a trapezoid whose rectangle and triangle areas sum to the state change.
+
+A linear control connects $U_0$ and $U_1$ across an interval of width $h$.
+The rectangle $hU_0$ and triangle $h(U_1-U_0)/2$ sum to
+$h(U_0+U_1)/2$. Because $\dot x=u$, this area equals $X_1-X_0$.
+:::
+
+The resulting equality becomes the defect constraint
+
+$$
+X_1-X_0-\frac{1}{2}(U_0+U_1)=0.
+$$
+
+This algebraic equation is called a **defect constraint**: its left-hand side
+measures the mismatch between the endpoint change and the change predicted by
+the approximated dynamics. Applying the same endpoint approximation to the
+running cost gives the finite nonlinear program
+
+$$
+\begin{aligned}
+\underset{X_0,X_1,U_0,U_1}{\operatorname{minimize}}
+\quad&\frac{1}{2}(U_0^2+U_1^2)\\
+\text{subject to}\quad&X_0=0,\qquad X_1=1,\\
+&X_1-X_0-\frac{1}{2}(U_0+U_1)=0.
+\end{aligned}
+$$
+
+The boundary conditions reduce the defect to $U_0+U_1=2$. Substituting
+$U_1=2-U_0$ into the objective gives
+
+$$
+\frac12\left(U_0^2+(2-U_0)^2\right)
+=(U_0-1)^2+1.
+$$
+
+The squared term is minimized at $U_0=1$, which also gives $U_1=1$. The
+resulting interpolation is the exact solution $u(t)=1$ and $x(t)=t$.
+
+This example already contains the main ingredients of direct collocation. The
+function values became optimization variables, integration became a weighted
+sum, and the differential equation became an equality constraint. The
+remaining sections construct these operations systematically for nonlinear
+vector dynamics and higher-degree polynomials.
+
+## From a Continuous Problem to a Finite NLP
+
+A continuous-time optimal-control problem can be written in Bolza form:
+
+$$
+\begin{aligned}
+\underset{x(\cdot),u(\cdot),t_f}{\operatorname{minimize}}
+\quad&
+\Phi(x(t_f),t_f)
++\int_{t_0}^{t_f} L(x(t),u(t),t)\,dt\\
+\text{subject to}\quad&
+\dot x(t)=f(x(t),u(t),t),\\
+&r(x(t_0),x(t_f),t_f)=0,\\
+&g(x(t),u(t),t)\leq 0.
+\end{aligned}
+$$
+
+Here $x(t)\in\mathbb R^{n_x}$ is the state, $u(t)\in\mathbb R^{n_u}$ is the
+control, $\Phi$ is a terminal cost, and $L$ is a running cost. The equality
+$r=0$ imposes endpoint conditions, while $g\leq 0$ represents constraints that
+must hold along the path. Setting $L=0$ gives the Mayer special case, while
+setting $\Phi=0$ gives the Lagrange special case. All three forms use the same
+transcription machinery.
+
+Two transcription strategies differ in which values become decision variables
+and in how they impose the differential equation:
+
+| Strategy | Finite decision variables | Treatment of the ODE |
+|---|---|---|
+| Shooting | Control parameters and, in multiple shooting, selected boundary states | A time integrator advances the state sequentially inside each shooting interval |
+| Direct collocation | State and control values at selected nodes | Algebraic defect equations enforce the ODE simultaneously |
+
+Shooting and collocation are therefore distinct transcription strategies. A
+collocation method may reproduce a familiar integration formula, but it exposes
+the state values to the NLP rather than hiding every state update inside a
+simulation. The term **direct** indicates that the continuous problem is
+converted directly into an optimization problem, without first deriving
+necessary conditions such as the Pontryagin equations.
+
+Let
+
+$$
+t_0<t_1<\cdots<t_N=t_f,\qquad h_k=t_{k+1}-t_k,
+$$
+
+be a mesh. On each interval, the normalized coordinate is
+$\tau=(t-t_k)/h_k$, or equivalently
+
+$$
+t=t_k+h_k\tau,\qquad 0\leq\tau\leq1.
+$$
+
+Every physical interval is thereby mapped to the same reference interval
+$[0,1]$. Differentiation and integration formulas can be constructed once on
+this reference interval; the length $h_k$ then supplies the physical-time
+scaling. If the final time is also optimized, the interval lengths become
+variables or fixed fractions of the variable horizon; the reference-interval
+operators remain unchanged.
+
+## One Polynomial, Two Coordinate Systems
+
+The opening example represented a line by its two endpoint values. Higher-order
+collocation uses the same idea with more values. The polynomials of degree at
+most $r$ form the space
+
+$$
+\mathcal P_r=\{p:\deg p\leq r\}
+$$
+
+This space, denoted by $\mathcal P_r$, has dimension $r+1$. Choosing a basis
+$\{\phi_0,\ldots,\phi_r\}$ gives coefficient coordinates
+
+$$
+p(\tau)=\sum_{j=0}^{r}a_j\phi_j(\tau).
+$$
+
+The monomial choice $\phi_j(\tau)=\tau^j$ is familiar, but it is only a
+coordinate system. The polynomial is the function $p$, not its particular list
+of coefficients.
+
+The same polynomial can instead be identified by its values. Choose $r+1$
+distinct points
+
+$$
+\sigma_0,\ldots,\sigma_r\in[0,1],
+$$
+
+and record
+
+$$
+y_i=p(\sigma_i).
+$$
+
+These points are called **support nodes** because the stored values at the nodes
+determine the polynomial between them. For degree one with support nodes $0$
+and $1$, the construction is already familiar:
+
+$$
+p(\tau)=y_0(1-\tau)+y_1\tau.
+$$
+
+The multiplier $1-\tau$ equals one at the first node and zero at the second;
+$\tau$ does the reverse. For any set of distinct support nodes, the
+**Lagrange cardinal function** $\ell_j$ is the degree-$r$ polynomial with this
+same selection property: it equals one at node $j$ and zero at every other
+support node. Its formula is
+
+$$
+\ell_j(\tau)
+=\prod_{\substack{m=0\\m\neq j}}^r
+\frac{\tau-\sigma_m}{\sigma_j-\sigma_m}.
+$$
+
+At a support node $\sigma_i$, one factor in the numerator is zero unless
+$i=j$. When $i=j$, every numerator equals its corresponding denominator.
+Consequently,
+
+$$
+\ell_j(\sigma_i)=\delta_{ij},
+$$
+
+where the Kronecker delta $\delta_{ij}$ equals one when $i=j$ and zero
+otherwise. The cardinal functions therefore reconstruct the polynomial from
+its nodal values:
+
+$$
+\boxed{
+p(\tau)=\sum_{j=0}^{r}y_j\ell_j(\tau),
+\qquad y_j=p(\sigma_j).
+}
+$$
+
+The uniqueness of this reconstruction follows from a basic root-counting
+argument. If two polynomials in $\mathcal P_r$ have the same $r+1$ nodal values,
+their difference has $r+1$ distinct roots. A nonzero polynomial of degree at
+most $r$ cannot have that many roots, so the two polynomials must be identical.
+
+The coefficient and nodal descriptions are related by the evaluation matrix
+
+$$
+V_{ij}=\phi_j(\sigma_i),
+\qquad y=Va.
+$$
+
+Distinct support nodes make $V$ invertible by the same root-counting argument.
+Thus $a$ and $y$ are two coordinate vectors for one polynomial, rather than
+two different approximations.
+
+For example, take $p(\tau)=1+2\tau-\tau^2$ and the nodes
+$0,\tfrac12,1$. In monomial coordinates,
+
+$$
+a=
+\begin{bmatrix}1\\2\\-1\end{bmatrix},
+\qquad
+V=
+\begin{bmatrix}
+1&0&0\\
+1&\tfrac12&\tfrac14\\
+1&1&1
+\end{bmatrix},
+$$
+
+whereas the nodal coordinates are
+
+$$
+y=Va=
+\begin{bmatrix}1\\\tfrac74\\2\end{bmatrix}.
+$$
+
+Both vectors describe exactly the same quadratic. Direct collocation uses
+coordinates like $y$: state values and control values at meaningful points. It
+does not ask the NLP solver to choose monomial coefficients. Software may use
+coefficient calculations when it constructs fixed operators, but those
+calculations remain outside the NLP.
+
+```{code-cell} python
+:tags: [remove-input]
+:label: fig-polynomial-coordinate-operators
+:caption: One quadratic, two coordinate systems. Evaluating the monomial coefficients $a$ at the support nodes gives $y=Va$. Direct collocation stores the nodal vector $y$; the fixed operators $D$ and $w$ then return its nodal derivatives and exact integral without adding optimization variables.
+
+import numpy as np
+import matplotlib.pyplot as plt
+from IPython.display import display
+from matplotlib.patches import FancyArrowPatch, FancyBboxPatch
+
+with plt.rc_context({
+    "font.family": "serif",
+    "font.serif": ["STIX Two Text", "Times New Roman", "DejaVu Serif"],
+    "mathtext.fontset": "stix",
+    "font.size": 9,
+    "axes.titlesize": 10,
+    "axes.labelsize": 8,
+    "xtick.labelsize": 8,
+    "ytick.labelsize": 8,
+}):
+    figure = plt.figure(figsize=(7.4, 3.7), facecolor="white")
+    canvas = figure.add_axes([0, 0, 1, 1])
+    canvas.set_xlim(0, 1)
+    canvas.set_ylim(0, 1)
+    canvas.axis("off")
+
+    ink = "#20242A"
+    muted = "#5B6470"
+    line = "#CAD1D8"
+    pale = "#F5F7F9"
+    blue = "#0072B2"
+    pale_blue = "#E8F3F9"
+    orange = "#E69F00"
+    pale_orange = "#FFF6DD"
+
+    def add_card(x, y, width, height, facecolor=pale, edgecolor=line, linewidth=0.9):
+        patch = FancyBboxPatch(
+            (x, y), width, height,
+            boxstyle="round,pad=0.012,rounding_size=0.012",
+            linewidth=linewidth,
+            facecolor=facecolor,
+            edgecolor=edgecolor,
+            transform=canvas.transAxes,
+            clip_on=False,
+        )
+        canvas.add_patch(patch)
+        return patch
+
+    def add_arrow(start, end, color=muted, linewidth=1.1):
+        canvas.add_patch(FancyArrowPatch(
+            start, end,
+            arrowstyle="-|>",
+            mutation_scale=10,
+            linewidth=linewidth,
+            color=color,
+            transform=canvas.transAxes,
+            clip_on=False,
+        ))
+
+    # Monomial coordinates: useful for algebra, but not stored by the NLP.
+    add_card(0.02, 0.43, 0.23, 0.48)
+    canvas.text(0.045, 0.865, "COEFFICIENT VIEW", color=muted,
+                fontsize=7.5, fontweight="bold", transform=canvas.transAxes)
+    canvas.text(0.045, 0.80, "monomial basis", color=ink,
+                fontsize=10, fontweight="bold", transform=canvas.transAxes)
+    canvas.text(0.135, 0.69,
+                r"$p(\tau)=a_0+a_1\tau+a_2\tau^2$",
+                color=ink, fontsize=10, ha="center", transform=canvas.transAxes)
+    canvas.text(0.135, 0.565,
+                r"$a=(1,\;2,\;-1)^{\mathsf T}$",
+                color=ink, fontsize=13, ha="center", transform=canvas.transAxes)
+    canvas.text(0.135, 0.485, "three coefficients", color=muted,
+                fontsize=8, ha="center", transform=canvas.transAxes)
+
+    # The concrete polynomial makes the coordinate change visible.
+    plot_axis = figure.add_axes([0.31, 0.49, 0.34, 0.34])
+    tau = np.linspace(0.0, 1.0, 301)
+    values = 1.0 + 2.0 * tau - tau**2
+    support_nodes = np.array([0.0, 0.5, 1.0])
+    nodal_values = 1.0 + 2.0 * support_nodes - support_nodes**2
+    plot_axis.plot(tau, values, color=ink, linewidth=1.8, zorder=2)
+    plot_axis.scatter(support_nodes, nodal_values, s=38, color=blue,
+                      edgecolor="white", linewidth=1.0, zorder=3)
+    plot_axis.set_xlim(-0.04, 1.04)
+    plot_axis.set_ylim(0.82, 2.12)
+    plot_axis.set_xticks(support_nodes, [r"$0$", r"$\frac{1}{2}$", r"$1$"])
+    plot_axis.set_yticks([])
+    plot_axis.set_xlabel(r"support node $\sigma_i$", color=muted, labelpad=1)
+    plot_axis.set_title(r"one polynomial $p\in\mathcal{P}_2$", color=ink, pad=5)
+    plot_axis.spines[["top", "right", "left"]].set_visible(False)
+    plot_axis.spines["bottom"].set_color(line)
+    plot_axis.tick_params(axis="x", colors=muted, length=3)
+    plot_axis.grid(axis="x", color=line, linewidth=0.6, linestyle=(0, (2, 3)))
+    for x_value, y_value, label, offset in zip(
+        support_nodes,
+        nodal_values,
+        [r"$y_0=1$", r"$y_m=\frac{7}{4}$", r"$y_1=2$"],
+        [(6, 8), (0, -19), (-7, 8)],
+    ):
+        plot_axis.annotate(
+            label, (x_value, y_value), xytext=offset,
+            textcoords="offset points", color=blue, fontsize=8.5,
+            ha="left" if x_value == 0 else ("right" if x_value == 1 else "center"),
+            va="bottom",
+        )
+
+    add_arrow((0.255, 0.68), (0.30, 0.68))
+    canvas.text(0.277, 0.715, r"evaluate $p(\sigma_i)$", color=muted,
+                fontsize=7.2, ha="center", transform=canvas.transAxes)
+    add_arrow((0.66, 0.68), (0.705, 0.68), color=blue)
+    canvas.text(0.682, 0.715, r"$y=Va$", color=blue,
+                fontsize=9, ha="center", transform=canvas.transAxes)
+
+    # Nodal coordinates are the representation exposed to direct collocation.
+    add_card(0.72, 0.43, 0.26, 0.48,
+             facecolor=pale_blue, edgecolor=blue, linewidth=1.25)
+    canvas.text(0.745, 0.865, "NODAL VIEW", color=blue,
+                fontsize=7.5, fontweight="bold", transform=canvas.transAxes)
+    canvas.text(0.745, 0.80, "values at support nodes", color=ink,
+                fontsize=10, fontweight="bold", transform=canvas.transAxes)
+    canvas.text(0.85, 0.705,
+                r"$\sigma=(0,\;\frac{1}{2},\;1)$",
+                color=ink, fontsize=10.5, ha="center", transform=canvas.transAxes)
+    canvas.text(0.85, 0.61,
+                r"$y=(1,\;\frac{7}{4},\;2)^{\mathsf T}$",
+                color=blue, fontsize=13, ha="center", transform=canvas.transAxes)
+    canvas.text(0.85, 0.515,
+                r"$p(\tau)=\sum_j y_j\ell_j(\tau)$",
+                color=ink, fontsize=10, ha="center", transform=canvas.transAxes)
+    canvas.text(0.85, 0.455, "variables stored by the NLP", color=blue,
+                fontsize=8, fontweight="bold", ha="center",
+                transform=canvas.transAxes)
+
+    # Once the nodes are chosen, fixed linear maps reuse the same y.
+    add_arrow((0.79, 0.42), (0.475, 0.315), color=blue)
+    add_arrow((0.91, 0.42), (0.81, 0.315), color=blue)
+    add_card(0.31, 0.09, 0.31, 0.22,
+             facecolor=pale_orange, edgecolor=orange)
+    add_card(0.66, 0.09, 0.32, 0.22,
+             facecolor=pale_orange, edgecolor=orange)
+    canvas.text(0.465, 0.255, "DIFFERENTIATE AT THE NODES", color=muted,
+                fontsize=7.2, fontweight="bold", ha="center",
+                transform=canvas.transAxes)
+    canvas.text(0.465, 0.17,
+                r"$p'(\sigma_i)=(Dy)_i,\qquad Dy=(2,\;1,\;0)^{\mathsf T}$",
+                color=ink, fontsize=10, ha="center", transform=canvas.transAxes)
+    canvas.text(0.82, 0.255, "INTEGRATE THE QUADRATIC", color=muted,
+                fontsize=7.2, fontweight="bold", ha="center",
+                transform=canvas.transAxes)
+    canvas.text(0.82, 0.17,
+                r"$w^{\mathsf T}y=\int_0^1 p(\tau)\,d\tau=\frac{5}{3}$",
+                color=ink, fontsize=10.5, ha="center", transform=canvas.transAxes)
+    canvas.text(0.65, 0.025,
+                r"$D$ and $w$ are fixed by the nodes; the optimizer changes only $y$.",
+                color=muted, fontsize=8.2, ha="center", transform=canvas.transAxes)
+
+display(figure)
+plt.close(figure)
+```
+
+### Polynomial space, basis, and nodes are different choices
+
+The construction separates three decisions that are easy to conflate:
+
+- The **polynomial space** $\mathcal P_r$ specifies which functions are available.
+- The **basis** specifies coordinates for a member of that space. Monomial and Lagrange bases span the same $\mathcal P_r$.
+- The **nodes** specify where values, residuals, or integrals are evaluated.
+
+Changing the basis does not change the exact polynomial space, although it can
+change numerical conditioning. Changing the nodes changes the interpolation
+and the operators built from it. The higher-order node families introduced
+later can still use Lagrange nodal coordinates in the NLP; choosing those nodes
+does not require optimizing orthogonal-polynomial coefficients.
+
+## Polynomial Interpolation and Least-Squares Regression
+
+Interpolation and polynomial regression both produce polynomials, but they
+answer different questions. Four exact values at four distinct nodes determine
+one cubic interpolant. Twenty noisy measurements do not generally lie on one
+cubic, so cubic regression instead chooses the coefficients that minimize the
+aggregate squared residual. Write $A$ for the matrix obtained by evaluating the
+chosen polynomial basis at the supplied input points. The two algebraic
+problems are then compared below.
+
+| | Polynomial interpolation | Least-squares regression |
+|---|---|---|
+| Input | Exact value conditions | Usually noisy or overdetermined observations |
+| Algebraic problem | Satisfy $Aa=y$ exactly | Minimize $\lVert Aa-y\rVert_2^2$ |
+| Residual | Zero when the value conditions uniquely determine a polynomial | Generally nonzero |
+| Typical purpose | Represent a function from exact nodal data | Estimate a trend or conditional mean |
+
+If $A$ is square and invertible, least squares happens to return the exact
+interpolant with zero residual. That special overlap does not erase the
+conceptual distinction.
+
+```{code-cell} python
+:tags: [remove-input]
+:label: fig-interpolation-versus-regression
+:caption: The panels use the same six values. On the left they are treated as six exact conditions for a degree-five interpolant, so every residual is zero. On the right they are treated as six observations for a three-parameter quadratic regression, so the fit trades errors across observations.
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+observation_nodes = np.linspace(0.0, 1.0, 6)
+observation_values = (
+    0.25
+    + 0.95 * observation_nodes
+    - 0.25 * observation_nodes**2
+    + np.array([0.00, 0.10, -0.07, 0.08, -0.09, 0.02])
+)
+plot_nodes = np.linspace(0.0, 1.0, 401)
+
+def evaluate_lagrange(nodes, values, points):
+    result = np.zeros_like(points)
+    for j, node in enumerate(nodes):
+        cardinal = np.ones_like(points)
+        for m, other_node in enumerate(nodes):
+            if m != j:
+                cardinal *= (points - other_node) / (node - other_node)
+        result += values[j] * cardinal
+    return result
+
+interpolated_values = evaluate_lagrange(
+    observation_nodes, observation_values, plot_nodes
+)
+regression_matrix = np.vander(observation_nodes, 3, increasing=True)
+regression_coefficients, *_ = np.linalg.lstsq(
+    regression_matrix, observation_values, rcond=None
+)
+regression_curve = np.vander(plot_nodes, 3, increasing=True) @ regression_coefficients
+regression_at_nodes = regression_matrix @ regression_coefficients
+
+with plt.rc_context({"font.size": 8.5, "axes.titlesize": 9}):
+    figure, axes = plt.subplots(
+        1,
+        2,
+        figsize=(7.0, 2.45),
+        sharex=True,
+        sharey=True,
+        constrained_layout=True,
+    )
+    blue = "#0072B2"
+    orange = "#D55E00"
+    gray = "#4D4D4D"
+
+    axes[0].plot(plot_nodes, interpolated_values, color=blue, linewidth=2)
+    axes[0].scatter(
+        observation_nodes,
+        observation_values,
+        color=gray,
+        edgecolor="white",
+        linewidth=0.6,
+        zorder=3,
+    )
+    axes[0].set_title("Interpolation: exact conditions")
+    axes[0].text(0.04, 0.94, "6 conditions, 6 coefficients\nzero residual", transform=axes[0].transAxes, va="top")
+
+    axes[1].plot(plot_nodes, regression_curve, color=orange, linewidth=2)
+    axes[1].vlines(
+        observation_nodes,
+        regression_at_nodes,
+        observation_values,
+        color="#999999",
+        linewidth=1,
+    )
+    axes[1].scatter(
+        observation_nodes,
+        observation_values,
+        color=gray,
+        edgecolor="white",
+        linewidth=0.6,
+        zorder=3,
+    )
+    axes[1].set_title("Regression: aggregate error")
+    axes[1].text(0.04, 0.94, "6 observations, 3 coefficients\nnonzero residuals", transform=axes[1].transAxes, va="top")
+
+    for axis in axes:
+        axis.set_xlabel(r"$\tau$")
+        axis.spines[["top", "right"]].set_visible(False)
+        axis.grid(alpha=0.18, linewidth=0.6)
+    axes[0].set_ylabel("value")
+    axes[0].set_xlim(0.0, 1.0)
+    axes[0].set_ylim(0.1, 1.25)
+
+display(figure)
+plt.close(figure)
+```
+
+In direct collocation, the nodal states are unknown decision variables rather
+than observations. Each candidate vector of nodal values defines one
+interpolating polynomial exactly. The optimizer selects a candidate whose ODE
+residual vanishes at the collocation nodes. A numerical solver may temporarily
+work with a scalar measure of constraint violation, but the collocation
+conditions remain equality constraints rather than a statistical regression
+loss.
+
+## Fixed Operators from Nodal Values
+
+The ODE and the running cost require more than values of an interpolating
+polynomial. The ODE uses derivatives, and the cost and state update use
+integrals. Since
+
+$$
+p(\tau)=\sum_{j=0}^r y_j\ell_j(\tau),
+$$
+
+both operations are linear functions of the nodal vector $y$. Differentiating
+and then evaluating at a node $\sigma_i$ gives
+
+$$
+p'(\sigma_i)=\sum_{j=0}^r
+\underbrace{\ell_j'(\sigma_i)}_{D_{ij}}y_j,
+$$
+
+while integration over the reference interval gives
+
+$$
+\int_0^1p(\tau)\,d\tau
+=\sum_{j=0}^r
+\underbrace{\left(\int_0^1\ell_j(\tau)\,d\tau\right)}_{w_j}y_j.
+$$
+
+The resulting differentiation matrix $D$ and integration weights $w$ depend
+only on the chosen nodes. They can be computed before the optimization begins.
+
+For the three support nodes $0,\tfrac12,1$, the cardinal functions are
+
+$$
+\begin{aligned}
+\ell_0(\tau)
+&=\frac{(\tau-\frac12)(\tau-1)}{(0-\frac12)(0-1)}
+=2\tau^2-3\tau+1,\\
+\ell_m(\tau)
+&=\frac{\tau(\tau-1)}{(\frac12-0)(\frac12-1)}
+=4\tau(1-\tau),\\
+\ell_1(\tau)
+&=\frac{\tau(\tau-\frac12)}{(1-0)(1-\frac12)}
+=2\tau^2-\tau.
+\end{aligned}
+$$
+
+The factored forms come directly from the general product formula. Each
+function takes the value one at the node named by its subscript and zero at the
+other two nodes. Differentiating them at all three nodes gives
+
+$$
+\begin{bmatrix}
+p'(0)\\
+p'(\tfrac12)\\
+p'(1)
+\end{bmatrix}
+=
+\underbrace{
+\begin{bmatrix}
+-3&4&-1\\
+-1&0&1\\
+1&-4&3
+\end{bmatrix}}_{D}
+\begin{bmatrix}
+y_0\\y_m\\y_1
+\end{bmatrix}.
+$$
+
+Thus a matrix-vector product turns the three stored values into the three
+nodal derivatives. Integrating the same cardinal functions gives
+
+$$
+\int_0^1 p(\tau)\,d\tau
+=
+\underbrace{
+\begin{bmatrix}
+\tfrac16&\tfrac46&\tfrac16
+\end{bmatrix}}_{w^\mathsf T}
+\begin{bmatrix}
+y_0\\y_m\\y_1
+\end{bmatrix}.
+$$
+
+The row $w^\mathsf T$ turns the same three values into the exact integral of
+their quadratic interpolant. The matrix $D$ differentiates every polynomial in
+$\mathcal P_2$ exactly, and $w$ integrates every polynomial in that space
+exactly. "Fixed operator" means that these arrays remain constant while the
+NLP changes the nodal values.
+
+A transcription may use nodes for three distinct purposes:
+
+| Node role | What it does |
+|---|---|
+| Support node | Supplies coordinates that define a polynomial |
+| Collocation node | Supplies a point where the ODE residual is constrained |
+| Quadrature node | Supplies a point used to approximate an integral |
+
+A method often reuses one set of points for two or three roles. That is a design
+choice, not a definition. For example, a state polynomial can be supported at
+one set of nodes and differentiated at different collocation nodes. The next
+section begins with slope values at collocation nodes and uses integration to
+recover state values.
+
+## From Nodal Slopes to Collocation Constraints
+
+The previous section constructed differentiation and integration operators for
+an arbitrary polynomial. To impose an ODE, first choose $s$ collocation nodes
+$c_1,\ldots,c_s$ on $[0,1]$. At each node, the differential equation prescribes
+the state slope. Denote that slope on interval $k$ by
+
+$$
+F_{k,j}
+=f(X_{k,j},U_{k,j},t_k+h_kc_j)
+$$
+
+for $j=1,\ldots,s$. Here $X_{k,j}$ and $U_{k,j}$ are the state and control at
+the node. Let $\ell_j$ be the Lagrange cardinal function associated with the
+collocation nodes $c_1,\ldots,c_s$. The nodal slopes then define the derivative
+interpolant
+
+$$
+\dot x_h(t_k+h_k\tau)
+=\sum_{j=1}^{s}F_{k,j}\ell_j(\tau).
+$$
+
+This polynomial agrees with the ODE slope $F_{k,j}$ at every collocation node.
+Integrating it from the left endpoint to node $c_i$ gives the state value there:
+
+$$
+X_{k,i}
+=X_k+h_k\sum_{j=1}^{s}A_{ij}F_{k,j},
+\qquad
+A_{ij}=\int_0^{c_i}\ell_j(\tau)\,d\tau.
+$$
+
+The factor $h_k$ appears because $dt=h_k\,d\tau$. These equalities are called
+**stage equations**; a stage is an interval-local state and control evaluation
+used by the transcription. Integrating the same derivative polynomial across
+the full reference interval gives the right endpoint:
+
+$$
+\boxed{
+X_{k+1}
+=X_k+h_k\sum_{j=1}^{s}b_jF_{k,j},
+\qquad
+b_j=\int_0^1\ell_j(\tau)\,d\tau.
+}
+$$
+
+The coefficients $b_j$ are the areas under the cardinal functions. The endpoint
+equation is both an integration formula and a defect constraint: its residual
+compares the stored endpoint $X_{k+1}$ with the endpoint predicted from $X_k$
+and the nodal slopes. If $X_{k+1}$ is shared with the next interval, it also
+enforces state continuity. Otherwise an explicit equality must connect the two
+interval representations. Merely including an endpoint among the collocation
+nodes does not create continuity by itself.
+
+A **quadrature rule** approximates an integral by a weighted sum of function
+values. Reusing the collocation nodes and their full-interval weights gives the
+interval running-cost approximation
+
+$$
+J_k
+\approx
+h_k\sum_{j=1}^{s}
+b_jL(X_{k,j},U_{k,j},t_k+h_kc_j).
+$$
+
+Thus the running cost is evaluated at the same local stages as the vector
+field. Different quadrature nodes could be used instead; the state and control
+polynomials would simply be evaluated there.
+
+After all intervals are assembled, collect the nodal states and controls into
+the decision vector
+
+$$
+z=\left(X_0,\{X_{k,j},U_{k,j}\}_{k,j},X_N\right)\,.
+$$
+
+The resulting finite optimization problem has the form
+
+$$
+\begin{aligned}
+\underset{z}{\operatorname{minimize}}\quad&
+\Phi(X_N,t_f)+\sum_{k=0}^{N-1}J_k\\
+\text{subject to}\quad&
+\text{stage equations},\\
+&\text{endpoint defects and continuity},\\
+&\text{boundary, path, and bound constraints}.
+\end{aligned}
+$$
+
+The original path and bound constraints apply at every continuous time. The
+finite NLP can impose them only at selected points, usually its support or
+collocation nodes. Feasibility at those nodes does not rule out a violation
+between them, so a continuous replay or dense residual check must follow the
+optimization.
+
+Every interval constraint touches only local stage variables and neighboring
+endpoint states. Consequently, most derivatives of the constraints with
+respect to the decision variables are zero. With variables ordered by time,
+the nonzero blocks lie near the diagonal of the Jacobian, the matrix of
+constraint derivatives. NLP solvers can exploit this sparse, block-banded
+pattern. The arrays $A$ and $b$ are numerical constants computed before
+optimization.
+
+### Equivalent differentiation form
+
+The slope-value construction starts from $F_{k,j}$ and integrates. Many
+implementations take the equivalent route of starting from nodal state values
+and differentiating. Let $\sigma_0,\ldots,\sigma_d$ be support nodes for a
+state polynomial, and denote their cardinal functions by $\lambda_r$ to avoid
+confusing them with the running cost $L$:
+
+$$
+x_h(t_k+h_k\tau)
+=\sum_{r=0}^{d}X_{k,r}\lambda_r(\tau).
+$$
+
+At a collocation node $c_i$, the state is a weighted sum of its support values,
+and its derivative with respect to $\tau$ is another weighted sum. The fixed
+arrays containing these weights are
+
+$$
+E_{ir}=\lambda_r(c_i),
+\qquad
+D_{ir}=\lambda_r'(c_i).
+$$
+
+Thus $E$ evaluates the state polynomial and $D$ differentiates it. Because
+$d/dt=(1/h_k)d/d\tau$, enforcing the ODE at node $c_i$ gives
+
+$$
+\boxed{
+\sum_{r=0}^{d}D_{ir}X_{k,r}
+=h_k f\left(
+\sum_{r=0}^{d}E_{ir}X_{k,r},
+U_{k,i},
+t_k+h_kc_i
+\right).
+}
+$$
+
+The left side is the derivative with respect to normalized time, and the factor
+$h_k$ on the right converts the physical-time derivative accordingly. In
+matrix shorthand, all nodal constraints are $DX_k=h_kF_k$. The right endpoint
+is evaluated with another fixed row:
+
+$$
+X_{k+1}=\sum_{r=0}^{d}\lambda_r(1)X_{k,r}.
+$$
+
+When support and collocation nodes coincide, the cardinal property makes $E$
+select the corresponding stored state directly. The slope-value and
+state-value forms describe the same polynomial construction; one integrates
+nodal slopes, while the other differentiates nodal states.
+
+This implementation pattern is standard in direct collocation {cite:p}`Kelly2017DirectCollocation,Andersson2019CasADi`. The official [CasADi direct-collocation example](https://github.com/casadi/casadi/blob/main/docs/examples/python/direct_collocation.py) constructs fixed differentiation, endpoint, and quadrature arrays from Lagrange polynomials, while the NLP variables remain state and control values.
+
+Both algebraic forms follow the same sequence. Nodal values define a local
+polynomial, fixed arrays differentiate or integrate it, and equality
+constraints match the resulting slopes and endpoints to the dynamics. The
+choice between slope values and state values changes the implementation, not
+the represented collocation method.
+
+## Low-Order Transcriptions
+
+The general construction becomes concrete when only one or two slope values
+are retained on each interval. These cases recover familiar integration
+formulas, but the formulas now appear as constraints inside an NLP.
+
+### One slope value: explicit and implicit Euler
+
+With the single left collocation node $c_1=0$, the only cardinal function is
+$\ell_1(\tau)=1$. The derivative interpolant is therefore the constant slope
+$f(X_k,U_k,t_k)$. Its integration weight is $b_1=1$, so the endpoint defect is
+
+$$
+X_{k+1}-X_k-h_k f(X_k,U_k,t_k)=0.
+$$
+
+This is explicit Euler. The stored right endpoint is constrained to equal the
+result of advancing from the left endpoint with its local slope. Because the
+derivative approximation is constant, its integral is a linear state
+approximation on the interval.
+
+With the single right collocation node $c_1=1$, the constant slope is evaluated
+at the unknown right endpoint. The same integration weight gives
+
+$$
+X_{k+1}-X_k-h_k
+f(X_{k+1},U_{k+1},t_{k+1})=0,
+$$
+
+This is implicit Euler. In sequential simulation, the occurrence of
+$X_{k+1}$ inside $f$ requires a nonlinear solve at each step. In direct
+transcription, $X_{k+1}$ is already an optimization variable, so the relation
+is imposed as one of the simultaneous equality constraints.
+
+### Endpoint slope values: trapezoidal transcription
+
+Choose the endpoint collocation nodes $c_0=0$ and $c_1=1$, and abbreviate the
+two ODE slopes by
+
+$$
+F_k=f(X_k,U_k,t_k),\qquad
+F_{k+1}=f(X_{k+1},U_{k+1},t_{k+1}).
+$$
+
+The cardinal functions used to interpolate these derivative values are
+
+$$
+\ell_0(\tau)=1-\tau,\qquad
+\ell_1(\tau)=\tau.
+$$
+
+The derivative interpolant is the line joining the two slopes:
+
+$$
+\dot x_h(t_k+h_k\tau)
+=(1-\tau)F_k+\tau F_{k+1}.
+$$
+
+It equals $F_k$ at $\tau=0$ and $F_{k+1}$ at $\tau=1$. Integrating from the
+known left state gives the continuous state approximation
+
+$$
+x_h(t_k+h_k\tau)
+=X_k+h_k\left[
+\left(\tau-\frac{\tau^2}{2}\right)F_k
++\frac{\tau^2}{2}F_{k+1}
+\right].
+$$
+
+The state approximation is quadratic, even though an implementation may store
+only its endpoint states and slopes. Evaluating this polynomial at $\tau=1$
+and equating it to the stored endpoint produces
+
+$$
+\boxed{
+X_{k+1}-X_k
+-\frac{h_k}{2}
+\left[
+f(X_k,U_k,t_k)
++f(X_{k+1},U_{k+1},t_{k+1})
+\right]
+=0.
+}
+$$
+
+The coefficients $1/2$ are the integrals of the two linear cardinal functions.
+This is the trapezoidal defect derived in the opening example. Applying the
+same endpoint weights to the running cost gives
+
+$$
+J_k
+\approx
+\frac{h_k}{2}
+\left[
+L(X_k,U_k,t_k)
++L(X_{k+1},U_{k+1},t_{k+1})
+\right].
+$$
+
+The two endpoint costs are averaged and multiplied by the interval length.
+The degree bookkeeping follows directly from integration: a linear derivative
+interpolant produces a quadratic state interpolant. This distinction is
+emphasized in the direct-collocation derivation of
+{cite:t}`Kelly2017DirectCollocation`.
+
+## Hermite--Simpson Transcription
+
+Hermite--Simpson extends the trapezoidal construction by adding the midpoint
+state $X_{k+\frac12}$, control $U_{k+\frac12}$, and ODE slope
+
+$$
+F_{k+\frac12}=f\left(
+X_{k+\frac12},U_{k+\frac12},t_k+\frac{h_k}{2}
+\right).
+$$
+
+The derivative is now specified at $0,\tfrac12,1$, so its interpolant is the
+quadratic built from the following three cardinal functions:
+
+$$
+\ell_0(\tau)=2\tau^2-3\tau+1,\qquad
+\ell_m(\tau)=4\tau(1-\tau),\qquad
+\ell_1(\tau)=2\tau^2-\tau.
+$$
+
+Integrating each function over the full reference interval gives
+
+$$
+b_0=\frac16,\qquad
+b_m=\frac46,\qquad
+b_1=\frac16.
+$$
+
+These are the familiar Simpson quadrature weights. Substituting them into the
+general endpoint equation produces the Simpson defect:
+
+$$
+\boxed{
+X_{k+1}-X_k
+-\frac{h_k}{6}
+\left(F_k+4F_{k+\frac12}+F_{k+1}\right)
+=0.
+}
+$$
+
+The midpoint state must also lie on the cubic obtained by integrating the
+quadratic derivative. Integration only to $\tau=\tfrac12$ gives
+
+$$
+X_{k+\frac12}
+=X_k+\frac{h_k}{24}
+\left(5F_k+8F_{k+\frac12}-F_{k+1}\right).
+$$
+
+This form still contains the midpoint slope. The endpoint defect gives
+
+$$
+4F_{k+\frac12}
+=\frac{6}{h_k}(X_{k+1}-X_k)-F_k-F_{k+1}.
+$$
+
+Substituting this expression into the midpoint equation and collecting the
+endpoint states and slopes yields
+
+$$
+\boxed{
+X_{k+\frac12}
+=\frac{X_k+X_{k+1}}{2}
++\frac{h_k}{8}\left(F_k-F_{k+1}\right).
+}
+$$
+
+The midpoint state relation and the definition of $F_{k+\frac12}$ together
+enforce the ODE at the midpoint. A quadratic derivative interpolant integrates
+to a **cubic state interpolant**, so Hermite--Simpson is not based on a
+quadratic state approximation. The name reflects its two ingredients: the
+state is a cubic Hermite interpolant determined by state and slope information,
+and its endpoint defect uses Simpson weights.
+
+### Optional orientation: Gauss, Radau, and Lobatto nodes
+
+Higher-order schemes often place their nodes at roots of Legendre polynomials
+or at roots of closely related equations that include prescribed endpoints.
+These placements produce accurate quadrature rules for a given number of
+function evaluations. Three names indicate which endpoints are included:
+
+| Family | Endpoints included |
+|---|---|
+| Gauss | Neither endpoint |
+| Radau | One endpoint |
+| Lobatto | Both endpoints |
+
+Gauss nodes exclude both endpoints, Radau nodes include one, and Lobatto nodes
+include both. This vocabulary describes node placement, not the coordinate
+basis used by the NLP. It also does not determine continuity. Adjacent state
+polynomials are continuous only when they share an endpoint state or are
+connected by an equality constraint. Endpoint inclusion can make that linkage
+convenient, but it does not automatically provide state continuity or slope
+continuity.
+
+The detailed comparison of node families, convergence rates, and adaptive
+degree selection is deferred. Each family enters the present construction in
+the same way: its nodes define Lagrange functions, which in turn define fixed
+differentiation and quadrature operators.
+
+## Worked Example: Moving an Overhead Crane While Limiting Residual Sway
+
+An overhead crane moves a trolley while a payload hangs from a cable. A
+precomputed trolley command can complete the move and still leave the payload
+swinging. The comparison uses three precomputed acceleration commands. The
+unshaped baseline moves the trolley without accounting for the payload. A
+zero-vibration input shaper modifies that baseline to cancel the nominal
+oscillation. Direct collocation instead chooses a command using the nonlinear
+payload dynamics and the motion constraints. All three commands are open loop:
+they are fixed before the move and do not respond to measurements during
+execution.
+
+The state is $\mathbf{x}=(p,v,\theta,\omega)$, where $p$ and $v$ are trolley
+position and velocity, and $\theta$ and $\omega$ are payload angle and angular
+velocity. The commanded trolley acceleration $a$ enters the nonlinear dynamics
+as
+
+$$
+\dot p=v,\qquad
+\dot v=a,\qquad
+\dot\theta=\omega,\qquad
+\dot\omega=-\frac{g}{\ell}\sin\theta-\frac{a}{\ell}\cos\theta-c\omega.
+$$
+
+The first two equations describe trolley motion, while the last two describe a
+damped pendulum driven at its suspension point. Positive trolley acceleration
+makes the load lag behind, which accounts for the minus sign multiplying $a$.
+The model treats the cable as a rigid, massless link and assumes that the
+trolley acceleration can be commanded directly.
+
+The trolley and payload start at rest. The goal is to move the trolley $4$ m,
+stop it, and leave the payload hanging vertically without swinging. The nominal
+cable length is $\ell=1.20$ m. Every command is limited to
+$|a|\leq 1.60$ m/s$^2$, and every command is replayed on the same nonlinear
+continuous-time plant with a $0.02$ s sampling interval. A second replay
+increases the cable length by $10\%$ without redesigning any command. This
+second plant tests sensitivity to a simple model mismatch.
+
+### Two open-loop baselines
+
+The unshaped baseline uses a symmetric trapezoidal velocity profile, produced
+by constant acceleration, cruising, and constant deceleration. Its acceleration
+and deceleration phases excite the payload oscillation because their timing
+ignores the pendulum period.
+
+An **input shaper** filters a command into weighted, delayed copies. The delays
+are chosen so that vibrations excited by the copies cancel one another. For a
+zero-vibration (ZV) shaper, begin by approximating $\sin\theta\approx\theta$
+and $\cos\theta\approx1$ near the hanging equilibrium. The payload equation
+then becomes
+
+$$
+\ddot\theta+2\zeta\omega_n\dot\theta+\omega_n^2\theta=-\frac{a}{\ell},
+\qquad
+\omega_n=\sqrt{\frac{g}{\ell}},
+\qquad
+\zeta=\frac{c}{2\omega_n}.
+$$
+
+Here $\omega_n$ is the undamped natural frequency and $\zeta$ is the damping
+ratio. For the nominal parameters, $\omega_n=2.86$ rad/s and
+$\zeta=0.0061$. The shaper splits the baseline command $a_0$ into two copies
+separated by half of the damped oscillation period:
+
+$$
+a_{\mathrm{ZV}}(t)=A_1a_0(t)+A_2a_0(t-T_d),
+\qquad
+T_d=\frac{\pi}{\omega_n\sqrt{1-\zeta^2}}\,.
+$$
+
+The delay makes the vibration caused by the second copy oppose the vibration
+remaining from the first. Accounting for decay over the delay gives
+$A_1=1/(1+K)$, $A_2=K/(1+K)$, and
+$K=\exp[-\zeta\pi/\sqrt{1-\zeta^2}]$. Here $T_d=1.10$ s and the two weights are
+approximately $0.505$ and $0.495$.
+
+### Nodal decision variables and trapezoidal defects
+
+The third command is found by solving the trajectory-optimization problem. On
+$N=28$ intervals with step $h$, the NLP decision vector contains the state
+
+$$
+X_k=(p_k,v_k,\theta_k,\omega_k)
+$$
+
+and acceleration $a_k$ at every mesh node. These are polynomial values, not
+monomial coefficients. Each interval contributes the trapezoidal defect
+
+$$
+X_{k+1}-X_k
+-\frac{h}{2}\left[
+f(X_k,a_k)+f(X_{k+1},a_{k+1})
+\right]=0.
+$$
+
+The objective trades payload motion against acceleration magnitude and rapid
+changes in acceleration. The first two terms are collected in the nodal
+quantity
+
+$$
+q_k=6\theta_k^2+0.15\omega_k^2+0.035a_k^2.
+$$
+
+The coefficient on $\theta_k^2$ penalizes sway most strongly, while the smaller
+coefficients penalize angular velocity and acceleration. The smooth
+state-and-control cost uses trapezoidal endpoint weights. The final term
+penalizes **acceleration slew**, the rate at which the acceleration command
+changes. Because the control is piecewise linear, this rate is constant on
+each interval, giving
+
+$$
+J
+=h\left(\frac12q_0+\sum_{k=1}^{N-1}q_k+\frac12q_N\right)
++0.002h\sum_{k=0}^{N-1}
+\left(\frac{a_{k+1}-a_k}{h}\right)^2.
+$$
+
+The boundary conditions impose $X_0=(0,0,0,0)$ and $X_N=(4,0,0,0)$, so both
+the trolley and payload finish at rest. The nodal bounds impose
+$|a_k|\leq1.60$ m/s$^2$, $|v_k|\leq1.50$ m/s, and
+$|\theta_k|\leq15^\circ$. Because these bounds are imposed only at nodes, a
+dense replay remains necessary to check the path between nodes.
+
+The ZV shaper is tailored to one frequency, so it should leave the least
+residual sway when the cable length matches its design model. The collocation
+solution uses the full nonlinear nominal model and handles all constraints at
+once, but it is also open loop and has no explicit robustness guarantee. The
+cable-length test therefore measures sensitivity to one model mismatch; it
+does not establish that either method is robust in general.
+
+```{code-cell} python
+:tags: [remove-cell]
+
+import sys
+sys.path.insert(0, "code")
+
+import pandas as pd
+from IPython.display import HTML, display
+import matplotlib.pyplot as plt
+
+from crane_control import (
+    CraneParameters,
+    create_animation as create_crane_animation,
+    make_summary_figure as make_crane_summary_figure,
+    metrics_table as crane_metrics_table,
+    run_comparison as run_crane_comparison,
+)
+
+crane_parameters = CraneParameters()
+crane_comparison = run_crane_comparison(
+    crane_parameters,
+    intervals=28,
+    sample_period=0.02,
+)
+```
+
+```{code-cell} python
+:tags: [remove-input]
+:label: fig-crane-collocation-comparison
+:caption: All three commands move the trolley through the same four-metre task on the nonlinear plant. The unshaped command leaves a large oscillation. The ZV shaper nearly cancels the nominal mode, while direct collocation reaches the terminal state with a smoother, lower-effort command. The lower panel replays the unchanged commands after increasing cable length by 10 percent. Hatched bars denote the mismatched plant.
+
+crane_summary_figure = make_crane_summary_figure(crane_comparison)
+display(crane_summary_figure)
+plt.close(crane_summary_figure)
+```
+
+The ZV shaper produces the smallest nominal residual sway because the simulated
+plant closely matches the single oscillatory mode used to design it. The
+collocation command uses less squared acceleration than either baseline and
+keeps residual sway below one degree in both replays. The unshaped command
+completes the trolley move but leaves several degrees of oscillation.
+Cable-length mismatch increases the ZV residual substantially, while the
+collocation command degrades more gradually for this particular perturbation.
+
+The table reports continuous-plant measurements rather than node values from
+the nonlinear program. Residual sway is the largest absolute angle after the
+common command horizon.
+
+```{code-cell} python
+:tags: [remove-input]
+
+crane_table = pd.DataFrame(crane_metrics_table(crane_comparison))
+crane_table["residual_sway_deg"] = crane_table["residual_sway_deg"].map(lambda x: f"{x:.3f}")
+crane_table["peak_sway_deg"] = crane_table["peak_sway_deg"].map(lambda x: f"{x:.2f}")
+crane_table["position_error_mm"] = crane_table["position_error_mm"].map(lambda x: f"{x:.2f}")
+crane_table["effort"] = crane_table["effort"].map(lambda x: f"{x:.3f}")
+crane_table.rename(
+    columns={
+        "scenario": "plant",
+        "controller": "command",
+        "residual_sway_deg": "residual sway (deg)",
+        "peak_sway_deg": "peak sway (deg)",
+        "position_error_mm": "final position error (mm)",
+        "effort": "integral a^2 dt",
+    }
+)
+```
+
+The animation uses the same high-accuracy nonlinear validation trajectories as
+the figure. It does not replay the collocation polynomial itself.
+
+```{code-cell} python
+:tags: [remove-input]
+:label: fig-crane-collocation-animation
+:caption: Continuous nonlinear replay of the unshaped, zero-vibration-shaped, and direct-collocation commands. All panels use the same spatial and temporal scales.
+
+crane_animation = create_crane_animation(crane_comparison, frame_stride=5)
+crane_html = crane_animation.to_jshtml(fps=25)
+plt.close(crane_animation._fig)
+display(HTML(crane_html))
+```
+
+:::{dropdown} Inspect the direct-transcription implementation
+
+```{literalinclude} code/crane_control.py
+:language: python
+:start-at: def solve_direct_collocation
+:end-before: def _compute_metrics
+:linenos:
+```
+
+:::
+
+{download}`Download the complete crane experiment <code/crane_control.py>`
+
+The optimization checks algebraic defects, bounds, and endpoint conditions at
+the nodes. The separate nonlinear replay checks what happens between those
+nodes. A small nodal defect is evidence that the discrete NLP was solved
+accurately; it is not, by itself, evidence that the mesh resolves the continuous
+dynamics.
+
+The comparison does not establish that collocation always outperforms input
+shaping. The ZV calculation is inexpensive and can nearly cancel residual
+vibration when a lightly damped mode is accurately known. Direct collocation
+becomes useful when several state and actuator constraints must be handled
+together. All three commands remain open loop here. Feedback or receding-horizon
+replanning would be needed to react to unmeasured disturbances during the move.
+
+## Exercises
+
+````{exercise}
+:label: ex-collocation-coordinates
+
+Let $p(\tau)=2-\tau+2\tau^2$ and choose the support nodes $0,\tfrac12,1$.
+
+1. Compute its nodal coordinate vector $y$.
+2. Write the evaluation matrix $V$ for the monomial basis.
+3. Recover the monomial coefficient vector from $Va=y$.
+````
+
+````{solution} ex-collocation-coordinates
+:class: dropdown
+
+The nodal values are
+
+$$
+y=
+\begin{bmatrix}
+p(0)\\p(\tfrac12)\\p(1)
+\end{bmatrix}
+=
+\begin{bmatrix}
+2\\2\\3
+\end{bmatrix}.
+$$
+
+For the monomial basis,
+
+$$
+V=
+\begin{bmatrix}
+1&0&0\\
+1&\tfrac12&\tfrac14\\
+1&1&1
+\end{bmatrix}.
+$$
+
+Solving $Va=y$ returns $a=(2,-1,2)^\mathsf T$. The solve changes coordinates; it does not construct a different polynomial.
+````
+
+````{exercise}
+:label: ex-collocation-interpolation-regression
+
+Classify each problem as interpolation, least-squares regression, or neither.
+
+1. Find a cubic that passes through four distinct exact values.
+2. Fit a cubic trend to twenty noisy temperature measurements.
+3. Choose unknown nodal states so that an ODE residual equals zero at four collocation nodes.
+4. Fit a line through two distinct exact values by minimizing squared error.
+````
+
+````{solution} ex-collocation-interpolation-regression
+:class: dropdown
+
+Problems 1 and 4 are interpolation problems; the least-squares formulation in problem 4 has a zero-residual interpolating solution. Problem 2 is regression. Problem 3 is neither statistical regression nor interpolation of observations: the unknown nodal values define an interpolating polynomial, and collocation adds equality constraints that select those values.
+````
+
+````{exercise}
+:label: ex-collocation-operators
+
+For the nodes $0,\tfrac12,1$:
+
+1. Construct the three Lagrange cardinal functions.
+2. Evaluate their derivatives at all three nodes to obtain $D$.
+3. Integrate them on $[0,1]$ to obtain $w$.
+4. Verify that $D$ differentiates $p(\tau)=1+2\tau-\tau^2$ exactly at the nodes.
+````
+
+````{solution} ex-collocation-operators
+:class: dropdown
+
+The cardinal functions are
+
+$$
+\ell_0=2\tau^2-3\tau+1,\qquad
+\ell_m=4\tau(1-\tau),\qquad
+\ell_1=2\tau^2-\tau.
+$$
+
+They give
+
+$$
+D=
+\begin{bmatrix}
+-3&4&-1\\
+-1&0&1\\
+1&-4&3
+\end{bmatrix},
+\qquad
+w=\frac16
+\begin{bmatrix}1\\4\\1\end{bmatrix}.
+$$
+
+For $y=(1,\tfrac74,2)^\mathsf T$, $Dy=(2,1,0)^\mathsf T$, which equals $p'(\tau)=2-2\tau$ at the three nodes.
+````
+
+````{exercise}
+:label: ex-collocation-euler-trapezoid
+
+Starting from
+
+$$
+\dot x_h(t_k+h_k\tau)=\sum_jF_{k,j}\ell_j(\tau),
+$$
+
+derive:
+
+1. explicit Euler from the single slope node $c=0$;
+2. implicit Euler from the single slope node $c=1$;
+3. the trapezoidal defect from the slope nodes $c=0,1$.
+
+State the degree of the resulting state approximation in each case.
+````
+
+````{solution} ex-collocation-euler-trapezoid
+:class: dropdown
+
+One node gives the constant derivative interpolant $F_k$ or $F_{k+1}$. Integration yields the explicit or implicit Euler defect and a degree-one state. With endpoint nodes, $\dot x_h=(1-\tau)F_k+\tau F_{k+1}$. Its integral at $\tau=1$ is $\tfrac12(F_k+F_{k+1})$, which gives the trapezoidal defect. The linear derivative integrates to a degree-two state.
+````
+
+````{exercise}
+:label: ex-collocation-hermite-simpson-degree
+
+Explain why Hermite--Simpson has a cubic state interpolant even though its derivative is represented at only three nodes. Then derive the Simpson endpoint weights and the midpoint relation.
+````
+
+````{solution} ex-collocation-hermite-simpson-degree
+:class: dropdown
+
+Three distinct slope values define a quadratic derivative interpolant. Integrating that quadratic adds one degree, so the state is cubic. Integrating the cardinal functions over $[0,1]$ gives $(1,4,1)/6$ and hence the Simpson defect. Integrating to $\tau=\tfrac12$ gives $(5,8,-1)/24$; eliminating the midpoint slope with the endpoint defect gives
+
+$$
+X_{k+\frac12}
+=\frac12(X_k+X_{k+1})
++\frac{h_k}{8}(F_k-F_{k+1}).
+$$
+````
+
+````{exercise}
+:label: ex-collocation-between-node-residual
+
+An NLP reports a maximum collocation defect of $10^{-10}$, but a dense continuous replay violates a state bound and has a large ODE residual halfway between two nodes.
+
+1. Why are these observations compatible?
+2. What diagnostic should be computed?
+3. What change to the transcription is the natural first response?
+````
+
+````{solution} ex-collocation-between-node-residual
+:class: dropdown
+
+The NLP defect measures its equality constraints only at the selected nodes. A coarse polynomial can satisfy those constraints while failing to resolve rapid behavior between them. Evaluate the ODE residual and path constraints on a dense grid, preferably using an independent high-accuracy replay. Refine the offending intervals or raise the local approximation degree, then solve and validate again. Tightening an already small NLP tolerance does not fix representation error.
+````
+
+````{exercise}
+:label: ex-collocation-crane-mismatch
+
+Download `code/crane_control.py`. Replay the fixed ZV and collocation commands for cable lengths between $0.9\ell$ and $1.1\ell$, without redesigning either command. Plot residual sway against cable length and explain the curve using the natural frequency $\sqrt{g/\ell}$.
+````
+
+## Summary and Outlook
+
+Direct collocation turns an optimization over whole functions into an
+optimization over finitely many state and control values. These nodal values
+define polynomial segments. Algebraic defect constraints then require each
+segment to agree with the ODE at selected points.
+
+Each polynomial has two equivalent descriptions: basis coefficients or values
+at nodes,
+
+$$
+p(\tau)=\sum_j a_j\phi_j(\tau)
+=\sum_j y_j\ell_j(\tau),
+\qquad y=Va.
+$$
+
+Direct collocation uses the nodal description because the stored values have an
+immediate physical meaning. Lagrange cardinal functions turn them into fixed
+operators for computing derivatives, endpoints, and integrals. Although this
+construction resembles polynomial fitting, the nodal values are optimization
+variables rather than noisy observations, and the ODE residual is an equality
+constraint rather than a regression loss.
+
+Interpolating one left or right slope gives explicit or implicit Euler and a
+linear state approximation. Interpolating both endpoint slopes gives the
+trapezoidal defect and a quadratic state approximation. Adding the midpoint
+slope gives Simpson weights, the Hermite--Simpson midpoint relation, and a
+cubic state approximation.
+
+Across many intervals, each defect involves only neighboring endpoints and
+local stage values. Most entries in the constraint Jacobian are therefore zero,
+which allows an NLP solver to exploit a sparse, block-banded structure. The
+overhead-crane example also shows why solving the NLP is not the final check:
+constraints that hold at the nodes may still be violated between them. A dense,
+independent simulation should therefore follow the optimization. The next
+chapter, [](mpc.md), turns the same finite-horizon problem into feedback by
+repeatedly replanning from the measured state.

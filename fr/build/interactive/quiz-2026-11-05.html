@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Quick Quiz: MDPs</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<script>
+window.MathJax = {
+  tex: { inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']] },
+  svg: { fontCache: 'global' },
+  options: { skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'] }
+};
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-svg.js"></script>
+<style>
+/* Layout: one reading column in study mode; one full-viewport card in presenter mode. Palette and type follow the book's custom.css. */
+:root {
+  --font-display: "Newsreader", Georgia, "Times New Roman", serif;
+  --font-sans: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --bg: #f6f7f4;
+  --bg-raised: #ffffff;
+  --bg-sunken: #eaeeec;
+  --ink: #1b2430;
+  --ink-muted: #5c6874;
+  --rule: #d2d9d7;
+  --structure: #2f6f8f;
+  --structure-soft: #e2edf1;
+  --good: #2e7d5b;
+  --good-soft: #e4f0e9;
+  --warn: #b8860b;
+  --warn-soft: #f5ecd2;
+  --bad: #a83a32;
+  --bad-soft: #f5e5e3;
+  --shadow: 0 1px 2px rgba(20, 30, 40, 0.06);
+  --radius: 6px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #121920; --bg-raised: #1b2430; --bg-sunken: #0d141a;
+    --ink: #edf1f1; --ink-muted: #a8b2b9; --rule: #34434d;
+    --structure: #7fb3cf; --structure-soft: #1f3540;
+    --good: #7cc8a4; --good-soft: #1d3a2d;
+    --warn: #e0b64a; --warn-soft: #3d3418;
+    --bad: #e08a82; --bad-soft: #432323;
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #121920; --bg-raised: #1b2430; --bg-sunken: #0d141a;
+  --ink: #edf1f1; --ink-muted: #a8b2b9; --rule: #34434d;
+  --structure: #7fb3cf; --structure-soft: #1f3540;
+  --good: #7cc8a4; --good-soft: #1d3a2d;
+  --warn: #e0b64a; --warn-soft: #3d3418;
+  --bad: #e08a82; --bad-soft: #432323;
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; }
+body {
+  background: var(--bg); color: var(--ink);
+  font-family: var(--font-sans); font-size: 1rem; line-height: 1.55;
+  padding-block: 0; padding-inline: 16px;
+}
+.wrap { max-width: 46rem; margin: 0 auto; padding-block: 1.5rem 4rem; }
+h1, h2, h3 { font-family: var(--font-display); font-weight: 600; text-wrap: balance; line-height: 1.2; margin: 0; }
+h1 { font-size: 2.1rem; }
+h2 { font-size: 1.35rem; margin-top: 2.5rem; padding-top: 1rem; border-top: 1px solid var(--rule); }
+h2 small { font-family: var(--font-sans); font-weight: 500; font-size: .8rem; color: var(--ink-muted); margin-left: .6rem; letter-spacing: .02em; }
+p { margin: .5rem 0; }
+.lede { color: var(--ink-muted); max-width: 40rem; }
+.toolbar { display: flex; flex-wrap: wrap; gap: .5rem .75rem; align-items: center; margin-top: 1rem; }
+button {
+  font: 500 .85rem/1 var(--font-sans); color: var(--ink);
+  background: var(--bg-raised); border: 1px solid var(--rule); border-radius: 999px;
+  padding: .55rem .9rem; cursor: pointer; box-shadow: var(--shadow);
+}
+button:hover { border-color: var(--structure); }
+button:focus-visible { outline: 3px solid var(--structure-soft); outline-offset: 2px; }
+button.primary { background: var(--structure); color: #fff; border-color: var(--structure); }
+.kbd { font-family: var(--font-mono); font-size: .75rem; color: var(--ink-muted); }
+.progress { font-family: var(--font-mono); font-size: .8rem; color: var(--ink-muted); margin-left: auto; font-variant-numeric: tabular-nums; }
+
+/* Question cards */
+.q { background: var(--bg-raised); border: 1px solid var(--rule); border-radius: var(--radius); box-shadow: var(--shadow); padding: 1.1rem 1.25rem 1.25rem; margin-top: 1rem; }
+.q-head { display: flex; flex-wrap: wrap; gap: .4rem .6rem; align-items: baseline; margin-bottom: .5rem; }
+.q-num { font-family: var(--font-mono); font-size: .8rem; color: var(--structure); font-weight: 500; }
+.tag { font-size: .7rem; letter-spacing: .05em; text-transform: uppercase; padding: .15rem .5rem; border-radius: 999px; background: var(--bg-sunken); color: var(--ink-muted); }
+.tag.core { background: var(--structure-soft); color: var(--structure); }
+.tag.min { font-family: var(--font-mono); text-transform: none; letter-spacing: 0; }
+.stem { font-size: 1.02rem; }
+.stem p { margin: .4rem 0; }
+.opts { list-style: none; padding: 0; margin: .9rem 0 0; display: grid; gap: .45rem; }
+.opts li {
+  display: grid; grid-template-columns: 1.6rem 1fr; gap: .5rem; align-items: start;
+  padding: .55rem .7rem; border: 1px solid var(--rule); border-radius: var(--radius);
+  cursor: pointer; background: var(--bg);
+}
+.opts li:hover { border-color: var(--structure); }
+.opts li .letter { font-family: var(--font-mono); font-size: .8rem; color: var(--ink-muted); padding-top: .15rem; }
+.opts li.picked { border-color: var(--structure); }
+.q.revealed .opts li[data-correct] { border-color: var(--good); background: var(--good-soft); }
+.q.revealed .opts li.picked:not([data-correct]) { border-color: var(--bad); background: var(--bad-soft); }
+.q.revealed .opts li { cursor: default; }
+.parts { margin: .6rem 0 0; padding-left: 1.3rem; }
+.parts li { margin: .3rem 0; }
+.actions { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: .9rem; align-items: center; }
+.verdict { font-size: .85rem; font-weight: 500; }
+.verdict.ok { color: var(--good); }
+.verdict.no { color: var(--bad); }
+.expl, .sol { margin-top: .9rem; padding: .8rem .95rem; border-left: 3px solid var(--structure); background: var(--structure-soft); border-radius: 0 var(--radius) var(--radius) 0; font-size: .95rem; }
+.expl p:first-child, .sol p:first-child { margin-top: 0; }
+.expl p:last-child, .sol p:last-child { margin-bottom: 0; }
+.rehearses { margin-top: .75rem; font-size: .8rem; color: var(--ink-muted); }
+.rehearses b { font-weight: 500; color: var(--ink); }
+code { font-family: var(--font-mono); font-size: .9em; background: var(--bg-sunken); padding: .05em .3em; border-radius: 3px; }
+pre { font-family: var(--font-mono); font-size: .85rem; line-height: 1.45; background: var(--bg-sunken); border-radius: var(--radius); padding: .75rem .9rem; overflow-x: auto; margin: .6rem 0; }
+pre code { background: none; padding: 0; font-size: inherit; }
+mjx-container { overflow-x: auto; overflow-y: hidden; max-width: 100%; }
+mjx-container[display="true"] { margin: .6rem 0 !important; }
+.note { font-size: .85rem; color: var(--ink-muted); }
+
+/* Presenter mode */
+body.presenter { overflow: hidden; }
+body.presenter .wrap { max-width: none; padding: 0; height: 100%; display: flex; flex-direction: column; }
+body.presenter .intro, body.presenter h2, body.presenter .q { display: none; }
+body.presenter .q.current { display: block; flex: 1; overflow: auto; border: 0; box-shadow: none; background: var(--bg); margin: 0; padding: 2.5vh 6vw 10vh; font-size: calc(1rem + 0.9vw); }
+body.presenter .q.current .stem { font-size: calc(1.05rem + 1vw); max-width: 60ch; }
+body.presenter .q.current .opts { max-width: 70ch; gap: .6rem; }
+body.presenter .q.current .expl, body.presenter .q.current .sol { max-width: 70ch; font-size: calc(.95rem + .6vw); }
+body.presenter .q.current .parts { max-width: 65ch; }
+body.presenter .q.current pre { font-size: calc(.85rem + .5vw); max-width: 70ch; }
+body.presenter .q.current .q-num { font-size: calc(.8rem + .4vw); }
+body.presenter .q.current .rehearses { display: none; }
+body.presenter .q.current .actions { display: none; }
+.deck {
+  display: none; position: fixed; left: 0; right: 0; bottom: 0; z-index: 10;
+  padding: .5rem 1rem calc(.5rem + env(safe-area-inset-bottom, 0px));
+  background: var(--bg-raised); border-top: 1px solid var(--rule);
+  align-items: center; gap: .6rem; flex-wrap: wrap;
+}
+body.presenter .deck { display: flex; }
+.deck .where { font-family: var(--font-mono); font-size: .85rem; color: var(--ink-muted); font-variant-numeric: tabular-nums; }
+.deck .block-name { font-family: var(--font-display); font-size: 1rem; }
+.deck .spacer { flex: 1; }
+.deck .kbd { display: none; }
+@media (min-width: 700px) { .deck .kbd { display: inline; } }
+@media (prefers-reduced-motion: no-preference) { .opts li { transition: border-color .12s ease, background .12s ease; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="intro">
+  <h1>Quick Quiz: Infinite-Horizon MDPs</h1>
+  <p class="lede">IFT 6162, Thursday November 5, 2026. Five short questions on Monday's lecture: discounting as a random horizon, why \(I - \gamma P_\pi\) is invertible, solving versus iterating for policy evaluation, contractions and norms, and why we act from \(q\) rather than \(v\). It is not graded; the point is to think. Take about ten minutes, and commit to an answer before you reveal it.</p>
+  <div class="toolbar">
+    <button id="btn-presenter" class="primary" type="button">Presenter mode</button>
+    <button id="btn-core" type="button" hidden>Core only: off</button>
+    <button id="btn-reset" type="button">Clear my answers</button>
+    <span class="kbd">In presenter mode: ← → move, R reveals, Esc exits</span>
+    <span class="progress" id="progress"></span>
+  </div>
+</header>
+
+<h2 data-block="A">A. Discounting and policy evaluation <small>random horizon, Neumann series, cost</small></h2>
+
+<article class="q" id="q1" data-type="mcq" data-core="1" data-min="1" data-block="A">
+  <div class="q-head"><span class="q-num">Q1</span><span class="tag core">core</span><span class="tag min">1 min</span></div>
+  <div class="stem">
+    <p>A discounted problem with factor \(\gamma\) is the same as a finite-horizon problem whose horizon \(N\) is random, with \(P(N = n) = (1-\gamma)\gamma^{n-1}\). With \(\gamma = 0.9\), what is the expected horizon \(\mathbb E[N]\)?</p>
+  </div>
+  <ol class="opts">
+    <li><span class="letter">a</span><span>0.9 steps</span></li>
+    <li><span class="letter">b</span><span>9 steps</span></li>
+    <li data-correct><span class="letter">c</span><span>10 steps</span></li>
+    <li><span class="letter">d</span><span>Infinite, since the problem is infinite-horizon</span></li>
+  </ol>
+  <div class="actions"><span class="verdict"></span></div>
+  <div class="expl" hidden>
+    <p>For a geometric horizon starting at \(n = 1\), \(\mathbb E[N] = 1/(1-\gamma) = 10\). With \(\gamma = 0.99\) it becomes 100. A small change in \(\gamma\) is a large change in how far ahead the agent effectively looks, which is why \(\gamma\) is as much a modelling choice as a knob.</p>
+  </div>
+  <p class="rehearses"><b>Rehearses:</b> reading \(\gamma\) as an effective horizon.</p>
+</article>
+
+<article class="q" id="q2" data-type="work" data-core="1" data-min="3" data-block="A">
+  <div class="q-head"><span class="q-num">Q2</span><span class="tag core">core</span><span class="tag min">3 min, on paper</span></div>
+  <div class="stem">
+    <p>Policy evaluation solves \((I - \gamma P_\pi)\,v = r_\pi\), where \(P_\pi\) is a stochastic matrix: each row sums to 1.</p>
+  </div>
+  <ol class="parts" type="a">
+    <li>Explain why \(I - \gamma P_\pi\) is invertible when \(0 \le \gamma < 1\).</li>
+    <li>What goes wrong at \(\gamma = 1\)? Hint: what is \(P_\pi \mathbf 1\), where \(\mathbf 1\) is the vector of all ones?</li>
+  </ol>
+  <div class="actions"><button type="button" class="reveal">Show solution</button></div>
+  <div class="sol" hidden>
+    <p>(a) For a stochastic matrix, \(\|P_\pi\|_\infty = \max_s \sum_j P_\pi(s, j) = 1\), so \(\|\gamma P_\pi\|_\infty = \gamma\). The spectral radius is bounded by any induced norm, so \(\rho(\gamma P_\pi) \le \gamma < 1\). Then the Neumann series \(\sum_{t \ge 0} (\gamma P_\pi)^t\) converges and equals \((I - \gamma P_\pi)^{-1}\).</p>
+    <p>(b) Rows summing to 1 means \(P_\pi \mathbf 1 = \mathbf 1\): 1 is an eigenvalue of \(P_\pi\). At \(\gamma = 1\), \((I - P_\pi)\mathbf 1 = 0\), so the matrix is singular. Values are also only defined up to an added constant, which is one reason the average-reward criterion needs its own treatment.</p>
+  </div>
+  <p class="rehearses"><b>Rehearses:</b> the stochastic-matrix and \(\gamma < 1\) argument behind the Neumann series.</p>
+</article>
+
+<article class="q" id="q3" data-type="mcq" data-core="1" data-min="3" data-block="A">
+  <div class="q-head"><span class="q-num">Q3</span><span class="tag core">core</span><span class="tag min">3 min</span></div>
+  <div class="stem">
+    <p>You have \(n = 10{,}000\) states and \(\gamma = 0.9\). Option A: call <code>np.linalg.solve</code> once, roughly \(n^3\) operations. Option B: iterate \(v \leftarrow r_\pi + \gamma P_\pi v\), roughly \(n^2\) operations per step, until the error has shrunk by a factor \(10^{-6}\). Which is closer to the truth?</p>
+  </div>
+  <ol class="opts">
+    <li><span class="letter">a</span><span>B needs about 10 iterations and is about 10,000 times cheaper</span></li>
+    <li data-correct><span class="letter">b</span><span>B needs about 130 iterations and is about 100 times cheaper</span></li>
+    <li><span class="letter">c</span><span>B needs about \(10^6\) iterations, so A is cheaper</span></li>
+    <li><span class="letter">d</span><span>B never reaches that accuracy without a matrix inverse</span></li>
+  </ol>
+  <div class="actions"><span class="verdict"></span></div>
+  <div class="expl" hidden>
+    <p>Each step contracts the error by \(\gamma\) in the \(L_\infty\) norm, so we need \(0.9^k \approx 10^{-6}\), that is \(k \approx 6 / \log_{10}(1/0.9) \approx 131\). B costs about \(131 \times 10^8 \approx 1.3 \times 10^{10}\) operations against \(10^{12}\) for A. Each step is just a matrix-vector product and a vector addition. The trade depends on \(\gamma\): with \(\gamma = 0.999\) it takes about 14,000 iterations and the direct solve wins again.</p>
+  </div>
+  <p class="rehearses"><b>Rehearses:</b> the cost of direct versus iterative policy evaluation.</p>
+</article>
+
+<h2 data-block="B">B. Contractions and optimality <small>norms, greedy policies, Q functions</small></h2>
+
+<article class="q" id="q4" data-type="mcq" data-core="1" data-min="1" data-block="B">
+  <div class="q-head"><span class="q-num">Q4</span><span class="tag core">core</span><span class="tag min">1 min</span></div>
+  <div class="stem">
+    <p>True or false: "\(L_\pi v = r_\pi + \gamma P_\pi v\) is a \(\gamma\)-contraction in the \(L_\infty\) norm, so it is also a \(\gamma\)-contraction in any other norm, for example a weighted \(L_2\) norm."</p>
+  </div>
+  <ol class="opts">
+    <li><span class="letter">a</span><span>True: on a finite-dimensional space all norms are equivalent</span></li>
+    <li data-correct><span class="letter">b</span><span>False: contraction results depend on the norm, and \(L_\pi\) need not contract in a weighted \(L_2\) norm</span></li>
+    <li><span class="letter">c</span><span>True, but only when \(P_\pi\) is symmetric</span></li>
+    <li><span class="letter">d</span><span>False: \(L_\pi\) is not a contraction in any norm because it is affine</span></li>
+  </ol>
+  <div class="actions"><span class="verdict"></span></div>
+  <div class="expl" hidden>
+    <p>Norm equivalence only gives \(\|x\|_a \le c\,\|x\|_b\) with some constant \(c\), which can destroy a modulus \(\gamma < 1\). "Whenever you see a theorem, don't fall into the temptation of generalizing it to any other norm." This norm dependence is one of the technical roots of the deadly triad, which we will meet once we add function approximation. Being affine is no obstacle: the constant \(r_\pi\) cancels in \(L_\pi u - L_\pi v = \gamma P_\pi (u - v)\).</p>
+  </div>
+  <p class="rehearses"><b>Rehearses:</b> stating which norm a contraction holds in.</p>
+</article>
+
+<article class="q" id="q5" data-type="mcq" data-core="1" data-min="2" data-block="B">
+  <div class="q-head"><span class="q-num">Q5</span><span class="tag core">core</span><span class="tag min">2 min</span></div>
+  <div class="stem">
+    <p>To act greedily from \(v^\star\) you compute \(\pi(s) \in \arg\max_a \big\{ r(s,a) + \gamma \sum_j p(j \mid s, a)\, v^\star(j) \big\}\). From \(q^\star\) you compute \(\pi(s) \in \arg\max_a q^\star(s, a)\). Why does model-free RL prefer the second form?</p>
+  </div>
+  <ol class="opts">
+    <li><span class="letter">a</span><span>Because \(q^\star\) gives a better policy than \(v^\star\)</span></li>
+    <li><span class="letter">b</span><span>Because the greedy policy from \(q^\star\) is stochastic, which gives exploration</span></li>
+    <li data-correct><span class="letter">c</span><span>Because the first form needs \(r\) and \(p\), which a model-free agent never gets; the second only queries \(q^\star\) over actions</span></li>
+    <li><span class="letter">d</span><span>Because \(q^\star\) is cheaper to store than \(v^\star\)</span></li>
+  </ol>
+  <div class="actions"><span class="verdict"></span></div>
+  <div class="expl" hidden>
+    <p>Both give the same optimal policies, since \(v^\star(s) = \max_a q^\star(s, a)\). The difference is what you need to act. In model-free RL we observe states and sampled rewards but are never handed \(P\) or \(r\); \(q\) has already folded the expectation over next states in, so a black box such as a network can be queried over the action axis. It is also larger, \(|S| \times |A|\) entries instead of \(|S|\). When the transition model is tractable, as in many OR problems, work with \(v\) and compute exactly.</p>
+  </div>
+  <p class="rehearses"><b>Rehearses:</b> what each value function needs in order to act.</p>
+</article>
+
+</div>
+
+<div class="deck" role="toolbar" aria-label="Presenter controls">
+  <span class="where" id="deck-where"></span>
+  <span class="block-name" id="deck-block"></span>
+  <span class="spacer"></span>
+  <button type="button" id="deck-prev">← Prev</button>
+  <button type="button" id="deck-reveal" class="primary">Reveal (R)</button>
+  <button type="button" id="deck-next">Next →</button>
+  <button type="button" id="deck-exit">Exit (Esc)</button>
+</div>
+
+<script>
+(function () {
+  const allQs = Array.from(document.querySelectorAll('.q'));
+  const blockNames = {};
+  document.querySelectorAll('h2[data-block]').forEach(h => {
+    blockNames[h.dataset.block] = h.childNodes[0].textContent.trim();
+  });
+  const STORE = 'ift6162-quiz-2026-11-05';
+  let state = {};
+  try { state = JSON.parse(localStorage.getItem(STORE) || '{}') || {}; } catch (e) { state = {}; }
+  function save() { try { localStorage.setItem(STORE, JSON.stringify(state)); } catch (e) {} }
+
+  function reveal(q, pickedIndex) {
+    q.classList.add('revealed');
+    const expl = q.querySelector('.expl, .sol');
+    if (expl) expl.hidden = false;
+    const btn = q.querySelector('button.reveal');
+    if (btn) btn.hidden = true;
+    const v = q.querySelector('.verdict');
+    if (v && q.dataset.type === 'mcq') {
+      const opts = q.querySelectorAll('.opts li');
+      if (pickedIndex == null) { v.textContent = ''; }
+      else if (opts[pickedIndex].hasAttribute('data-correct')) { v.textContent = 'Correct.'; v.className = 'verdict ok'; }
+      else { v.textContent = 'Not this one. See why below.'; v.className = 'verdict no'; }
+    }
+  }
+  function applyState(q) {
+    const s = state[q.id];
+    if (!s) return;
+    if (s.picked != null) {
+      const opts = q.querySelectorAll('.opts li');
+      if (opts[s.picked]) opts[s.picked].classList.add('picked');
+    }
+    if (s.revealed) reveal(q, s.picked);
+  }
+  function updateProgress() {
+    const done = allQs.filter(q => state[q.id] && state[q.id].revealed).length;
+    const el = document.getElementById('progress');
+    if (el) el.textContent = done + ' / ' + allQs.length + ' revealed';
+  }
+
+  allQs.forEach(q => {
+    q.querySelectorAll('.opts li').forEach((li, i) => {
+      li.addEventListener('click', () => {
+        if (q.classList.contains('revealed')) return;
+        q.querySelectorAll('.opts li').forEach(o => o.classList.remove('picked'));
+        li.classList.add('picked');
+        state[q.id] = { picked: i, revealed: true };
+        save();
+        reveal(q, i);
+        updateProgress();
+      });
+    });
+    const btn = q.querySelector('button.reveal');
+    if (btn) btn.addEventListener('click', () => {
+      state[q.id] = { revealed: true };
+      save();
+      reveal(q, null);
+      updateProgress();
+    });
+    applyState(q);
+  });
+  updateProgress();
+
+  document.getElementById('btn-reset').addEventListener('click', () => {
+    state = {}; save();
+    allQs.forEach(q => {
+      q.classList.remove('revealed');
+      q.querySelectorAll('.opts li').forEach(o => o.classList.remove('picked'));
+      const expl = q.querySelector('.expl, .sol'); if (expl) expl.hidden = true;
+      const btn = q.querySelector('button.reveal'); if (btn) btn.hidden = false;
+      const v = q.querySelector('.verdict'); if (v) { v.textContent = ''; v.className = 'verdict'; }
+    });
+    updateProgress();
+  });
+
+  // Core-only filter (study mode and presenter order).
+  let coreOnly = false;
+  const coreBtn = document.getElementById('btn-core');
+  function activeQs() { return coreOnly ? allQs.filter(q => q.dataset.core) : allQs; }
+  function applyCoreFilter() {
+    allQs.forEach(q => { q.hidden = coreOnly && !q.dataset.core; });
+    coreBtn.textContent = 'Core only: ' + (coreOnly ? 'on' : 'off');
+  }
+  coreBtn.addEventListener('click', () => { coreOnly = !coreOnly; applyCoreFilter(); });
+
+  // Presenter mode: one question at a time, independent of the study-mode answers.
+  let presenting = false, cur = 0;
+  const body = document.body;
+  function show(i) {
+    const qs = activeQs();
+    cur = Math.max(0, Math.min(qs.length - 1, i));
+    allQs.forEach(q => q.classList.remove('current'));
+    const q = qs[cur];
+    q.classList.add('current'); q.hidden = false;
+    document.getElementById('deck-where').textContent = (cur + 1) + ' / ' + qs.length + '  ·  ' + q.dataset.min + ' min' + (q.dataset.core ? '  ·  core' : '');
+    document.getElementById('deck-block').textContent = blockNames[q.dataset.block] || '';
+    q.scrollTop = 0;
+    try { history.replaceState(null, '', '#' + q.id); } catch (e) {}
+  }
+  function currentQ() { return activeQs()[cur]; }
+  function presenterReveal() {
+    const q = currentQ();
+    q.classList.add('revealed');
+    const expl = q.querySelector('.expl, .sol'); if (expl) expl.hidden = false;
+  }
+  function presenterHide(q) {
+    if (!q) return;
+    if (state[q.id] && state[q.id].revealed) return; // keep the student's own reveal
+    q.classList.remove('revealed');
+    const expl = q.querySelector('.expl, .sol'); if (expl) expl.hidden = true;
+  }
+  function enter(i) {
+    presenting = true; body.classList.add('presenter');
+    show(i == null ? 0 : i);
+    try { document.documentElement.requestFullscreen && document.documentElement.requestFullscreen().catch(() => {}); } catch (e) {}
+  }
+  function exit() {
+    presenting = false; body.classList.remove('presenter');
+    allQs.forEach(q => { q.classList.remove('current'); presenterHide(q); });
+    applyCoreFilter();
+    try { document.fullscreenElement && document.exitFullscreen(); } catch (e) {}
+  }
+  document.getElementById('btn-presenter').addEventListener('click', () => enter(0));
+  document.getElementById('deck-prev').addEventListener('click', () => { presenterHide(currentQ()); show(cur - 1); });
+  document.getElementById('deck-next').addEventListener('click', () => { presenterHide(currentQ()); show(cur + 1); });
+  document.getElementById('deck-reveal').addEventListener('click', presenterReveal);
+  document.getElementById('deck-exit').addEventListener('click', exit);
+  document.addEventListener('keydown', e => {
+    if (!presenting) return;
+    if (e.key === 'ArrowRight' || e.key === 'PageDown') { presenterHide(currentQ()); show(cur + 1); e.preventDefault(); }
+    else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { presenterHide(currentQ()); show(cur - 1); e.preventDefault(); }
+    else if (e.key === 'r' || e.key === 'R' || e.key === ' ') { presenterReveal(); e.preventDefault(); }
+    else if (e.key === 'Escape') { exit(); }
+  });
+
+  // Deep link: #q7 jumps to that card in study mode.
+  const m = /^#(q\d+)$/.exec(location.hash || '');
+  if (m) { const t = document.getElementById(m[1]); if (t) t.scrollIntoView(); }
+})();
+</script>
+</body>
+</html>

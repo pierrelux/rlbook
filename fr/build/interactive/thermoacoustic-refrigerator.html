@@ -1,0 +1,743 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Thermoacoustic refrigerator · iLQR and DDP</title>
+<style>
+  :root { color-scheme:light; --ink:#20333f; --muted:#5e707c; --rule:#d8e2e7; --blue:#0072b2; --orange:#d55e00;
+          --green:#009e73; --gas:#f3f5f7; --metal:#d9dee3; --piston:#6b7480; --plate:#8a98a3; --compare:#7b858a; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:#fff; color:var(--ink); font:14px/1.45 system-ui,-apple-system,sans-serif; }
+  main { max-width:1120px; margin:auto; padding:20px; }
+  h1 { font-size:22px; font-weight:650; margin:0 0 5px; letter-spacing:-.3px; display:flex; align-items:baseline; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+  .full-size { font-size:12px; font-weight:450; color:var(--muted); text-decoration:none; border:1px solid #bdccd4; border-radius:5px; padding:3px 8px; white-space:nowrap; }
+  .full-size:hover { color:var(--ink); border-color:var(--ink); }
+  p { margin:0 0 14px; }
+  .intro, .note { color:var(--muted); font-size:13px; }
+  .toolbar { display:flex; align-items:end; flex-wrap:wrap; gap:12px; margin-bottom:15px; }
+  label { font-size:12px; color:var(--muted); display:block; }
+  select, button { font:inherit; color:var(--ink); background:white; border:1px solid #bdccd4; border-radius:5px; padding:7px 10px; min-height:35px; }
+  select { margin-top:4px; }
+  select:disabled { color:var(--muted); background:#f3f5f7; }
+  button { cursor:pointer; }
+  button.primary { background:var(--ink); color:white; border-color:var(--ink); min-width:74px; }
+  button:hover { filter:brightness(.95); }
+  button:focus-visible, select:focus-visible, input:focus-visible { outline:3px solid #e69f00; outline-offset:3px; }
+  .slider { flex:1 1 220px; min-width:160px; }
+  .slider label { display:flex; align-items:center; justify-content:space-between; gap:12px; white-space:nowrap; }
+  output { color:var(--ink); font-variant-numeric:tabular-nums; white-space:nowrap; }
+  input[type=range] { width:100%; accent-color:var(--blue); margin:9px 0 2px; }
+  input[type=range]:disabled { accent-color:#9aa8b0; }
+  .simulation { border-top:1px solid var(--rule); padding-top:11px; align-items:center; }
+  .simulation .slider { flex-grow:3; }
+  .check { display:flex; align-items:center; gap:6px; font-size:12px; color:var(--muted); min-height:35px; }
+  .check input { margin:0; accent-color:var(--blue); }
+  .panel { border:1px solid var(--rule); border-radius:7px; background:#fff; overflow:hidden; }
+  .stage-wrap { position:relative; }
+  .stage svg { width:100%; height:auto; display:block; }
+  /* Narrow widths scroll the figure sideways; the fade on the right edge says there is more. */
+  .stage-wrap.more::after { content:""; position:absolute; top:0; right:0; bottom:0; width:44px; pointer-events:none;
+    background:linear-gradient(to right, rgba(255,255,255,0), rgba(255,255,255,.95)); }
+  .scroll-hint { display:none; margin:0 0 6px; font-size:12px; color:var(--muted); }
+  #readout { font-variant-numeric:tabular-nums; }
+  .visually-hidden { position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; }
+  svg text { font-family:inherit; font-variant-numeric:tabular-nums; fill:var(--ink); }
+  .map-caption { padding:8px 12px; border-top:1px solid var(--rule); display:flex; gap:10px 20px; justify-content:space-between; flex-wrap:wrap; font-size:12px; }
+  .legend { color:var(--muted); }
+  /* Scenario parameters and what the two-state abstraction leaves out live here as HTML text (larger than the SVG labels). */
+  .params { margin:0; padding:0 12px 9px; font-size:12px; color:var(--muted); }
+  .params b { font-weight:550; color:var(--ink); }
+  .metrics { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin:17px 0 12px; }
+  .metric span { display:block; color:var(--muted); font-size:11px; }
+  .metric strong { display:block; margin-top:2px; font-size:19px; font-weight:550; font-variant-numeric:tabular-nums; }
+  .metric strong.pending { color:var(--muted); }
+  .metric strong small { font-size:11px; font-weight:400; color:var(--muted); margin-left:4px; }
+  .metric .compare { margin-top:3px; font-variant-numeric:tabular-nums; }
+  #verdict { font-size:12px; color:var(--muted); min-height:19px; }
+  .charts { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:16px; margin-top:18px; }
+  /* Each figure is a flex column: captions of different line counts grow to the row height and the canvases share a top edge. */
+  .charts figure { margin:0; min-width:0; display:flex; flex-direction:column; }
+  .charts figcaption { font-size:12px; margin-bottom:5px; flex:1 0 auto; }
+  .nowrap { white-space:nowrap; }
+  .charts canvas { display:block; width:100%; height:170px; cursor:crosshair; }
+  .note { margin:17px 0 0; font-size:12px; }
+  #load-status { padding:18px 0; }
+  [hidden] { display:none !important; }
+  @media(max-width:800px) {
+    .toolbar:not(.simulation) .slider { flex-basis:100%; }
+  }
+  @media(max-width:620px) {
+    main { padding:14px; }
+    .metrics { grid-template-columns:repeat(2,1fr); gap:10px; }
+    .charts { grid-template-columns:1fr; gap:10px; }
+    .charts canvas { height:135px; }
+    .toolbar .slider { flex-basis:100%; }
+    .simulation .slider { flex-basis:150px; }
+    .stage { overflow-x:auto; -webkit-overflow-scrolling:touch; }
+    .stage svg { min-width:760px; }
+    .scroll-hint { display:block; }
+  }
+</style>
+</head>
+<body>
+<main>
+  <h1>Thermoacoustic refrigerator <a class="full-size" href="thermoacoustic-refrigerator.html" target="_blank" rel="noopener">Open full size ↗</a></h1>
+  <p class="intro">The device, then the two-state model the optimizer sees. Choose a recorded plan, then play or scrub time to follow it. Panel (a) animates the acoustic cycle; panel (b) shows the state, action, flows, and costs at that time.</p>
+  <p id="load-status" role="status">Loading recorded plans…</p>
+  <div id="replay" hidden>
+    <div class="toolbar">
+      <label for="scenario">Plan<select id="scenario">
+        <option value="baseline">Baseline pull-down</option>
+        <option value="no_load">No parasitic load</option>
+        <option value="heavy_hot">Sluggish hot side</option>
+        <option value="no_minor_loss">Amplitude-independent COP</option>
+        <option value="unreachable">Target out of reach in 300 s</option>
+        <option value="constant">Constant amplitude u = c (integrated here)</option>
+      </select></label>
+      <label for="method">Method<select id="method"><option value="ilqr">iLQR</option><option value="ddp">DDP</option></select></label>
+      <div class="slider"><label for="constant">Comparison plan: constant amplitude<output id="constant-label" for="constant">u = 1.00</output></label><input id="constant" type="range" min="0" max="1" step="0.05" value="1" aria-label="Amplitude of the constant comparison plan"></div>
+    </div>
+    <div class="toolbar simulation">
+      <button class="primary" id="play" type="button">Play</button><button id="reset" type="button">Reset time</button>
+      <div class="slider"><label for="time">Plan time<output id="clock" for="time">t = 0 / 300 s</output></label><input id="time" type="range" min="0" max="300" value="0" step="1" aria-label="Plan time within the selected open-loop plan"></div>
+      <span class="note" style="margin:0">Playback 10×</span>
+      <label class="check" for="wave"><input id="wave" type="checkbox" checked>Wave motion (slowed to 1.2 Hz)</label>
+    </div>
+    <p class="scroll-hint">Wide figure: scroll it sideways. Every number in it is repeated in the readout and tiles below.</p>
+    <div class="panel">
+      <div class="stage-wrap" id="stage-wrap"><div class="stage" id="stage">
+      <svg id="device" viewBox="0 0 960 590" role="img" aria-labelledby="svg-title svg-desc">
+        <title id="svg-title">Thermoacoustic refrigerator: device cross-section and lumped two-state model</title>
+        <desc id="svg-desc">Panel (a): a loudspeaker piston at the left end of a sealed gas-filled tube, then a hot heat exchanger, a stack of thin plates with gas parcels shuttling along them, a cold heat exchanger, and the empty resonator to the sealed right end. The standing-wave pressure envelope has antinodes at both ends and a node mid-tube. Panel (b), drawn beneath, is the lumped model: an action node under the loudspeaker, a hot-temperature node under the hot exchanger, a cold-temperature node under the cold exchanger, and a state box; arrows carry acoustic work, pumped heat, ambient rejection, and the payload leak with live numbers, the stage cost is printed under the work arrow, and the terminal cost under the cold node.</desc>
+        <defs>
+          <marker id="m-orange" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#d55e00"/></marker>
+          <marker id="m-blue" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#0072b2"/></marker>
+          <marker id="m-ink" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto-start-reverse"><path d="M0,0 L8,4 L0,8 z" fill="#20333f"/></marker>
+          <marker id="m-gray" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#9aa8b0"/></marker>
+          <linearGradient id="stack-gradient" gradientUnits="userSpaceOnUse" x1="260" y1="0" x2="440" y2="0"><stop offset="0" stop-color="#d55e00"/><stop offset="1" stop-color="#0072b2"/></linearGradient>
+          <!-- One parcel drawn at its rest centre (0,0); fifteen <use> copies place it in the three stack channels. -->
+          <g id="parcel-shape">
+            <rect id="parcel-ghost-warm" x="-10" y="-4.5" width="20" height="9" rx="3" fill="none" stroke="#d55e00" stroke-width=".8" stroke-dasharray="2 2" opacity="0"/>
+            <rect id="parcel-ghost-cool" x="-10" y="-4.5" width="20" height="9" rx="3" fill="none" stroke="#0072b2" stroke-width=".8" stroke-dasharray="2 2" opacity="0"/>
+            <line id="glow-warm" x1="-10" y1="-6.5" x2="10" y2="-6.5" stroke="#d55e00" stroke-width="3.5" stroke-linecap="round" opacity="0"/>
+            <line id="glow-cool" x1="-10" y1="-6.5" x2="10" y2="-6.5" stroke="#0072b2" stroke-width="3.5" stroke-linecap="round" opacity="0"/>
+            <rect id="parcel-body" x="-10" y="-4.5" width="20" height="9" rx="3" fill="#fff" stroke="#20333f" stroke-width=".8"/>
+          </g>
+        </defs>
+
+        <!-- Lumping bands: each hardware column in (a) sits over the node it becomes in (b). -->
+        <rect x="36" y="210" width="64" height="195" fill="#20333f" opacity=".05"/>
+        <rect x="210" y="212" width="40" height="193" fill="#d55e00" opacity=".07"/>
+        <rect x="450" y="212" width="40" height="193" fill="#0072b2" opacity=".07"/>
+        <line x1="12" y1="326" x2="948" y2="326" stroke="#d8e2e7" stroke-width="1"/>
+
+        <!-- ===================== (a) device ===================== -->
+        <text x="12" y="24" font-size="15" font-weight="650">(a) device</text>
+
+        <text x="76" y="64" font-size="14" text-anchor="middle" fill="#5e707c">loudspeaker</text>
+        <text x="76" y="82" font-size="14" text-anchor="middle"><tspan id="t-u-name">u<tspan dy="3" font-size="75%">t</tspan><tspan dy="-3"> = </tspan></tspan><tspan id="t-u">0.00</tspan></text>
+        <text x="230" y="64" font-size="14" font-weight="650" text-anchor="middle" fill="#d55e00">hot exchanger</text>
+        <text x="230" y="82" font-size="14" text-anchor="middle" fill="#d55e00">T<tspan dy="3" font-size="75%">h</tspan><tspan dy="-3"> = </tspan><tspan id="t-th-a">20.0</tspan> °C</text>
+        <text x="350" y="64" font-size="14" text-anchor="middle" fill="#5e707c">net heat pumped</text>
+        <text x="350" y="82" font-size="14" text-anchor="middle" fill="#0072b2"><tspan id="q-a">Q</tspan><tspan dy="3" font-size="75%">c</tspan><tspan dy="-3"> = </tspan><tspan id="t-qc-a">0.0</tspan> W</text>
+        <text x="470" y="64" font-size="14" font-weight="650" text-anchor="middle" fill="#0072b2">cold exchanger</text>
+        <text x="470" y="82" font-size="14" text-anchor="middle" fill="#0072b2">T<tspan dy="3" font-size="75%">c</tspan><tspan dy="-3"> = </tspan><tspan id="t-tc-a">20.0</tspan> °C</text>
+        <text x="896" y="82" font-size="14" text-anchor="end">sealed resonator (gas-filled tube)</text>
+        <line id="arr-net" x1="436" y1="92" x2="264" y2="92" stroke="#0072b2" stroke-width="2" marker-end="url(#m-blue)"/>
+        <circle id="dot-qc-a" cx="0" cy="0" r=".9" fill="#0072b2"/>
+
+        <!-- Loudspeaker and piston -->
+        <polygon points="34,120 34,200 118,210 118,110" fill="#d9dee3" stroke="#20333f" stroke-width="1.2"/>
+        <line id="stroke-bar" x1="119" y1="92" x2="139" y2="92" stroke="#20333f" stroke-width="1.2" marker-start="url(#m-ink)" marker-end="url(#m-ink)" visibility="hidden"/>
+        <text x="129" y="104" font-size="13.5" text-anchor="middle" fill="#5e707c">piston</text>
+        <text x="896" y="104" font-size="13.5" text-anchor="end" fill="#5e707c">sealed end</text>
+
+        <!-- Tube. The standing wave is drawn right after the gas so the exchangers, plates and parcels sit on top of it;
+             a translucent veil over the stack span fades the wave there, where the parcel motion is the teaching content. -->
+        <rect x="120" y="108" width="780" height="104" fill="#f3f5f7"/>
+        <polyline id="env-top" points="" fill="none" stroke="#009e73" stroke-width="1" stroke-dasharray="4 4" opacity=".8"/>
+        <polyline id="env-bot" points="" fill="none" stroke="#009e73" stroke-width="1" stroke-dasharray="4 4" opacity=".8"/>
+        <polyline id="wave-trace" points="" fill="none" stroke="#009e73" stroke-width="1.4"/>
+        <rect x="252" y="110" width="196" height="100" fill="#f3f5f7" opacity=".6"/>
+        <text id="t-wave-caption" x="700" y="127" font-size="13" text-anchor="middle" fill="#009e73">standing-wave pressure: dashed envelope, solid trace</text>
+        <text x="700" y="201" font-size="12.5" text-anchor="middle" fill="#009e73" opacity=".9">antinodes at the piston and the sealed wall, node mid-tube</text>
+        <rect id="hx-hot" x="210" y="110" width="40" height="100" fill="#fff" stroke="#d55e00" stroke-width="2"/>
+        <g stroke="#fff" stroke-width="1.5"><line x1="214" y1="130" x2="246" y2="130"/><line x1="214" y1="150" x2="246" y2="150"/><line x1="214" y1="170" x2="246" y2="170"/><line x1="214" y1="190" x2="246" y2="190"/></g>
+        <rect id="hx-cold" x="450" y="110" width="40" height="100" fill="#fff" stroke="#0072b2" stroke-width="2"/>
+        <g stroke="#fff" stroke-width="1.5"><line x1="454" y1="130" x2="486" y2="130"/><line x1="454" y1="150" x2="486" y2="150"/><line x1="454" y1="170" x2="486" y2="170"/><line x1="454" y1="190" x2="486" y2="190"/></g>
+
+        <!-- Stack: gray plates, then a gradient copy whose opacity follows the span -->
+        <g stroke="#8a98a3" stroke-width="1.4"><line x1="260" y1="122" x2="440" y2="122"/><line x1="260" y1="135" x2="440" y2="135"/><line x1="260" y1="148" x2="440" y2="148"/><line x1="260" y1="161" x2="440" y2="161"/><line x1="260" y1="174" x2="440" y2="174"/><line x1="260" y1="187" x2="440" y2="187"/><line x1="260" y1="200" x2="440" y2="200"/></g>
+        <g id="plates-gradient" stroke="url(#stack-gradient)" stroke-width="1.4" stroke-opacity="0"><line x1="260" y1="122" x2="440" y2="122"/><line x1="260" y1="135" x2="440" y2="135"/><line x1="260" y1="148" x2="440" y2="148"/><line x1="260" y1="161" x2="440" y2="161"/><line x1="260" y1="174" x2="440" y2="174"/><line x1="260" y1="187" x2="440" y2="187"/><line x1="260" y1="200" x2="440" y2="200"/></g>
+        <g id="parcels">
+          <use href="#parcel-shape" x="290" y="141.5"/><use href="#parcel-shape" x="320" y="141.5"/><use href="#parcel-shape" x="350" y="141.5"/><use href="#parcel-shape" x="380" y="141.5"/><use href="#parcel-shape" x="410" y="141.5"/>
+          <use href="#parcel-shape" x="290" y="167.5"/><use href="#parcel-shape" x="320" y="167.5"/><use href="#parcel-shape" x="350" y="167.5"/><use href="#parcel-shape" x="380" y="167.5"/><use href="#parcel-shape" x="410" y="167.5"/>
+          <use href="#parcel-shape" x="290" y="193.5"/><use href="#parcel-shape" x="320" y="193.5"/><use href="#parcel-shape" x="350" y="193.5"/><use href="#parcel-shape" x="380" y="193.5"/><use href="#parcel-shape" x="410" y="193.5"/>
+        </g>
+
+        <!-- Tube walls and piston (drawn last so they cover the wave) -->
+        <line x1="120" y1="108" x2="900" y2="108" stroke="#20333f" stroke-width="2"/>
+        <line x1="120" y1="212" x2="900" y2="212" stroke="#20333f" stroke-width="2"/>
+        <rect x="900" y="106" width="6" height="108" fill="#20333f"/>
+        <rect id="piston" x="122" y="112" width="14" height="96" fill="#6b7480" stroke="#20333f" stroke-width="1"/>
+
+        <text x="76" y="232" font-size="13.5" text-anchor="middle" fill="#5e707c">acoustic work</text>
+        <text x="350" y="232" font-size="13.5" text-anchor="middle" fill="#5e707c">stack of thin plates</text>
+        <text x="76" y="249" font-size="14" text-anchor="middle">Ẇ = <tspan id="t-work-a">0.0</tspan> W</text>
+
+        <!-- Vertical flows under the exchangers -->
+        <line id="arr-amb-a" x1="230" y1="214" x2="230" y2="262" stroke="#d55e00" stroke-width="2" marker-end="url(#m-orange)"/>
+        <text x="230" y="281" font-size="13.5" text-anchor="middle" fill="#d55e00">reject UA (T<tspan dy="3" font-size="75%">h</tspan><tspan dy="-3"> − T</tspan><tspan dy="3" font-size="75%">amb</tspan><tspan dy="-3">) = </tspan><tspan id="t-rej-a">0.0</tspan> W</text>
+        <text x="230" y="299" font-size="13.5" text-anchor="middle" fill="#5e707c">to ambient air</text>
+        <line id="arr-load-a" x1="470" y1="262" x2="470" y2="214" stroke="#0072b2" stroke-width="2" marker-end="url(#m-blue)"/>
+        <text x="470" y="281" font-size="13.5" text-anchor="middle" fill="#0072b2">payload leak Q<tspan dy="3" font-size="75%">load</tspan><tspan dy="-3"> = </tspan><tspan id="t-load-a">1.0</tspan> W</text>
+        <text x="470" y="299" font-size="13.5" text-anchor="middle" fill="#5e707c">into the cold side</text>
+
+        <polyline points="566,246 500,246 424,205" fill="none" stroke="#9aa8b0" stroke-width=".8"/>
+        <text x="732" y="242" font-size="13.5" text-anchor="middle" fill="#5e707c">gas parcels shuttle along the stack plates:</text>
+        <text x="732" y="259" font-size="13.5" text-anchor="middle" fill="#5e707c">toward the driver they compress and warm,</text>
+        <text x="732" y="276" font-size="13.5" text-anchor="middle" fill="#5e707c">away from it they expand and cool, so each</text>
+        <text x="732" y="293" font-size="13.5" text-anchor="middle" fill="#5e707c">hands heat one stroke toward the hot end</text>
+
+        <!-- ===================== (b) lumped model ===================== -->
+        <text x="12" y="352" font-size="15" font-weight="650">(b) lumped model</text>
+
+        <text x="52" y="402" font-size="13.5" text-anchor="middle" fill="#5e707c">action</text>
+        <rect x="18" y="410" width="68" height="50" rx="6" fill="#f3f5f7" stroke="#20333f" stroke-width="1.4"/>
+        <text x="52" y="431" font-size="17" text-anchor="middle">u<tspan dy="3" font-size="75%">t</tspan></text>
+        <text id="t-u-node" x="52" y="449" font-size="14" text-anchor="middle">0.00</text>
+        <rect id="action-bar" x="20" y="454" width="0" height="4" fill="#20333f"/>
+
+        <line id="arr-work" x1="88" y1="435" x2="183" y2="435" stroke="#20333f" stroke-width="2" marker-end="url(#m-ink)"/>
+        <text x="138" y="412" font-size="13.5" text-anchor="middle" fill="#5e707c">acoustic work</text>
+        <text x="138" y="428" font-size="13.5" text-anchor="middle">Ẇ = <tspan id="t-work-b">0.0</tspan> W</text>
+        <text x="138" y="455" font-size="13.5" text-anchor="middle" fill="#5e707c">stage cost</text>
+        <text x="138" y="471" font-size="13.5" text-anchor="middle" fill="#5e707c">h w<tspan dy="3" font-size="75%">E</tspan><tspan dy="-3"> Ẇ = </tspan><tspan id="t-stage">0.00</tspan></text>
+
+        <text x="230" y="396" font-size="13.5" text-anchor="middle" fill="#d55e00">hot exchanger</text>
+        <rect id="node-hot" x="190" y="405" width="80" height="60" rx="8" fill="#fff" stroke="#d55e00" stroke-width="2"/>
+        <text x="230" y="430" font-size="17" text-anchor="middle" fill="#d55e00">T<tspan dy="4" font-size="75%">h</tspan></text>
+        <text x="230" y="453" font-size="15" text-anchor="middle"><tspan id="t-th-b">20.0</tspan> °C</text>
+
+        <line id="arr-pump" x1="428" y1="435" x2="282" y2="435" stroke="#0072b2" stroke-width="2" marker-end="url(#m-blue)"/>
+        <text x="350" y="410" font-size="13.5" text-anchor="middle" fill="#5e707c">pumped heat</text>
+        <text x="350" y="426" font-size="13.5" text-anchor="middle" fill="#0072b2"><tspan id="q-b">Q</tspan><tspan dy="3" font-size="75%">c</tspan><tspan dy="-3"> = k</tspan><tspan dy="3" font-size="75%">q</tspan><tspan dy="-3"> u² η = </tspan><tspan id="t-qc-b">0.0</tspan> W</text>
+        <circle id="dot-qc-b" cx="0" cy="0" r=".9" fill="#0072b2"/>
+        <text x="350" y="455" font-size="13.5" text-anchor="middle" fill="#5e707c">η = 1 − ΔT/ΔT<tspan dy="3" font-size="75%">0</tspan><tspan dy="-3"> = </tspan><tspan id="t-eta">1.00</tspan></text>
+
+        <text x="470" y="396" font-size="13.5" text-anchor="middle" fill="#0072b2">cold exchanger + payload</text>
+        <rect id="node-cold" x="430" y="405" width="80" height="60" rx="8" fill="#fff" stroke="#0072b2" stroke-width="2"/>
+        <text x="470" y="426" font-size="17" text-anchor="middle" fill="#0072b2">T<tspan dy="4" font-size="75%">c</tspan></text>
+        <text x="470" y="446" font-size="15" text-anchor="middle"><tspan id="t-tc-b">20.0</tspan> °C</text>
+        <rect x="438" y="454" width="64" height="4" fill="#d8e2e7"/>
+        <line id="thermo-tick" x1="454" y1="450" x2="454" y2="462" stroke="#20333f" stroke-width="1" stroke-dasharray="2 1.5"/>
+        <circle id="thermo-marker" cx="502" cy="456" r="4" fill="#0072b2"/>
+        <text id="t-target" x="450" y="482" font-size="13" text-anchor="end" fill="#0072b2">T* = 5 °C</text>
+
+        <line id="arr-amb-b" x1="230" y1="467" x2="230" y2="507" stroke="#d55e00" stroke-width="2" marker-end="url(#m-orange)"/>
+        <text x="230" y="523" font-size="13.5" text-anchor="middle" fill="#d55e00">UA (T<tspan dy="3" font-size="75%">h</tspan><tspan dy="-3"> − T</tspan><tspan dy="3" font-size="75%">amb</tspan><tspan dy="-3">) = </tspan><tspan id="t-rej-b">0.0</tspan> W</text>
+        <text x="230" y="541" font-size="13.5" text-anchor="middle" fill="#5e707c">to ambient air, <tspan id="t-amb">20</tspan> °C</text>
+
+        <line id="arr-load-b" x1="470" y1="507" x2="470" y2="467" stroke="#0072b2" stroke-width="2" marker-end="url(#m-blue)"/>
+        <text x="470" y="523" font-size="13.5" text-anchor="middle" fill="#0072b2">Q<tspan dy="3" font-size="75%">load</tspan><tspan dy="-3"> = </tspan><tspan id="t-load-b">1.0</tspan> W</text>
+        <text x="470" y="541" font-size="13.5" text-anchor="middle" fill="#5e707c">payload heat leak</text>
+
+        <g id="t-terminal" fill="#5e707c" font-size="13.5" text-anchor="middle">
+          <text x="470" y="562">terminal cost w<tspan dy="3" font-size="75%">T</tspan><tspan dy="-3"> (T</tspan><tspan dy="3" font-size="75%">c,T</tspan><tspan dy="-3"> − T*)² = </tspan><tspan id="t-terminal-value">0.00</tspan></text>
+          <text id="t-terminal-when" x="470" y="580">charged once, at the final state (T = 300 here)</text>
+        </g>
+
+        <rect x="578" y="405" width="372" height="88" rx="8" fill="#fff" stroke="#bdccd4" stroke-width="1"/>
+        <text x="592" y="428" font-size="14">state x<tspan dy="3" font-size="75%">t</tspan><tspan dy="-3"> = (T</tspan><tspan dy="3" font-size="75%">c,t</tspan><tspan dy="-3">, T</tspan><tspan dy="3" font-size="75%">h,t</tspan><tspan dy="-3">) = (</tspan><tspan id="t-state">20.0, 20.0</tspan>) °C</text>
+        <text x="592" y="447" font-size="13.5" fill="#5e707c">transition x<tspan dy="3" font-size="75%">t+1</tspan><tspan dy="-3"> = f(x</tspan><tspan dy="3" font-size="75%">t</tspan><tspan dy="-3">, u</tspan><tspan dy="3" font-size="75%">t</tspan><tspan dy="-3">): one RK4 step, h = 1 s</tspan></text>
+        <text x="592" y="466" font-size="13.5" fill="#5e707c">horizon 300 steps · open-loop plan:</text>
+        <text x="592" y="485" font-size="13.5" fill="#5e707c">u<tspan dy="3" font-size="75%">0</tspan><tspan dy="-3"> … u</tspan><tspan dy="3" font-size="75%">299</tspan><tspan dy="-3"> fixed in advance, no feedback</tspan></text>
+      </svg>
+      </div></div>
+      <div class="map-caption"><span id="readout" aria-hidden="true"></span><span id="announcer" class="visually-hidden" aria-live="polite"></span><span class="legend">Parcel tint: warm = compressed toward the driver, cool = expanded away · arrow width and dash speed follow the power carried · exchanger and node tint follow temperature</span></div>
+      <p class="params" id="params"></p>
+    </div>
+    <div class="metrics" aria-label="Selected plan compared with the constant-amplitude plan">
+      <div class="metric"><span>Cold side now</span><strong id="m-cold"></strong><span class="compare" id="m-cold-cmp"></span></div>
+      <div class="metric"><span>Stage cost so far · energy so far</span><strong id="m-stage"></strong><span class="compare" id="m-stage-cmp"></span></div>
+      <div class="metric"><span>Terminal cost at t = 300</span><strong id="m-terminal"></strong><span class="compare" id="m-terminal-cmp"></span></div>
+      <div class="metric"><span>Total objective J</span><strong id="m-total"></strong><span class="compare" id="m-total-cmp"></span></div>
+    </div>
+    <p id="verdict"></p>
+    <div class="charts">
+      <figure><figcaption>Temperatures (°C): T<sub>c</sub> blue, T<sub>h</sub> orange; gray = comparison; dashed = T*</figcaption><canvas id="temp-chart" role="img" aria-label="Cold and hot temperatures over the plan, with the comparison plan and the target"></canvas></figure>
+      <figure><figcaption>Action u<sub>t</sub> (driver amplitude) · gray dotted: comparison</figcaption><canvas id="action-chart" role="img" aria-label="Driver amplitude over the plan, with the comparison plan"></canvas></figure>
+      <figure><figcaption>Objective accumulated so far · terminal charge drawn at <span class="nowrap">t = 300</span></figcaption><canvas id="objective-chart" role="img" aria-label="Accumulated stage cost over the plan, with the terminal cost added as a jump at the final time"></canvas></figure>
+    </div>
+    <p class="note">Synthetic lumped teaching model with illustrative coefficients, not a measured device. The acoustic cycle is a cartoon at 1.2 Hz with an exaggerated stroke, and the piston is drawn quasi-statically, pushed in when the driver-end pressure peaks; a real device runs at hundreds of hertz, and at resonance it is the piston's velocity, not its position, that is in phase with the pressure. Plans are recorded iLQR/DDP solutions replayed as fixed open-loop sequences; scrubbing does not replan. The constant-amplitude plan is integrated in the page with the same RK4 step and checked at load against the recorded Python rollout. Because the model is deterministic and the plan is fixed, the terminal cost is known before playback. Time is counted in steps from t = 0 (the initial state) to t = 300 (the final state, one second per step); the chapter indexes the same plan from 1 to T = 301.</p>
+  </div>
+</main>
+<script>
+"use strict";
+const $ = id => document.getElementById(id);
+const BLUE = "#0072b2", ORANGE = "#d55e00", INK = "#20333f", GREEN = "#009e73", COMPARE = "#7b858a", OFF = "#9aa8b0";
+// Every drawing constant of the SVG, in viewBox units.
+const GEOMETRY = {
+  waveX0: 129, waveX1: 900, waveY: 160, waveAmplitude: 30, waveSamples: 64,
+  pistonRest: 122, pistonStroke: 10,
+  parcelWidth: 20, parcelExcursion: 15, parcelSqueeze: .2,
+  dashPeriod: 11, waveHz: 1.2, amplitudeTau: .15, playbackRate: 10,
+};
+// Sign convention: piston in (+x) <=> pressure high at the driver-end antinode <=> gas at the stack
+// displaced toward the driver (-x), compressed and warm. Pressure and displacement are in phase at
+// the stack, as in any standing wave on the driver side of the node; the short-stack approximation
+// lets all parcels share one amplitude.
+
+// ---- Model: exact port of code/thermoacoustic_pulldown.py ----
+function powers(x, u, p) {
+  const eta = 1 - (x[1] - x[0]) / p.critical_span;
+  const cooling = p.pumping * u * u * eta;
+  const work = p.work * u * u * eta + p.viscous * u * u + p.minor_loss * u * u * u;
+  return [cooling, work];
+}
+function dynamics(x, u, p) {
+  const [cooling, work] = powers(x, u, p);
+  return [(-cooling + p.load) / p.cold_capacity,
+          (cooling + work - p.hot_conductance * (x[1] - p.ambient)) / p.hot_capacity];
+}
+function step(x, u, p) {
+  const h = p.dt;
+  const a = dynamics(x, u, p);
+  const b = dynamics([x[0] + h * a[0] / 2, x[1] + h * a[1] / 2], u, p);
+  const c = dynamics([x[0] + h * b[0] / 2, x[1] + h * b[1] / 2], u, p);
+  const d = dynamics([x[0] + h * c[0], x[1] + h * c[1]], u, p);
+  return [x[0] + h * (a[0] + 2 * b[0] + 2 * c[0] + d[0]) / 6,
+          x[1] + h * (a[1] + 2 * b[1] + 2 * c[1] + d[1]) / 6];
+}
+function stageCost(x, u, p) {
+  return p.dt * (p.energy_weight * powers(x, u, p)[1] + p.tracking_weight * (x[0] - p.target) ** 2);
+}
+function terminalCost(x, p) { return p.terminal_weight * (x[0] - p.target) ** 2; }
+function rollout(c, p) {
+  const states = [[p.ambient, p.ambient]], controls = [];
+  for (let t = 0; t < p.steps; t++) { controls.push(c); states.push(step(states[t], c, p)); }
+  return {states, controls};
+}
+// Prefix sums of the stage cost and of the energy h*W, plus the terminal charge, for one plan.
+function ledger(states, controls, p) {
+  const stage = [0], energy = [0];
+  for (let t = 0; t < controls.length; t++) {
+    stage.push(stage[t] + stageCost(states[t], controls[t], p));
+    energy.push(energy[t] + p.dt * powers(states[t], controls[t], p)[1]);
+  }
+  return {stage, energy, terminal: terminalCost(states[states.length - 1], p)};
+}
+
+// ---- Data and plan selection ----
+let data, T, ledgerOk = true, constantOk = true;
+let plan, compare, compareLabel;
+const recordedCache = new Map(), constantCache = new Map();
+function makePlan(spec) {
+  const l = ledger(spec.states, spec.controls, spec.p);
+  return {...spec, stagePrefix: l.stage, energyPrefix: l.energy, terminal: l.terminal,
+    total: spec.recorded && ledgerOk ? spec.cost : l.stage[T] + l.terminal,
+    energy: spec.recorded ? spec.energy_J : l.energy[T]};
+}
+function recordedPlan(key, method) {
+  const id = `${key}/${method}`;
+  if (!recordedCache.has(id)) {
+    const s = data.scenarios[key], r = s.runs[method];
+    recordedCache.set(id, makePlan({label: `${s.name}, ${method === "ilqr" ? "iLQR" : "DDP"}`, method,
+      p: s.parameters, states: r.states, controls: r.controls, cost: r.cost, energy_J: r.energy_J,
+      recorded: true, color: method === "ilqr" ? BLUE : ORANGE}));
+  }
+  return recordedCache.get(id);
+}
+function constantPlan(c, key) {
+  const id = `${key}/${c.toFixed(2)}`;
+  if (!constantCache.has(id)) {
+    const p = data.scenarios[key].parameters;
+    let r;
+    if (constantOk) r = rollout(c, p);
+    else { const f = data.full_amplitude_comparison; r = {states: f.states, controls: f.controls}; }
+    constantCache.set(id, makePlan({label: `constant u = ${c.toFixed(2)}`, method: "constant", p,
+      ...r, recorded: false, color: INK}));
+  }
+  return constantCache.get(id);
+}
+function selectPlans() {
+  const key = $("scenario").value, c = +$("constant").value;
+  $("constant-label").value = `u = ${c.toFixed(2)}`;
+  if (key === "constant") {
+    plan = constantPlan(c, "baseline"); compare = recordedPlan("baseline", "ilqr");
+    compareLabel = "baseline iLQR"; $("method").disabled = true;
+  } else {
+    plan = recordedPlan(key, $("method").value); compare = constantPlan(c, key);
+    compareLabel = `constant u = ${c.toFixed(2)}`; $("method").disabled = false;
+  }
+  bindParameterLabels(plan.p);
+}
+function bindParameterLabels(p) {
+  $("t-amb").textContent = fmt(p.ambient, 0);
+  $("t-load-a").textContent = fmt(p.load, 1); $("t-load-b").textContent = fmt(p.load, 1);
+  $("t-target").textContent = `T* = ${fmt(p.target, 0)} °C`;
+  const tick = 438 + 64 * clamp(p.target / 20, 0, 1);
+  $("thermo-tick").setAttribute("x1", tick); $("thermo-tick").setAttribute("x2", tick);
+  $("t-target").setAttribute("x", tick - 4);
+  const sub = (name, index) => `${name}<sub>${index}</sub>`;
+  $("params").innerHTML = `<b>Parameters of this plan.</b> ${sub("C", "c")} = ${fmt(p.cold_capacity, 0)} J/K, ` +
+    `${sub("C", "h")} = ${fmt(p.hot_capacity, 0)} J/K, UA = ${fmt(p.hot_conductance, 1)} W/K, ${sub("T", "amb")} = ${fmt(p.ambient, 0)} °C, ` +
+    `${sub("Q", "load")} = ${fmt(p.load, 1)} W, ${sub("k", "q")} = ${fmt(p.pumping, 0)} W, ${sub("k", "w")} = ${fmt(p.work, 0)} W, ` +
+    `${sub("k", "v")} = ${fmt(p.viscous, 0)} W, ${sub("k", "3")} = ${fmt(p.minor_loss, 0)} W, ${sub("ΔT", "0")} = ${fmt(p.critical_span, 0)} K, ` +
+    `T* = ${fmt(p.target, 0)} °C, h = ${fmt(p.dt, 0)} s, ${sub("w", "E")} = ${p.energy_weight}, ${sub("w", "T")} = ${p.terminal_weight}. ` +
+    `<b>Not in the state:</b> acoustics, resonator length, stack geometry; all of it is folded into these synthetic coefficients.`;
+}
+// The dot of Q-dot is a small circle placed over the Q after layout (a combining U+0307 drifts to the
+// upper right in some system fonts). Re-placed whenever a centred line changes width.
+const qDots = [["q-a", "dot-qc-a"], ["q-b", "dot-qc-b"]].map(([q, d]) => ({q: $(q), dot: $(d)}));
+function placeDots() {
+  for (const {q, dot} of qDots) {
+    let extent; try { extent = q.getExtentOfChar(0); } catch (_) { continue; }
+    if (!extent.width) continue;
+    const size = parseFloat(q.parentNode.getAttribute("font-size")), baseline = parseFloat(q.parentNode.getAttribute("y"));
+    attr(dot, "cx", (extent.x + extent.width / 2).toFixed(2)); attr(dot, "cy", (baseline - .84 * size).toFixed(2)); attr(dot, "r", (.075 * size).toFixed(2));
+  }
+}
+
+// ---- Helpers ----
+const fmt = (v, d) => v.toFixed(d);
+const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
+function mix(hex, k) {
+  const r = parseInt(hex.slice(1, 3), 16), g = parseInt(hex.slice(3, 5), 16), b = parseInt(hex.slice(5, 7), 16);
+  return `rgb(${Math.round(255 + (r - 255) * k)},${Math.round(255 + (g - 255) * k)},${Math.round(255 + (b - 255) * k)})`;
+}
+const text = (id, value) => { $(id).textContent = value; };
+const attr = (el, name, value) => el.setAttribute(name, value);
+
+// ---- Per-time drawing (numbers, tints, tiles, charts) ----
+const view = {t: 0, u: 0, uTarget: 0, eta: 1, ended: false};
+const arrows = {};
+for (const [id, color, marker] of [["arr-net", BLUE, "m-blue"], ["arr-amb-a", ORANGE, "m-orange"],
+    ["arr-load-a", BLUE, "m-blue"], ["arr-work", INK, "m-ink"], ["arr-pump", BLUE, "m-blue"],
+    ["arr-amb-b", ORANGE, "m-orange"], ["arr-load-b", BLUE, "m-blue"]]) {
+  arrows[id] = {el: $(id), color, marker, power: 0, on: false, rate: 0, offset: 0};
+}
+function setArrow(id, power) {
+  const a = arrows[id]; a.power = power;
+  if (power < .02) {
+    a.on = false; attr(a.el, "stroke", OFF); attr(a.el, "stroke-width", 1); attr(a.el, "opacity", .8);
+    attr(a.el, "stroke-dasharray", "1 3"); attr(a.el, "marker-end", "url(#m-gray)"); attr(a.el, "stroke-dashoffset", 0);
+    return;
+  }
+  a.on = true; a.rate = Math.min(16 * power, 90);
+  attr(a.el, "stroke", a.color); attr(a.el, "stroke-width", (1.5 + .5 * power).toFixed(2));
+  attr(a.el, "opacity", (.35 + .65 * Math.min(power / 6, 1)).toFixed(3));
+  attr(a.el, "marker-end", `url(#${a.marker})`);
+  if (staticPose()) { attr(a.el, "stroke-dasharray", "none"); attr(a.el, "stroke-dashoffset", 0); }
+  else attr(a.el, "stroke-dasharray", "6 5");
+}
+function refreshArrows() { for (const id in arrows) setArrow(id, arrows[id].power); }
+
+function drawPlan(t) {
+  view.t = t;
+  const p = plan.p, x = plan.states[t], ended = t >= T, u = ended ? 0 : plan.controls[t];
+  // Signed quantities are printed as the model computes them (no clamping); an arrow turns gray when its
+  // power is at or below zero. Only the plate-glow opacity uses eta clamped at zero.
+  const span = x[1] - x[0], eta = 1 - span / p.critical_span;
+  const [qc, w] = ended ? [0, 0] : powers(x, u, p);
+  const rejected = p.hot_conductance * (x[1] - p.ambient), stage = ended ? 0 : stageCost(x, u, p);
+  Object.assign(view, {u, uTarget: u, eta: Math.max(eta, 0), ended});
+
+  $("clock").value = `t = ${t} / ${T} s`;
+  text("t-u", ended ? "plan ended" : fmt(u, 2)); $("t-u-name").lastChild.textContent = ended ? ": " : " = ";
+  text("t-u-node", ended ? "plan ended" : fmt(u, 2)); attr($("t-u-node"), "font-size", ended ? 12.5 : 14);
+  attr($("action-bar"), "width", (64 * u).toFixed(1));
+  text("t-work-a", fmt(w, 1)); text("t-work-b", fmt(w, 1)); text("t-stage", fmt(stage, 2));
+  text("t-th-a", fmt(x[1], 1)); text("t-th-b", fmt(x[1], 1)); text("t-tc-a", fmt(x[0], 1)); text("t-tc-b", fmt(x[0], 1));
+  text("t-qc-a", fmt(qc, 1)); text("t-qc-b", fmt(qc, 1)); text("t-eta", fmt(eta, 2));
+  text("t-rej-a", fmt(rejected, 1)); text("t-rej-b", fmt(rejected, 1));
+  text("t-state", `${fmt(x[0], 1)}, ${fmt(x[1], 1)}`);
+  text("t-terminal-value", fmt(plan.terminal, 2));
+  text("t-terminal-when", ended ? `charged now: final state, t = ${T} s` : `charged once, at the final state (T = ${T} here)`);
+  attr($("t-terminal"), "fill", ended ? BLUE : "#5e707c"); attr($("t-terminal"), "font-weight", ended ? 650 : 400);
+
+  const kh = clamp((x[1] - 20) / 12, 0, 1), kc = clamp((20 - x[0]) / 15, 0, 1);
+  attr($("hx-hot"), "fill", mix(ORANGE, .15 + .6 * kh)); attr($("hx-cold"), "fill", mix(BLUE, .15 + .6 * kc));
+  attr($("node-hot"), "fill", mix(ORANGE, .06 + .3 * kh)); attr($("node-cold"), "fill", mix(BLUE, .06 + .3 * kc));
+  attr($("plates-gradient"), "stroke-opacity", clamp(span / p.critical_span, 0, 1).toFixed(3));
+  attr($("thermo-marker"), "cx", (438 + 64 * clamp(x[0] / 20, 0, 1)).toFixed(1));
+
+  setArrow("arr-net", qc); setArrow("arr-pump", qc); setArrow("arr-work", w);
+  setArrow("arr-amb-a", rejected); setArrow("arr-amb-b", rejected);
+  setArrow("arr-load-a", p.load); setArrow("arr-load-b", p.load);
+  if (staticPose()) renderStaticPose(); else if (!animating()) renderIdleFrame();
+
+  const cx = compare.states[t];
+  text("m-cold", `${fmt(x[0], 2)} °C`); text("m-cold-cmp", `${compareLabel}: ${fmt(cx[0], 2)} °C`);
+  if (ledgerOk) {
+    text("m-stage", `${fmt(plan.stagePrefix[t], 2)} · ${fmt(plan.energyPrefix[t], 0)} J`);
+    text("m-stage-cmp", `${compareLabel}: ${fmt(compare.stagePrefix[t], 2)} · ${fmt(compare.energyPrefix[t], 0)} J`);
+  } else { text("m-stage", "—"); text("m-stage-cmp", `${compareLabel}: —`); }
+  $("m-terminal").innerHTML = `${fmt(plan.terminal, 2)}<small>${ended ? "(charged now)" : "(applies at t = 300)"}</small>`;
+  $("m-terminal").classList.toggle("pending", !ended);
+  text("m-terminal-cmp", `${compareLabel}: ${fmt(compare.terminal, 2)}`);
+  text("m-total", fmt(plan.total, 3)); text("m-total-cmp", `${compareLabel}: ${fmt(compare.total, 3)}`);
+  $("verdict").textContent = verdict();
+  $("readout").innerHTML = readoutText(true);
+  placeDots();
+  drawCharts(t);
+}
+function endingPhrase(q) {
+  const p = q.p, last = q.states[T][0], err = last - p.target;
+  const where = Math.abs(err) < .6 ? `within 0.6 K of the target ${fmt(p.target, 0)} °C` : (err < 0 ? "colder than the target" : "warmer than the target");
+  return `ends at ${fmt(last, 2)} °C (${where})`;
+}
+function verdict() {
+  const key = $("scenario").value;
+  if (key === "unreachable" && plan.controls.every(u => u >= .999)) {
+    const saturated = `The optimized plan saturates at u = 1 throughout: it ends at ${fmt(plan.states[T][0], 2)} °C (target ${fmt(plan.p.target, 0)} °C, out of reach in 300 s) for J = ${fmt(plan.total, 3)} using ${fmt(plan.energy, 0)} J.`;
+    if (Math.abs(compare.total - plan.total) < 1e-6) return `${saturated} It coincides with the ${compareLabel} plan.`;
+    return `${saturated} Constant u = ${fmt(+$("constant").value, 2)} ${endingPhrase(compare)}, uses ${fmt(compare.energy, 0)} J, and pays terminal cost ${fmt(compare.terminal, 1)}: J = ${fmt(compare.total, 3)}.`;
+  }
+  const first = key === "constant" ? `Constant u = ${fmt(+$("constant").value, 2)}` : "Plan";
+  const second = key === "constant" ? "The baseline iLQR plan" : `Constant u = ${fmt(+$("constant").value, 2)}`;
+  return `${first} ${endingPhrase(plan)} for J = ${fmt(plan.total, 3)} using ${fmt(plan.energy, 0)} J. ` +
+    `${second} ${endingPhrase(compare)}, uses ${fmt(compare.energy, 0)} J, and pays terminal cost ${fmt(compare.terminal, 1)}: J = ${fmt(compare.total, 3)}.`;
+}
+
+// ---- Acoustic cartoon (two clocks: plan time t and acoustic phase phi) ----
+let phi = 0, amplitude = 0, envelopeAmplitude = -1, frame = null, lastFrame = null, playing = false, playbackIndex = 0, intersecting = true;
+const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)");
+function staticPose() { return reducedMotion.matches || !$("wave").checked; }
+function wavePoints(a, cosPhi, sign) {
+  const G = GEOMETRY, pts = [];
+  for (let i = 0; i < G.waveSamples; i++) {
+    const x = G.waveX0 + (G.waveX1 - G.waveX0) * i / (G.waveSamples - 1);
+    const shape = Math.cos(Math.PI * (x - G.waveX0) / (G.waveX1 - G.waveX0));
+    const y = G.waveY - G.waveAmplitude * a * (cosPhi === null ? sign * Math.abs(shape) : shape * cosPhi);
+    pts.push(`${x.toFixed(1)},${y.toFixed(2)}`);
+  }
+  return pts.join(" ");
+}
+function setEnvelope(a) {
+  if (Math.abs(a - envelopeAmplitude) < 1e-3) return;
+  envelopeAmplitude = a;
+  attr($("env-top"), "points", wavePoints(a, null, 1)); attr($("env-bot"), "points", wavePoints(a, null, -1));
+}
+function setParcel(shift, width, fill) {
+  const body = $("parcel-body");
+  attr(body, "x", (shift - width / 2).toFixed(2)); attr(body, "width", width.toFixed(2)); attr(body, "fill", fill);
+}
+function setGlow(id, x1, x2, opacity) {
+  const el = $(id); attr(el, "x1", x1.toFixed(2)); attr(el, "x2", x2.toFixed(2)); attr(el, "opacity", opacity.toFixed(3));
+}
+function animateFrame(dt) {
+  const G = GEOMETRY;
+  amplitude += (view.uTarget - amplitude) * Math.min(1, dt / G.amplitudeTau);
+  if (Math.abs(amplitude - view.uTarget) < 1e-3) amplitude = view.uTarget;
+  phi += 2 * Math.PI * G.waveHz * dt; if (phi > 2 * Math.PI) phi -= 2 * Math.PI;
+  const a = amplitude, c = Math.cos(phi);
+  attr($("piston"), "x", (G.pistonRest + G.pistonStroke * a * c).toFixed(2));
+  attr($("wave-trace"), "points", wavePoints(a, c, 1));
+  setEnvelope(a);
+  const shift = -G.parcelExcursion * a * c, w = G.parcelWidth * (1 - G.parcelSqueeze * a * c);
+  setParcel(shift, w, c > 0 ? mix(ORANGE, .65 * a * c) : mix(BLUE, .65 * a * -c));
+  setGlow("glow-warm", shift - w / 2, shift + w / 2, a * view.eta * clamp((c - .5) / .5, 0, 1));
+  setGlow("glow-cool", shift - w / 2, shift + w / 2, a * view.eta * clamp((-c - .5) / .5, 0, 1));
+  for (const id in arrows) {
+    const ar = arrows[id]; if (!ar.on) continue;
+    ar.offset = (ar.offset - ar.rate * dt) % G.dashPeriod;
+    attr(ar.el, "stroke-dashoffset", ar.offset.toFixed(2));
+  }
+}
+// One frame at the current amplitude for a loop that is not running (hidden document or off-screen figure).
+function renderIdleFrame() { amplitude = view.uTarget; animateFrame(0); }
+function renderStaticPose() {
+  const G = GEOMETRY, u = view.u, on = u > .02;
+  attr($("piston"), "x", G.pistonRest);
+  attr($("stroke-bar"), "visibility", on ? "visible" : "hidden");
+  attr($("stroke-bar"), "x1", (G.waveX0 - G.pistonStroke * u).toFixed(1)); attr($("stroke-bar"), "x2", (G.waveX0 + G.pistonStroke * u).toFixed(1));
+  attr($("wave-trace"), "points", ""); setEnvelope(u);
+  setParcel(0, G.parcelWidth, "#fff");
+  const wIn = G.parcelWidth * (1 - G.parcelSqueeze * u), wOut = G.parcelWidth * (1 + G.parcelSqueeze * u), e = G.parcelExcursion * u;
+  const ghostWarm = $("parcel-ghost-warm"), ghostCool = $("parcel-ghost-cool");
+  attr(ghostWarm, "x", (-e - wIn / 2).toFixed(2)); attr(ghostWarm, "width", wIn.toFixed(2)); attr(ghostWarm, "opacity", on ? .9 : 0);
+  attr(ghostCool, "x", (e - wOut / 2).toFixed(2)); attr(ghostCool, "width", wOut.toFixed(2)); attr(ghostCool, "opacity", on ? .9 : 0);
+  setGlow("glow-warm", -e - wIn / 2, -e + wIn / 2, on ? .45 * view.eta : 0);
+  setGlow("glow-cool", e - wOut / 2, e + wOut / 2, on ? .45 * view.eta : 0);
+}
+function applyPoseMode() {
+  const isStatic = staticPose();
+  text("t-wave-caption", isStatic ? "standing-wave pressure: dashed envelope" : "standing-wave pressure: dashed envelope, solid trace");
+  if (isStatic) renderStaticPose();
+  else {
+    attr($("stroke-bar"), "visibility", "hidden");
+    attr($("parcel-ghost-warm"), "opacity", 0); attr($("parcel-ghost-cool"), "opacity", 0);
+    if (!animating()) renderIdleFrame();
+  }
+  refreshArrows();
+  ensureLoop();
+}
+function animating() { return !staticPose() && !document.hidden && intersecting; }
+function tick(now) {
+  frame = null;
+  const dt = lastFrame === null ? 0 : Math.min(.1, (now - lastFrame) / 1000); lastFrame = now;
+  if (playing) {
+    playbackIndex += dt * GEOMETRY.playbackRate;
+    const t = Math.min(T, Math.floor(playbackIndex));
+    if (t !== view.t) { $("time").value = t; drawPlan(t); }
+    if (playbackIndex >= T) stopPlayback();
+  }
+  if (animating()) animateFrame(dt);
+  if (playing || animating()) frame = requestAnimationFrame(tick); else lastFrame = null;
+}
+function ensureLoop() { if (frame === null && (playing || animating())) { lastFrame = null; frame = requestAnimationFrame(tick); } }
+function stopPlayback() { if (!playing) return; playing = false; $("play").textContent = "Play"; announce(); }
+function startPlayback() {
+  if (view.t >= T) { $("time").value = 0; drawPlan(0); }
+  playbackIndex = view.t; playing = true; $("play").textContent = "Pause"; ensureLoop();
+}
+
+// ---- Readout and announcements ----
+// The visible #readout follows every integer time step; the visually hidden aria-live #announcer
+// gets the same text only on plan change, scrub end, and playback stop, so screen readers are not flooded.
+let announceTimer = null;
+// html = true renders subscripts for the visible readout; the announcer gets the plain-text form.
+function readoutText(html = false) {
+  const t = view.t, x = plan.states[t], p = plan.p, u = view.ended ? null : plan.controls[t];
+  const [qc, w] = u === null ? [0, 0] : powers(x, u, p);
+  const tc = html ? "T<sub>c</sub>" : "T_c", th = html ? "T<sub>h</sub>" : "T_h";
+  return `t = ${t} s: ${tc} ${fmt(x[0], 1)} °C, ${th} ${fmt(x[1], 1)} °C, ` +
+    (u === null ? "plan ended" : `u = ${fmt(u, 2)}, pumping ${fmt(qc, 1)} W, work ${fmt(w, 1)} W`);
+}
+function announce() { $("announcer").textContent = readoutText(); }
+function announceSoon() { clearTimeout(announceTimer); announceTimer = setTimeout(announce, 300); }
+
+// ---- Charts ----
+function canvas(id) {
+  const element = $(id), rect = element.getBoundingClientRect(), dpr = window.devicePixelRatio || 1;
+  element.width = Math.round(rect.width * dpr); element.height = Math.round(rect.height * dpr);
+  const ctx = element.getContext("2d"); ctx.scale(dpr, dpr);
+  ctx.font = "11px system-ui"; ctx.fillStyle = "#5e707c"; ctx.lineJoin = "round";
+  return {ctx, w: rect.width, h: rect.height};
+}
+const PAD = {l: 40, r: 10, t: 12, b: 28};
+function chart(id, series, limits, timeMarker, xLabel, segments = []) {
+  const {ctx, w, h} = canvas(id), pad = PAD;
+  const [xmin, xmax, ymin, ymax] = limits, tx = x => pad.l + (x - xmin) / (xmax - xmin) * (w - pad.l - pad.r);
+  const ty = y => h - pad.b - (y - ymin) / (ymax - ymin) * (h - pad.b - pad.t);
+  ctx.strokeStyle = "#d8e2e7"; ctx.lineWidth = .7; ctx.beginPath(); ctx.moveTo(pad.l, pad.t); ctx.lineTo(pad.l, h - pad.b); ctx.lineTo(w - pad.r, h - pad.b); ctx.stroke();
+  ctx.fillStyle = "#5e707c"; ctx.textAlign = "right";
+  for (const v of niceTicks(ymin, ymax)) ctx.fillText(v.toFixed(v % 1 ? 1 : 0), pad.l - 6, ty(v) + 4);
+  ctx.textAlign = "center"; for (const x of [xmin, (xmin + xmax) / 2, xmax]) ctx.fillText(x.toFixed(0), tx(x), h - 12);
+  ctx.textAlign = "right"; ctx.fillText(xLabel, w - pad.r, h - 1);
+  for (const s of series) {
+    ctx.strokeStyle = s.color; ctx.lineWidth = s.width ?? 1.6; ctx.setLineDash(s.dash ?? []);
+    ctx.beginPath(); s.values.forEach(([x, y], i) => i ? ctx.lineTo(tx(x), ty(y)) : ctx.moveTo(tx(x), ty(y))); ctx.stroke();
+  }
+  ctx.setLineDash([]);
+  for (const g of segments) {
+    ctx.strokeStyle = g.color; ctx.lineWidth = 1.6; ctx.beginPath(); ctx.moveTo(tx(g.x), ty(g.y0)); ctx.lineTo(tx(g.x), ty(g.y1)); ctx.stroke();
+    ctx.fillStyle = g.color; ctx.beginPath(); ctx.arc(tx(g.x), ty(g.y1), 3, 0, 2 * Math.PI); ctx.fill();
+  }
+  ctx.strokeStyle = "#81949f"; ctx.lineWidth = .8; ctx.beginPath(); ctx.moveTo(tx(timeMarker), pad.t); ctx.lineTo(tx(timeMarker), h - pad.b); ctx.stroke();
+  for (const s of series) {
+    if (!s.dot) continue;
+    const pt = s.values.find(([x]) => x >= timeMarker) ?? s.values[s.values.length - 1];
+    ctx.fillStyle = s.color; ctx.beginPath(); ctx.arc(tx(pt[0]), ty(pt[1]), 3, 0, 2 * Math.PI); ctx.fill();
+  }
+}
+function niceTicks(lo, hi) {
+  // Round tick values (1, 2, 5 x 10^k) so a textbook reader sees 0/10/20/30 rather than 0/18/36.
+  const span = hi - lo, raw = span / 3, mag = Math.pow(10, Math.floor(Math.log10(raw)));
+  const step = [1, 2, 5, 10].map(m => m * mag).find(st => span / st <= 4) ?? 10 * mag;
+  const ticks = []; for (let v = Math.ceil(lo / step) * step; v <= hi + 1e-9; v += step) ticks.push(+v.toFixed(6));
+  return ticks;
+}
+function stepValues(controls) {
+  const v = []; controls.forEach((u, i) => { v.push([i, u], [i + 1, u]); }); return v;
+}
+function drawCharts(t) {
+  const p = plan.p, q = compare;
+  const all = [...plan.states, ...q.states];
+  const tmax = Math.ceil(Math.max(36, ...all.map(x => Math.max(x[0], x[1])))), tmin = Math.floor(Math.min(0, ...all.map(x => x[0])));
+  chart("temp-chart", [
+    {color: COMPARE, dash: [2, 3], values: q.states.map((x, i) => [i, x[0]])},
+    {color: COMPARE, dash: [6, 3, 2, 3], values: q.states.map((x, i) => [i, x[1]])},
+    {color: "#66757f", dash: [5, 3], width: .9, values: [[0, p.target], [T, p.target]]},
+    {color: "#9aa8b0", dash: [1, 3], width: .9, values: [[0, p.ambient], [T, p.ambient]]},
+    {color: BLUE, dot: true, values: plan.states.map((x, i) => [i, x[0]])},
+    {color: ORANGE, dot: true, values: plan.states.map((x, i) => [i, x[1]])},
+  ], [0, T, tmin, tmax], t, "s");
+  chart("action-chart", [
+    {color: COMPARE, dash: [2, 3], values: stepValues(q.controls)},
+    {color: plan.color, dot: true, values: stepValues(plan.controls)},
+  ], [0, T, 0, 1.05], t, "s");
+  const jmax = 1.1 * Math.max(plan.stagePrefix[T] + plan.terminal, q.stagePrefix[T] + q.terminal, 1e-3);
+  chart("objective-chart", [
+    {color: COMPARE, dash: [2, 3], values: q.stagePrefix.map((v, i) => [i, v])},
+    {color: plan.color, dot: true, values: plan.stagePrefix.map((v, i) => [i, v])},
+  ], [0, T, 0, jmax], t, "s", [
+    {color: COMPARE, x: T, y0: q.stagePrefix[T], y1: q.stagePrefix[T] + q.terminal},
+    {color: plan.color, x: T, y0: plan.stagePrefix[T], y1: plan.stagePrefix[T] + plan.terminal},
+  ]);
+}
+
+// ---- Wiring ----
+function setTime(t) { stopPlayback(); $("time").value = t; drawPlan(t); }
+function selectRun(resetTime) {
+  stopPlayback(); selectPlans();
+  if (resetTime) $("time").value = 0;
+  drawPlan(+$("time").value); announce(); ensureLoop();
+}
+$("play").addEventListener("click", () => { if (playing) stopPlayback(); else startPlayback(); });
+$("reset").addEventListener("click", () => { setTime(0); announce(); });
+$("time").addEventListener("input", () => { stopPlayback(); drawPlan(+$("time").value); announceSoon(); });
+$("method").addEventListener("change", () => selectRun(false));
+$("scenario").addEventListener("change", () => selectRun(true));
+$("constant").addEventListener("input", () => selectRun(false));
+$("wave").addEventListener("change", applyPoseMode);
+for (const id of ["temp-chart", "action-chart", "objective-chart"]) {
+  $(id).addEventListener("click", event => {
+    const rect = $(id).getBoundingClientRect();
+    const t = Math.round((event.clientX - rect.left - PAD.l) / (rect.width - PAD.l - PAD.r) * T);
+    setTime(clamp(t, 0, T)); announce();
+  });
+}
+// Fade on the right edge of the figure while it can still scroll sideways (narrow widths only).
+function updateScrollFade() {
+  const stage = $("stage");
+  $("stage-wrap").classList.toggle("more", stage.scrollWidth - stage.clientWidth - stage.scrollLeft > 4);
+}
+$("stage").addEventListener("scroll", updateScrollFade, {passive: true});
+window.addEventListener("resize", () => { if (data) { drawCharts(view.t); placeDots(); } updateScrollFade(); });
+document.addEventListener("visibilitychange", () => { if (document.hidden) stopPlayback(); else ensureLoop(); });
+function applyMotionPreference() {
+  const wave = $("wave");
+  if (reducedMotion.matches) { wave.checked = false; wave.disabled = true; wave.title = "Disabled by your reduced-motion setting"; }
+  else { wave.disabled = false; wave.title = ""; }
+  if (data) applyPoseMode();
+}
+reducedMotion.addEventListener("change", applyMotionPreference);
+if ("IntersectionObserver" in window) {
+  new IntersectionObserver(entries => { intersecting = entries.some(e => e.isIntersecting); ensureLoop(); }, {threshold: 0}).observe($("device"));
+}
+
+fetch("thermoacoustic-refrigerator-data.json").then(response => { if (!response.ok) throw new Error(`HTTP ${response.status}`); return response.json(); }).then(payload => {
+  if (payload.schema_version !== 1) throw new Error("Unsupported replay data");
+  data = payload; T = data.parameters.steps; $("time").max = T;
+  // Self-check (i): the in-page RK4 must reproduce the recorded constant full-amplitude rollout.
+  const full = data.full_amplitude_comparison, check = rollout(full.amplitude, data.scenarios[full.scenario].parameters);
+  let maxDiff = 0;
+  check.states.forEach((x, i) => { maxDiff = Math.max(maxDiff, Math.abs(x[0] - full.states[i][0]), Math.abs(x[1] - full.states[i][1])); });
+  if (!(maxDiff < 1e-5)) {
+    constantOk = false; console.warn(`in-page rollout differs from the recorded rollout by ${maxDiff} K; using the recorded rollout`);
+    $("constant").disabled = true; $("scenario").querySelector('[value="constant"]').disabled = true;
+  }
+  // Self-check (ii): the stage-plus-terminal ledger recomputed from the arrays must match every recorded cost.
+  for (const key in data.scenarios) for (const method in data.scenarios[key].runs) {
+    const s = data.scenarios[key], r = s.runs[method], l = ledger(r.states, r.controls, s.parameters);
+    if (!(Math.abs(l.stage[T] + l.terminal - r.cost) < 1e-3)) { ledgerOk = false; console.warn(`ledger mismatch for ${key}/${method}: ${l.stage[T] + l.terminal} vs ${r.cost}`); }
+  }
+  $("load-status").hidden = true; $("replay").hidden = false;
+  applyMotionPreference(); selectRun(true); applyPoseMode(); updateScrollFade();
+}).catch(error => { $("load-status").textContent = `The recorded plans could not be loaded (${error.message}). Open this replay through the book's web server.`; });
+</script>
+</body>
+</html>

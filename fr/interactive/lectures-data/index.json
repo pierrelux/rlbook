@@ -1,0 +1,1413 @@
+{
+ "course": "IFT6162",
+ "term": {
+  "en": "Fall 2026",
+  "fr": "Automne 2026"
+ },
+ "folder_url": "https://drive.google.com/drive/folders/1iwN-j6IJP9l8EOkXrcxy4DpWRNcTixr8",
+ "updated": "2026-11-05",
+ "lectures": [
+  {
+   "date": "2026-11-05",
+   "week": 9,
+   "title": {
+    "en": "Quiz review; the value iteration stopping rule and near-optimal greedy policies; policy iteration and modified policy iteration; smooth Bellman equations, softmax policies and Rust's 1987 model",
+    "fr": "Retour sur le quiz ; la règle d'arrêt de l'itération de valeur et les politiques gloutonnes quasi optimales ; itération de politique et itération de politique modifiée ; équations de Bellman lisses, politiques softmax et le modèle de Rust de 1987"
+   },
+   "chapters": [
+    {
+     "slug": "infinite-horizon-mdps",
+     "title": "Infinite-Horizon Markov Decision Processes"
+    },
+    {
+     "slug": "regularized-dp",
+     "title": "Entropy-Regularized Dynamic Programming"
+    }
+   ],
+   "drive": "https://drive.google.com/file/d/1-L51XwnutbSAXnpQKqOznpk28IIYphdE/view",
+   "duration_ms": 5183280,
+   "thumb": "2026-11-05.jpg",
+   "paragraphs": 139,
+   "cleaned": true,
+   "tldr": [
+    {
+     "notion": {
+      "en": "Discounting as a random horizon",
+      "fr": "L'actualisation comme horizon aléatoire"
+     },
+     "p": 2,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Discounting as an absorbing state",
+      "fr": "L'actualisation comme état absorbant"
+     },
+     "p": 9,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Why \\(I-\\gamma P_\\pi\\) is invertible",
+      "fr": "Pourquoi \\(I-\\gamma P_\\pi\\) est inversible"
+     },
+     "p": 16,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Direct versus iterative policy evaluation",
+      "fr": "Évaluation de politique directe ou itérative"
+     },
+     "p": 21,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "A contraction is relative to a norm",
+      "fr": "Une contraction est relative à une norme"
+     },
+     "p": 31,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Why model-free RL prefers \\(q^*\\)",
+      "fr": "Pourquoi le RL sans modèle préfère \\(q^*\\)"
+     },
+     "p": 33,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Value iteration stopping rule",
+      "fr": "Règle d'arrêt de l'itération de valeur"
+     },
+     "p": 44,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Greedy policies from \\(v^*\\)",
+      "fr": "Politiques gloutonnes à partir de \\(v^*\\)"
+     },
+     "p": 49,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Policy iteration",
+      "fr": "Itération de politique"
+     },
+     "p": 61,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Modified policy iteration",
+      "fr": "Itération de politique modifiée"
+     },
+     "p": 77,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Smooth Bellman equation",
+      "fr": "Équation de Bellman lisse"
+     },
+     "p": 84,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Stochastic policies: exploration and the partition function",
+      "fr": "Politiques stochastiques : exploration et fonction de partition"
+     },
+     "p": 90,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "From soft Q-learning back to Rust (1987)",
+      "fr": "Du soft Q-learning jusqu'à Rust (1987)"
+     },
+     "p": 98,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Inverse RL and identifiability",
+      "fr": "RL inverse et identifiabilité"
+     },
+     "p": 109,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Gumbel noise yields the log-sum-exp",
+      "fr": "Le bruit de Gumbel donne le log-somme-exp"
+     },
+     "p": 121,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Smooth value and policy iteration",
+      "fr": "Itérations de valeur et de politique lisses"
+     },
+     "p": 127,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Three routes to the same equations",
+      "fr": "Trois chemins vers les mêmes équations"
+     },
+     "p": 137,
+     "exam": false
+    }
+   ]
+  },
+  {
+   "date": "2026-11-02",
+   "week": 9,
+   "title": {
+    "en": "Infinite-horizon MDPs: vector notation and the Neumann series; contraction mappings and the Banach fixed-point theorem; Bellman optimality, greedy policies and Q functions",
+    "fr": "MDP à horizon infini : notation vectorielle et série de Neumann ; applications contractantes et théorème du point fixe de Banach ; optimalité de Bellman, politiques gloutonnes et fonctions Q"
+   },
+   "chapters": [
+    {
+     "slug": "infinite-horizon-mdps",
+     "title": "Infinite-Horizon Markov Decision Processes"
+    }
+   ],
+   "drive": "https://drive.google.com/file/d/1lL9cf7o0UQdEo833ASRFFwqGcvAomA3d/view",
+   "duration_ms": 6433170,
+   "thumb": "2026-11-02.jpg",
+   "paragraphs": 139,
+   "cleaned": true,
+   "tldr": [
+    {
+     "notion": {
+      "en": "Three views of policy evaluation",
+      "fr": "Trois points de vue sur l'évaluation de politique"
+     },
+     "p": 3,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Decision rules versus policies",
+      "fr": "Règles de décision et politiques"
+     },
+     "p": 9,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Neumann series and the spectral radius",
+      "fr": "Série de Neumann et rayon spectral"
+     },
+     "p": 24,
+     "exam": true
+    },
+    {
+     "notion": {
+      "en": "Results depend on the norm",
+      "fr": "Les résultats dépendent de la norme"
+     },
+     "p": 33,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Why \\(\\gamma<1\\) gives invertibility",
+      "fr": "Pourquoi \\(\\gamma<1\\) garantit l'inversibilité"
+     },
+     "p": 36,
+     "exam": true
+    },
+    {
+     "notion": {
+      "en": "\\(L_\\pi\\) as an affine operator",
+      "fr": "\\(L_\\pi\\), un opérateur affine"
+     },
+     "p": 42,
+     "exam": true
+    },
+    {
+     "notion": {
+      "en": "Contraction mappings",
+      "fr": "Applications contractantes"
+     },
+     "p": 71,
+     "exam": true
+    },
+    {
+     "notion": {
+      "en": "Banach fixed-point theorem",
+      "fr": "Théorème du point fixe de Banach"
+     },
+     "p": 80,
+     "exam": true
+    },
+    {
+     "notion": {
+      "en": "Value iteration and policy iteration as general tools",
+      "fr": "Itération de la valeur et de la politique comme outils généraux"
+     },
+     "p": 87,
+     "exam": true
+    },
+    {
+     "notion": {
+      "en": "Direct versus iterative policy evaluation",
+      "fr": "Évaluation de politique directe ou itérative"
+     },
+     "p": 88,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Deterministic Markovian rules suffice",
+      "fr": "Les règles markoviennes déterministes suffisent"
+     },
+     "p": 102,
+     "exam": true
+    },
+    {
+     "notion": {
+      "en": "Bellman optimality operator",
+      "fr": "Opérateur d'optimalité de Bellman"
+     },
+     "p": 110,
+     "exam": true
+    },
+    {
+     "notion": {
+      "en": "Greedy policies",
+      "fr": "Politiques gloutonnes"
+     },
+     "p": 116,
+     "exam": true
+    },
+    {
+     "notion": {
+      "en": "Why Q functions in model-free RL",
+      "fr": "Pourquoi les fonctions Q en RL sans modèle"
+     },
+     "p": 131,
+     "exam": true
+    },
+    {
+     "notion": {
+      "en": "Preview: smooth Bellman equations",
+      "fr": "Aperçu : équations de Bellman lisses"
+     },
+     "p": 136,
+     "exam": false
+    }
+   ]
+  },
+  {
+   "date": "2026-10-29",
+   "week": 8,
+   "title": {
+    "en": "iLQR and DDP; from stochastic dynamic programming to MDPs; infinite-horizon discounting as a random horizon",
+    "fr": "iLQR et DDP ; de la programmation dynamique stochastique aux MDP ; l'actualisation à horizon infini comme horizon aléatoire"
+   },
+   "chapters": [
+    {
+     "slug": "iterative-trajectory-optimization",
+     "title": "iLQR and Differential Dynamic Programming"
+    },
+    {
+     "slug": "stochastic-dp",
+     "title": "Stochastic Dynamic Programming and Markov Decision Processes"
+    },
+    {
+     "slug": "infinite-horizon-mdps",
+     "title": "Infinite-Horizon Markov Decision Processes"
+    }
+   ],
+   "drive": "https://drive.google.com/file/d/1DL05eQ9R48IlYQyJf0ObLai084yFXYXi/view",
+   "duration_ms": 4493599,
+   "thumb": "2026-10-29.jpg",
+   "paragraphs": 113,
+   "cleaned": true,
+   "tldr": [
+    {
+     "notion": {
+      "en": "LQR by backward induction",
+      "fr": "LQR par induction arrière"
+     },
+     "p": 7,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Where LQR alone falls short",
+      "fr": "Les limites du LQR seul"
+     },
+     "p": 14,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "iLQR: linearize, solve, repeat",
+      "fr": "iLQR : linéariser, résoudre, recommencer"
+     },
+     "p": 25,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "iLQR gives a local feedback controller, not MPC",
+      "fr": "iLQR donne un contrôleur rétroactif local, pas du MPC"
+     },
+     "p": 27,
+     "exam": true
+    },
+    {
+     "notion": {
+      "en": "Newton-like steps and line search",
+      "fr": "Pas de type Newton et recherche linéaire"
+     },
+     "p": 43,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "DDP versus iLQR",
+      "fr": "DDP et iLQR"
+     },
+     "p": 50,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Stochastic DP and the transition kernel",
+      "fr": "PD stochastique et noyau de transition"
+     },
+     "p": 61,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Finite horizon: stage-dependent policies",
+      "fr": "Horizon fini : politiques dépendantes de l'étape"
+     },
+     "p": 76,
+     "exam": true
+    },
+    {
+     "notion": {
+      "en": "Discounting and bounded values",
+      "fr": "Actualisation et valeurs bornées"
+     },
+     "p": 83,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Discounting as a random horizon",
+      "fr": "L'actualisation comme horizon aléatoire"
+     },
+     "p": 90,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Other infinite-horizon criteria",
+      "fr": "Autres critères à horizon infini"
+     },
+     "p": 98,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Geometric horizon equals discounting",
+      "fr": "Horizon géométrique et actualisation"
+     },
+     "p": 103,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Discount factor: model or knob",
+      "fr": "Facteur d'actualisation : modèle ou réglage"
+     },
+     "p": 109,
+     "exam": false
+    }
+   ]
+  },
+  {
+   "date": "2026-10-26",
+   "week": 8,
+   "title": {
+    "en": "Interpolating the cost-to-go; the linear quadratic regulator by backward induction; stochastic dynamic programming",
+    "fr": "Interpolation de la fonction de coût; régulateur linéaire quadratique par induction arrière; programmation dynamique stochastique"
+   },
+   "chapters": [
+    {
+     "slug": "finite-horizon-dp",
+     "title": "Finite-Horizon Dynamic Programming"
+    },
+    {
+     "slug": "stochastic-dp",
+     "title": "Stochastic Dynamic Programming and Markov Decision Processes"
+    }
+   ],
+   "drive": "https://drive.google.com/file/d/1_4fT_SRY4WJEtJEoYQuYUUZQG8MkU1x_/view",
+   "duration_ms": 6410840,
+   "thumb": "2026-10-26.jpg",
+   "paragraphs": 136,
+   "cleaned": true,
+   "tldr": [
+    {
+     "notion": {
+      "en": "Interpolating the cost-to-go",
+      "fr": "Interpoler la fonction de coût à venir"
+     },
+     "p": 33,
+     "exam": true
+    },
+    {
+     "notion": {
+      "en": "Grids and the curse of dimensionality",
+      "fr": "Grilles et malédiction de la dimension"
+     },
+     "p": 37,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Only the ordering matters for the policy",
+      "fr": "Seul l'ordre compte pour la politique"
+     },
+     "p": 41,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "LQR assumptions and its place in a controller stack",
+      "fr": "Hypothèses du LQR et sa place dans une pile de contrôleurs"
+     },
+     "p": 53,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "LQR by backward induction: the Riccati recursion",
+      "fr": "Le LQR par induction arrière : la récurrence de Riccati"
+     },
+     "p": 60,
+     "exam": true
+    },
+    {
+     "notion": {
+      "en": "Noise and the transition kernel",
+      "fr": "Le bruit et le noyau de transition"
+     },
+     "p": 88,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Expectation, policy ordering and risk",
+      "fr": "Espérance, ordre des politiques et risque"
+     },
+     "p": 91,
+     "exam": true
+    },
+    {
+     "notion": {
+      "en": "Policy evaluation versus optimality",
+      "fr": "Évaluation de politique et optimalité"
+     },
+     "p": 98,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Policy classes and Markov sufficiency",
+      "fr": "Classes de politiques et suffisance markovienne"
+     },
+     "p": 110,
+     "exam": true
+    },
+    {
+     "notion": {
+      "en": "Monte Carlo integration for the Bellman expectation",
+      "fr": "Intégration de Monte-Carlo pour l'espérance de Bellman"
+     },
+     "p": 123,
+     "exam": true
+    },
+    {
+     "notion": {
+      "en": "Partial observability and information states",
+      "fr": "Observabilité partielle et états d'information"
+     },
+     "p": 130,
+     "exam": false
+    }
+   ]
+  },
+  {
+   "date": "2026-10-15",
+   "week": 7,
+   "title": {
+    "en": "From trajectory optimization to dynamic programming: backward induction and the hydro reservoir",
+    "fr": "De l'optimisation de trajectoire à la programmation dynamique : induction arrière et réservoir hydroélectrique"
+   },
+   "chapters": [
+    {
+     "slug": "finite-horizon-dp",
+     "title": "Finite-Horizon Dynamic Programming"
+    }
+   ],
+   "drive": "https://drive.google.com/file/d/11CXLfow7MAdJi5bh-kXtIS7t3HO3EEET/view",
+   "duration_ms": 6038600,
+   "thumb": "2026-10-15.jpg",
+   "paragraphs": 134,
+   "cleaned": true,
+   "tldr": [
+    {
+     "notion": {
+      "en": "The value function of a parametric program",
+      "fr": "La fonction de valeur d'un programme paramétrique"
+     },
+     "p": 2,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Finite horizon means stage-dependent values",
+      "fr": "Horizon fini : des valeurs qui dépendent de l'étape"
+     },
+     "p": 6,
+     "exam": true
+    },
+    {
+     "notion": {
+      "en": "Backward induction",
+      "fr": "L'induction arrière"
+     },
+     "p": 13,
+     "exam": true
+    },
+    {
+     "notion": {
+      "en": "The cut-and-paste proof",
+      "fr": "La preuve par couper-coller"
+     },
+     "p": 27,
+     "exam": true
+    },
+    {
+     "notion": {
+      "en": "Finite-horizon problems as shortest paths",
+      "fr": "Problèmes à horizon fini et plus courts chemins"
+     },
+     "p": 35,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "The hydro reservoir model",
+      "fr": "Le modèle de réservoir hydroélectrique"
+     },
+     "p": 63,
+     "exam": true
+    },
+    {
+     "notion": {
+      "en": "Grids, infeasible actions and the curse of dimensionality",
+      "fr": "Grilles, actions irréalisables et malédiction de la dimension"
+     },
+     "p": 79,
+     "exam": true
+    },
+    {
+     "notion": {
+      "en": "Bang-bang threshold policy",
+      "fr": "Politique bang-bang à seuil"
+     },
+     "p": 85,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Nearest-grid lookup is a zero-order hold",
+      "fr": "La recherche du point de grille le plus proche est un bloqueur d'ordre zéro"
+     },
+     "p": 104,
+     "exam": true
+    },
+    {
+     "notion": {
+      "en": "Dynamic programming for insight: structural econometrics and bounded rationality",
+      "fr": "La programmation dynamique pour comprendre : économétrie structurelle et rationalité limitée"
+     },
+     "p": 113,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Next: LQR and the Riccati equation",
+      "fr": "À venir : le LQR et l'équation de Riccati"
+     },
+     "p": 129,
+     "exam": false
+    }
+   ]
+  },
+  {
+   "date": "2026-10-01",
+   "week": 5,
+   "title": {
+    "en": "Midterm 1 review: collocation worked example, single shooting and KKT conditions",
+    "fr": "Révision pour l'examen de mi-session 1 : exemple de collocation, tir simple et conditions KKT"
+   },
+   "chapters": [
+    {
+     "slug": "continuous-time-collocation",
+     "title": "Continuous-Time Transcription and Collocation"
+    },
+    {
+     "slug": "numerical-trajectory-optimization",
+     "title": "Numerical Trajectory Optimization"
+    },
+    {
+     "slug": "appendix_nlp",
+     "title": "Nonlinear Programming"
+    }
+   ],
+   "drive": "https://drive.google.com/file/d/1pe8Bg9NRHM_R8cht-TRMvR3eQngMqJX9/view",
+   "duration_ms": 6483679,
+   "thumb": "2026-10-01.jpg",
+   "paragraphs": 131,
+   "cleaned": true,
+   "tldr": [
+    {
+     "notion": {
+      "en": "Collocation decision variables",
+      "fr": "Variables de décision de la collocation"
+     },
+     "p": 18,
+     "exam": true
+    },
+    {
+     "notion": {
+      "en": "Integral-form collocation constraints",
+      "fr": "Contraintes de collocation, forme intégrale"
+     },
+     "p": 23,
+     "exam": true
+    },
+    {
+     "notion": {
+      "en": "Counting NLP unknowns",
+      "fr": "Compter les inconnues du NLP"
+     },
+     "p": 51,
+     "exam": true
+    },
+    {
+     "notion": {
+      "en": "Small residual is not accuracy",
+      "fr": "Petit résidu n'égale pas précision"
+     },
+     "p": 85,
+     "exam": true
+    },
+    {
+     "notion": {
+      "en": "Lagrangian, KKT, Arrow-Hurwicz",
+      "fr": "Lagrangien, KKT et Arrow-Hurwicz"
+     },
+     "p": 104,
+     "exam": true
+    },
+    {
+     "notion": {
+      "en": "Limits of single shooting",
+      "fr": "Limites du tir simple"
+     },
+     "p": 122,
+     "exam": true
+    },
+    {
+     "notion": {
+      "en": "Midterm 1 format and coverage",
+      "fr": "Examen de mi-session 1 : format et matière"
+     },
+     "p": 127,
+     "exam": true
+    }
+   ]
+  },
+  {
+   "date": "2026-09-28",
+   "week": 5,
+   "title": {
+    "en": "Model predictive control: feedback, value function and warm starts; parametric programming and continuation",
+    "fr": "Commande prédictive : rétroaction, fonction de valeur et démarrage à chaud; programmation paramétrique et continuation"
+   },
+   "chapters": [
+    {
+     "slug": "receding-horizon-control",
+     "title": "Receding-Horizon Control"
+    },
+    {
+     "slug": "mpc-variants-reliability",
+     "title": "MPC Variants and Reliable Operation"
+    },
+    {
+     "slug": "parametric-controllers",
+     "title": "Parametric and Approximate Controllers"
+    }
+   ],
+   "drive": "https://drive.google.com/file/d/1Hq_8W1gb19VbFmG8UBwQdb-B7zGRFOXt/view",
+   "duration_ms": 6567639,
+   "thumb": "2026-09-28.jpg",
+   "paragraphs": 128,
+   "cleaned": true,
+   "tldr": [
+    {
+     "notion": {
+      "en": "Final exam date and coverage",
+      "fr": "Date et matière de l'examen final"
+     },
+     "p": 1,
+     "exam": true
+    },
+    {
+     "notion": {
+      "en": "MPC as receding-horizon control",
+      "fr": "La MPC comme commande à horizon glissant"
+     },
+     "p": 17,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Feedback map and value function",
+      "fr": "Application de rétroaction et fonction de valeur"
+     },
+     "p": 34,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Warm starting by shifting",
+      "fr": "Démarrage à chaud par décalage"
+     },
+     "p": 51,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Implicit function theorem",
+      "fr": "Théorème des fonctions implicites"
+     },
+     "p": 69,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Predictor-corrector MPC",
+      "fr": "MPC prédicteur-correcteur"
+     },
+     "p": 96,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Amortization and dynamic programming",
+      "fr": "Amortissement et programmation dynamique"
+     },
+     "p": 108,
+     "exam": false
+    }
+   ]
+  },
+  {
+   "date": "2026-09-24",
+   "week": 4,
+   "title": {
+    "en": "Adjoints and the discrete-time Pontryagin principle; single and multiple shooting; MPC",
+    "fr": "États adjoints et principe de Pontryagin en temps discret; tir simple et multiple; commande prédictive"
+   },
+   "chapters": [
+    {
+     "slug": "discrete-time-pmp",
+     "title": "Adjoints and the Discrete-Time Pontryagin Principle"
+    },
+    {
+     "slug": "numerical-trajectory-optimization",
+     "title": "Numerical Trajectory Optimization"
+    },
+    {
+     "slug": "receding-horizon-control",
+     "title": "Receding-Horizon Control"
+    }
+   ],
+   "drive": "https://drive.google.com/file/d/1W1GYRmQ1b1qPSLzA7ox5wGvlsrIm39sh/view",
+   "duration_ms": 6500400,
+   "thumb": "2026-09-24.jpg",
+   "paragraphs": 126,
+   "cleaned": true,
+   "tldr": [
+    {
+     "notion": {
+      "en": "Discrete-time Pontryagin principle",
+      "fr": "Principe de Pontryagin en temps discret"
+     },
+     "p": 29,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Adjoint recursion is backprop",
+      "fr": "La récurrence adjointe, c'est la rétropropagation"
+     },
+     "p": 35,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Single shooting eliminates the states",
+      "fr": "Le tir simple élimine les états"
+     },
+     "p": 47,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "What single shooting cannot do",
+      "fr": "Ce que le tir simple ne peut pas faire"
+     },
+     "p": 69,
+     "exam": true
+    },
+    {
+     "notion": {
+      "en": "Multiple shooting",
+      "fr": "Tir multiple"
+     },
+     "p": 84,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "MPC as receding-horizon replanning",
+      "fr": "La MPC comme replanification à horizon glissant"
+     },
+     "p": 102,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "First exam coverage",
+      "fr": "Matière du premier examen"
+     },
+     "p": 122,
+     "exam": true
+    }
+   ]
+  },
+  {
+   "date": "2026-09-21",
+   "week": 4,
+   "title": {
+    "en": "Collocation recap; model predictive path integral control (MPPI)",
+    "fr": "Retour sur la collocation; commande prédictive par intégrale de chemin (MPPI)"
+   },
+   "chapters": [
+    {
+     "slug": "continuous-time-collocation",
+     "title": "Continuous-Time Transcription and Collocation"
+    },
+    {
+     "slug": "model-predictive-path-integral-control",
+     "title": "Model Predictive Path Integral Control"
+    }
+   ],
+   "drive": "https://drive.google.com/file/d/1y35tkX4f1aRKA_t8wkxRpCcI93Q5Y8IP/view",
+   "duration_ms": 6393400,
+   "thumb": "2026-09-21.jpg",
+   "paragraphs": 139,
+   "cleaned": true,
+   "tldr": [
+    {
+     "notion": {
+      "en": "Collocation recap",
+      "fr": "Rappel sur la collocation"
+     },
+     "p": 2,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Sampling-based plan improvement",
+      "fr": "Amélioration d'un plan par échantillonnage"
+     },
+     "p": 8,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Softmax weights and temperature",
+      "fr": "Poids softmax et température"
+     },
+     "p": 15,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "KL-regularized objective, Gibbs solution",
+      "fr": "Objectif régularisé par la KL, solution de Gibbs"
+     },
+     "p": 36,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Update as mean under P*",
+      "fr": "La mise à jour comme moyenne sous P*"
+     },
+     "p": 52,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Importance sampling and corrected costs",
+      "fr": "Échantillonnage préférentiel et coûts corrigés"
+     },
+     "p": 61,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "MPPI inside receding-horizon MPC",
+      "fr": "MPPI dans une MPC à horizon glissant"
+     },
+     "p": 111,
+     "exam": false
+    }
+   ]
+  },
+  {
+   "date": "2026-09-17",
+   "week": 3,
+   "title": {
+    "en": "Collocation: nodal polynomials and the collocation recipe; introduction to MPPI",
+    "fr": "Collocation : polynômes nodaux et recette de collocation; introduction à MPPI"
+   },
+   "chapters": [
+    {
+     "slug": "continuous-time-collocation",
+     "title": "Continuous-Time Transcription and Collocation"
+    },
+    {
+     "slug": "model-predictive-path-integral-control",
+     "title": "Model Predictive Path Integral Control"
+    }
+   ],
+   "drive": "https://drive.google.com/file/d/1m8nyh8luS1FQ-H5tzmU1A56diXKmn2Kw/view",
+   "duration_ms": 6076520,
+   "thumb": "2026-09-17.jpg",
+   "paragraphs": 102,
+   "cleaned": true,
+   "tldr": [
+    {
+     "notion": {
+      "en": "Monomial vs nodal (Lagrange) representation",
+      "fr": "Représentation monomiale vs nodale (Lagrange)"
+     },
+     "p": 2,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Precomputed derivative and integral operators",
+      "fr": "Opérateurs de dérivation et d'intégration précalculés"
+     },
+     "p": 9,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Integration-form collocation constraints",
+      "fr": "Contraintes de collocation, forme intégrale"
+     },
+     "p": 36,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Nodes generate the collocation scheme",
+      "fr": "Les nœuds engendrent le schéma de collocation"
+     },
+     "p": 44,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Differentiation-form collocation",
+      "fr": "Collocation, forme par dérivation"
+     },
+     "p": 56,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "MPPI: softmax-weighted sampled plans",
+      "fr": "MPPI : plans échantillonnés pondérés par softmax"
+     },
+     "p": 76,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "MPPI as sequential, gradient-free shooting",
+      "fr": "MPPI, un tir séquentiel sans gradient"
+     },
+     "p": 91,
+     "exam": false
+    }
+   ]
+  },
+  {
+   "date": "2026-09-14",
+   "week": 3,
+   "title": {
+    "en": "Collocation with Lagrange bases",
+    "fr": "Collocation avec des bases de Lagrange"
+   },
+   "chapters": [
+    {
+     "slug": "continuous-time-collocation",
+     "title": "Continuous-Time Transcription and Collocation"
+    }
+   ],
+   "drive": "https://drive.google.com/file/d/1_ed_y3MdzsgRGEF73zNFaE_H3zTHB-d6/view",
+   "duration_ms": 6686920,
+   "thumb": "2026-09-14.jpg",
+   "paragraphs": 139,
+   "cleaned": true,
+   "tldr": [
+    {
+     "notion": {
+      "en": "Lagrange (nodal) polynomial basis",
+      "fr": "Base polynomiale de Lagrange (nodale)"
+     },
+     "p": 3,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Exact derivative and integral operators",
+      "fr": "Opérateurs exacts de dérivation et d'intégration"
+     },
+     "p": 11,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Three-step collocation recipe",
+      "fr": "Recette de collocation en trois étapes"
+     },
+     "p": 32,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Euler, trapezoidal, Hermite-Simpson transcriptions",
+      "fr": "Transcriptions d'Euler, trapézoïdale et d'Hermite-Simpson"
+     },
+     "p": 42,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Why collocation keeps states",
+      "fr": "Pourquoi la collocation conserve les états"
+     },
+     "p": 95,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Augmented state for integral costs",
+      "fr": "État augmenté pour les coûts intégraux"
+     },
+     "p": 101,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Single shooting and long horizons",
+      "fr": "Tir simple et longs horizons"
+     },
+     "p": 121,
+     "exam": true
+    }
+   ]
+  },
+  {
+   "date": "2026-09-10",
+   "week": 2,
+   "title": {
+    "en": "Constrained optimization: Lagrangian, Newton and SQP; toward collocation",
+    "fr": "Optimisation sous contraintes : lagrangien, Newton et SQP; vers la collocation"
+   },
+   "chapters": [
+    {
+     "slug": "numerical-trajectory-optimization",
+     "title": "Numerical Trajectory Optimization"
+    },
+    {
+     "slug": "appendix_nlp",
+     "title": "Nonlinear Programming"
+    },
+    {
+     "slug": "continuous-time-collocation",
+     "title": "Continuous-Time Transcription and Collocation"
+    }
+   ],
+   "drive": "https://drive.google.com/file/d/1XVh8OdP_u_lZM-G0dAqQpNSEWmW_xQWY/view",
+   "duration_ms": 6674360,
+   "thumb": "2026-09-10.jpg",
+   "paragraphs": 136,
+   "cleaned": true,
+   "tldr": [
+    {
+     "notion": {
+      "en": "MPC turns expert models into controllers",
+      "fr": "La MPC transforme les modèles d'experts en contrôleurs"
+     },
+     "p": 1,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "States as decision variables",
+      "fr": "Les états comme variables de décision"
+     },
+     "p": 15,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Lagrangian as a two-player game",
+      "fr": "Le lagrangien comme jeu à deux joueurs"
+     },
+     "p": 22,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Arrow-Hurwicz gradient descent-ascent",
+      "fr": "La descente-ascension de gradient d'Arrow-Hurwicz"
+     },
+     "p": 29,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Newton's method on first-order conditions",
+      "fr": "La méthode de Newton sur les conditions du premier ordre"
+     },
+     "p": 43,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "SQP: quadratize, linearize, repeat",
+      "fr": "SQP : quadratiser, linéariser, recommencer"
+     },
+     "p": 68,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Transcription with nodal polynomials",
+      "fr": "La transcription avec des polynômes nodaux"
+     },
+     "p": 104,
+     "exam": false
+    }
+   ]
+  },
+  {
+   "date": "2026-09-03",
+   "week": 1,
+   "title": {
+    "en": "Finite-horizon optimal control; single shooting; KKT conditions and primal-dual methods",
+    "fr": "Commande optimale à horizon fini; tir simple; conditions KKT et méthodes primales-duales"
+   },
+   "chapters": [
+    {
+     "slug": "discrete-time-optimal-control",
+     "title": "Finite-Horizon Optimal Control Problems"
+    },
+    {
+     "slug": "numerical-trajectory-optimization",
+     "title": "Numerical Trajectory Optimization"
+    },
+    {
+     "slug": "appendix_nlp",
+     "title": "Nonlinear Programming"
+    }
+   ],
+   "drive": "https://drive.google.com/file/d/1dsSJgm1B_Qt78OoJ7Rg6DJ9zl1i9LYG7/view",
+   "duration_ms": 6576520,
+   "thumb": "2026-09-03.jpg",
+   "paragraphs": 137,
+   "cleaned": true,
+   "tldr": [
+    {
+     "notion": {
+      "en": "Evaluation dates and course logistics",
+      "fr": "Dates d'évaluation et logistique du cours"
+     },
+     "p": 6,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Discrete-time optimal control program",
+      "fr": "Programme de commande optimale en temps discret"
+     },
+     "p": 44,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Simultaneous versus sequential methods",
+      "fr": "Méthodes simultanées et méthodes séquentielles"
+     },
+     "p": 56,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Single shooting as RNN unrolling",
+      "fr": "Le tir simple comme déroulement d'un RNN"
+     },
+     "p": 64,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Path constraints require simultaneous methods",
+      "fr": "Les contraintes de trajectoire exigent des méthodes simultanées"
+     },
+     "p": 79,
+     "exam": true
+    },
+    {
+     "notion": {
+      "en": "KKT conditions and the Lagrangian",
+      "fr": "Conditions KKT et lagrangien"
+     },
+     "p": 113,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Primal-dual (Arrow-Hurwicz-Uzawa) methods",
+      "fr": "Méthodes primales-duales (Arrow-Hurwicz-Uzawa)"
+     },
+     "p": 116,
+     "exam": false
+    }
+   ]
+  },
+  {
+   "date": "2026-08-31",
+   "week": 1,
+   "title": {
+    "en": "Course overview; trajectory optimization and dynamics models",
+    "fr": "Présentation du cours; optimisation de trajectoire et modèles de dynamique"
+   },
+   "chapters": [
+    {
+     "slug": "intro",
+     "title": "From Models to Learning"
+    },
+    {
+     "slug": "modeling-controlled-systems",
+     "title": "Controlled Systems: Boundaries, States, and Actions"
+    }
+   ],
+   "drive": "https://drive.google.com/file/d/1bixK6wiSe4ZpKOS9bytDsRotLH9ZC8Qe/view",
+   "duration_ms": 6806800,
+   "thumb": "2026-08-31.jpg",
+   "paragraphs": 151,
+   "cleaned": true,
+   "tldr": [
+    {
+     "notion": {
+      "en": "Evaluation scheme and project",
+      "fr": "Barème d'évaluation et projet"
+     },
+     "p": 11,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Axes of modeling",
+      "fr": "Axes de modélisation"
+     },
+     "p": 37,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Open loop vs. MPC",
+      "fr": "Boucle ouverte ou MPC"
+     },
+     "p": 46,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "ODE dynamics and IVPs",
+      "fr": "Dynamique par ODE et IVP"
+     },
+     "p": 57,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "OCPs and transcription",
+      "fr": "OCP et transcription"
+     },
+     "p": 72,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Formulation is the bottleneck",
+      "fr": "La formulation est le goulot d'étranglement"
+     },
+     "p": 115,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Stochastic dynamics; LLMs as MDPs",
+      "fr": "Dynamique stochastique ; les LLM comme MDP"
+     },
+     "p": 140,
+     "exam": false
+    }
+   ]
+  }
+ ]
+}

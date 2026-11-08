@@ -1,0 +1,10 @@
+# Year-to-year NBI deck rating (item 58) transitions of decks with no work. Source: GitHub mirror https://github.com/HengLiu2021/MUSTEM-Model-using-NBI, Deck/Samples/Feature_Matrix_fold_1.mat: 88596 decks x 27 annual NBI ratings, 1993-2019 (Liu, Nehme and Lu 2023)
+# Rows: rating this year; columns: rating next year. Rating 3 pools ratings 0-3.
+from\to,9,8,7,6,5,4,3
+9,39509,6247,781,40,106,0,0
+8,0,406194,31759,1758,623,20,1
+7,0,0,983477,30475,2299,128,16
+6,0,0,0,523855,14162,570,65
+5,0,0,0,0,214981,3673,257
+4,0,0,0,0,0,35141,790
+3,0,0,0,0,0,0,6569

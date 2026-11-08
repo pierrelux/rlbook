@@ -1,0 +1,787 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Fixed-point lab</title>
+<style>
+  :root { color-scheme:light; --ink:#20333f; --muted:#5e707c; --rule:#d8e2e7; --blue:#0072b2;
+          --orange:#d55e00; --sky:#56b4e9; --gold:#e69f00; --green:#009e73; --purple:#cc79a7; --bg:#ffffff; }
+  * { box-sizing:border-box; }
+  [hidden] { display:none !important; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:15px/1.45 system-ui,-apple-system,sans-serif; }
+  main { max-width:1360px; margin:auto; padding:16px; }
+  h1 { font-size:21px; font-weight:650; margin:0 0 10px; letter-spacing:-.2px; }
+  h2 { font-size:13px; font-weight:600; color:var(--muted); margin:0 0 4px; }
+  button { font:inherit; font-size:14px; color:var(--ink); background:#fff; border:1px solid #bdccd4; border-radius:5px;
+           padding:6px 11px; min-height:36px; cursor:pointer; }
+  button.primary { background:var(--ink); color:#fff; border-color:var(--ink); }
+  button[aria-pressed=true] { background:#e8f1f6; border-color:var(--blue); }
+  button:focus-visible, input:focus-visible { outline:3px solid var(--gold); outline-offset:2px; }
+  .tabs { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:12px; border-bottom:1px solid var(--rule); padding-bottom:10px; }
+  .tabs button { font-weight:600; }
+  .banner { margin:0 0 10px; padding:9px 12px; border-left:3px solid var(--blue); background:#f3f8fb; }
+  .banner code { font:600 15px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace; white-space:nowrap; }
+  .predict { margin:0 0 10px; padding:9px 12px; border-left:3px solid var(--gold); background:#fdf8ec; min-height:44px; }
+  .predict b { font-weight:650; }
+  .row { display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin:0 0 10px; }
+  .row .gap { margin-left:auto; }
+  .group { display:inline-flex; flex-wrap:wrap; }
+  .group button { border-radius:0; margin-left:-1px; }
+  .group button:first-child { border-radius:5px 0 0 5px; margin-left:0; }
+  .group button:last-child { border-radius:0 5px 5px 0; }
+  .slider { min-width:210px; flex:1 1 210px; max-width:360px; }
+  .slider label { display:flex; justify-content:space-between; gap:8px; font-size:13px; color:var(--muted); }
+  output { color:var(--ink); font-variant-numeric:tabular-nums; }
+  input[type=range] { width:100%; accent-color:var(--blue); margin:6px 0 0; }
+  .two { display:grid; grid-template-columns:minmax(0,1.3fr) minmax(0,1fr); gap:12px; }
+  .panel { border:1px solid var(--rule); border-radius:7px; background:#fbfdfe; padding:8px 10px; }
+  canvas { display:block; width:100%; touch-action:none; }
+  #cob { cursor:crosshair; }
+  .legend { display:flex; flex-wrap:wrap; gap:4px 14px; font-size:13px; color:var(--muted); margin:6px 2px 0; }
+  .legend .on { color:var(--ink); font-weight:650; }
+  .swatch { display:inline-block; width:15px; height:3px; vertical-align:middle; margin-right:5px; }
+  .read { margin:10px 0 0; padding:8px 10px; font-size:14px; font-variant-numeric:tabular-nums; border-left:3px solid var(--rule); min-height:42px; }
+  #digits { font:14px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace; margin-top:8px; min-height:172px; }
+  #digits .k { display:inline-block; width:2.4em; color:var(--muted); }
+  #digits b { color:var(--blue); font-weight:700; }
+  .metrics { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; margin:10px 0; }
+  .metric span { display:block; color:var(--muted); font-size:12px; line-height:1.3; }
+  .metric strong { display:block; font-size:21px; font-weight:560; font-variant-numeric:tabular-nums; }
+  .hint { font-size:12px; color:var(--muted); margin:8px 0 0; }
+  @media (max-width:620px) {
+    .two { grid-template-columns:1fr; }
+    .metrics { grid-template-columns:repeat(2,minmax(0,1fr)); }
+    .row .gap { margin-left:0; }
+  }
+</style>
+</head>
+<body>
+<main>
+  <h1>Solving <i>x</i> = T(<i>x</i>): the same idea on four unknowns</h1>
+  <div class="tabs" role="group" aria-label="Unknown">
+    <button data-tab="number">1 · A number</button>
+    <button data-tab="trajectory">2 · A trajectory</button>
+    <button data-tab="mdp">3 · A one-state MDP</button>
+    <button data-tab="reservoir">4 · A water value function</button>
+  </div>
+
+  <!-- ===================================================== scalar view, used by tabs 1 and 3 -->
+  <section id="scalar" hidden>
+    <p class="banner">Every method draws a line through (<i>x</i>, T(<i>x</i>)) with some slope <i>s</i>, then jumps to where
+      that line meets <i>y</i> = <i>x</i>: &nbsp;<code>x⁺ = x + (T(x) − x) / (1 − s)</code>. &nbsp;The methods differ only in the slope.</p>
+    <p class="predict" id="note"></p>
+    <div class="row" id="presets"></div>
+    <div class="row">
+      <div class="group" id="methods"></div>
+      <div class="slider" id="s-box"><label for="s">Model slope <output id="s-out"></output></label>
+        <input id="s" type="range" min="-3" max="0.95" step="0.05" value="0.5"></div>
+      <div class="slider" id="par-box"><label for="par"><span id="par-label"></span> <output id="par-out"></output></label>
+        <input id="par" type="range"></div>
+      <span class="gap"></span>
+      <button id="back">◀ Back</button>
+      <button id="step" class="primary">Step ▶</button>
+      <button id="play">Play</button>
+      <button id="reset">Reset</button>
+    </div>
+    <div class="two">
+      <div class="panel">
+        <h2 id="cob-title"></h2>
+        <canvas id="cob" aria-label="Cobweb diagram of the iteration. Click to choose the starting point."></canvas>
+        <div class="legend" id="cob-legend"></div>
+        <p class="hint">Click or drag on the plot to choose the starting point. Keyboard: space or → to step, ← to go back, R to reset.</p>
+      </div>
+      <div class="panel">
+        <h2>Error |x<sub>k</sub> − x*| for every method from the same start</h2>
+        <canvas id="race" aria-label="Error against iteration for each method"></canvas>
+        <div class="legend" id="race-legend"></div>
+        <div id="digits" aria-label="Iterates, with the digits that agree with the solution in blue"></div>
+      </div>
+    </div>
+    <p class="read" id="read"></p>
+  </section>
+
+  <!-- ===================================================== trajectory -->
+  <section id="traj" hidden>
+    <p class="banner">The unknown is now a whole curve. For the damped pendulum, <code>x = T[x]</code> reads
+      <code>x(t) = x₀ + ∫₀ᵗ f(x(s)) ds</code>. Picard applies T to the current curve. Newton replaces T by its linearization along
+      the current curve and solves that linear ODE.</p>
+    <p class="predict"><b>Predict.</b> There is no discount factor here, so what makes Picard converge? Lengthen the horizon: why does the error
+      climb before it falls, and how does that differ from Newton?</p>
+    <div class="row">
+      <div class="group" id="t-methods">
+        <button data-m="picard">Picard · successive approximation</button>
+        <button data-m="newton">Newton · linear ODE each step</button>
+      </div>
+      <div class="slider"><label for="tf">Horizon <output id="tf-out"></output></label>
+        <input id="tf" type="range" min="1" max="15" step="0.5" value="6"></div>
+      <div class="slider"><label for="th0">Initial angle <output id="th0-out"></output></label>
+        <input id="th0" type="range" min="0.5" max="3" step="0.1" value="2.5"></div>
+      <span class="gap"></span>
+      <button id="t-back">◀ Back</button>
+      <button id="t-step" class="primary">Step ▶</button>
+      <button id="t-play">Play</button>
+      <button id="t-reset">Reset</button>
+    </div>
+    <div class="two">
+      <div class="panel">
+        <h2>Iterates: angle θ(t) as one point in a space of curves</h2>
+        <canvas id="t-curves" aria-label="Iterates of the pendulum angle over time"></canvas>
+        <div class="legend">
+          <span><i class="swatch" style="background:var(--ink)"></i>Solution of the discretized equation</span>
+          <span><i class="swatch" id="t-sw"></i>Current iterate, older iterates paler</span>
+        </div>
+      </div>
+      <div class="panel">
+        <h2>Largest error along the curve</h2>
+        <canvas id="t-race" aria-label="Error against iteration for Picard and Newton"></canvas>
+        <div class="legend">
+          <span><i class="swatch" style="background:var(--blue)"></i>Picard</span>
+          <span><i class="swatch" style="background:var(--orange)"></i>Newton</span>
+        </div>
+      </div>
+    </div>
+    <p class="read" id="t-read"></p>
+  </section>
+
+  <!-- ===================================================== reservoir -->
+  <section id="res" hidden>
+    <p class="banner">Last time the reservoir needed a terminal value, and we made one up. Now ask for the terminal value that reproduces itself:
+      <code>v = B v</code>, where <code>(B v)(x)</code> is one full year of backward induction ending on <code>γ v</code>. The unknown is
+      the function <code>v(x)</code>, the value of storage on 1 January if the plant runs forever.</p>
+    <p class="predict"><b>Predict.</b> With a one-year horizon and no terminal value, what happens to the water by December? As γ goes from 0.8 to 0.99,
+      how many more years does value iteration need, and how many more Newton steps?</p>
+    <div class="row">
+      <div class="slider"><label for="gam">Annual discount γ <output id="gam-out"></output></label>
+        <input id="gam" type="range" min="0.5" max="0.99" step="0.01" value="0.9"></div>
+      <div class="slider"><label for="kk">Years of backward induction k <output id="kk-out"></output></label>
+        <input id="kk" type="range" min="1" max="60" step="1" value="1"></div>
+      <span class="gap"></span>
+      <button id="r-vi" class="primary">One more year (value iteration)</button>
+      <button id="r-pi">One Newton step (policy iteration)</button>
+      <button id="r-shape" aria-pressed="false">Show shape only</button>
+      <button id="r-reset">Reset</button>
+    </div>
+    <div class="metrics">
+      <div class="metric"><span>Value iteration: years to reach v* within 1 $</span><strong id="m-vi"></strong></div>
+      <div class="metric"><span>Policy iteration: Newton steps to reach v*</span><strong id="m-pi"></strong></div>
+      <div class="metric"><span>Years until the greedy policy loses less than 1 k$</span><strong id="m-loss"></strong></div>
+      <div class="metric"><span>Terminal water price implied by v* at 1100 hm³ (the slider last time said 50)</span><strong id="m-price"></strong></div>
+    </div>
+    <div class="two">
+      <div class="panel">
+        <h2 id="r-title">Value of storage on 1 January (M$)</h2>
+        <canvas id="r-curves" aria-label="Iterates of the value function against storage"></canvas>
+        <div class="legend">
+          <span><i class="swatch" style="background:var(--blue)"></i>v<sub>k</sub> = B<sup>k</sup> 0, value iteration</span>
+          <span><i class="swatch" style="background:var(--orange)"></i>Policy iteration iterates</span>
+          <span><i class="swatch" style="background:var(--ink)"></i>v*</span>
+        </div>
+      </div>
+      <div class="panel">
+        <h2>Sup-norm distance to v* (M$)</h2>
+        <canvas id="r-race" aria-label="Error against iteration for value iteration and policy iteration"></canvas>
+        <div class="legend">
+          <span><i class="swatch" style="background:var(--blue)"></i>Value iteration, ‖v<sub>k</sub> − v*‖</span>
+          <span><i class="swatch" style="background:var(--purple)"></i>Loss of its greedy policy</span>
+          <span><i class="swatch" style="background:var(--orange)"></i>Policy iteration</span>
+        </div>
+      </div>
+    </div>
+    <div class="panel" style="margin-top:12px">
+      <h2 id="r-roll-title"></h2>
+      <canvas id="r-roll" aria-label="Storage over three years under the selected policy and under the optimal policy"></canvas>
+    </div>
+    <p class="read" id="r-read"></p>
+  </section>
+</main>
+
+<script>
+"use strict";
+const $ = id => document.getElementById(id);
+const C = { ink:"#20333f", muted:"#5e707c", rule:"#d8e2e7", blue:"#0072b2", orange:"#d55e00", sky:"#56b4e9",
+            gold:"#e69f00", green:"#009e73", purple:"#cc79a7" };
+
+// ---------------------------------------------------------------- small plotting helper
+function fit(c, h) {
+  const dpr = window.devicePixelRatio || 1, w = c.clientWidth;
+  c.width = Math.round(w * dpr); c.height = Math.round(h * dpr); c.style.height = h + "px";
+  const g = c.getContext("2d"); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, w, h);
+  return {g, w};
+}
+function ticks(a, b, n = 6) {
+  const span = b - a, raw = span / n, mag = 10 ** Math.floor(Math.log10(raw)), e = raw / mag;
+  const step = mag * (e < 1.5 ? 1 : e < 3 ? 2 : e < 7 ? 5 : 10), out = [];
+  for (let t = Math.ceil(a / step) * step; t <= b + 1e-9 * span; t += step) out.push(+t.toFixed(10));
+  return out;
+}
+const SUP = {"-":"⁻","0":"⁰","1":"¹","2":"²","3":"³","4":"⁴","5":"⁵","6":"⁶","7":"⁷","8":"⁸","9":"⁹"};
+const pow10 = n => n === 0 ? "1" : "10" + String(n).split("").map(c => SUP[c]).join("");
+function chart(c, h, o) {
+  const {g, w} = fit(c, h);
+  if (!w) return null;
+  const L = 52, R = 12, TOP = 8, B = 40, x0 = L, x1 = w - R, y0 = TOP, y1 = h - B;
+  const tr = o.log ? v => Math.log10(Math.max(v, 1e-300)) : v => v;
+  const X = x => x0 + (x - o.x[0]) / (o.x[1] - o.x[0]) * (x1 - x0);
+  const Y = y => y1 - (tr(y) - tr(o.y[0])) / (tr(o.y[1]) - tr(o.y[0])) * (y1 - y0);
+  g.font = "12.5px system-ui,-apple-system,sans-serif"; g.lineWidth = 1;
+  g.textAlign = "right"; g.textBaseline = "middle";
+  const yt = o.log ? (() => {
+    const a = Math.ceil(tr(o.y[0])), b = Math.floor(tr(o.y[1])), st = Math.max(1, Math.ceil((b - a) / 6)), v = [];
+    for (let n = a; n <= b; n += st) v.push(n);
+    return v;
+  })() : ticks(o.y[0], o.y[1]);
+  for (const t of yt) {
+    const py = o.log ? Y(10 ** t) : Y(t);
+    g.strokeStyle = "#e8eef1"; g.beginPath(); g.moveTo(x0, py); g.lineTo(x1, py); g.stroke();
+    g.fillStyle = C.muted; g.fillText(o.log ? pow10(t) : String(t), x0 - 6, py);
+  }
+  g.textAlign = "center"; g.textBaseline = "top";
+  for (const t of (o.xticks || ticks(o.x[0], o.x[1], o.nx || 7))) {
+    const px = X(t);
+    g.strokeStyle = "#e8eef1"; g.beginPath(); g.moveTo(px, y0); g.lineTo(px, y1); g.stroke();
+    g.fillStyle = C.muted; g.fillText(String(t), px, y1 + 5);
+  }
+  g.strokeStyle = "#bdccd4"; g.strokeRect(x0, y0, x1 - x0, y1 - y0);
+  if (o.xlabel) { g.fillStyle = C.muted; g.fillText(o.xlabel, (x0 + x1) / 2, y1 + 22); }
+  const clip = fn => { g.save(); g.beginPath(); g.rect(x0, y0, x1 - x0, y1 - y0); g.clip(); fn(); g.restore(); };
+  const line = (xs, ys, s = {}) => clip(() => {
+    g.strokeStyle = s.color || C.ink; g.lineWidth = s.width || 1.6; g.globalAlpha = s.alpha ?? 1;
+    g.setLineDash(s.dash || []); g.lineJoin = "round"; g.beginPath();
+    let on = false;
+    for (let i = 0; i < xs.length; i++) {
+      const v = ys[i];
+      if (!isFinite(v) || !isFinite(xs[i])) { on = false; continue; }
+      const px = X(xs[i]), py = Math.max(-5000, Math.min(5000, Y(v)));
+      if (on) g.lineTo(px, py); else { g.moveTo(px, py); on = true; }
+    }
+    g.stroke(); g.setLineDash([]); g.globalAlpha = 1;
+  });
+  const dot = (x, y, s = {}) => clip(() => {
+    g.beginPath(); g.arc(X(x), Y(y), s.r || 4.5, 0, 2 * Math.PI);
+    if (s.ring) { g.lineWidth = s.lw || 2; g.strokeStyle = s.color || C.ink; g.fillStyle = "#fff"; g.fill(); g.stroke(); }
+    else { g.fillStyle = s.color || C.ink; g.fill(); }
+  });
+  const toX = px => o.x[0] + (px - x0) / (x1 - x0) * (o.x[1] - o.x[0]);
+  return {g, X, Y, line, dot, clip, toX, box:[x0, y0, x1, y1]};
+}
+const num = (x, d = 5) => !isFinite(x) ? "∞" : Math.abs(x) >= 1e5 || (x !== 0 && Math.abs(x) < 1e-4) ? x.toExponential(2) : x.toFixed(d);
+
+// ---------------------------------------------------------------- scalar problems
+const BOAT = [
+  {name:"Harbour", r:1, p:.99, color:C.sky},
+  {name:"Coast", r:3, p:.9, color:C.green},
+  {name:"Open sea", r:6, p:.6, color:C.purple},
+];
+const boatActive = (v, g) => BOAT.reduce((b, a) => a.r + g * a.p * v > b.r + g * b.p * v ? a : b);
+function boatStar(g) {            // policy iteration from v = 0, exact on a piecewise-linear map
+  let v = 0;
+  for (let k = 0; k < 10; k++) { const a = boatActive(v, g); v = a.r / (1 - g * a.p); }
+  return v;
+}
+const PRESETS = {
+  cos: {
+    name:"cos x", x0:1.4, dom:() => [-0.2, 1.6], T:x => Math.cos(x), dT:x => -Math.sin(x), star:() => 0.7390851332151607,
+    note:"<b>Try it on your phone.</b> In radians, type any number and press cos again and again. <b>Predict:</b> why do the iterates land on alternating sides of the answer?",
+  },
+  baby: {
+    name:"½(x + 2/x)", x0:3, dom:() => [0.4, 3.4], T:x => .5 * (x + 2 / x), dT:x => .5 * (1 - 2 / (x * x)), star:() => Math.SQRT2,
+    note:"<b>The Babylonian rule for √2.</b> Plain successive approximation reaches machine precision in a handful of presses. <b>Predict:</b> look at the slope of T at the fixed point. Why does s = 0 race level with Newton here?",
+  },
+  logi: {
+    name:"r·x(1 − x)", x0:.45, dom:() => [0, 1], T:x => S.par * x * (1 - x), dT:x => S.par * (1 - 2 * x), star:() => 1 - 1 / S.par,
+    par:{label:"r", min:1.5, max:4, step:.05, val:2.8},
+    note:"<b>When the contraction fails.</b> Move r past 3. The fixed point 1 − 1/r still exists. <b>Predict:</b> what does successive approximation do at r = 3.2, and at r = 3.9? Does Newton care? This map has a second fixed point at 0: start Newton at x = 0.1 and see which one it finds.",
+  },
+  atan: {
+    name:"x − arctan x", x0:1.5, dom:() => [-4, 4], T:x => x - Math.atan(x), dT:x => 1 - 1 / (1 + x * x), star:() => 0,
+    note:"<b>Newton's trap.</b> The fixed point is 0. Start at 1.3, then at 1.5. <b>Predict:</b> which method goes wrong, and what does its line look like when it does? Successive approximation has no trouble at all.",
+  },
+  boat: {
+    name:"Bellman", x0:0, s0:.8, dom:() => [0, Math.max(30, 1.3 * boatStar(S.par))],
+    T:v => { const a = boatActive(v, S.par); return a.r + S.par * a.p * v; },
+    dT:v => S.par * boatActive(v, S.par).p,
+    star:() => boatStar(S.par),
+    par:{label:"Discount γ", min:.5, max:.995, step:.005, val:.95},
+    note:"<b>A boat, one state, three fishing grounds.</b> Each ground pays r this season and the boat survives with probability p, so each policy is a line r + γp·v and L is their upper envelope. <b>Predict:</b> as γ rises, which ground should the captain pick? If you start above v*, where does Newton land?",
+  },
+};
+const METHODS = {
+  sa:     {color:C.blue,   short:"Successive approximation", long:"Successive approximation · s = 0", mdp:"Value iteration · s = 0"},
+  fixed:  {color:C.gold,   short:"Fixed slope", long:"Fixed slope s", mdp:"Relaxed value iteration · fixed s"},
+  secant: {color:C.green,  short:"Secant", long:"Secant · s from last two points", mdp:"Secant · s from last two points"},
+  newton: {color:C.orange, short:"Newton", long:"Newton · s = T′(x)", mdp:"Policy iteration · s = γp of the active line"},
+};
+const S = {preset:"cos", numberPreset:"cos", par:0, method:"sa", s:.5, x0:1.4, cur:0, runs:{}, timer:null};
+
+function iterate(p, method, x0, s, n = 150) {
+  const xs = [x0], ss = [];
+  let end = "";
+  for (let k = 0; k < n; k++) {
+    const x = xs[k], t = p.T(x);
+    let sl = 0;
+    if (method === "newton") sl = p.dT(x);
+    else if (method === "fixed") sl = s;
+    else if (method === "secant" && k > 0) {
+      const d = x - xs[k - 1];
+      sl = Math.abs(d) > 1e-14 ? (t - p.T(xs[k - 1])) / d : 0;
+    }
+    if (Math.abs(1 - sl) < 1e-12) { end = "line parallel to y = x"; break; }
+    const nx = x + (t - x) / (1 - sl);
+    ss.push(sl);
+    if (!isFinite(nx) || Math.abs(nx) > 1e6) { xs.push(Math.sign(nx || 1) * 1e6); end = "diverged"; break; }
+    xs.push(nx);
+    if (Math.abs(nx - x) < 1e-15) { end = "converged"; break; }
+  }
+  return {xs, ss, end};
+}
+function computeRuns() {
+  const p = PRESETS[S.preset];
+  for (const m in METHODS) S.runs[m] = iterate(p, m, S.x0, S.s);
+}
+function setPreset(key) {
+  stopAll();
+  S.preset = key;
+  if (key !== "boat") S.numberPreset = key;
+  const p = PRESETS[key];
+  S.x0 = p.x0; S.cur = 0; S.s = p.s0 ?? -.5; $("s").value = S.s;
+  if (p.par) {
+    const e = $("par"); e.min = p.par.min; e.max = p.par.max; e.step = p.par.step; e.value = p.par.val;
+    S.par = p.par.val; $("par-label").textContent = p.par.label;
+  }
+  $("par-box").hidden = !p.par;
+  $("note").innerHTML = p.note;
+  $("presets").hidden = key === "boat";
+  [...$("presets").children].forEach(b => b.setAttribute("aria-pressed", b.dataset.p === key));
+  buildMethods();
+  computeRuns(); renderScalar();
+}
+function buildMethods() {
+  const mdp = S.preset === "boat", box = $("methods");
+  box.innerHTML = "";
+  for (const m in METHODS) {
+    const b = document.createElement("button");
+    b.textContent = mdp ? METHODS[m].mdp : METHODS[m].long;
+    b.setAttribute("aria-pressed", m === S.method);
+    b.onclick = () => { stopAll(); S.method = m; S.cur = 0; buildMethods(); renderScalar(); };
+    box.appendChild(b);
+  }
+  $("s-box").hidden = S.method !== "fixed";
+}
+function renderScalar() {
+  if ($("scalar").hidden) return;
+  const p = PRESETS[S.preset], dom = p.dom(), star = p.star(), run = S.runs[S.method], M = METHODS[S.method];
+  const k = Math.min(S.cur, run.xs.length - 1); S.cur = k;
+  if (p.par) $("par-out").textContent = S.par.toFixed(S.preset === "boat" ? 3 : 2);
+  $("s-out").textContent = S.s.toFixed(2) + "  (step 1/(1−s) = " + (1 / (1 - S.s)).toFixed(2) + ")";
+  const boat = S.preset === "boat";
+  $("cob-title").textContent = boat ? "L(v) = max over grounds of r + γp·v, against the line y = v" : "T(x) against the line y = x";
+  const H = Math.min(470, Math.max(320, $("cob").clientWidth * .62));
+  const ch = chart($("cob"), H, {x:dom, y:dom, xlabel: boat ? "v: the value of the future, what the boat has to lose" : "x"});
+  if (!ch) return;
+  const xs = Array.from({length:401}, (_, i) => dom[0] + i / 400 * (dom[1] - dom[0]));
+  ch.line(dom, dom, {color:C.muted, width:1.2});
+  if (boat) for (const a of BOAT) ch.line(dom, dom.map(v => a.r + S.par * a.p * v), {color:a.color, width:1.4, alpha:.9});
+  ch.line(xs, xs.map(p.T), {color:C.ink, width:boat ? 3 : 2.4});
+  // path taken so far
+  for (let j = 0; j < k; j++) {
+    const x = run.xs[j], t = p.T(x), n = run.xs[j + 1], a = .35 + .65 * (j + 1) / k;
+    ch.line([x, x], [x, t], {color:C.muted, width:1.1, alpha:a});
+    ch.line([x, n], [t, n], {color:M.color, width:2, alpha:a});
+  }
+  // model at the current point: this slope is the whole method
+  const x = run.xs[k], t = p.T(x), hasNext = k < run.ss.length;
+  const sl = hasNext ? run.ss[k] : (S.method === "newton" ? p.dT(x) : S.method === "fixed" ? S.s : 0);
+  ch.line(dom, dom.map(u => t + sl * (u - x)), {color:M.color, width:1.8, dash:[7, 5]});
+  ch.line([x, x], [x, t], {color:C.muted, width:1.1, dash:[2, 3]});
+  if (hasNext) ch.dot(run.xs[k + 1], run.xs[k + 1], {ring:true, color:M.color, r:5});
+  ch.dot(star, star, {ring:true, color:C.ink, r:7});
+  ch.dot(x, t, {color:M.color, r:5});
+  ch.dot(x, x, {color:C.ink, r:3.5});
+  // legend under the cobweb
+  const act = boat ? boatActive(x, S.par) : null;
+  $("cob-legend").innerHTML = (boat
+    ? BOAT.map(a => `<span class="${a === act ? "on" : ""}"><i class="swatch" style="background:${a.color}"></i>${a.name}: r = ${a.r}, p = ${a.p}</span>`).join("")
+    : `<span><i class="swatch" style="background:${C.ink}"></i>T</span><span><i class="swatch" style="background:${C.muted}"></i>y = x</span>`)
+    + `<span><i class="swatch" style="background:${M.color}"></i>Model line at x<sub>${k}</sub>, ring marks the jump</span>`;
+  // race
+  let top = 1e1;
+  for (const m in METHODS) for (const v of S.runs[m].xs) top = Math.max(top, Math.min(1e4, Math.abs(v - star)));
+  const rc = chart($("race"), 250, {x:[0, 30], y:[1e-16, top * 3], log:true, xlabel:"iteration k"});
+  for (const m in METHODS) {
+    const e = S.runs[m].xs.map(v => Math.max(Math.abs(v - star), 1e-16));
+    const stop = e.findIndex(v => v <= 1e-16);
+    const shown = stop < 0 ? e : e.slice(0, stop + 1);
+    rc.line(shown.map((_, i) => i), shown, {color:METHODS[m].color, width:m === S.method ? 3 : 1.6, alpha:m === S.method ? 1 : .75});
+  }
+  rc.dot(k, Math.max(Math.abs(x - star), 1e-16), {color:M.color, r:5.5});
+  $("race-legend").innerHTML = Object.keys(METHODS).map(m => `<span class="${m === S.method ? "on" : ""}"><i class="swatch" style="background:${METHODS[m].color}"></i>${METHODS[m].short}</span>`).join("");
+  // digits
+  const b = star.toFixed(14);
+  let rows = "";
+  for (let j = Math.max(0, k - 6); j <= k; j++) {
+    const a = run.xs[j].toFixed(14);
+    let n = 0; while (n < a.length && a[n] === b[n]) n++;
+    rows += `<div><span class="k">${j}</span><b>${a.slice(0, n)}</b>${a.slice(n)}</div>`;
+  }
+  $("digits").innerHTML = rows;
+  // readout
+  const slopeAt = p.dT(star);
+  const name = boat ? `active ground: <b>${act.name}</b> &nbsp;·&nbsp; ` : "";
+  const tail = hasNext ? `next x = ${num(run.xs[k + 1])}` : `<b>${run.end || "iteration limit"}</b>`;
+  $("read").innerHTML = `k = ${k} &nbsp;·&nbsp; x = ${num(x)} &nbsp;·&nbsp; T(x) − x = ${num(t - x)} &nbsp;·&nbsp; ${name}model slope s = ${num(sl, 3)} &nbsp;·&nbsp; ${tail}`
+    + `<br>Fixed point x* = ${num(star)}, where the slope of T is ${num(slopeAt, 3)}. Near x*, successive approximation multiplies the error by this slope at every step.`;
+}
+
+// ---------------------------------------------------------------- pendulum trajectory
+const P = {method:"picard", tf:6, th0:2.5, c:.25, N:300, cur:0, ref:null, picard:null, newton:null, timer:null};
+function pendRef() {            // implicit trapezoid marched in time: the fixed point of both global maps
+  const {N, c} = P, dt = P.tf / N, th = new Float64Array(N + 1), om = new Float64Array(N + 1);
+  th[0] = P.th0;
+  for (let j = 0; j < N; j++) {
+    const f1 = om[j], f2 = -Math.sin(th[j]) - c * om[j];
+    let a = th[j], b = om[j];
+    for (let it = 0; it < 12; it++) {
+      const r1 = a - th[j] - dt / 2 * (f1 + b), r2 = b - om[j] - dt / 2 * (f2 - Math.sin(a) - c * b);
+      const m11 = 1, m12 = -dt / 2, m21 = dt / 2 * Math.cos(a), m22 = 1 + dt / 2 * c, det = m11 * m22 - m12 * m21;
+      a -= (m22 * r1 - m12 * r2) / det; b -= (m11 * r2 - m21 * r1) / det;
+    }
+    th[j + 1] = a; om[j + 1] = b;
+  }
+  return {th, om};
+}
+function picardStep(x) {
+  const {N, c} = P, dt = P.tf / N, th = new Float64Array(N + 1), om = new Float64Array(N + 1);
+  th[0] = P.th0;
+  for (let j = 0; j < N; j++) {
+    th[j + 1] = th[j] + dt / 2 * (x.om[j] + x.om[j + 1]);
+    om[j + 1] = om[j] + dt / 2 * (-Math.sin(x.th[j]) - c * x.om[j] - Math.sin(x.th[j + 1]) - c * x.om[j + 1]);
+  }
+  return {th, om};
+}
+function newtonStep(x) {
+  const {N, c} = P, dt = P.tf / N, th = new Float64Array(N + 1), om = new Float64Array(N + 1);
+  th[0] = P.th0;
+  for (let j = 0; j < N; j++) {
+    const a = x.th[j], b = x.om[j], a1 = x.th[j + 1], b1 = x.om[j + 1];
+    const f1 = b, f2 = -Math.sin(a) - c * b, f1n = b1, f2n = -Math.sin(a1) - c * b1;
+    const g1 = f1 + (om[j] - b), g2 = f2 - Math.cos(a) * (th[j] - a) - c * (om[j] - b);
+    const r1 = th[j] + dt / 2 * (g1 + f1n - b1);
+    const r2 = om[j] + dt / 2 * (g2 + f2n + Math.cos(a1) * a1 + c * b1);
+    const m12 = -dt / 2, m21 = dt / 2 * Math.cos(a1), m22 = 1 + dt / 2 * c, det = m22 - m12 * m21;
+    th[j + 1] = (m22 * r1 - m12 * r2) / det;
+    om[j + 1] = (r2 - m21 * r1) / det;
+  }
+  return {th, om};
+}
+function runPend() {
+  P.ref = pendRef();
+  const err = x => { let e = 0; for (let j = 0; j <= P.N; j++) e = Math.max(e, Math.abs(x.th[j] - P.ref.th[j]), Math.abs(x.om[j] - P.ref.om[j])); return e; };
+  const seq = (stepFn, n) => {
+    const x0 = {th:new Float64Array(P.N + 1).fill(P.th0), om:new Float64Array(P.N + 1)};
+    const it = [x0], es = [err(x0)];
+    for (let k = 0; k < n && es[k] > 1e-12; k++) { const y = stepFn(it[k]); it.push(y); es.push(err(y)); if (!isFinite(es[k + 1])) break; }
+    return {it, es};
+  };
+  P.picard = seq(picardStep, 90);
+  P.newton = seq(newtonStep, 30);
+}
+function renderPend() {
+  if ($("traj").hidden) return;
+  const run = P[P.method], col = P.method === "picard" ? C.blue : C.orange, k = P.cur = Math.min(P.cur, run.it.length - 1);
+  $("tf-out").textContent = P.tf.toFixed(1) + " s"; $("th0-out").textContent = P.th0.toFixed(1) + " rad";
+  $("t-sw").style.background = col;
+  [...$("t-methods").children].forEach(b => b.setAttribute("aria-pressed", b.dataset.m === P.method));
+  let lo = Infinity, hi = -Infinity;
+  for (const v of P.ref.th) { lo = Math.min(lo, v); hi = Math.max(hi, v); }
+  const pad = .25 * (hi - lo) + .3, ts = Array.from({length:P.N + 1}, (_, j) => j / P.N * P.tf);
+  const H = Math.min(430, Math.max(300, $("t-curves").clientWidth * .55));
+  const ch = chart($("t-curves"), H, {x:[0, P.tf], y:[lo - pad, hi + pad], xlabel:"time t (s)"});
+  if (!ch) return;
+  ch.line(ts, P.ref.th, {color:C.ink, width:3.2});
+  for (let j = Math.max(0, k - 12); j < k; j++) ch.line(ts, run.it[j].th, {color:col, width:1.2, alpha:.14 + .5 * (j + 1 - Math.max(0, k - 12)) / 13});
+  ch.line(ts, run.it[k].th, {color:col, width:2.8});
+  const pe = P.picard.es, ne = P.newton.es;
+  let top = 10; for (const v of pe.concat(ne)) if (isFinite(v)) top = Math.max(top, v);
+  const rc = chart($("t-race"), H, {x:[0, Math.max(10, pe.length - 1)], y:[1e-13, top * 3], log:true, xlabel:"iteration k"});
+  const clipE = e => e.map(v => Math.max(v, 1e-13));
+  rc.line(pe.map((_, i) => i), clipE(pe), {color:C.blue, width:P.method === "picard" ? 3 : 1.8});
+  rc.line(ne.map((_, i) => i), clipE(ne), {color:C.orange, width:P.method === "newton" ? 3 : 1.8});
+  rc.dot(k, Math.max(run.es[k], 1e-13), {color:col, r:5.5});
+  const pn = pe.length - 1, nn = ne.length - 1;
+  $("t-read").innerHTML = `k = ${k} &nbsp;·&nbsp; ${P.method === "picard" ? "Picard" : "Newton"} error = ${num(run.es[k], 4)} &nbsp;·&nbsp; to reach 10⁻¹²: Picard ${pn} iterations, Newton ${nn} linear ODE solves.`
+    + `<br>A fact for the board: the proof that Picard is a contraction measures error with the weight e<sup>−βt</sup>, and that weight is a discount factor.`;
+}
+
+// ---------------------------------------------------------------- reservoir, same model as hydro-reservoir.html
+const WEEKS = 52, XMIN = 200, XMAX = 2000, DX = 10, UMIN = 30, UMAX = 250, KAPPA = 2.45;
+const NX = (XMAX - XMIN) / DX + 1;
+const GRID = Float64Array.from({length:NX}, (_, i) => XMIN + i * DX);
+const HEAD = GRID.map(x => 40 + 40 * Math.sqrt(x / XMAX));
+const INFLOW = new Float64Array(WEEKS), PRICE = new Float64Array(WEEKS);
+for (let t = 0; t < WEEKS; t++) {
+  const raw = 60 + 340 * Math.exp(-(((t - 19) / 3.5) ** 2)) + 60 * Math.exp(-(((t - 43) / 4) ** 2));
+  INFLOW[t] = 10 * Math.round(raw / 10);
+  PRICE[t] = 60 + 30 * Math.cos(2 * Math.PI * (t - 5) / 52);
+}
+const newPol = () => Array.from({length:WEEKS}, () => new Int16Array(NX));
+const WORK = newPol();
+// One year of backward induction: (B v)(x), and the weekly rules that attain it. Values in M$.
+function yearPass(term, g, pol) {
+  let next = new Float64Array(NX), cur = new Float64Array(NX);
+  for (let i = 0; i < NX; i++) next[i] = g * term[i];
+  for (let t = WEEKS - 1; t >= 0; t--) {
+    const wt = INFLOW[t], rule = pol[t];
+    for (let i = 0; i < NX; i++) {
+      const x = GRID[i], gain = PRICE[t] * KAPPA * HEAD[i] / 1e6;
+      let best = -Infinity, bu = UMIN;
+      for (let u = UMIN; u <= UMAX; u += DX) {
+        if (x + wt - u < XMIN) break;
+        const nx = Math.min(x + wt - u, XMAX), v = gain * u + next[((nx - XMIN) / DX) | 0];
+        if (v > best) { best = v; bu = u; }
+      }
+      cur[i] = best; rule[i] = bu;
+    }
+    [next, cur] = [cur, next];
+  }
+  return next;
+}
+// The year under fixed weekly rules: where each 1 January storage ends up, and the revenue on the way.
+function annualMap(pol) {
+  const f = new Int32Array(NX), rev = new Float64Array(NX);
+  for (let i = 0; i < NX; i++) {
+    let j = i, sum = 0;
+    for (let t = 0; t < WEEKS; t++) {
+      const x = GRID[j], u = pol[t][j];
+      sum += PRICE[t] * KAPPA * HEAD[j] * u / 1e6;
+      j = ((Math.min(x + INFLOW[t] - u, XMAX) - XMIN) / DX) | 0;
+    }
+    f[i] = j; rev[i] = sum;
+  }
+  return {f, rev};
+}
+// Policy evaluation: the exact solution of (I − γ P_π) v = r_π. P_π is deterministic here, so the
+// linear solve is a walk along each path until it closes a cycle, then back-substitution.
+function evaluate({f, rev}, g) {
+  const v = new Float64Array(NX), state = new Uint8Array(NX);
+  for (let s = 0; s < NX; s++) {
+    if (state[s]) continue;
+    const path = []; let c = s;
+    while (!state[c]) { state[c] = 1; path.push(c); c = f[c]; }
+    if (state[c] === 1) {
+      const start = path.indexOf(c), cyc = path.slice(start);
+      let sum = 0, pw = 1;
+      for (const q of cyc) { sum += pw * rev[q]; pw *= g; }
+      v[c] = sum / (1 - pw); state[c] = 2;
+      for (let q = cyc.length - 1; q >= 1; q--) {
+        const n = cyc[q];
+        v[n] = rev[n] + g * v[f[n]]; state[n] = 2;
+      }
+      path.length = start;
+    }
+    for (let q = path.length - 1; q >= 0; q--) { const n = path[q]; v[n] = rev[n] + g * v[f[n]]; state[n] = 2; }
+  }
+  return v;
+}
+const sup = (a, b) => { let e = 0; for (let i = 0; i < NX; i++) e = Math.max(e, Math.abs(a[i] - b[i])); return e; };
+const R = {g:.9, k:1, m:0, shape:false, sol:null, debounce:null};
+function solveReservoir(g) {
+  const zero = new Float64Array(NX), pi = [zero];
+  let v = zero;
+  for (let m = 0; m < 40; m++) {
+    yearPass(v, g, WORK);
+    const nv = evaluate(annualMap(WORK), g);
+    pi.push(nv);
+    if (sup(nv, v) < 1e-9) break;
+    v = nv;
+  }
+  const star = pi[pi.length - 1], polStar = WORK.map(r => r.slice());
+  const piErr = pi.map(u => sup(u, star));
+  const piSteps = piErr.findIndex(e => e < 1e-8);
+  const vi = [zero], viErr = [sup(zero, star)], loss = [NaN];
+  for (let k = 1; k <= 3000 && viErr[k - 1] > 1e-6; k++) {
+    const nv = yearPass(vi[k - 1], g, WORK);
+    vi.push(nv); viErr.push(sup(nv, star));
+    loss.push(sup(evaluate(annualMap(WORK), g), star));
+  }
+  let lossYear = loss.length - 1;
+  while (lossYear > 1 && loss[lossYear - 1] < 1e-3) lossYear--;
+  return {g, star, polStar, pi, piErr, piSteps, vi, viErr, loss, lossYear};
+}
+function rollout(pol, x0, years) {
+  const st = [x0], rev = [];
+  let j = (x0 - XMIN) / DX;
+  for (let y = 0; y < years; y++) {
+    let sum = 0;
+    for (let t = 0; t < WEEKS; t++) {
+      const x = GRID[j], u = pol[t][j];
+      sum += PRICE[t] * KAPPA * HEAD[j] * u / 1e6;
+      j = ((Math.min(x + INFLOW[t] - u, XMAX) - XMIN) / DX) | 0;
+      st.push(GRID[j]);
+    }
+    rev.push(sum);
+  }
+  return {st, rev};
+}
+function renderReservoir() {
+  if ($("res").hidden) return;
+  if (!R.sol || R.sol.g !== R.g) { R.sol = solveReservoir(R.g); R.m = Math.min(R.m, R.sol.piSteps); }
+  const s = R.sol;
+  const kmax = Math.min(60, s.vi.length - 1);
+  $("kk").max = kmax; R.k = Math.min(R.k, kmax); $("kk").value = R.k;
+  $("gam-out").textContent = R.g.toFixed(2); $("kk-out").textContent = R.k;
+  $("r-shape").setAttribute("aria-pressed", R.shape);
+  $("r-title").textContent = R.shape ? "Shape of the value: v(x) − v(200) (M$). Its slope sets the policy." : "Value of storage on 1 January (M$)";
+  $("m-vi").textContent = (s.vi.length - 1) + " years";
+  $("m-pi").textContent = s.piSteps + " steps";
+  $("m-loss").textContent = s.lossYear + " years";
+  const i0 = (1100 - XMIN) / DX;
+  const price = R.g * (s.star[i0 + 5] - s.star[i0 - 5]) / (10 * DX) * 1e6 / (KAPPA * HEAD[i0]);
+  $("m-price").textContent = price.toFixed(1) + " $/MWh";
+  // curves
+  const base = u => R.shape ? Array.from(u, y => y - u[0]) : Array.from(u);
+  const H = Math.min(400, Math.max(290, $("r-curves").clientWidth * .5));
+  const shown = [s.star, s.vi[R.k]];
+  for (let j = 0; j <= R.m; j++) shown.push(s.pi[j]);
+  let top = 1;
+  for (const u of shown) for (const y of base(u)) top = Math.max(top, y);
+  const ch = chart($("r-curves"), H, {x:[XMIN, XMAX], y:[0, top * 1.06], xlabel:"storage on 1 January, x (hm³)"});
+  if (!ch) return;
+  const gx = Array.from(GRID);
+  for (let j = Math.max(0, R.k - 15); j < R.k; j++) ch.line(gx, base(s.vi[j]), {color:C.blue, width:1.2, alpha:.2 + .5 * (j - Math.max(0, R.k - 15) + 1) / 16});
+  ch.line(gx, base(s.vi[R.k]), {color:C.blue, width:2.8});
+  for (let j = 1; j <= R.m; j++) ch.line(gx, base(s.pi[j]), {color:C.orange, width:j === R.m ? 2.8 : 1.4, alpha:j === R.m ? 1 : .55});
+  ch.line(gx, base(s.star), {color:C.ink, width:1.8, dash:[7, 5]});
+  // error race, every iterate on a log axis
+  const n = s.viErr.length - 1;
+  const rc = chart($("r-race"), H, {x:[0, Math.max(10, n)], y:[1e-6, s.viErr[0] * 2], log:true, xlabel:"iterations (years of backward induction, or Newton steps)"});
+  rc.line(s.viErr.map((_, i) => i), s.viErr, {color:C.blue, width:2.4});
+  rc.line(s.loss.map((_, i) => i), s.loss.map(e => e > 1e-6 ? e : NaN), {color:C.purple, width:2});
+  const pe = s.piErr.slice(0, s.piSteps + 1).map(e => Math.max(e, 1e-6));
+  rc.line(pe.map((_, i) => i), pe, {color:C.orange, width:2.4});
+  pe.forEach((e, i) => { if (i <= R.m) rc.dot(i, e, {color:C.orange, r:4.5}); else rc.dot(i, e, {ring:true, color:C.orange, r:3.5, lw:1.5}); });
+  rc.dot(R.k, s.viErr[R.k], {color:C.blue, r:5});
+  // three years under the rule of a k-year horizon
+  const pol = newPol();
+  yearPass(s.vi[R.k - 1], R.g, pol);
+  const a = rollout(pol, 1100, 3), b = rollout(s.polStar, 1100, 3);
+  const weeks = a.st.map((_, i) => i);
+  $("r-roll-title").textContent = `Storage over three years from 1100 hm³: the January rule of a ${R.k}-year horizon, repeated, against the fixed-point policy`;
+  const rl = chart($("r-roll"), 200, {x:[0, 156], y:[XMIN, XMAX], xticks:[0, 52, 104, 156], xlabel:"weeks"});
+  rl.line(weeks, b.st, {color:C.ink, width:1.8, dash:[7, 5]});
+  rl.line(weeks, a.st, {color:C.blue, width:2.6});
+  const dec = a.st[156], decStar = b.st[156];
+  $("r-read").innerHTML = (R.k === 1
+    ? `k = 1 is last month's one-year problem with terminal value zero: water left in December is worth nothing.`
+    : `k = ${R.k}: v<sub>k</sub> is the optimal value of a ${R.k}-year problem whose terminal value is zero. Value iteration <b>is</b> backward induction that keeps going.`)
+    + `<br>End of year 3: ${dec.toFixed(0)} hm³ against ${decStar.toFixed(0)} hm³ for the fixed-point policy. Revenue in year 3: ${a.rev[2].toFixed(1)} M$ against ${b.rev[2].toFixed(1)} M$.`
+    + ` Newton iterates shown: ${R.m} of ${s.piSteps}.`;
+}
+
+// ---------------------------------------------------------------- wiring
+for (const key of ["cos", "baby", "logi", "atan"]) {
+  const b = document.createElement("button");
+  b.textContent = "T(x) = " + PRESETS[key].name; b.dataset.p = key; b.onclick = () => setPreset(key);
+  $("presets").appendChild(b);
+}
+function stopAll() {
+  for (const o of [S, P]) if (o.timer) { clearInterval(o.timer); o.timer = null; }
+  $("play").textContent = "Play"; $("t-play").textContent = "Play";
+}
+function scalarStep(d) {
+  const run = S.runs[S.method];
+  S.cur = Math.max(0, Math.min(run.xs.length - 1, S.cur + d)); renderScalar();
+  return S.cur < run.xs.length - 1;
+}
+function pendStep(d) {
+  const run = P[P.method];
+  P.cur = Math.max(0, Math.min(run.it.length - 1, P.cur + d)); renderPend();
+  return P.cur < run.it.length - 1;
+}
+$("step").onclick = () => { stopAll(); scalarStep(1); };
+$("back").onclick = () => { stopAll(); scalarStep(-1); };
+$("reset").onclick = () => { stopAll(); S.cur = 0; renderScalar(); };
+$("play").onclick = () => {
+  if (S.timer) return stopAll();
+  $("play").textContent = "Pause";
+  S.timer = setInterval(() => { if (!scalarStep(1)) stopAll(); }, 700);
+};
+$("par").oninput = e => { S.par = +e.target.value; S.cur = 0; computeRuns(); renderScalar(); };
+$("s").oninput = e => { S.s = +e.target.value; S.cur = 0; computeRuns(); renderScalar(); };
+{
+  let down = false;
+  const pick = e => {
+    const p = PRESETS[S.preset], dom = p.dom();
+    const ch = chart($("cob"), $("cob").clientHeight, {x:dom, y:dom});
+    const r = $("cob").getBoundingClientRect();
+    S.x0 = Math.max(dom[0] + 1e-3, Math.min(dom[1], ch.toX(e.clientX - r.left)));
+    S.cur = 0; computeRuns(); renderScalar();
+  };
+  $("cob").addEventListener("pointerdown", e => { stopAll(); down = true; pick(e); });
+  window.addEventListener("pointermove", e => { if (down) pick(e); });
+  window.addEventListener("pointerup", () => { down = false; });
+}
+[...$("t-methods").children].forEach(b => b.onclick = () => { stopAll(); P.method = b.dataset.m; P.cur = 0; renderPend(); });
+$("t-step").onclick = () => { stopAll(); pendStep(1); };
+$("t-back").onclick = () => { stopAll(); pendStep(-1); };
+$("t-reset").onclick = () => { stopAll(); P.cur = 0; renderPend(); };
+$("t-play").onclick = () => {
+  if (P.timer) return stopAll();
+  $("t-play").textContent = "Pause";
+  P.timer = setInterval(() => { if (!pendStep(1)) stopAll(); }, 600);
+};
+$("tf").oninput = e => { P.tf = +e.target.value; P.cur = 0; runPend(); renderPend(); };
+$("th0").oninput = e => { P.th0 = +e.target.value; P.cur = 0; runPend(); renderPend(); };
+$("gam").oninput = e => {
+  R.g = +e.target.value; $("gam-out").textContent = R.g.toFixed(2);
+  clearTimeout(R.debounce); R.debounce = setTimeout(renderReservoir, 120);
+};
+$("kk").oninput = e => { R.k = +e.target.value; renderReservoir(); };
+$("r-vi").onclick = () => { R.k = Math.min(R.k + 1, +$("kk").max); renderReservoir(); };
+$("r-pi").onclick = () => { R.m = Math.min(R.m + 1, R.sol.piSteps); renderReservoir(); };
+$("r-shape").onclick = () => { R.shape = !R.shape; renderReservoir(); };
+$("r-reset").onclick = () => { R.k = 1; R.m = 0; renderReservoir(); };
+
+let tab = "number";
+function setTab(t) {
+  stopAll(); tab = t;
+  document.querySelectorAll(".tabs button").forEach(b => b.setAttribute("aria-pressed", b.dataset.tab === t));
+  $("scalar").hidden = !(t === "number" || t === "mdp");
+  $("traj").hidden = t !== "trajectory";
+  $("res").hidden = t !== "reservoir";
+  if (t === "number") setPreset(S.numberPreset);
+  if (t === "mdp") setPreset("boat");
+  if (t === "trajectory") { if (!P.ref) runPend(); renderPend(); }
+  if (t === "reservoir") renderReservoir();
+  try { history.replaceState(null, "", "#" + t); } catch (e) { /* sandboxed frames refuse this */ }
+}
+document.querySelectorAll(".tabs button").forEach(b => b.onclick = () => setTab(b.dataset.tab));
+window.addEventListener("keydown", e => {
+  if (e.target.tagName === "INPUT") return;
+  const fwd = e.key === "ArrowRight" || (e.key === " " && e.target.tagName !== "BUTTON");
+  if (e.key === " " && e.target.tagName === "BUTTON") return;
+  if (fwd || e.key === "ArrowLeft") {
+    e.preventDefault(); stopAll();
+    const d = fwd ? 1 : -1;
+    if (tab === "number" || tab === "mdp") scalarStep(d);
+    else if (tab === "trajectory") pendStep(d);
+    else { R.k = Math.max(1, Math.min(R.k + d, +$("kk").max)); renderReservoir(); }
+  }
+  if (e.key === "r" || e.key === "R") {
+    if (tab === "number" || tab === "mdp") { S.cur = 0; renderScalar(); }
+    else if (tab === "trajectory") { P.cur = 0; renderPend(); }
+    else { R.k = 1; R.m = 0; renderReservoir(); }
+  }
+});
+{
+  let raf = 0;
+  window.addEventListener("resize", () => {
+    cancelAnimationFrame(raf);
+    raf = requestAnimationFrame(() => { renderScalar(); renderPend(); renderReservoir(); });
+  });
+}
+const start = location.hash.slice(1);
+setTab(["number", "trajectory", "mdp", "reservoir"].includes(start) ? start : "number");
+</script>
+</body>
+</html>

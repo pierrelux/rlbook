@@ -1,0 +1,462 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Hydro reservoir backward recursion</title>
+<style>
+  :root { color-scheme:light; --ink:#20333f; --muted:#5e707c; --rule:#d8e2e7; --blue:#0072b2;
+          --orange:#d55e00; --sky:#56b4e9; --gold:#e69f00; --green:#009e73; --bg:#ffffff; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:14px/1.45 system-ui,-apple-system,sans-serif; }
+  main { max-width:1120px; margin:auto; padding:16px; }
+  h1 { font-size:20px; font-weight:650; margin:0 0 4px; letter-spacing:-.2px; }
+  .intro { color:var(--muted); font-size:13px; margin:0 0 12px; }
+  .controls { display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:6px 16px; margin-bottom:10px; }
+  .slider label { display:flex; justify-content:space-between; gap:8px; font-size:12px; color:var(--muted); }
+  output { color:var(--ink); font-variant-numeric:tabular-nums; }
+  input[type=range] { width:100%; accent-color:var(--blue); margin:6px 0 0; }
+  .toolbar { display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin:4px 0 12px; }
+  button { font:inherit; color:var(--ink); background:#fff; border:1px solid #bdccd4; border-radius:5px;
+           padding:6px 11px; min-height:34px; cursor:pointer; }
+  button.primary { background:var(--ink); color:#fff; border-color:var(--ink); }
+  button[aria-pressed=true] { background:#e8f1f6; border-color:var(--blue); }
+  button:focus-visible, input:focus-visible { outline:3px solid var(--gold); outline-offset:2px; }
+  .segmented { display:inline-flex; gap:0; margin-left:auto; }
+  .segmented button { border-radius:0; margin-left:-1px; }
+  .segmented button:first-child { border-radius:5px 0 0 5px; margin-left:0; }
+  .segmented button:last-child { border-radius:0 5px 5px 0; }
+  .layout { display:grid; grid-template-columns:minmax(0,1fr) 190px; gap:12px; }
+  .panel { border:1px solid var(--rule); border-radius:7px; background:#fbfdfe; }
+  canvas { display:block; width:100%; }
+  .panel h2 { font-size:12px; font-weight:600; color:var(--muted); margin:8px 10px 0; }
+  #readout { min-height:40px; font-size:13px; margin:10px 0 6px; padding:8px 10px; border-left:3px solid var(--blue);
+             background:#f3f8fb; }
+  .metrics { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; margin-top:10px; }
+  .metric span { display:block; color:var(--muted); font-size:11px; }
+  .metric strong { display:block; font-size:17px; font-weight:560; font-variant-numeric:tabular-nums; }
+  .legend { display:flex; flex-wrap:wrap; gap:4px 14px; font-size:11.5px; color:var(--muted); margin:6px 2px 0; }
+  .swatch { display:inline-block; width:14px; height:3px; vertical-align:middle; margin-right:5px; }
+  .box { display:inline-block; width:10px; height:10px; vertical-align:-1px; margin-right:5px; }
+  @media (max-width:620px) {
+    .layout { grid-template-columns:1fr; }
+    .metrics { grid-template-columns:repeat(2,minmax(0,1fr)); }
+    .segmented { margin-left:0; }
+  }
+</style>
+</head>
+<body>
+<main>
+  <h1>Seasonal reservoir: one backward pass, every storage level</h1>
+  <p class="intro">The page solves Bellman's equation on the same grid as the chapter (181 storage
+    levels, releases in steps of 10 hm³, 52 weeks) each time a parameter changes.</p>
+
+  <div class="controls">
+    <div class="slider"><label for="x0">Storage on 1 Jan <output id="x0-out"></output></label>
+      <input id="x0" type="range" min="200" max="2000" step="10" value="1100"></div>
+    <div class="slider"><label for="freshet">Freshet size <output id="freshet-out"></output></label>
+      <input id="freshet" type="range" min="0.4" max="1.6" step="0.05" value="1"></div>
+    <div class="slider"><label for="swing">Winter price swing <output id="swing-out"></output></label>
+      <input id="swing" type="range" min="0" max="45" step="1" value="30"></div>
+    <div class="slider"><label for="pT">Year-end water price <output id="pT-out"></output></label>
+      <input id="pT" type="range" min="0" max="90" step="5" value="50"></div>
+    <div class="slider"><label for="umax">Turbine capacity <output id="umax-out"></output></label>
+      <input id="umax" type="range" min="100" max="400" step="10" value="250"></div>
+  </div>
+
+  <div class="toolbar">
+    <button id="backward" class="primary" type="button">Backward pass</button>
+    <button id="forward" class="primary" type="button">Play the year</button>
+    <button id="stop" type="button">Show all</button>
+    <div class="segmented" role="group" aria-label="Map shown">
+      <button type="button" data-map="policy" aria-pressed="true">Release</button>
+      <button type="button" data-map="water" aria-pressed="false">Water value</button>
+      <button type="button" data-map="value" aria-pressed="false">Value J</button>
+    </div>
+  </div>
+
+  <div class="layout">
+    <div>
+      <div class="panel"><canvas id="map" data-h="300" aria-label="Map over week and storage"></canvas></div>
+      <div class="legend" id="map-legend"></div>
+      <div class="panel" style="margin-top:10px"><canvas id="strips" data-h="230" aria-label="Price, water value, inflow and release along the simulated year"></canvas></div>
+      <div class="legend">
+        <span><i class="swatch" style="background:var(--orange)"></i>price p<sub>t</sub></span>
+        <span><i class="swatch" style="background:var(--blue)"></i>water value of next week's storage, $/MWh at today's head</span>
+        <span><i class="box" style="background:#cfe6f5"></i>inflow</span>
+        <span><i class="box" style="background:#3b4f5c"></i>release</span>
+        <span><i class="box" style="background:var(--orange)"></i>spill</span>
+      </div>
+    </div>
+    <div class="panel">
+      <h2 id="column-title">Week 1</h2>
+      <canvas id="column" data-h="330" aria-label="Value function and reservoir level for the current week"></canvas>
+    </div>
+  </div>
+
+  <div id="readout" aria-live="polite"></div>
+
+  <div class="metrics">
+    <div class="metric"><span>Revenue, optimal policy</span><strong id="m-dp"></strong></div>
+    <div class="metric"><span>Revenue, run of river</span><strong id="m-ror"></strong></div>
+    <div class="metric"><span>Water spilled (optimal)</span><strong id="m-spill"></strong></div>
+    <div class="metric"><span>Storage on 31 December</span><strong id="m-end"></strong></div>
+  </div>
+</main>
+
+<script>
+"use strict";
+// ---------------------------------------------------------------- model
+const T = 52, X_MIN = 200, X_MAX = 2000, DX = 10, U_MIN = 30, KAPPA = 2.45;
+const NX = (X_MAX - X_MIN) / DX + 1;
+const GRID = Float64Array.from({length: NX}, (_, i) => X_MIN + i * DX);
+const head = x => 40 + 40 * Math.sqrt(x / X_MAX);
+const idx = x => Math.round((x - X_MIN) / DX);
+const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+
+function dateOfWeek(t) {
+  const d = new Date(Date.UTC(2026, 0, 1 + 7 * t));
+  return d.getUTCDate() + " " + MONTHS[d.getUTCMonth()];
+}
+
+function inputs(par) {
+  const w = new Float64Array(T), p = new Float64Array(T);
+  for (let t = 0; t < T; t++) {
+    const raw = 60 + 340 * par.freshet * Math.exp(-(((t - 19) / 3.5) ** 2))
+              + 60 * Math.exp(-(((t - 43) / 4) ** 2));
+    w[t] = 10 * Math.round(raw / 10);       // multiples of the grid step
+    p[t] = 60 + par.swing * Math.cos(2 * Math.PI * (t - 5) / 52);
+  }
+  return {w, p};
+}
+
+// Backward recursion of the chapter: J[t] from J[t+1], one max per storage level.
+function solve(par, w, p) {
+  const J = Array.from({length: T + 1}, () => new Float64Array(NX));
+  const policy = Array.from({length: T}, () => new Float64Array(NX));
+  for (let i = 0; i < NX; i++) J[T][i] = par.pT * KAPPA * head(GRID[i]) * (GRID[i] - X_MIN);
+  for (let t = T - 1; t >= 0; t--) {
+    for (let i = 0; i < NX; i++) {
+      const x = GRID[i], gain = p[t] * KAPPA * head(x);
+      let best = -Infinity, bestU = U_MIN;
+      for (let u = U_MIN; u <= par.umax; u += DX) {
+        if (x + w[t] - u < X_MIN) break;               // cannot draw below dead storage
+        const next = Math.min(x + w[t] - u, X_MAX);    // water above capacity spills
+        const v = gain * u + J[t + 1][idx(next)];
+        if (v > best) { best = v; bestU = u; }
+      }
+      J[t][i] = best; policy[t][i] = bestU;
+    }
+  }
+  return {J, policy};
+}
+
+// dJ/dx on the grid ($ per hm³), central differences inside, one-sided at the ends.
+function slope(Jt, i) {
+  const a = Math.max(i - 1, 0), b = Math.min(i + 1, NX - 1);
+  return (Jt[b] - Jt[a]) / ((b - a) * DX);
+}
+
+function rollout(par, w, p, sol, x0, rule) {
+  const storage = [x0], release = [], spill = [], waterValue = [];
+  let revenue = 0;
+  for (let t = 0; t < T; t++) {
+    const x = storage[t];
+    let u = rule ? rule(t, x) : sol.policy[t][idx(x)];
+    u = Math.min(Math.max(u, U_MIN), par.umax, x + w[t] - X_MIN);
+    const next = Math.min(x + w[t] - u, X_MAX);
+    revenue += p[t] * KAPPA * head(x) * u;
+    spill.push(Math.max(0, x + w[t] - u - X_MAX));
+    release.push(u);
+    storage.push(next);
+    waterValue.push(slope(sol.J[t + 1], idx(next)) / (KAPPA * head(x)));
+  }
+  revenue += par.pT * KAPPA * head(storage[T]) * (storage[T] - X_MIN);
+  return {storage, release, spill, waterValue, revenue};
+}
+
+// ---------------------------------------------------------------- colour maps
+const VIRIDIS = ["#440154","#482878","#3e4989","#31688e","#26828e","#1f9e89","#35b779","#6ece58","#b5de2b","#fde725"];
+const CIVIDIS = ["#00204d","#00336f","#39486b","#575c6d","#707173","#8a8779","#a69d75","#c4b56c","#e4cf5b","#ffea46"];
+const hexRgb = h => [1, 3, 5].map(k => parseInt(h.slice(k, k + 2), 16));
+function colormap(stops, s) {
+  s = Math.min(1, Math.max(0, s));
+  const f = s * (stops.length - 1), k = Math.min(Math.floor(f), stops.length - 2), r = f - k;
+  const a = hexRgb(stops[k]), b = hexRgb(stops[k + 1]);
+  return [0, 1, 2].map(j => Math.round(a[j] + r * (b[j] - a[j])));
+}
+
+// ---------------------------------------------------------------- state
+const $ = id => document.getElementById(id);
+const sliders = ["x0", "freshet", "swing", "pT", "umax"];
+const fmt = {
+  x0: v => v + " hm³", freshet: v => "×" + Number(v).toFixed(2), swing: v => "±" + v + " $/MWh",
+  pT: v => v + " $/MWh", umax: v => v + " hm³/wk",
+};
+let par, w, p, sol, run, ror, others;
+let mapKind = "policy";
+let mode = "all";        // "all", "backward" (column t being computed) or "forward" (week t)
+let cursor = 0, timer = null;
+
+function readParams() {
+  const v = Object.fromEntries(sliders.map(k => [k, Number($(k).value)]));
+  sliders.forEach(k => { $(k + "-out").textContent = fmt[k](v[k]); });
+  return v;
+}
+
+function recompute() {
+  par = readParams();
+  ({w, p} = inputs(par));
+  sol = solve(par, w, p);
+  run = rollout(par, w, p, sol, par.x0);
+  ror = rollout(par, w, p, sol, par.x0, t => w[t]);
+  others = [300, 700, 1500, 1900].map(x0 => rollout(par, w, p, sol, x0).storage);
+  $("m-dp").textContent = (run.revenue / 1e6).toFixed(1) + " M$";
+  $("m-ror").textContent = (ror.revenue / 1e6).toFixed(1) + " M$";
+  $("m-spill").textContent = Math.round(run.spill.reduce((a, b) => a + b, 0)) + " hm³";
+  $("m-end").textContent = Math.round(run.storage[T]) + " hm³";
+}
+
+// ---------------------------------------------------------------- drawing
+const M = {left: 46, right: 10, top: 10, bottom: 26};   // shared by map, strips and column
+function setup(canvas) {
+  const ratio = window.devicePixelRatio || 1;
+  const width = canvas.clientWidth, height = Number(canvas.dataset.h);
+  canvas.width = Math.round(width * ratio); canvas.height = Math.round(height * ratio);
+  canvas.style.height = height + "px";
+  const ctx = canvas.getContext("2d");
+  ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+  ctx.clearRect(0, 0, width, height);
+  ctx.font = "11px system-ui, sans-serif";
+  return {ctx, width, height};
+}
+const weekX = (t, width) => M.left + (t / T) * (width - M.left - M.right);
+const storageY = (x, height) => height - M.bottom - ((x - X_MIN) / (X_MAX - X_MIN)) * (height - M.top - M.bottom);
+
+function monthAxis(ctx, width, height) {
+  ctx.fillStyle = "#5e707c"; ctx.textAlign = "center";
+  for (let m = 0; m < 12; m += 2) ctx.fillText(MONTHS[m], weekX(m * 52 / 12 + 2, width), height - 8);
+}
+
+function mapField() {
+  const field = [], range = [Infinity, -Infinity];
+  for (let t = 0; t < T; t++) {
+    const col = new Float64Array(NX);
+    for (let i = 0; i < NX; i++) {
+      col[i] = mapKind === "policy" ? sol.policy[t][i]
+             : mapKind === "water" ? slope(sol.J[t], i) / 1e3
+             : sol.J[t][i] / 1e6;
+      range[0] = Math.min(range[0], col[i]); range[1] = Math.max(range[1], col[i]);
+    }
+    field.push(col);
+  }
+  return {field, range};
+}
+
+function drawMap() {
+  const {ctx, width, height} = setup($("map"));
+  const {field, range} = mapField();
+  const stops = mapKind === "policy" ? CIVIDIS : VIRIDIS;
+  const image = ctx.createImageData(T, NX);
+  for (let t = 0; t < T; t++) {
+    const hidden = mode === "backward" && t < cursor;
+    for (let i = 0; i < NX; i++) {
+      const rgb = hidden ? [236, 241, 244] : colormap(stops, (field[t][i] - range[0]) / (range[1] - range[0] || 1));
+      const k = 4 * ((NX - 1 - i) * T + t);
+      image.data[k] = rgb[0]; image.data[k + 1] = rgb[1]; image.data[k + 2] = rgb[2]; image.data[k + 3] = 255;
+    }
+  }
+  const off = document.createElement("canvas"); off.width = T; off.height = NX;
+  off.getContext("2d").putImageData(image, 0, 0);
+  ctx.imageSmoothingEnabled = false;
+  const x0 = weekX(0, width), y0 = storageY(X_MAX, height);
+  ctx.drawImage(off, x0, y0, weekX(T, width) - x0, storageY(X_MIN, height) - y0);
+
+  // Storage paths under the policy (shown once the recursion has reached week 1).
+  if (mode !== "backward") {
+    const until = mode === "forward" ? cursor : T;
+    const path = (storage, lineWidth, alpha) => {
+      ctx.strokeStyle = `rgba(255,255,255,${alpha})`; ctx.lineWidth = lineWidth; ctx.beginPath();
+      for (let t = 0; t <= until; t++) {
+        const X = weekX(t, width), Y = storageY(storage[t], height);
+        t ? ctx.lineTo(X, Y) : ctx.moveTo(X, Y);
+      }
+      ctx.stroke();
+    };
+    others.forEach(s => path(s, 1, 0.55));
+    path(run.storage, 2.6, 1);
+  }
+  // Cursor column.
+  if (mode !== "all") {
+    ctx.strokeStyle = mode === "backward" ? "#e69f00" : "#ffffff"; ctx.lineWidth = 1.5;
+    const X = weekX(cursor + 0.5, width);
+    ctx.beginPath(); ctx.moveTo(X, M.top); ctx.lineTo(X, height - M.bottom); ctx.stroke();
+  }
+  ctx.fillStyle = "#5e707c"; ctx.textAlign = "right";
+  for (let x = 400; x <= 2000; x += 400) ctx.fillText(x, M.left - 5, storageY(x, height) + 4);
+  ctx.save(); ctx.translate(11, (M.top + height - M.bottom) / 2); ctx.rotate(-Math.PI / 2);
+  ctx.textAlign = "center"; ctx.fillText("storage (hm³)", 0, 0); ctx.restore();
+  monthAxis(ctx, width, height);
+
+  const unit = {policy: "release (hm³/week)", water: "water value ∂J/∂x (k$ per hm³)", value: "J_t(x) (M$)"}[mapKind];
+  const lo = range[0].toFixed(mapKind === "policy" ? 0 : 1), hi = range[1].toFixed(mapKind === "policy" ? 0 : 1);
+  const gradient = stops.join(",");
+  $("map-legend").innerHTML =
+    `<span><i class="box" style="width:90px;height:9px;background:linear-gradient(90deg,${gradient})"></i>${unit}: ${lo} to ${hi}</span>` +
+    `<span><i class="swatch" style="background:#9aa8b1"></i>storage under the policy; thick: from the chosen January level</span>`;
+}
+
+function drawStrips() {
+  const {ctx, width, height} = setup($("strips"));
+  const split = 0.58 * height;
+  const until = mode === "forward" ? cursor + 1 : mode === "backward" ? 0 : T;
+  // Upper strip: price against water value, both in $/MWh.
+  const top = M.top, bottom = split - 8;
+  let lo = Infinity, hi = -Infinity;
+  for (let t = 0; t < T; t++) { lo = Math.min(lo, p[t], run.waterValue[t]); hi = Math.max(hi, p[t], run.waterValue[t]); }
+  lo = Math.max(0, Math.floor(lo / 10) * 10 - 5); hi = Math.ceil(hi / 10) * 10 + 5;
+  const yv = v => bottom - ((v - lo) / (hi - lo)) * (bottom - top);
+  for (let t = 0; t < until; t++) {
+    if (run.release[t] >= par.umax - 1e-9) {
+      ctx.fillStyle = "rgba(230,159,0,0.18)";
+      ctx.fillRect(weekX(t, width), top, weekX(t + 1, width) - weekX(t, width), bottom - top);
+    }
+  }
+  const line = (values, color, last) => {
+    ctx.strokeStyle = color; ctx.lineWidth = 2; ctx.beginPath();
+    for (let t = 0; t < last; t++) {
+      const X = weekX(t + 0.5, width), Y = yv(values[t]);
+      t ? ctx.lineTo(X, Y) : ctx.moveTo(X, Y);
+    }
+    ctx.stroke();
+  };
+  line(p, "#d55e00", T); line(run.waterValue, "#0072b2", until);   // the price is known in advance
+  ctx.fillStyle = "#5e707c"; ctx.textAlign = "right";
+  for (const v of [lo + 5, (lo + hi) / 2, hi - 5]) ctx.fillText(Math.round(v), M.left - 5, yv(v) + 4);
+  ctx.save(); ctx.translate(11, (top + bottom) / 2); ctx.rotate(-Math.PI / 2);
+  ctx.textAlign = "center"; ctx.fillText("$/MWh", 0, 0); ctx.restore();
+  // Lower strip: inflow, release and spill.
+  const top2 = split + 2, bottom2 = height - M.bottom;
+  const qmax = Math.max(...w, par.umax) * 1.05;
+  const yq = q => bottom2 - (q / qmax) * (bottom2 - top2);
+  for (let t = 0; t < T; t++) {
+    const xa = weekX(t, width), barW = weekX(t + 1, width) - xa;
+    ctx.fillStyle = "#cfe6f5"; ctx.fillRect(xa + 0.5, yq(w[t]), barW - 1, bottom2 - yq(w[t]));
+    if (t < until) {
+      ctx.fillStyle = "#3b4f5c"; ctx.fillRect(xa + barW * 0.25, yq(run.release[t]), barW * 0.5, bottom2 - yq(run.release[t]));
+      if (run.spill[t] > 0) {
+        ctx.fillStyle = "#d55e00";
+        ctx.fillRect(xa + barW * 0.25, yq(run.release[t] + run.spill[t]), barW * 0.5, yq(run.release[t]) - yq(run.release[t] + run.spill[t]));
+      }
+    }
+  }
+  ctx.fillStyle = "#5e707c"; ctx.textAlign = "right";
+  ctx.fillText(Math.round(qmax / 100) * 100, M.left - 5, yq(Math.round(qmax / 100) * 100) + 4);
+  ctx.fillText("0", M.left - 5, bottom2 + 3);
+  ctx.save(); ctx.translate(11, (top2 + bottom2) / 2); ctx.rotate(-Math.PI / 2);
+  ctx.textAlign = "center"; ctx.fillText("hm³/wk", 0, 0); ctx.restore();
+  monthAxis(ctx, width, height);
+  if (mode === "forward") {
+    ctx.strokeStyle = "#20333f"; ctx.lineWidth = 1;
+    const X = weekX(cursor + 0.5, width);
+    ctx.beginPath(); ctx.moveTo(X, top); ctx.lineTo(X, bottom2); ctx.stroke();
+  }
+}
+
+// Column view: J_t(x) along the same storage axis as the map, and the reservoir level.
+function drawColumn() {
+  const canvas = $("column");
+  const {ctx, width, height} = setup(canvas);
+  const mapHeight = Number($("map").dataset.h);
+  const t = mode === "all" ? 0 : cursor;
+  // Value of the stored water, J_t(x) - J_t(x_min): its slope is the water value.
+  const stored = i => sol.J[t][i] - sol.J[t][0];
+  let smax = 0;
+  for (let k = 0; k <= T; k++) smax = Math.max(smax, sol.J[k][NX - 1] - sol.J[k][0]);
+  const left = 10, right = width - 12;
+  const sy = x => storageY(x, mapHeight);
+  // Reservoir body and water.
+  const level = mode === "forward" ? run.storage[t] : mode === "all" ? par.x0 : null;
+  ctx.fillStyle = "#eef3f6"; ctx.fillRect(left, sy(X_MAX), right - left, sy(X_MIN) - sy(X_MAX));
+  if (level !== null) {
+    ctx.fillStyle = "#cfe6f5"; ctx.fillRect(left, sy(level), right - left, sy(X_MIN) - sy(level));
+    ctx.fillStyle = "#20333f"; ctx.textAlign = "left";
+    ctx.fillText(Math.round(level) + " hm³", left + 4, sy(level) - 4);
+  }
+  ctx.fillStyle = "#9aa8b1"; ctx.fillRect(left, sy(X_MIN), right - left, 2);
+  // Stored-water value against storage, on the same vertical axis as the map.
+  ctx.strokeStyle = "#0072b2"; ctx.lineWidth = 2; ctx.beginPath();
+  for (let i = 0; i < NX; i++) {
+    const X = left + (stored(i) / (smax || 1)) * (right - left), Y = sy(GRID[i]);
+    i ? ctx.lineTo(X, Y) : ctx.moveTo(X, Y);
+  }
+  ctx.stroke();
+  if (level !== null) {
+    const X = left + (stored(idx(level)) / (smax || 1)) * (right - left);
+    ctx.fillStyle = "#0072b2"; ctx.beginPath(); ctx.arc(X, sy(level), 4, 0, 2 * Math.PI); ctx.fill();
+  }
+  ctx.fillStyle = "#0072b2"; ctx.textAlign = "left";
+  ctx.fillText(`J_${t + 1}(x) − J_${t + 1}(200)`, left, mapHeight + 6);
+  ctx.fillStyle = "#5e707c";
+  ctx.fillText(`0 to ${(smax / 1e6).toFixed(0)} M$; slope = water value`, left, mapHeight + 20);
+  $("column-title").textContent = mode === "backward" ? `Computing week ${t + 1} (${dateOfWeek(t)})`
+                                : `Week ${t + 1} (${dateOfWeek(t)})`;
+}
+
+function updateReadout() {
+  const el = $("readout");
+  if (mode === "backward") {
+    el.innerHTML = `Bellman update for week ${cursor + 1}: at each of the 181 storage levels, compare every release ` +
+      `from 30 to ${par.umax} hm³ using the column for week ${cursor + 2} already computed. ` +
+      `The orange line marks the column being filled.`;
+    return;
+  }
+  const t = mode === "forward" ? cursor : 0;
+  const u = run.release[t], price = p[t], value = run.waterValue[t];
+  let verdict;
+  if (run.spill[t] > 0) verdict = `the reservoir is full and ${Math.round(run.spill[t])} hm³ spill`;
+  else if (u >= par.umax - 1e-9) verdict = `price above water value: turbines at capacity, ${u} hm³`;
+  else if (u <= U_MIN + 1e-9) verdict = `price below water value: minimum release, ${u} hm³`;
+  else if (run.storage[t + 1] >= X_MAX - 1e-9) verdict = `reservoir full: release ${u} hm³ to avoid spilling`;
+  else verdict = `price equals water value: partial release, ${u} hm³`;
+  el.innerHTML = `<strong>Week ${t + 1}, ${dateOfWeek(t)}.</strong> Storage ${Math.round(run.storage[t])} hm³, ` +
+    `inflow ${w[t]} hm³, price ${price.toFixed(0)} $/MWh, water value ${value.toFixed(0)} $/MWh: ${verdict}.`;
+}
+
+function draw() { drawMap(); drawStrips(); drawColumn(); updateReadout(); }
+
+// ---------------------------------------------------------------- animation
+function stopTimer() { if (timer) { clearInterval(timer); timer = null; } }
+function animate(kind) {
+  stopTimer(); mode = kind;
+  cursor = kind === "backward" ? T - 1 : 0;
+  draw();
+  timer = setInterval(() => {
+    if (kind === "backward") {
+      if (cursor === 0) { stopTimer(); mode = "all"; draw(); return; }
+      cursor -= 1;
+    } else {
+      if (cursor === T - 1) { stopTimer(); return; }
+      cursor += 1;
+    }
+    draw();
+  }, kind === "backward" ? 90 : 180);
+}
+
+$("backward").addEventListener("click", () => animate("backward"));
+$("forward").addEventListener("click", () => animate("forward"));
+$("stop").addEventListener("click", () => { stopTimer(); mode = "all"; draw(); });
+document.querySelectorAll("[data-map]").forEach(button => button.addEventListener("click", () => {
+  mapKind = button.dataset.map;
+  document.querySelectorAll("[data-map]").forEach(b => b.setAttribute("aria-pressed", String(b === button)));
+  draw();
+}));
+sliders.forEach(k => $(k).addEventListener("input", () => {
+  stopTimer(); mode = "all"; recompute(); draw();
+}));
+window.addEventListener("resize", draw);
+
+recompute(); draw();
+</script>
+</body>
+</html>
