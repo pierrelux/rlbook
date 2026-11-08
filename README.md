@@ -34,11 +34,6 @@ captions of generated figures and animations. Stop the preview before running
 a separate build, since both commands write to `_build/site`, then restart it
 with the authoring command above.
 
-Use **Present** on any chapter in the local preview or published book. It opens
-the spotlight recorder over the current chapter; **Exit** returns to the same
-reading position. The presenter launcher keeps the recorder on the chapter's
-origin, including when MyST serves assets on a separate development port.
-
 `publish.sh` performs both strict builds and publishes the assembled `_build/html` directory to `gh-pages` with `ghp-import`.
 
 Rebuild the single-file GPU inference demo gallery with:
@@ -196,26 +191,3 @@ the optimizers. The aircraft's synthetic gust process is separate from the
 historical mean-wind snapshot. Controller comparisons keep planner random
 numbers independent from the realized physical disturbances.
 
-## Recorded spotlight presentations
-
-The **Present** action opens either a frozen presentation for the chapter or a
-live recorder when no frozen presentation exists. In recording mode, drag a
-rectangle around visible textbook content. The presenter snaps to stable
-document elements, focuses them, and records the interaction as one cue.
-
-Use **Review / Freeze** after the lecture to reorder or delete cues and download
-`<chapter>-presentation.json`. Install that recording as the chapter's
-authoritative presentation with:
-
-```bash
-python3 tools/presentation_cues.py import ~/Downloads/modeling-controlled-systems-presentation.json
-```
-
-The importer validates the recording, writes `_present/<chapter>.json`, and
-embeds all installed decks in `_static/presenter.html`. Rebuild the book after
-importing. To refresh the embedded registry without importing a new file, run
-`python3 tools/presentation_cues.py bundle`.
-
-Unfinished recordings are autosaved in browser storage and can be resumed or
-discarded the next time the same chapter is opened. Frozen cue files remain the
-authoritative, version-controlled representation.
