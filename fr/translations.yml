@@ -3,6 +3,8 @@
 # chapters whose English source changed since then, and
 # `python3 tools/french.py diff <chapter>.md` prints what changed.
 # After updating a translation, run `python3 tools/french.py mark <chapter>.md`.
+discrete-time-optimal-control.md: ffaaa43909eec1f2e345e9f554cb5d47fec191a4
+discrete-time-pmp.md: 1fcf1ea6f18c621b81adb876c0a6580d84b1966f
 intro.md: a75ae233746486b31e9bce1236d540ee804dbd44
 model-interfaces.md: ffaaa43909eec1f2e345e9f554cb5d47fec191a4
 modeling-controlled-systems.md: ffaaa43909eec1f2e345e9f554cb5d47fec191a4

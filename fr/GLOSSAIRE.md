@@ -76,6 +76,18 @@ terme récurrent avant de l'employer dans un chapitre.
 | system identification | identification de système |
 | partial observability | observabilité partielle |
 | sim-to-real gap | écart entre simulation et réalité |
+| discrete-time optimal control problem (DOCP) | problème de contrôle optimal en temps discret (PCOTD) |
+| nonlinear program (NLP) | programme non linéaire (PNL) |
+| sequential quadratic programming (SQP) | programmation quadratique successive (PQS) |
+| quadratic program (QP) | programme quadratique |
+| ODE | équation différentielle ordinaire (EDO) |
+| LQR | commande linéaire quadratique |
+| costate / adjoint | état adjoint |
+| replay / rollout | rejeu / déroulement |
+| token / prompt (LLM) | jeton / invite |
+| prefill / decode | préremplissage / décodage |
+| throughput | débit |
+| governor (battery current) | limiteur de courant |
 
 ## Liens vers les titres
 
