@@ -346,7 +346,7 @@ DDPG inherits the overestimation bias from DQN's use of the max operator in Bell
 
 ### Twin Q-Networks and the Minimum Operator
 
-Recall from the [Monte Carlo chapter](monte-carlo-bellman-estimation.md) that overestimation arises when we use the same noisy estimate both to select which action looks best and to evaluate that action. Double Q-learning breaks this coupling by maintaining two independent estimators with noise terms $\varepsilon^{(1)}_a$ and $\varepsilon^{(2)}_a$:
+Recall from the [chapter on sampled Bellman updates](monte-carlo-bellman-estimation.md) that overestimation arises when we use the same noisy estimate both to select which action looks best and to evaluate that action. Double Q-learning breaks this coupling by maintaining two independent estimators with noise terms $\varepsilon^{(1)}_a$ and $\varepsilon^{(2)}_a$:
 
 $$
 a^\star = \arg\max_{a} \left\{r(s,a) + \gamma \hat{\mu}^{(1)}_N(s,a)\right\}, \quad Y = r(s,a^\star) + \gamma \hat{\mu}^{(2)}_N(s,a^\star).

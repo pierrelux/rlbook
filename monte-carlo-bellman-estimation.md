@@ -11,7 +11,7 @@ kernelspec:
   name: python3
 ---
 
-# Monte Carlo Bellman Estimation
+# Bellman Updates from Samples
 
 The two previous chapters assumed that the Bellman operator could be
 evaluated exactly at any state. Every target $(\Bellman v_k)(s_i)$ contains
@@ -55,12 +55,10 @@ After completing this chapter, you should be able to:
 **Prerequisites:** fitted value iteration and its error bound ([previous chapter](approximate-bellman-equations.md)), basic probability (expectation, variance, the central limit theorem, Jensen's inequality).
 ::::
 
+(sec-mc-two-expectations)=
 ## Two Expectations in Every Fitted Update
 
-Where do integrals appear in a fitted Bellman update, and what does
-approximating them do to the fixed point?
-
-They appear in two places. The first is inside the operator: the transition
+Integrals appear in two places in a fitted Bellman update. The first is inside the operator: the transition
 expectation $\int v(s')\,p(ds'|s,a)$ that every target contains. The second
 is over the states: Galerkin and least-squares conditions integrate the
 residual against test functions, and a regression averages the fitting error
@@ -113,9 +111,6 @@ density. And a logged transition provides exactly one draw, which cannot be
 chosen. Monte Carlo integration handles all three.
 
 ## Monte Carlo Integration
-
-How do random samples trade the bias of a deterministic rule for variance,
-and why does their rate not depend on the dimension?
 
 Monte Carlo integration approximates an expectation by the average of
 independent draws. For $J = \mathbb{E}[f(X)]$ with $X \sim p$, draw
@@ -266,9 +261,6 @@ $(s,a)$. The section after next returns to this choice.
 (sec-mc-q-functions)=
 ## Action Values
 
-Once the operator is evaluated from samples, what does acting on the result
-cost, and how can that cost be moved into training?
-
 The greedy policy of a value function $v$ is
 
 $$
@@ -370,9 +362,6 @@ variance reduction that current practice rarely uses.
 
 (sec-mc-overestimation)=
 ## Maximization Bias
-
-What systematic error appears when the same noisy estimates are used both to
-select an action and to value it?
 
 Each estimate $\widehat{G}_N(s,a)$ is unbiased, and the maximum over them is
 not. Fix a state $s$ and a value function $v$, and write the true continuation
@@ -581,43 +570,11 @@ neither the target nor the operator but the loss of the fit, so that
 overestimates are penalized more than underestimates; the
 [next chapter](fitted-q-iteration.md) takes it up with Gumbel regression.
 
-## Summary and Forward Look
+## Exercises
 
-Fitted Bellman updates contain two expectations, inside the operator and over
-the states, and either can be estimated from samples. The sample average is
-unbiased, its error falls as $N^{-1/2}$ whatever the dimension, and it adds a
-per-iteration error that the bound of the previous chapter absorbs. Sampling
-makes the model optional: a simulator or a log of transitions suffices, which
-is the setting of reinforcement learning. Acting on a sampled value function
-would require sampling at decision time, so the action-value function
-$q(s,a)$ stores the backup of each action instead, and fitted Q-iteration is
-fitted value iteration on $q$. The maximum over noisy estimates is biased
-upward, and the bias compounds through the iterations; using one estimate to
-select the action and an independent one to value it removes the larger part
-of the bias, and learned, analytic or weighted corrections are the
-alternatives.
-
-The algorithms of this chapter still choose the states at which targets are
-computed, and still draw as many successors as they like. [Fitted Q-iteration
-and DQN](fitted-q-iteration.md) take the data as given: a fixed log of
-transitions with one successor each, or a buffer that fills as the agent
-acts, and a fit that is warm-started and stopped early. The remaining design
-choices of the practical algorithms are choices about that data and that
-fit.
-
-## Self-checks
-
-:::{exercise} Sample-mean rate
-:label: ex-montecarlo-check-1
-
-If independent samples have standard deviation $\sigma$, what is the standard deviation of their sample mean based on $N$ samples?
-:::
-
-:::{solution} ex-montecarlo-check-1
-:class: dropdown
-
-$\sigma/\sqrt{N}$. Reducing it by a factor of two therefore requires four times as many samples.
-:::
+The exercises move from single estimators to their effect inside the
+iteration. The first ones are short checks; {ref}`ex-mc-compounding` is a
+short simulation.
 
 :::{exercise} Sign before simulation
 :label: ex-montecarlo-check-2
@@ -642,3 +599,179 @@ Which dependence is broken when one estimate selects the maximizing action and a
 
 The evaluation noise is made independent of the lucky noise that caused the selection, which removes the reuse of the same positive error for both jobs. The selection bias remains: the chosen action is still more often one whose first estimate was lucky, so the double estimator is biased slightly downward.
 :::
+
+:::{exercise} Sample sizes
+:label: ex-mc-sample-size
+
+A simulator returns successor values with standard deviation $\sigma = 3$.
+
+1. How many draws give a root mean squared error of $0.01$ for one
+   expectation?
+2. A fitted iteration needs one such expectation for each of 2,000 states and
+   4 actions. How many simulator calls does one iteration cost, and how would
+   the cost change if the state had twice as many coordinates?
+3. By {prf:ref}`thm-approximate-vi`, what does an integration error of $0.01$
+   per iteration contribute to the final value error with $\gamma = 0.95$?
+:::
+
+:::{solution} ex-mc-sample-size
+:class: dropdown
+
+1. $\sigma/\sqrt N = 0.01$ gives $N = (3/0.01)^2 = 90{,}000$.
+2. $2{,}000 \times 4 \times 90{,}000 = 7.2 \times 10^8$ calls per iteration. The Monte Carlo rate does not depend on the dimension, so the count does not change unless $\sigma$ does; a product quadrature rule would need $N^D$ nodes instead.
+3. At most $0.01/(1 - 0.95) = 0.2$, added to the error of the fit.
+:::
+
+:::{exercise} The bias of a maximum
+:label: ex-mc-max-two
+
+Two actions have the same true value $0$, and each is estimated by the mean
+of five draws of standard deviation $1$.
+
+1. Show that the expected maximum of the two estimates is
+   $\sigma_{\text{mean}}/\sqrt\pi$, where $\sigma_{\text{mean}} = 1/\sqrt5$ is
+   the standard deviation of each mean, and evaluate it. Hint: the maximum of
+   two numbers is their average plus half their absolute difference.
+2. Compare with the first point of {numref}`fig-mc-max-bias`.
+3. How does the bias change with $N$, the number of draws per action?
+:::
+
+:::{solution} ex-mc-max-two
+:class: dropdown
+
+1. $\max(X_1, X_2) = \tfrac12(X_1 + X_2) + \tfrac12|X_1 - X_2|$. The first term has mean $0$. The difference is Gaussian with standard deviation $\sqrt2\,\sigma_{\text{mean}}$, and $\mathbb{E}|Z| = \sqrt{2/\pi}$ for a standard Gaussian, so the expectation is $\tfrac12\sqrt2\,\sigma_{\text{mean}}\sqrt{2/\pi} = \sigma_{\text{mean}}/\sqrt\pi = 1/\sqrt{5\pi} \approx 0.252$.
+2. The figure shows $0.25$ at two actions.
+3. It scales with $\sigma_{\text{mean}} = 1/\sqrt N$: four times as many draws halve it. It never vanishes for finite $N$.
+:::
+
+:::{exercise} When the double estimator does worse
+:label: ex-mc-double-worse
+
+Two actions have true values $\mu_1 = 0$ and $\mu_2 = -1$, and each estimate
+has Gaussian noise of standard deviation $1$.
+
+1. For the maximum estimator, use
+   $\mathbb{E}[\max(X_1, X_2)] = \mu_1\Phi(\delta/\vartheta) + \mu_2\Phi(-\delta/\vartheta) + \vartheta\,\phi(\delta/\vartheta)$
+   with $\delta = \mu_1 - \mu_2$ and $\vartheta = \sqrt2$, where $\Phi$ and
+   $\phi$ are the standard Gaussian distribution and density, to compute its
+   bias.
+2. For the double estimator, the selected action is wrong with probability
+   $\Phi(-\delta/\vartheta)$. Compute its bias.
+3. Which estimator is closer to the truth here? Relate the answer to the two
+   sources of bias in {ref}`sec-mc-overestimation`, and to the case of equal
+   values in {numref}`fig-mc-max-bias`.
+:::
+
+:::{solution} ex-mc-double-worse
+:class: dropdown
+
+1. $\Phi(-1/\sqrt2) = 0.240$ and $\phi(1/\sqrt2) = 0.311$, so the expected maximum is $-0.240 + \sqrt2 \times 0.311 = 0.200$, a bias of $+0.20$.
+2. The double estimator is unbiased for the value of the action it selects, so its expectation is $-1 \times 0.240 = -0.240$, a bias of $-0.24$. A simulation with $2 \times 10^6$ draws gives $0.200$ and $-0.238$.
+3. The maximum estimator is closer here, by a little. With equal values the selection costs nothing and the double estimator is unbiased; with a gap of the size of the noise, selection bias dominates, and it is negative. Removing evaluation bias does not remove selection bias, which is why the double estimator is pessimistic rather than unbiased in general.
+:::
+
+:::{exercise} Bias that compounds
+:label: ex-mc-compounding
+
+Consider one state and $M$ actions, each with reward $0$ observed through
+Gaussian noise of standard deviation $1$, and $\gamma = 0.9$. Monte Carlo
+value iteration sets $v_{k+1} = \max_a \hat r_a + \gamma v_k$, where each
+$\hat r_a$ is a fresh mean of $N$ draws.
+
+1. Show that $\mathbb{E}[v_k] \to b/(1-\gamma)$, where $b$ is the expected
+   maximum of $M$ independent means, while the true value is $0$.
+2. Simulate it for $M = 4$ and $N = 5$, and compare with
+   $b \approx 0.46$ read from {numref}`fig-mc-max-bias`.
+3. Replace the maximum by the double estimator, with two independent sets of
+   draws, and simulate again.
+:::
+
+:::{solution} ex-mc-compounding
+:class: dropdown
+
+1. Taking expectations, $\mathbb{E}[v_{k+1}] = b + \gamma\,\mathbb{E}[v_k]$, a contraction with fixed point $b/(1-\gamma)$.
+2. With $b \approx 0.460$ the limit is $4.6$, ten times the per-step bias. A simulation such as
+
+```python
+import numpy as np
+rng = np.random.default_rng(0)
+M, N, gamma, runs, iterations = 4, 5, 0.9, 20000, 200
+v = np.zeros(runs)
+for _ in range(iterations):
+    v = rng.normal(size=(runs, M, N)).mean(axis=2).max(axis=1) + gamma * v
+print(v.mean())
+```
+
+prints a value close to $4.6$.
+3. Selecting with one set of means and evaluating with the other gives an expectation of $0$ at each step, so $\mathbb{E}[v_k] \to 0$: with equal true values the double estimator removes the compounding entirely.
+:::
+
+:::{exercise} Q-functions from the Bellman operator on values
+:label: ex-mc-q-contraction
+
+1. Show that $(\Bellman q)(s,a) = r(s,a) + \gamma\,\mathbb{E}[\max_{a'} q(s',a') \mid s,a]$
+   is a $\gamma$-contraction in the sup norm. Use the inequality
+   $|\max_a f(a) - \max_a g(a)| \le \max_a |f(a) - g(a)|$, which the
+   infinite-horizon chapter used for the operator on values.
+2. Given $q^\star$, write the optimal policy and $v^\star$. Which of the two
+   needs the transition model?
+3. Fitted value iteration and fitted Q-iteration both converge with an
+   averager. Which one needs more targets per iteration, and which one is
+   cheaper to act with?
+:::
+
+:::{solution} ex-mc-q-contraction
+:class: dropdown
+
+1. For each $(s,a)$, $|(\Bellman q)(s,a) - (\Bellman q')(s,a)| \le \gamma\,\mathbb{E}\big[|\max_{a'} q(s',a') - \max_{a'} q'(s',a')|\big] \le \gamma\|q - q'\|_\infty$.
+2. $\pi^\star(s) \in \arg\max_a q^\star(s,a)$ and $v^\star(s) = \max_a q^\star(s,a)$. Neither needs the model, which is the point of storing $q$.
+3. Fitted Q-iteration computes targets for every state-action pair, $|\mathcal{A}|$ times as many as fitted value iteration with a model, but acting with it is a maximization over stored values, with no expectation to estimate.
+:::
+
+:::{exercise} Many successors or many transitions
+:label: ex-mc-budget
+
+A resettable simulator can return several successors of the same state and
+action. With a fixed budget of simulator calls per iteration, compare two
+uses on the eight-dimensional stopping problem of the previous chapter: many
+states with one successor each, or a quarter as many states with four
+successors each. Measure the error of the fitted value function and of its
+greedy policy, and explain the result with the two expectations of
+{ref}`sec-mc-two-expectations`: which error does each choice reduce?
+:::
+
+:::{solution} ex-mc-budget
+:class: dropdown
+
+This exercise is open-ended. More successors per state reduce the variance of
+each target, which a regression would otherwise have to average out across
+nearby states. More states reduce the error of the fit itself and extend
+coverage. Which wins depends on the noise of the targets relative to the
+smoothness of the value: a problem with very noisy transitions and a smooth
+value favors more successors, and a problem whose value varies a lot across
+the state space favors more states.
+:::
+
+## Summary and Forward Look
+
+Fitted Bellman updates contain two expectations, inside the operator and over
+the states, and either can be estimated from samples. The sample average is
+unbiased, its error falls as $N^{-1/2}$ whatever the dimension, and it adds a
+per-iteration error that the bound of the previous chapter absorbs. Sampling
+makes the model optional: a simulator or a log of transitions suffices, which
+is the setting of reinforcement learning. Acting on a sampled value function
+would require sampling at decision time, so the action-value function
+$q(s,a)$ stores the backup of each action instead, and fitted Q-iteration is
+fitted value iteration on $q$. The maximum over noisy estimates is biased
+upward, and the bias compounds through the iterations; using one estimate to
+select the action and an independent one to value it removes the larger part
+of the bias, and learned, analytic or weighted corrections are the
+alternatives.
+
+The algorithms of this chapter still choose the states at which targets are
+computed, and still draw as many successors as they like. [Learning from logged
+and online data](fitted-q-iteration.md) take the data as given: a fixed log of
+transitions with one successor each, or a buffer that fills as the agent
+acts, and a fit that is warm-started and stopped early. The remaining design
+choices of the practical algorithms are choices about that data and that
+fit.

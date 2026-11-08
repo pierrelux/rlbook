@@ -11,7 +11,7 @@ kernelspec:
   name: python3
 ---
 
-# Fitted Q-Iteration and DQN
+# Learning from Logged and Online Data
 
 The algorithms of the previous chapters chose the states at which targets
 were computed and drew as many successors as they liked. In practice the data
@@ -48,14 +48,11 @@ After completing this chapter, you should be able to:
 - Flatten the nested loops of neural fitted Q-iteration into DQN, and explain the roles of its online and target networks
 - Place an algorithm in the design space of fitted Q-iteration by its buffer, target function, fit, initialization and loss
 
-**Prerequisites:** fitted value iteration and its error analysis ([approximate Bellman equations](approximate-bellman-equations.md)), action-value functions, the single-sample paradigm and maximization bias ([Monte Carlo Bellman estimation](monte-carlo-bellman-estimation.md)).
+**Prerequisites:** fitted value iteration and its error analysis ([fitted value methods](approximate-bellman-equations.md)), action-value functions, the single-sample paradigm and maximization bias ([Monte Carlo Bellman estimation](monte-carlo-bellman-estimation.md)).
 ::::
 
 (sec-fqi-batch)=
 ## Learning from a Fixed Set of Transitions
-
-How does fitted Q-iteration run when the transitions are fixed before
-learning begins, and what replaces the model?
 
 The Bellman operator on action values contains an expectation under the
 transition law, which we write $P$ over transitions $\tau = (s, a, r, s')$:
@@ -76,7 +73,7 @@ where $\delta_\tau$ is a point mass at the transition $\tau$. Sampling from
 $\hat{P}_{\mathcal{D}}$ means picking a recorded transition uniformly at
 random, and the expectation of any function of a transition under $P$ is
 estimated by its average over the data set, the sample-average estimator of
-the [Monte Carlo chapter](monte-carlo-bellman-estimation.md) applied to
+the [chapter on sampled Bellman updates](monte-carlo-bellman-estimation.md) applied to
 transitions. Fitted Q-iteration on a batch is value iteration under this
 empirical law. The target of a transition is $y_i = r_i + \gamma \max_{a'}
 q(s'_i, a')$, with the one successor that was recorded, and the fit averages
@@ -132,7 +129,7 @@ trees, an ensemble whose prediction is the average of the targets in a leaf.
 Each fit grows the trees from scratch, a cold start, and runs to completion,
 since tree construction has no incremental form. A tree with a fixed
 partition is an averager, so the convergence theorem of the
-[approximate Bellman chapter](approximate-bellman-equations.md) applies once
+[chapter on fitted value methods](approximate-bellman-equations.md) applies once
 the partitions stop changing, and trees take high-dimensional inputs without
 feature design. {cite:t}`riedmiller2005neural` replaced the ensemble by a
 neural network $q(s,a;\boldsymbol\theta)$, which interpolates smoothly across
@@ -301,7 +298,7 @@ cannot be attributed to the number of transition rows. The broad buffer's
 errors come from approximation where the action gap is small; the narrow
 buffer's errors come from coverage, where the behavior policy never took the
 action in question. These are the first and the third difficulty named after
-the error bound of the [approximate Bellman chapter](approximate-bellman-equations.md#sec-abe-error):
+the error bound of the [chapter on fitted value methods](approximate-bellman-equations.md#sec-abe-error):
 a fit is accurate on average, not at the states where two actions are nearly
 tied, and it is controlled only where there are data.
 
@@ -323,8 +320,7 @@ hardware across deployments.
 (sec-fqi-conjunctions)=
 ### Example: Collision Avoidance Learned from Logged Warnings
 
-What does fitted Q-iteration look like when there is no model, only a log?
-When a satellite and another object, most often a piece of debris, are
+This example has no model, only a log. When a satellite and another object, most often a piece of debris, are
 predicted to pass close to each other, the operator receives about three
 conjunction data messages per day over the week before the time of closest
 approach. Each message gives a collision probability estimated from the latest
@@ -365,7 +361,7 @@ $$
 The minimum over the two actions is the $\max$ of the Bellman operator for
 costs. There is no expectation to compute: each logged successor is one draw
 of $s'$, the single-sample paradigm of the
-[Monte Carlo chapter](monte-carlo-bellman-estimation.md). We fit extra
+[chapter on sampled Bellman updates](monte-carlo-bellman-estimation.md). We fit extra
 trees, the averager of tree-based FQI {cite}`ernst2005tree`, on the logged
 decision epochs, and judge every policy out of sample: each event is decided
 by a policy fitted without it.
@@ -376,7 +372,7 @@ by a policy fitted without it.
 Collision avoidance from ESA's conjunction messages. (a) The collision
 probability of the 742 events whose estimate crossed the break-even
 probability, about $10^{-5}$ (dashed), before the deadline. The 59 in color
-ended above it. (b) Total cost of each policy over all events, split into the
+ended above it. Messages below $10^{-8}$, half of which report a probability of $10^{-30}$, leave the panel. (b) Total cost of each policy over all events, split into the
 cost of maneuvers and of expected collisions. Never maneuvering costs 2,668.
 (c) The policy learned by fitted Q-iteration on all events, at a message that
 has just arrived. Above the blue boundary it maneuvers. The dashed line is the
@@ -402,7 +398,7 @@ events that needed a maneuver, 20 against 6 for the hand rule. Two choices
 decide whether fitted Q-iteration works here at all, and both follow from
 the error analysis of the previous chapters.
 
-1. **The fit must fit the right thing.** The raw target $C\, p_{\text{final}}$
+1. The fit must fit the right thing. The raw target $C\, p_{\text{final}}$
    is heavy-tailed. One event in the log ends at a probability of 2% and
    costs about 2,070 if nothing is done, more than three times the cost of
    all other events together. Extra trees predict the average of the targets
@@ -416,12 +412,12 @@ the error analysis of the previous chapters.
    correction factor to the operator's own estimate. For the dangerous event
    this factor stays between 0.7 and 7, an ordinary value, and the policy
    makes 166 maneuvers with the event in the data and 175 without it.
-2. **The fit is only as good as the data where decisions are made.** Five
+2. The fit is only as good as the data where decisions are made. Five
    in six of the 123,882 decision epochs have probabilities below $10^{-7}$,
-   where waiting is obviously right, and we leave them out of the fit. Only
+   where waiting is plainly right, and we leave them out of the fit. Only
    62 events needed a maneuver. This is the coverage problem behind the
    concentrability coefficients of the
-   [approximate Bellman chapter](approximate-bellman-equations.md#sec-abe-error):
+   [chapter on fitted value methods](approximate-bellman-equations.md#sec-abe-error):
    the regression error that matters is the one at the few states where the
    two actions are close, and no amount of data elsewhere reduces it. The
    hindsight policy, at 147, is not a target: it knows the estimate of the
@@ -434,9 +430,6 @@ the error analysis of the previous chapters.
 
 (sec-fqi-flattening)=
 ## From Nested Loops to Target Networks
-
-Can the outer Bellman loop and the inner regression loop be interleaved
-without losing track of which parameters generate and fit each target?
 
 Fitted Q-iteration has a nested structure: the outer loop computes Bellman
 targets, and the inner loop fits the function approximator to them. For a
@@ -586,10 +579,7 @@ standard with DDPG {cite}`lillicrap2015continuous` and is used by TD3
 ```
 
 (sec-fqi-online)=
-## Online Data: DQN and Its Variants
-
-What changes when the buffer evolves during learning and a neural Q-function
-is updated from replayed transitions?
+## DQN and Online Data
 
 The flattened algorithm sampled from a fixed data set. Let the data set
 change instead: a **replay buffer** $\mathcal{B}_t$ of fixed capacity $B$
@@ -639,7 +629,7 @@ the policy that the online network defines.
 6. **return** $\boldsymbol{\theta}_t$
 ```
 
-The deadly triad of the [approximate Bellman chapter](approximate-bellman-equations.md)
+The deadly triad of the [chapter on fitted value methods](approximate-bellman-equations.md)
 is all here: a neural network, bootstrapped targets, and a buffer whose
 transitions were collected by earlier policies. The design choices are what
 keep it in check. Targets are held fixed for $K$ steps by the target network,
@@ -652,7 +642,7 @@ the policy changes at every step.
 
 The target of DQN, $\max_{a'} q(s', a'; \boldsymbol{\theta}_{\text{target}})$,
 uses the target network twice, to select the best next action and to value
-it, and the [Monte Carlo chapter](monte-carlo-bellman-estimation.md#sec-mc-overestimation)
+it, and the [chapter on sampled Bellman updates](monte-carlo-bellman-estimation.md#sec-mc-overestimation)
 showed that such a maximum is biased upward by the reuse of the winning
 noise. Double DQN {cite}`van2016deep` separates the two roles between the
 two networks that DQN already maintains: the online network selects,
@@ -792,9 +782,6 @@ chapter](approximate-bellman-equations.md) showed what can go wrong then.
 (sec-fqi-design-space)=
 ## The Design Space of Fitted Q-Iteration
 
-Which choices generate the algorithms of this chapter, and how do they
-combine?
-
 Every algorithm above has the same two-level structure, with three
 ingredients at any time $t$:
 
@@ -872,9 +859,6 @@ actor that replaces the maximum in the target, and belong to the
 
 ## Regression Losses and Noise Models
 
-How should the fitting loss change when Bellman targets have asymmetric or
-heavy-tailed noise rather than Gaussian residuals?
-
 At a fixed time $t$, the fit is a statistical estimation problem: given
 samples from $\hat{P}_t^{\text{fit}}$, choose $\boldsymbol{\theta}$ to
 minimize $\mathbb{E}_{((s,a),y)\sim \hat{P}_t^{\text{fit}}}[\ell(q(s,a;\boldsymbol{\theta}), y)]$.
@@ -899,25 +883,28 @@ $$
 they model it as Gumbel,
 
 $$
-y_i = q^*(s_i, a_i) + \varepsilon_i, \quad \varepsilon_i \sim -\text{Gumbel}(0, \beta),
+y_i = q^*(s_i, a_i) + \varepsilon_i, \quad \varepsilon_i \sim \text{Gumbel}(0, \beta),
 $$
 
-with the sign chosen because the targets overestimate. The maximum
-likelihood loss is Gumbel regression,
+a distribution skewed to the right, because a target built from a maximum
+occasionally lands far above the value it estimates. With $u_i = q(s_i, a_i;
+\boldsymbol\theta) - y_i$, the negative log-likelihood is, up to constants,
+the Gumbel regression loss
 
 $$
-\mathcal{L}_{\text{Gumbel}}(\boldsymbol{\theta}) = \sum_i \left[\frac{q(s_i, a_i; \boldsymbol{\theta}) - y_i}{\beta} + \exp\left(\frac{q(s_i, a_i; \boldsymbol{\theta}) - y_i}{\beta}\right)\right],
+\mathcal{L}_{\text{Gumbel}}(\boldsymbol{\theta}) = \sum_i \left[\exp\left(\frac{u_i}{\beta}\right) - \frac{u_i}{\beta} - 1\right],
 $$
 
-with a temperature $\beta$ that sets the heaviness of the tail, and its
-gradient with respect to $q$ is
+with a temperature $\beta$ that sets the heaviness of the tail. The loss is
+zero at $u_i = 0$ and convex, and its gradient with respect to $q$ is
 
 $$
-\frac{\partial \mathcal{L}_{\text{Gumbel}}}{\partial q} = \frac{1}{\beta}\left[1 + \exp\left(\frac{q - y}{\beta}\right)\right].
+\frac{\partial \mathcal{L}_{\text{Gumbel}}}{\partial q} = \frac{1}{\beta}\left[\exp\left(\frac{q - y}{\beta}\right) - 1\right].
 $$
 
-When $q < y$ the exponential is small and the gradient is mild; when $q > y$
-it grows exponentially with the error. The loss penalizes overestimation
+When $q < y$ the exponential is small and the gradient tends to $-1/\beta$,
+so a target far above the prediction pulls it up only linearly; when $q > y$
+the gradient grows exponentially with the error. The loss penalizes overestimation
 much more than underestimation, which pushes the fit toward conservative
 values when the targets are biased upward by the maximum. Squared error is
 the right likelihood for averages, by the central limit theorem; Gumbel
@@ -927,7 +914,7 @@ extreme value theory.
 ```{code-cell} python
 :tags: [hide-input]
 :label: fig-gumbel-loss
-:caption: Gumbel regression against squared error, as functions of the error $q - y$ of a prediction. (a) The loss grows exponentially for overestimates ($q > y$) and linearly for underestimates; a smaller temperature $\beta$ makes the asymmetry sharper. (b) Its derivative with respect to $q$, which sets how hard the fit pushes back: steep for overestimates, flat near $1/\beta$ for underestimates, while the derivative of squared error (dashed) is symmetric.
+:caption: Gumbel regression against squared error, as functions of the error $q - y$ of a prediction. (a) The loss $\exp(u/\beta) - u/\beta - 1$ grows exponentially for overestimates ($q > y$) and linearly for underestimates; a smaller temperature $\beta$ makes the asymmetry sharper. (b) Its derivative with respect to $q$, which sets how hard the fit pushes back: steep for overestimates, flat near $-1/\beta$ for underestimates, while the derivative of squared error (dashed) is symmetric.
 
 import sys
 from pathlib import Path
@@ -946,8 +933,8 @@ betas = {0.5: PALETTE["vermilion"], 1.0: PALETTE["orange"], 2.0: PALETTE["blue"]
 with figure_style():
     fig, (ax, bx) = plt.subplots(1, 2, figsize=(7.0, 2.5))
     for beta, color in betas.items():
-        ax.plot(error, error / beta + np.exp(error / beta), color=color)
-        bx.plot(error, (1 + np.exp(error / beta)) / beta, color=color)
+        ax.plot(error, np.exp(error / beta) - error / beta - 1, color=color)
+        bx.plot(error, (np.exp(error / beta) - 1) / beta, color=color)
     ax.plot(error, error ** 2, color=MUTED, lw=1, ls="--")
     bx.plot(error, 2 * error, color=MUTED, lw=1, ls="--")
     for axis in (ax, bx):
@@ -956,7 +943,7 @@ with figure_style():
         axis.set_xlim(-3, 3)
     ax.set_ylim(0, 10)
     bx.set_ylim(-5, 10)
-    ax.text(.55, 9.2, r"$\beta = 0.5$", color=betas[0.5], fontsize=8.5, ha="right")
+    ax.text(1.0, 9.2, r"$\beta = 0.5$", color=betas[0.5], fontsize=8.5, ha="right")
     ax.text(1.75, 8.0, r"$\beta = 1$", color=betas[1.0], fontsize=8.5, ha="right")
     ax.text(2.95, 3.2, r"$\beta = 2$", color=betas[2.0], fontsize=8.5, ha="right")
     ax.text(-2.0, 7.4, "squared\nerror", color=MUTED, fontsize=8.5)
@@ -985,7 +972,7 @@ $$
 g^{\text{soft}}(s,a,r,s'; \boldsymbol{\theta}) = r + \gamma \frac{1}{\beta}\log\sum_{a'} \exp(\beta q(s',a'; \boldsymbol{\theta})),
 $$
 
-with the squared loss unchanged; the Gumbel distribution enters through the Gumbel-max construction of the log-sum-exp, which is about making the optimal policy stochastic, not about the noise of the targets. XQL keeps the hard maximum in the target and changes the loss to $\ell_{\text{Gumbel}}(q,y) = (q-y)/\beta + \exp((q-y)/\beta)$, where the Gumbel distribution models the noise of the TD errors. The log-sum-exp reduces maximization bias by averaging over actions, a property of the target; the Gumbel loss penalizes overestimation, a property of the loss. The two can be combined.
+with the squared loss unchanged; the Gumbel distribution enters through the Gumbel-max construction of the log-sum-exp, which is about making the optimal policy stochastic, not about the noise of the targets. XQL keeps the hard maximum in the target and changes the loss to $\ell_{\text{Gumbel}}(q,y) = \exp((q-y)/\beta) - (q-y)/\beta - 1$, where the Gumbel distribution models the noise of the TD errors. The log-sum-exp reduces maximization bias by averaging over actions, a property of the target; the Gumbel loss penalizes overestimation, a property of the loss. The two can be combined.
 ```
 
 ### Classification-Based Q-Learning
@@ -1078,40 +1065,11 @@ with squared error degrade when the Q-network is scaled to a large ResNet,
 while the classification loss (HL-Gauss, which smooths the target with a
 Gaussian instead of the two-hot encoding) keeps its performance.
 
-## Summary
+## Exercises
 
-Fitted Q-iteration on data is fitted value iteration with the model replaced
-by the empirical distribution of a buffer: targets from recorded
-transitions, one successor each, and a fit that averages its error over
-them. The two experiments located the errors of a fitted policy. In the
-scheduling log with full coverage, the policy erred only where two actions
-were nearly tied, an approximation error that more data would not remove;
-in the log that followed one heuristic, it erred where the heuristic had
-never tried the exact policy's action, a coverage error that no regressor
-can repair. On ESA's collision warnings, fitted Q-iteration learned from
-the log alone a rule within about 7% of the one an operator would write by
-hand, once its targets were scaled so that one rare event could not dominate
-the fit.
-
-Writing out the gradient steps of a neural fit and merging them with the
-outer loop produces the online and target networks of DQN: the target
-network is the outer iteration's parameters kept in memory, and the online
-network is the inner iterate, which also collects the data once the buffer
-is allowed to evolve. Double DQN changes only the target function, to
-decouple selection from evaluation, and Q-learning is the limit of one
-transition per update, a stochastic approximation whose convergence the ODE
-method establishes for tables. All of them occupy one design space, with a
-buffer, a target function and a fit as its coordinates, and the loss of the
-fit is a noise model for the targets, which Gumbel regression and
-classification losses match better than squared error.
-
-Fitted Q-iteration can now learn action values from fixed or evolving
-buffers, but every target still requires $\max_a q(s,a)$. What happens when
-that action search is itself a nonlinear program? [Amortized action
-optimization](amortized-action-optimization.md) learns an actor to replace
-the repeated search while retaining the fitted-Q critic.
-
-## Self-checks
+The first exercises are short checks. The others follow the chapter: batch
+data first, then the loops and targets of DQN, then the design space.
+{ref}`ex-fqi-chain` is a short program.
 
 :::{exercise} Two loops
 :label: ex-fqi-check-1
@@ -1177,3 +1135,187 @@ In the collision-avoidance example, why did one event with a 2% collision probab
 
 Extra trees predict the average of the targets in a leaf, so a single cost three times larger than all the others combined raises the prediction of every state that shares a leaf with that event's epochs. Fitting the cost relative to the current message's own estimate turns the target into a correction factor of ordinary size, so the event no longer dominates the leaves it falls in.
 :::
+
+:::{exercise} Indices of a flattened loop
+:label: ex-fqi-indices
+
+DQN copies its target network every $K = 500$ gradient steps.
+
+1. At global step $t = 12{,}345$, which outer iteration $n$ and which inner
+   step $k$ of the nested algorithm is it?
+2. Which parameters computed the targets used at that step, in the notation
+   of {prf:ref}`nfqi-explicit-inner`?
+3. With hard copies every $K$ steps, the parameters that compute a target are
+   on average $(K-1)/2$ steps old. With an exponential moving average of rate
+   $\tau$ they are on average $(1-\tau)/\tau$ steps old. Which $\tau$ matches
+   $K = 10^4$?
+:::
+
+:::{solution} ex-fqi-indices
+:class: dropdown
+
+1. $n = \lfloor 12{,}345/500 \rfloor = 24$ and $k = 12{,}345 - 24 \times 500 = 345$.
+2. $\boldsymbol{\theta}_{24}$, the parameters at the end of outer iteration 23, held in the target network since step $12{,}000$.
+3. $(1-\tau)/\tau = (K-1)/2$ gives $\tau = 2/(K+1) \approx 2 \times 10^{-4}$. The typical values $\tau \in [10^{-3}, 10^{-2}]$ of DDPG and TD3 correspond to copies every 200 to 2,000 steps.
+:::
+
+:::{exercise} One Double DQN target
+:label: ex-fqi-double-target
+
+A transition has reward $r = 0.5$ and successor $s'$, and $\gamma = 0.9$. At
+$s'$ the online network predicts $(1.0, 1.3, 0.9)$ for three actions, and the
+target network predicts $(1.2, 1.0, 1.1)$.
+
+1. Compute the DQN target and the Double DQN target.
+2. Which of the two uses the same estimate to select and to evaluate?
+3. Suppose the true values at $s'$ are $(1.0, 1.0, 1.0)$. Which target is
+   closer to the truth, and which bias of {ref}`sec-mc-overestimation` does
+   the other one show?
+:::
+
+:::{solution} ex-fqi-double-target
+:class: dropdown
+
+1. DQN: $0.5 + 0.9 \times \max(1.2, 1.0, 1.1) = 1.58$. Double DQN: the online network selects the second action, which the target network values at $1.0$, so $0.5 + 0.9 \times 1.0 = 1.40$.
+2. DQN: the target network both selects the first action and values it.
+3. The true target is $0.5 + 0.9 = 1.40$. Double DQN hits it, and DQN overestimates by $0.18$ because it values the action that the noise of its own estimate made look best, the evaluation bias.
+:::
+
+:::{exercise} The deadly triad, algorithm by algorithm
+:label: ex-fqi-triad
+
+For each algorithm, say which of the three elements of the deadly triad it
+has (function approximation that is not an averager, bootstrapped targets,
+data from a policy other than the one being evaluated), and what, if
+anything, guarantees its convergence.
+
+1. Tree-based FQI on a fixed batch, with partitions frozen after a few iterations.
+2. Neural fitted Q-iteration on a fixed batch.
+3. DQN.
+4. Tabular Q-learning with $\varepsilon$-greedy exploration.
+5. Fitted policy evaluation with linear features on data collected by the policy being evaluated.
+:::
+
+:::{solution} ex-fqi-triad
+:class: dropdown
+
+1. Bootstrapping and off-policy data, but the fit is an averager once the partitions are frozen, so {prf:ref}`santos-vigo-aguiar-stability` applies to the empirical Bellman operator.
+2. All three. No guarantee; warm starts and fits run to convergence on fixed targets limit the damage.
+3. All three, with a buffer that moves. No guarantee; the target network, the warm start and the large buffer are the mitigations.
+4. Bootstrapping and off-policy data, but a table is an averager in the trivial sense. Convergence follows from the ODE method under decreasing step sizes and visits to every pair.
+5. Linear features and bootstrapping, but on-policy data, so the projected operator contracts in the $\xi$-norm ({ref}`sec-abe-convergence`).
+:::
+
+:::{exercise} Coverage on a chain
+:label: ex-fqi-chain
+
+Build a chain of ten states $0, \ldots, 9$ with two actions. Action "right"
+moves one state to the right with probability $0.9$ and stays with
+probability $0.1$; "left" moves one state to the left in the same way. The
+reward is $1$ on entering or staying in state 9, and $\gamma = 0.9$.
+
+1. Log 5,000 transitions from uniformly random states with uniformly random
+   actions, and run fitted Q-iteration with a table as the fit: each target is
+   averaged over the transitions of its state-action pair, and pairs with no
+   data keep the value $0$. Evaluate the greedy policy exactly from state $0$.
+2. Repeat with a log in which the behavior policy always moves left in states
+   5 to 8.
+3. Explain why the second policy fails in states 0 to 4, where the log has
+   data for both actions.
+:::
+
+:::{solution} ex-fqi-chain
+:class: dropdown
+
+With the broad log the greedy policy moves right everywhere and its value
+from state 0 is $3.90$, the optimal value. With the narrow log, "right" has
+no data in states 5 to 8, so its value there stays at $0$, which ties with
+"left" and loses the tie. The policy moves left in states 5 to 8, and the
+value it attains from state 0 is $0$. In states 0 to 4 both actions have data,
+but the targets of "right" are built from the values of states 1 to 5, which
+are wrong: the error in the uncovered states propagates backward through the
+bootstrapped targets. A fit that generalizes, such as trees on the state
+index, could extrapolate "right" from state 4 or 9, and that extrapolation
+would decide the result, which is the situation of the narrow
+inference-scheduling buffer.
+:::
+
+:::{exercise} Losses as noise models
+:label: ex-fqi-losses
+
+1. Show that minimizing squared error is maximum likelihood when
+   $y = q + \varepsilon$ with Gaussian $\varepsilon$, and that minimizing the
+   Gumbel loss is maximum likelihood when $\varepsilon \sim \text{Gumbel}(0, \beta)$,
+   whose density is $\tfrac1\beta\exp\big(-\varepsilon/\beta - e^{-\varepsilon/\beta}\big)$.
+2. Two-hot encoding writes a target as a convex combination of two bin
+   values. Which result of the chapter on fitted value methods does this make it
+   an instance of, and which interpolation of the finite-horizon chapter does
+   it reuse?
+3. The satellite example scaled its targets by the current message's
+   estimate. Explain why this is a change of noise model, in the same sense as
+   1, and what a classification loss with a fixed grid of bins would have done
+   with the event whose cost was 2,070.
+:::
+
+:::{solution} ex-fqi-losses
+:class: dropdown
+
+1. With Gaussian $\varepsilon$, the negative log-likelihood of $y$ is $(q - y)^2/2\sigma^2$ plus a constant. With Gumbel $\varepsilon = y - q$, it is $\varepsilon/\beta + e^{-\varepsilon/\beta}$ plus a constant; writing $u = q - y = -\varepsilon$ gives $e^{u/\beta} - u/\beta$, the Gumbel loss up to the constant $-1$.
+2. It is an averager ({prf:ref}`gordon-averager`) applied on the value axis, and it reuses the linear interpolation with nonnegative weights of {prf:ref}`backward-recursion-interp`.
+3. Fitting the ratio $y/(C\,10^{\rho})$ assumes that errors are proportional to the predicted cost rather than additive, a multiplicative noise model, so one large cost no longer dominates the squared error of its leaf. A classification loss would have clipped the 2,070 target to the top bin, which bounds its influence too, but loses the information of how large the cost was.
+:::
+
+:::{exercise} A buffer of your own design
+:label: ex-fqi-open
+
+Take the inference-scheduling MDP of the chapter. Design a behavior policy
+that collects a data set of 50,000 transitions as small in coverage as you
+can make it while keeping the fitted policy within 2% of the exact return,
+or show that no such policy exists. Report the coverage, the disagreement
+with the exact policy, and the return, and relate your design to the action
+gap at the states where the exact policy switches between prefill and decode.
+:::
+
+:::{solution} ex-fqi-open
+:class: dropdown
+
+This exercise is open-ended. The chapter's two buffers bound the answer: the
+broad one covers everything and still loses 5% of the return near the
+switching curve, where the action values differ by at most 1.24. A good
+design concentrates data on the states next to that curve, where the action
+gap is small and errors in the ranking are likely, and spends little on
+states far from it, where any reasonable fit ranks the actions correctly.
+:::
+
+## Summary
+
+Fitted Q-iteration on data is fitted value iteration with the model replaced
+by the empirical distribution of a buffer: targets from recorded
+transitions, one successor each, and a fit that averages its error over
+them. The two experiments located the errors of a fitted policy. In the
+scheduling log with full coverage, the policy erred only where two actions
+were nearly tied, an approximation error that more data would not remove;
+in the log that followed one heuristic, it erred where the heuristic had
+never tried the exact policy's action, a coverage error that no regressor
+can repair. On ESA's collision warnings, fitted Q-iteration learned from
+the log alone a rule within about 7% of the one an operator would write by
+hand, once its targets were scaled so that one rare event could not dominate
+the fit.
+
+Writing out the gradient steps of a neural fit and merging them with the
+outer loop produces the online and target networks of DQN: the target
+network is the outer iteration's parameters kept in memory, and the online
+network is the inner iterate, which also collects the data once the buffer
+is allowed to evolve. Double DQN changes only the target function, to
+decouple selection from evaluation, and Q-learning is the limit of one
+transition per update, a stochastic approximation whose convergence the ODE
+method establishes for tables. All of them occupy one design space, with a
+buffer, a target function and a fit as its coordinates, and the loss of the
+fit is a noise model for the targets, which Gumbel regression and
+classification losses match better than squared error.
+
+Fitted Q-iteration can now learn action values from fixed or evolving
+buffers, but every target still requires $\max_a q(s,a)$. What happens when
+that action search is itself a nonlinear program? [Amortized action
+optimization](amortized-action-optimization.md) learns an actor to replace
+the repeated search while retaining the fitted-Q critic.

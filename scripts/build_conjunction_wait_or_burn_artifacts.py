@@ -99,8 +99,11 @@ def figure(epochs, results, burn_map):
             if (final[e] >= BREAK_EVEN) != needed:
                 continue
             g = raw[raw.event_id == e]
-            ax.plot(g.time_to_tca, g.risk.clip(lower=-8), lw=.7 if needed else .4,
-                    color=PALETTE["vermilion"] if needed else PALETTE["gray"], alpha=.75 if needed else .12)
+            # Below 1e-8 a message means "no meaningful risk" (41% of messages report 1e-30): the line
+            # leaves the panel there instead of plunging to the bottom edge.
+            risk = g.risk.where(g.risk > -8)
+            ax.plot(g.time_to_tca, risk, lw=.7 if needed else .4,
+                    color=PALETTE["vermilion"] if needed else PALETTE["gray"], alpha=.75 if needed else .08)
     ax.axhline(BREAK_EVEN, color=INK, lw=.8, ls="--")
     ax.set_xlim(7, 0), ax.set_ylim(-8, -1)
     ax.set_xticks([6, 4, 2, 0])

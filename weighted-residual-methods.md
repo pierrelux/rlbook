@@ -10,7 +10,7 @@ kernelspec:
   language: python
   name: python3
 ---
-# Weighted-Residual Methods
+# Parametric Value Functions
 
 The dynamic programming chapters solved Bellman equations by storing one
 number per state, or per grid state. That works for the reservoir, the
@@ -41,16 +41,13 @@ After completing this chapter, you should be able to:
 ::::
 
 (sec-why-approximate)=
-## Why Approximate the Value Function?
+## Limits of Tabular Dynamic Programming
 
-Why can't the tables of the previous chapters simply be made larger, and what
-does a replacement for them have to provide?
+The tables of the previous chapters cannot simply be made larger, for three
+reasons, each already visible in an example we have solved.
 
-There are three reasons, and each is already visible in an example we have
-solved.
-
-**The number of states grows exponentially with the number of state
-variables.** The tamarisk river of {ref}`sec-tamarisk-river` has one site per
+The first is that the number of states grows exponentially with the number
+of state variables. The tamarisk river of {ref}`sec-tamarisk-river` has one site per
 reach and three conditions per site, so a river of $n$ reaches has $3^n$
 states. Value iteration needed about 150 sweeps whatever the size of the
 river, but each sweep touches every state, and a dense transition table for a
@@ -67,7 +64,8 @@ function of a large system often has structure, such as smoothness or a
 dependence on a few aggregate quantities, that a grid cannot exploit and a
 more flexible representation can.
 
-**Successors fall between the stored states.** Even in one dimension, the
+The second is that successors fall between the stored states. Even in one
+dimension, the
 [finite-horizon chapter](finite-horizon-dp.md#handling-continuous-spaces-with-interpolation)
 had to decide which value to use for a successor that lands between two grid
 states. Its answer, a family of cardinal functions, turned the table into a
@@ -75,7 +73,8 @@ function defined everywhere, and its analysis of how the reconstruction error
 propagates through the recursion was a first instance of what this part of the
 book studies in general.
 
-**Learning from data visits only some states.** In the chapters ahead the
+The third is that learning from data visits only some states. In the
+chapters ahead the
 model is replaced by a simulator or by recorded transitions $(s, a, r, s')$. A
 batch of transitions covers a vanishing fraction of a large state space, and
 each Bellman target $r + \gamma v(s')$ needs a value at a successor $s'$ that
@@ -112,10 +111,9 @@ steps that lead from it to FQI and NFQCA.
 (sec-wr-fishery)=
 ## A Motivating Example: Harvesting a Fishery Near a Tipping Point
 
-What goes wrong when a value function on a continuum must be stored in a few
-numbers, and does the way we store it change the decisions it produces?
-
-A regulator sets the annual quota for a fish stock. Before the season, a survey
+This example shows what goes wrong when a value function on a continuum is
+stored in a few numbers, and how the way it is stored changes the decisions
+it produces. A regulator sets the annual quota for a fish stock. Before the season, a survey
 gives the stock $x$, measured as a fraction of the carrying capacity of the
 habitat. The regulator chooses the *escapement* $s \in [0, x]$, the part of the
 stock left in the water to spawn. The rest, $x - s$, is caught and sold at a
@@ -758,6 +756,210 @@ larger, because its oscillations move the decision boundary past the tipping
 point (panel (c) of {numref}`fig-fishery-collocation`).
 ::::
 
+## Exercises
+
+The exercises use the notation of the five steps. The first ones are short
+checks of the definitions; most of the others can be done by hand, and
+{ref}`ex-wr-fishery-newton` needs the fishery module that produced the
+figures.
+
+:::{exercise} Orthogonality condition
+:label: ex-projection-check-1
+
+In a Galerkin method with basis functions $\varphi_i$, against which functions is the Bellman residual required to be orthogonal, and what does that say about $\Proj\,\Bellman v_\theta$?
+:::
+
+:::{solution} ex-projection-check-1
+:class: dropdown
+
+Against the basis functions themselves: $\langle \Bellman v_\theta - v_\theta, \varphi_i\rangle_w = 0$ for every $i$. The residual is then orthogonal to the whole span, so the $w$-orthogonal projection of $\Bellman v_\theta$ onto the span is $v_\theta$ itself.
+:::
+
+:::{exercise} Collocation versus least squares
+:label: ex-projection-check-2
+
+What is the main distinction between collocation and least-squares residual fitting, and which of the two needs the envelope theorem?
+:::
+
+:::{solution} ex-projection-check-2
+:class: dropdown
+
+Collocation forces the residual to vanish at selected states. Least squares minimizes the weighted squared residual over the state space. Least squares needs the envelope theorem, because its first-order conditions contain the derivative of the Bellman operator with respect to the coefficients; collocation needs it only if the collocation equations are solved by Newton's method.
+:::
+
+:::{exercise} Three measures of quality
+:label: ex-projection-check-6
+
+In the fishery with $n = 12$, the polynomial has the smaller residual and the larger policy loss. Which of residual, value error and policy loss does collocation control, which bounds which, and why can the ranking differ?
+:::
+
+:::{solution} ex-projection-check-6
+:class: dropdown
+
+Collocation controls the residual at the nodes only. The sup norm of the residual over all states bounds the value error through $1/(1-\gamma)$, and the value error bounds the policy loss (next chapter). Both bounds are loose, and the policy depends on differences between the values of actions rather than on the values themselves, so an approximation with a smaller residual can place a decision boundary in the wrong region, as the polynomial does across the tipping point.
+:::
+
+:::{exercise} Three methods on one equation
+:label: ex-wr-three-methods
+
+Consider policy evaluation on $\mathcal{S} = [0, 1]$ with reward $r(x) = x$,
+deterministic transition $x' = x/2$ and $\gamma = 1/2$, so that the Bellman
+equation is $v(x) = x + \tfrac12 v(x/2)$.
+
+1. Check that $v(x) = \tfrac43 x$ solves it.
+2. Approximate $v$ by $\hat v(x;\theta) = \theta_1 + \theta_2 x^2$, a basis that
+   cannot represent the solution. Write the residual $R(x;\theta)$.
+3. Collocate at $x = 0$ and $x = 1$. Find $\theta$.
+4. Impose the Galerkin conditions with the uniform weight on $[0, 1]$. Find
+   $\theta$.
+5. Compare the two approximations by their largest residual and their
+   largest value error on $[0, 1]$. Which one is better by each measure?
+:::
+
+:::{solution} ex-wr-three-methods
+:class: dropdown
+
+1. $\tfrac43 x = x + \tfrac12 \cdot \tfrac43 \cdot \tfrac x2 = x + \tfrac13 x$.
+2. $R(x;\theta) = x + \tfrac12(\theta_1 + \theta_2 x^2/4) - \theta_1 - \theta_2 x^2 = x - \tfrac12\theta_1 - \tfrac78\theta_2 x^2$.
+3. $R(0) = -\tfrac12\theta_1 = 0$ gives $\theta_1 = 0$, and $R(1) = 1 - \tfrac78\theta_2 = 0$ gives $\theta_2 = \tfrac87$.
+4. The conditions $\int_0^1 R\,dx = \tfrac12 - \tfrac12\theta_1 - \tfrac{7}{24}\theta_2 = 0$ and $\int_0^1 R\,x^2\,dx = \tfrac14 - \tfrac16\theta_1 - \tfrac{7}{40}\theta_2 = 0$ give $\theta_1 = \tfrac38$ and $\theta_2 = \tfrac{15}{14}$.
+5. Collocation: largest residual $0.25$, largest value error $0.389$ (near $x = 0.58$). Galerkin: largest residual $0.1875$, largest value error $0.375$ (at $x = 0$). Galerkin is slightly better by both measures here. Both are poor, because a parabola cannot follow a line through the origin and the ends: no choice of conditions repairs a basis that cannot represent the solution. Least squares happens to give the Galerkin answer in this problem, because the residual is linear in $\theta$ and its derivatives $\partial R/\partial\theta_i$ are $-\tfrac12$ and $-\tfrac78 x^2$, which span the same space as the basis.
+:::
+
+:::{exercise} Which collocation iterations contract
+:label: ex-wr-cardinal
+
+Take the basis of {ref}`ex-wr-three-methods` and the collocation points $0$
+and $1$.
+
+1. Write the cardinal functions $\ell_0, \ell_1$ of interpolation in
+   $\text{span}\{1, x^2\}$ through these points, so that
+   $(\Proj g)(x) = \ell_0(x) g(0) + \ell_1(x) g(1)$.
+2. Show that they are nonnegative and sum to one on $[0, 1]$. What does this
+   imply for function iteration $v_{k+1} = \Proj\Bellman v_k$ on this problem,
+   and for any Bellman operator that is a sup-norm contraction?
+3. Now interpolate with the quadratic through $0$, $\tfrac12$ and $1$. Compute
+   the Lebesgue constant $\Lambda = \max_x \sum_j |\ell_j(x)|$ and explain why
+   the argument of part 2 no longer applies. This is the constant of
+   {prf:ref}`prop-interp-error-accumulation` in the finite-horizon chapter.
+:::
+
+:::{solution} ex-wr-cardinal
+:class: dropdown
+
+1. $\ell_0(x) = 1 - x^2$ and $\ell_1(x) = x^2$.
+2. Both lie in $[0, 1]$ on $[0, 1]$ and sum to one, so $\Proj g$ is a convex combination of $g(0)$ and $g(1)$ at every $x$ and $\|\Proj f - \Proj g\|_\infty \le \|f - g\|_\infty$. The composition $\Proj\Bellman$ is then a $\gamma$-contraction for any $\gamma$-contraction $\Bellman$, and function iteration converges from any start. On this problem it converges to the collocation solution of {ref}`ex-wr-three-methods`.
+3. The cardinal functions are $2(x - \tfrac12)(x-1)$, $-4x(x-1)$ and $2x(x-\tfrac12)$. The first and last are negative on parts of $[0, 1]$, so $\Lambda = 1.25 > 1$. A difference between two target vectors can be amplified by up to $1.25$, which beats a contraction factor $\gamma > 0.8$; nonexpansiveness, the step the argument needs, fails.
+:::
+
+:::{exercise} Newton's method at a tie
+:label: ex-wr-envelope-tie
+
+Let $h(\theta) = \max\{\theta, 1 - \theta\}$, the maximum over two actions
+whose values depend on one coefficient.
+
+1. Where is $h$ differentiable, and what does the envelope theorem give
+   there?
+2. At $\theta = \tfrac12$ the two actions tie. Which assumption of
+   {prf:ref}`thm-envelope` fails? Any slope between $-1$ and $1$ is a valid
+   linearization there; show that each choice corresponds to evaluating one of
+   the two actions, or a randomization between them.
+3. Explain why Newton's method on the collocation equations, which is policy
+   iteration in coefficient space ({eq}`eq:collocation-newton`), still works
+   when the greedy policy has ties at some nodes, and what the smooth Bellman
+   operator of the regularized chapter changes.
+:::
+
+:::{solution} ex-wr-envelope-tie
+:class: dropdown
+
+1. Everywhere except $\theta = \tfrac12$. The envelope theorem gives the derivative of the active action: $1$ for $\theta > \tfrac12$ and $-1$ for $\theta < \tfrac12$.
+2. The maximizer is not unique. The one-sided derivatives are $-1$ and $1$, and every slope $\lambda \cdot 1 + (1-\lambda)(-1)$ with $\lambda \in [0, 1]$ is a subgradient: it is the derivative of the value of the randomized choice that takes the first action with probability $\lambda$.
+3. A tie means two actions have the same value at that node, so evaluating either one gives a valid Newton step: the step solves the evaluation equation of some greedy policy, and policy iteration converges whichever greedy action it picks. The smooth Bellman operator replaces the maximum by a log-sum-exp, which is differentiable everywhere; its Jacobian uses the softmax policy, which splits the probability between tied actions, and no tie-breaking rule is needed.
+:::
+
+:::{exercise} Newton's method on the fishery
+:label: ex-wr-fishery-newton
+
+Function iteration with the twelve hat functions needs about 410 iterations
+on the fishery. Implement the Newton step {eq}`eq:collocation-newton` for the
+same basis, using `Bellman`, `HatBasis` and `growth` from
+`code/fishery_tipping_point.py`, and count the iterations.
+
+1. For the current coefficients, find the greedy escapement at each node.
+   `Bellman.greedy` returns it on the fine grid; read off the value at the
+   grid point where each node falls.
+2. Build the matrix $\mathbf{P}_{\pi}\boldsymbol{\Phi}$ with entries
+   $\mathbb{E}_z[\varphi_j(z f(s_i))]$, using the quadrature nodes
+   `bellman.z` and weights `bellman.w`. For hat functions, $\boldsymbol\Phi$ is
+   the identity.
+3. Solve $(\mathbf{I} - \gamma \mathbf{P}_{\pi}\boldsymbol{\Phi})\theta = \mathbf{r}_\pi$
+   with $\mathbf{r}_\pi$ the harvests $x_i - s_i$ at the nodes, and repeat.
+4. Check that the result agrees with the fixed point of function iteration.
+   Why must it?
+:::
+
+:::{solution} ex-wr-fishery-newton
+:class: dropdown
+
+```python
+import numpy as np
+from fishery_tipping_point import Bellman, HatBasis, growth, X_MAX
+
+bellman, basis = Bellman(), HatBasis(12)
+nodes, gamma = basis.nodes, bellman.gamma
+
+def hats(points):                                   # phi_j(points), one column per node
+    return np.stack([np.interp(points, nodes, np.eye(basis.n)[j]) for j in range(basis.n)], axis=-1)
+
+theta = np.zeros(basis.n)
+for k in range(30):
+    escapement = bellman.greedy(basis.function(theta))
+    index = np.clip(np.searchsorted(bellman.x, nodes, side="right") - 1, 0, bellman.x.size - 1)
+    s = escapement[index]                           # greedy escapement at each node
+    successors = np.clip(np.outer(growth(s), bellman.z), 0, X_MAX)
+    P_Phi = np.einsum("q,iqj->ij", bellman.w, hats(successors))
+    new = np.linalg.solve(np.eye(basis.n) - gamma * P_Phi, nodes - s)
+    step, theta = np.abs(new - theta).max(), new
+    if step < 1e-10:
+        break
+print(k + 1, "Newton iterations")
+```
+
+The steps are $1.6$, $2.9$, $0.86$, $3 \times 10^{-7}$ and then zero: five
+iterations, against about 410 for function iteration, and the coefficients
+agree with the fixed point of function iteration to $10^{-14}$. They must
+agree, because both methods solve the same collocation equations
+$\theta = \Proj\Bellman v_\theta$, which have a unique solution here since
+$\Proj\Bellman$ is a contraction; Newton's method only finds it faster.
+:::
+
+:::{exercise} Choosing nodes for the polynomial
+:label: ex-wr-nodes
+
+With 10 Chebyshev coefficients, function iteration on the fishery diverges.
+Explore what could be changed while keeping a polynomial of degree 9: more
+collocation points than coefficients with a least-squares fit, a different
+placement of the nodes, or Newton's method started from the converged
+piecewise-linear solution. For each option, report whether the iteration
+converges and the policy loss of the result, and relate what you see to the
+sign of the cardinal functions and to the hybrid strategy of
+{ref}`sec-wr-solve`.
+:::
+
+:::{solution} ex-wr-nodes
+:class: dropdown
+
+This exercise is open-ended. A least-squares fit to more nodes than
+coefficients is no longer an averager, so it carries no guarantee either,
+although oversampling reduces the size of the weights. Newton's method does
+not iterate $\Proj\Bellman$ and needs no contraction; started from the
+piecewise-linear solution, which is close, it is the hybrid strategy of the
+chapter. Whatever converges, judge it by the policy loss, as in Step 5: a
+polynomial that converges can still place the decision boundary on the wrong
+side of the tipping point.
+:::
+
 ## Summary and Outlook
 
 Replacing the value function by $v(\cdot;\theta)$ turns the Bellman equation
@@ -795,41 +997,3 @@ sequence of regression problems with Bellman targets that any regressor can
 solve, and the pattern behind fitted Q-iteration, NFQ and NFQCA. The chapter
 bounds its error, shows when the fit makes it diverge and which fits cannot,
 and turns Newton's method into approximate policy iteration.
-
-## Self-checks
-
-:::{exercise} Orthogonality condition
-:label: ex-projection-check-1
-
-In a Galerkin method with basis functions $\varphi_i$, against which functions is the Bellman residual required to be orthogonal, and what does that say about $\Proj\,\Bellman v_\theta$?
-:::
-
-:::{solution} ex-projection-check-1
-:class: dropdown
-
-Against the basis functions themselves: $\langle \Bellman v_\theta - v_\theta, \varphi_i\rangle_w = 0$ for every $i$. The residual is then orthogonal to the whole span, so the $w$-orthogonal projection of $\Bellman v_\theta$ onto the span is $v_\theta$ itself.
-:::
-
-:::{exercise} Collocation versus least squares
-:label: ex-projection-check-2
-
-What is the main distinction between collocation and least-squares residual fitting, and which of the two needs the envelope theorem?
-:::
-
-:::{solution} ex-projection-check-2
-:class: dropdown
-
-Collocation forces the residual to vanish at selected states. Least squares minimizes the weighted squared residual over the state space. Least squares needs the envelope theorem, because its first-order conditions contain the derivative of the Bellman operator with respect to the coefficients; collocation needs it only if the collocation equations are solved by Newton's method.
-:::
-
-:::{exercise} Three measures of quality
-:label: ex-projection-check-6
-
-In the fishery with $n = 12$, the polynomial has the smaller residual and the larger policy loss. Which of residual, value error and policy loss does collocation control, which bounds which, and why can the ranking differ?
-:::
-
-:::{solution} ex-projection-check-6
-:class: dropdown
-
-Collocation controls the residual at the nodes only. The sup norm of the residual over all states bounds the value error through $1/(1-\gamma)$, and the value error bounds the policy loss (next chapter). Both bounds are loose, and the policy depends on differences between the values of actions rather than on the values themselves, so an approximation with a smaller residual can place a decision boundary in the wrong region, as the polynomial does across the tipping point.
-:::

@@ -10,7 +10,7 @@ kernelspec:
   language: python
   name: python3
 ---
-# Approximate Bellman Equations
+# Fitted Value Methods
 
 The [previous chapter](weighted-residual-methods.md) replaced the value
 function by a parametric function $v(\cdot;\theta)$ and asked which finite
@@ -35,7 +35,7 @@ averagers, which include grid interpolation and the tree ensembles of the
 first fitted Q-iteration algorithm, and least squares weighted by the state
 distribution of the policy being evaluated. Neural networks belong to neither
 kind. What keeps neural fitted Q-iteration stable in practice is a set of
-design choices that the [fitted Q-iteration chapter](fitted-q-iteration.md)
+design choices that the [chapter on logged and online data](fitted-q-iteration.md)
 examines. We then turn to the other solver of the previous chapter, Newton's
 method, which becomes approximate policy iteration and, for linear features,
 the LSTD and LSPI algorithms. The chapter closes with the steps that separate
@@ -60,9 +60,6 @@ After completing this chapter, you should be able to:
 
 (sec-abe-fvi)=
 ## Fitted Value Iteration
-
-What does value iteration become when the value function is stored as a
-parametric function rather than as a table?
 
 Value iteration computes $\Bellman v_k$ at every state and stores the result.
 With a parametric function we can do neither, but we can do two things that
@@ -216,7 +213,7 @@ max, by the envelope theorem ({prf:ref}`thm-envelope`), or through the
 log-sum-exp of the [smooth Bellman operator](regularized-dp.md). The two
 criteria have different solutions. Every algorithm in the chapters ahead,
 from NFQ to NFQCA, fits to fixed targets, and the
-[fitted Q-iteration chapter](fitted-q-iteration.md) studies what happens
+[chapter on logged and online data](fitted-q-iteration.md) studies what happens
 when the fit is warm-started and stopped after a few gradient steps instead
 of run to convergence.
 
@@ -348,14 +345,14 @@ has found the one direction along which the value changes. Both have maximum err
 times their average, at the corners of the cube, where few of the sampled
 states lie. That gap is a first glimpse of the issue that dominates the
 analysis below and the batch methods of the
-[fitted Q-iteration chapter](fitted-q-iteration.md): a fit is controlled
+[chapter on logged and online data](fitted-q-iteration.md): a fit is controlled
 where there are data, and only there.
 
 (sec-abe-error)=
-## How Fitting Errors Propagate
+## Propagation of Fitting Errors
 
-If every fit is only approximately right, how far from $v^*$ does fitted value
-iteration end, and how good is the policy it returns?
+Every fit is only approximately right. This section bounds how far from $v^*$
+fitted value iteration ends, and how good the policy it returns is.
 
 The finite-horizon chapter answered this for backward recursion with
 interpolation: with nonnegative weights, the error of the stored values is
@@ -414,7 +411,7 @@ no structure at all. This is what licenses a tree ensemble or a neural
 network in place of a table. It also says where the difficulty lies, in
 three places that the rest of this chapter and the next ones take up.
 
-1. **The error is measured in the sup norm, at every state.** A regression
+1. The error is measured in the sup norm, at every state. A regression
    controls an average error over the states where targets were computed,
    and nothing at the states it never saw. The analysis of fitted value
    iteration by {cite:t}`Munos2007` and {cite:t}`MunosSzepesvari2008`
@@ -422,19 +419,19 @@ three places that the rest of this chapter and the next ones take up.
    coefficient, which measures how far the state distributions that policies
    reach can be from the distribution of the data. It is the theoretical form
    of the coverage problem of batch and offline reinforcement learning.
-2. **The fit must be achievable.** The bound needs some $\theta$ with
+2. The fit must be achievable. The bound needs some $\theta$ with
    $v(\cdot;\theta)$ close to $\Bellman v_k$ for every $v_k$ the algorithm
    produces. The function class must therefore be nearly closed under the
    Bellman operator, not merely able to represent $v^*$.
-3. **The error must stay bounded.** The theorem assumes one $\varepsilon$ for
+3. The error must stay bounded. The theorem assumes one $\varepsilon$ for
    all iterations. If the fit error grows with $v_k$, the bound says nothing,
    and the next section shows that this happens.
 
 (sec-abe-mallard)=
 ### Example: Setting Duck-Hunting Regulations
 
-How loose are these bounds on a problem that a government agency solves every
-year? Each summer, the U.S. Fish and Wildlife Service chooses the duck-hunting
+The bounds can be tested on a problem that a government agency solves every
+year. Each summer, the U.S. Fish and Wildlife Service chooses the duck-hunting
 regulations for the Mississippi and Central Flyways from four packages: a
 closed season, or a restrictive, moderate or liberal one, which differ in
 season length and bag limit. Since 1995 the choice for mallards has come from
@@ -491,19 +488,19 @@ that we compute against the reference.
 
 The table supports three observations.
 
-1. **Both bounds hold, and both are loose.** The value error is 18 to 118
+1. Both bounds hold, and both are loose. The value error is 18 to 118
    times smaller than $\varepsilon/(1-\gamma)$, and the policy loss is four to
    five orders of magnitude below $2\gamma\varepsilon/(1-\gamma)^2$. The bounds
    charge every iteration's error at its worst state and let the errors add up
    in the same direction for $1/(1-\gamma) = 50$ years. Neither happens here.
-2. **The policy is much more accurate than the value function.** The
+2. The policy is much more accurate than the value function. The
    coarsest grid has 45 nodes and a value error of 2.2
    million birds, yet it picks the reference package in 96.5% of the
    states, and its worst policy loss is 0.10 million birds, about
    a quarter of a percent of the value. A decision depends on the differences between
    the values of the packages, and much of the fitting error is shared by all
    four packages, because their successor states are close.
-3. **The regressors do about as well as the coarsest grid.** With 2,000
+3. The regressors do about as well as the coarsest grid. With 2,000
    targets per iteration, the trees and the network have fitting errors of
    $0.76$ and $1.47$, of the same order as the $0.79$ of the 45-node grid. The network's
    greedy policy reproduces the reference map (panel (c)): it picks the
@@ -516,17 +513,17 @@ With two state variables the Service's grid is the right tool, and the
 regressors bring nothing. They become necessary when the state has many
 dimensions, as in the eight-dimensional stopping problem, or when there is no
 model at all to compute targets from, as in the collision-avoidance example
-of the [fitted Q-iteration chapter](fitted-q-iteration.md).
+of the [chapter on logged and online data](fitted-q-iteration.md).
 
 - {download}`Mallard harvest model and solvers <code/mallard_harvest.py>`
 - {download}`Mallard harvest experiment builder <scripts/build_mallard_harvest_artifacts.py>`
 - {download}`Mallard harvest results <artifacts/mallard_harvest/metrics.json>`
 
 (sec-abe-convergence)=
-## When Fitting Diverges, and Which Fits Cannot
+## Divergence and Stable Fits
 
-Can a fit that represents the solution exactly still make value iteration
-diverge, and which fitting rules rule this out?
+A fit that represents the solution exactly can still make value iteration
+diverge. This section shows how, and which fitting rules rule it out.
 
 ### A Two-State Counterexample
 
@@ -788,9 +785,8 @@ Baird's counterexample {cite}`Baird1995` is the classical demonstration.
 
 ### The Optimality Operator and the Deadly Triad
 
-Can the weighted argument be extended to the optimality operator
-$\Bellman v = \max_a [\mathbf{r}_a + \gamma \mathbf{P}_a v]$? Not this way.
-The obstacle is the Jensen step. For the optimality operator we would need to
+The weighted argument does not extend to the optimality operator
+$\Bellman v = \max_a [\mathbf{r}_a + \gamma \mathbf{P}_a v]$. The obstacle is the Jensen step. For the optimality operator we would need to
 bound $\big[\max_{a} \sum_{s'} p(s'|s,a) z(s')\big]^2$, and a maximum of
 averages is not an average. Nor is there a single stationary distribution to
 match, since the greedy policy, and with it the state distribution, changes
@@ -805,14 +801,11 @@ Yet NFQ and DQN solve many problems, because of design choices that limit the
 damage: each fit is run against targets held fixed, the fit is warm-started
 from the previous parameters, a separate target network changes slowly, and a
 large replay buffer keeps the data distribution from tracking every change of
-policy. The [fitted Q-iteration chapter](fitted-q-iteration.md) examines these
+policy. The [chapter on logged and online data](fitted-q-iteration.md) examines these
 choices one by one.
 
 (sec-abe-api)=
 ## Approximate Policy Iteration
-
-What does Newton's method, the other solver of the previous chapter, become
-when the value function is parametric, and what does the linear case add?
 
 In the exact setting, Newton's method on the Bellman equation is policy
 iteration ({ref}`sec-newton-kantorovich-pi`): by the envelope theorem the
@@ -933,41 +926,38 @@ NFQCA does.
 (sec-abe-roadmap)=
 ## From Fitted Value Iteration to FQI and NFQCA
 
-Which steps separate the algorithm of this chapter from the fitted Q-iteration
-methods used in practice, and where is each taken?
-
 Fitted value iteration, as stated here, assumes four things that NFQCA does
-not.
+not, and each of the next chapters removes one of them.
 
-**It learns values of states.** To act greedily with respect to
+First, it learns values of states. To act greedily with respect to
 $v(\cdot;\theta)$ requires, at every decision, the expectation
 $r(s,a) + \gamma\,\mathbb{E}[v(s';\theta) \mid s,a]$ for every action: the
 model and an integral at decision time. The
-[Monte Carlo chapter](monte-carlo-bellman-estimation.md) moves that work into
+[chapter on sampled Bellman updates](monte-carlo-bellman-estimation.md) moves that work into
 training by learning the value of each action, $q(s,a;\theta)$, so that
 acting is a maximization over the stored values and needs no model. The
 Bellman operator on action values is again a $\gamma$-contraction, and
 everything in this chapter applies to it unchanged. Fitted value iteration on
 $q$ is fitted Q-iteration.
 
-**It computes expectations exactly.** The targets contain
+Second, it computes expectations exactly. The targets contain
 $\mathbb{E}[\,\cdot \mid s,a]$, which the eight-dimensional example already
 replaced by an average over draws. With a simulator, or with logged data, a
 target typically uses a single sampled successor. The
-[Monte Carlo chapter](monte-carlo-bellman-estimation.md) studies what this
+[chapter on sampled Bellman updates](monte-carlo-bellman-estimation.md) studies what this
 costs: variance, and a bias that comes from maximizing over noisy estimates.
 
-**It chooses the states at which targets are computed.** Batch reinforcement
+Third, it chooses the states at which targets are computed. Batch reinforcement
 learning receives a fixed set of transitions instead, and online
 reinforcement learning a buffer that changes as the agent acts. The error
 analysis of this chapter said that a fit is controlled only where there are
-data. The [fitted Q-iteration chapter](fitted-q-iteration.md) builds the
+data. The [chapter on logged and online data](fitted-q-iteration.md) builds the
 batch algorithms on this template, the tree-based FQI of {cite:t}`ernst2005tree`
 (an averager) and NFQ {cite}`riedmiller2005neural` (a neural network), runs
 them on a scheduling log and on ESA's collision warnings, and then develops
 DQN, whose design choices respond to the deadly triad.
 
-**It maximizes over a finite set of actions.** Every target contains
+Fourth, it maximizes over a finite set of actions. Every target contains
 $\max_{a'} q(s',a';\theta)$. When the action is continuous, a torque or a
 dose, that maximum is a nonlinear program, to be solved once for every
 target at every iteration. NFQCA {cite}`Hafner2011` trains a second network,
@@ -986,37 +976,16 @@ resolves it in the same way.
 
 | What this chapter assumes | What replaces it | Where |
 |:--------------------------|:-----------------|:------|
-| State values $v(s)$ | Action values $q(s,a)$, so acting needs no model | [Monte Carlo](monte-carlo-bellman-estimation.md), [FQI](fitted-q-iteration.md) |
-| Exact expectation in the target | One sampled successor per transition | [Monte Carlo](monte-carlo-bellman-estimation.md) |
-| Targets at chosen states | A fixed batch (FQI, NFQ) or a replay buffer (DQN) | [FQI](fitted-q-iteration.md) |
+| State values $v(s)$ | Action values $q(s,a)$, so acting needs no model | [Samples](monte-carlo-bellman-estimation.md), [Logged and online data](fitted-q-iteration.md) |
+| Exact expectation in the target | One sampled successor per transition | [Samples](monte-carlo-bellman-estimation.md) |
+| Targets at chosen states | A fixed batch (FQI, NFQ) or a replay buffer (DQN) | [Logged and online data](fitted-q-iteration.md) |
 | Maximum over a finite action set | A learned actor in the target (NFQCA, DDPG, TD3) | [Amortized action optimization](amortized-action-optimization.md) |
 
-## Summary and Outlook
+## Exercises
 
-Replacing the table by a parametric function turns value iteration into
-fitted value iteration: compute Bellman targets at chosen states, fit the
-function to them, repeat. Collocation and Galerkin projection are two fitting
-rules, and regression with trees or neural networks is the one that scales,
-as the eight-dimensional stopping problem showed. If each fit is accurate to
-$\varepsilon$ in the sup norm, the value error stays below
-$\varepsilon/(1-\gamma)$ and the greedy policy loses at most
-$2\gamma\varepsilon/(1-\gamma)^2$. On the duck-harvest model both bounds
-held with one to five orders of magnitude to spare, and the greedy policies
-were far more accurate than the values. The fit can, however, stretch differences
-and make the iteration diverge, even when it represents the solution exactly.
-Averagers cannot, and for policy evaluation, least squares weighted by the
-stationary distribution of the policy cannot either. Neither argument covers
-the optimality operator with a neural network, which is the setting of
-practical fitted Q-iteration. Newton's method becomes approximate policy
-iteration, with LSTD and LSPI as its linear case.
-
-Exact target evaluation still assumes access to the transition probabilities
-or an exact expectation. How can the same Bellman update be estimated when the
-model supplies only samples? [Monte Carlo Bellman estimation](monte-carlo-bellman-estimation.md)
-replaces the exact integral by sampled averages and makes their variance and
-maximization bias explicit.
-
-## Self-checks
+These exercises complement the shorter ones inside the sections. The first
+ones are short checks; {ref}`ex-abe-knn` reuses the code of the
+eight-dimensional stopping problem.
 
 :::{exercise} Weighting shift
 :label: ex-projection-check-3
@@ -1053,3 +1022,184 @@ Which part of fitted Q-iteration does the actor of NFQCA replace, and why is it 
 
 It replaces the maximization over next actions inside each Bellman target. With a finite action set the maximum is computed by enumeration; with a continuous action set it is a nonlinear program for every target, and the actor amortizes those programs into one trained network.
 :::
+
+:::{exercise} Reading the bounds
+:label: ex-abe-bounds
+
+Fitted value iteration with $\gamma = 0.9$ starts from $v_0 = 0$, and
+$\|v^*\|_\infty = 10$. Every fit is accurate to $\varepsilon = 0.1$ in the sup
+norm.
+
+1. Bound $\|v_{50} - v^*\|_\infty$ with {prf:ref}`thm-approximate-vi`, and
+   separate the part that more iterations remove from the part that they do
+   not.
+2. Bound the loss of the greedy policy of $v_{50}$ with
+   {prf:ref}`prop-greedy-loss`.
+3. The duck-harvest table reports policy losses four to five orders of
+   magnitude below the second bound. Name the two places in the proofs where
+   the worst case is charged, and say why neither happens there.
+:::
+
+:::{solution} ex-abe-bounds
+:class: dropdown
+
+1. $\|v_{50} - v^*\|_\infty \le 0.9^{50} \cdot 10 + 0.1/0.1 = 0.052 + 1$. Further iterations shrink the first term only; the second, $\varepsilon/(1-\gamma) = 1$, is the price of the fits and stays.
+2. The greedy loss is at most $\tfrac{2\gamma}{1-\gamma} \cdot 1.052 \approx 18.9$, nearly twice $\|v^*\|_\infty$, so the bound says nothing useful here.
+3. The value bound charges every fitting error at its worst state and lets the errors add in the same direction at every iteration. The greedy bound charges the worst value error twice, once for each of the two actions being compared. In the duck problem the fitting errors are much smaller than $\varepsilon$ at most states, they do not align over the 50-year horizon, and much of the error is common to all four packages, so it cancels in the comparison that decides the action.
+:::
+
+:::{exercise} Which fits are averagers
+:label: ex-abe-which-averagers
+
+For each fit, say whether it is an averager in the sense of
+{prf:ref}`gordon-averager`, and justify your answer with the weights it puts
+on the targets.
+
+1. $k$-nearest neighbors with $k = 5$ and equal weights.
+2. Kernel regression $\hat v(s) = \sum_i K(s, s_i) y_i / \sum_i K(s, s_i)$ with a Gaussian kernel.
+3. Ordinary least squares on the features $(1, s)$ in one dimension.
+4. A regression tree whose splits are chosen once, from the targets of the first iteration, and then frozen.
+5. A neural network trained to convergence on squared error.
+:::
+
+:::{solution} ex-abe-which-averagers
+:class: dropdown
+
+1. Yes: weights $1/5$ on the five nearest training states, zero elsewhere.
+2. Yes: the weights are positive and normalized to sum to one, and they depend only on the states.
+3. No. The prediction at $s$ is $\sum_i w_i(s) y_i$ with $w_i(s) = \tfrac1m + (s - \bar s)(s_i - \bar s)/\sum_j (s_j - \bar s)^2$, which is negative for training states on the far side of the mean when $s$ is far from $\bar s$. The weights do sum to one, so constants are preserved, but monotonicity fails.
+4. Yes, from the iteration at which the splits are frozen: each prediction is the average of the targets in a fixed leaf.
+5. No. The prediction is not a fixed linear function of the targets at all, and nothing constrains its sign or normalization.
+:::
+
+:::{exercise} Fitting the backup or minimizing the residual
+:label: ex-abe-brm
+
+Return to the two-state counterexample: $v(1;\theta) = \theta$,
+$v(2;\theta) = 2\theta$, every reward zero, state 1 moves to state 2 and state
+2 stays put.
+
+1. Bellman residual minimization chooses $\theta$ to minimize
+   $\sum_s \big(v(s;\theta) - (\Bellman v(\cdot;\theta))(s)\big)^2$ with equal
+   weights. Write this objective and show that its minimizer is $\theta = 0$
+   for every $\gamma$.
+2. Gradient descent on that objective uses the full gradient. Show that it
+   converges for every $\gamma < 1$ with a small enough step, while fitted
+   value iteration diverges for $\gamma > 5/6$.
+3. Why is Bellman residual minimization rarely used despite this? Consider
+   what an unbiased estimate of $\big(v(s;\theta) - \mathbb{E}[r + \gamma v(s';\theta)]\big)^2$
+   requires when the successor is random, and connect it to the single-sample
+   paradigm of the next chapter.
+:::
+
+:::{solution} ex-abe-brm
+:class: dropdown
+
+1. The objective is $(\theta - 2\gamma\theta)^2 + (2\theta - 2\gamma\theta)^2 = \theta^2\big[(1-2\gamma)^2 + 4(1-\gamma)^2\big]$, a parabola whose coefficient is positive for $\gamma < 1$. Its minimizer is $\theta = 0$.
+2. Gradient descent on a positive-definite quadratic converges for any step size below $2/c$, where $c$ is its curvature. Fitted value iteration does not descend this objective: it holds the target fixed and fits it, which is the semi-gradient, and the semi-gradient map $\theta \mapsto \tfrac65\gamma\theta$ expands for $\gamma > 5/6$.
+3. Squaring the residual of a single sampled successor gives $\mathbb{E}\big[(v(s) - r - \gamma v(s'))^2\big]$, which equals the squared residual plus the variance of $r + \gamma v(s')$. The minimizer is biased toward functions with small variance of the successor value. An unbiased estimate needs two independent successors of the same state, the double-sampling problem, which a log with one successor per transition cannot provide.
+:::
+
+:::{exercise} An averager on the eight-dimensional problem
+:label: ex-abe-knn
+
+In the code of the eight-dimensional stopping problem, add a fit by
+$k$-nearest neighbors (`sklearn.neighbors.KNeighborsRegressor`) with
+$k = 1$, $10$ and $50$, and record the largest change
+$\max_i |v_{k+1}(s_i) - v_k(s_i)|$ at each iteration.
+
+1. Check that the changes shrink by at least the factor $\gamma = 0.9$ per
+   iteration, as {prf:ref}`santos-vigo-aguiar-stability` guarantees. Do they
+   for the trees and the network?
+2. Compare the mean and largest errors with those of the trees and the
+   network at $D = 8$. Which value of $k$ is best, and why does a large $k$
+   hurt most at the corners of the cube?
+:::
+
+:::{solution} ex-abe-knn
+:class: dropdown
+
+The changes shrink geometrically, by a factor of about $0.43$ to $0.55$ per
+iteration, faster than $\gamma$, because the stopping reward caps the values,
+and they reach $10^{-14}$ within the 40 iterations. With $k = 10$ at $D = 8$
+the mean error is about $0.022$ and the largest about $0.155$, between the
+trees ($0.031$) and the network ($0.013$) on average. Larger $k$ averages
+targets over a larger neighborhood; at a corner of the cube all neighbors lie
+on one side, so the prediction is pulled toward the interior, and the largest
+error grows to about $0.2$ at $k = 50$. For the trees and the network the
+measurement is worth making, because no theorem predicts its outcome: the
+splits of the trees depend on the targets, and the network has no sign or
+normalization constraint.
+:::
+
+:::{exercise} From value iteration to policy iteration, approximately
+:label: ex-abe-mpi
+
+Modified policy iteration ({prf:ref}`alg-modified-policy-iteration`) applies
+$\BellmanPi$ $m$ times after each greedy improvement.
+
+1. Write fitted modified policy iteration, in which each application of the
+   operator is followed by a fit. Which values of $m$ give fitted value
+   iteration and approximate policy iteration?
+2. NFQCA performs one fitted evaluation sweep per improvement, with a learned
+   actor in place of the greedy step. Which $m$ is this?
+3. In the exact setting, larger $m$ means fewer improvements. Give one reason
+   why a large $m$ may be a poor choice when every sweep includes a fit.
+:::
+
+:::{solution} ex-abe-mpi
+:class: dropdown
+
+1. For $j = 1, \ldots, m$: $q \leftarrow \Proj\mathrm{L}_{\pi_k} q$, then $\pi_{k+1}$ greedy for $q$. With $m = 1$ each sweep uses the operator of the policy that is greedy for the current values, which is fitted value iteration; $m \to \infty$ is approximate policy iteration with fitted policy evaluation as the evaluation step.
+2. $m = 1$: NFQCA is the fitted value iteration end of the range, with the maximization in the target done by the actor.
+3. Every fit adds an error, and for a nonlinear fit nothing guarantees that repeated fitted evaluation of a fixed policy converges; with off-policy data it can diverge, which is the deadly triad again. Many sweeps on a policy that is about to change also spend computation on accuracy that the next improvement discards.
+:::
+
+:::{exercise} Designing a convergent fitted iteration
+:label: ex-abe-open
+
+Pick a problem from an earlier chapter that has a continuous state: the
+reservoir of the finite-horizon chapter, the storm-surge barrier, or the
+fishery. Design a fitted value iteration for it that is guaranteed to
+converge, run it, and compare its greedy policy with the exact one. Then
+replace the fit by a neural network and report what changes: the number of
+iterations, the stability of the iterates, and the policy loss. Explain the
+differences with the results of this chapter.
+:::
+
+:::{solution} ex-abe-open
+:class: dropdown
+
+Any averager gives the guarantee: multilinear interpolation on a grid, state
+aggregation, or $k$-nearest neighbors on sampled states. A report should state
+the fit, the states where targets are computed, the tolerance, and the policy
+loss measured against an exact or fine-grid solution. With the network,
+expect the iterates to wander by an amount comparable to the fit error rather
+than converge, as in the duck-harvest experiment, and a policy whose errors
+concentrate where the data are sparse or two actions are close.
+:::
+
+## Summary and Outlook
+
+Replacing the table by a parametric function turns value iteration into
+fitted value iteration: compute Bellman targets at chosen states, fit the
+function to them, repeat. Collocation and Galerkin projection are two fitting
+rules, and regression with trees or neural networks is the one that scales,
+as the eight-dimensional stopping problem showed. If each fit is accurate to
+$\varepsilon$ in the sup norm, the value error stays below
+$\varepsilon/(1-\gamma)$ and the greedy policy loses at most
+$2\gamma\varepsilon/(1-\gamma)^2$. On the duck-harvest model both bounds
+held with one to five orders of magnitude to spare, and the greedy policies
+were far more accurate than the values. The fit can, however, stretch differences
+and make the iteration diverge, even when it represents the solution exactly.
+Averagers cannot, and for policy evaluation, least squares weighted by the
+stationary distribution of the policy cannot either. Neither argument covers
+the optimality operator with a neural network, which is the setting of
+practical fitted Q-iteration. Newton's method becomes approximate policy
+iteration, with LSTD and LSPI as its linear case.
+
+Exact target evaluation still assumes access to the transition probabilities
+or an exact expectation. How can the same Bellman update be estimated when the
+model supplies only samples? [Bellman updates from samples](monte-carlo-bellman-estimation.md)
+replaces the exact integral by sampled averages and makes their variance and
+maximization bias explicit.

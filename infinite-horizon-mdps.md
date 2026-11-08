@@ -2227,8 +2227,8 @@ size of the river, but each step touches every state, and the number of
 states is exponential in the number of reaches. Managing a real river needs
 value functions that are represented compactly and backups that are
 estimated from samples, which is the subject of
-[approximate Bellman equations](approximate-bellman-equations.md) and
-[fitted Q-iteration](fitted-q-iteration.md).
+[fitted value methods](approximate-bellman-equations.md) and
+[learning from logged and online data](fitted-q-iteration.md).
 
 - {download}`Tamarisk river model and solvers <code/tamarisk_river.py>`
 - {download}`Tamarisk river experiment builder <scripts/build_tamarisk_river_artifacts.py>`
