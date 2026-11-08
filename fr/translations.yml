@@ -3,9 +3,32 @@
 # chapters whose English source changed since then, and
 # `python3 tools/french.py diff <chapter>.md` prints what changed.
 # After updating a translation, run `python3 tools/french.py mark <chapter>.md`.
+amortized-action-optimization.md: 3c74f342a7ba3e7edcbbb98d770fee29fa6b41cd
+appendix_examples.md: ffaaa43909eec1f2e345e9f554cb5d47fec191a4
+appendix_ivps.md: ffaaa43909eec1f2e345e9f554cb5d47fec191a4
+appendix_nlp.md: ffaaa43909eec1f2e345e9f554cb5d47fec191a4
+approximate-bellman-equations.md: 1fcf1ea6f18c621b81adb876c0a6580d84b1966f
+continuous-time-collocation.md: 6cf32cb3d936a2621d34253cfed355bb9b300c4c
 discrete-time-optimal-control.md: ffaaa43909eec1f2e345e9f554cb5d47fec191a4
 discrete-time-pmp.md: 1fcf1ea6f18c621b81adb876c0a6580d84b1966f
+finite-horizon-dp.md: d030da435287abd96c47557992062a1a0ce9e195
+fitted-q-iteration.md: 1fcf1ea6f18c621b81adb876c0a6580d84b1966f
+gradient-estimation.md: ffaaa43909eec1f2e345e9f554cb5d47fec191a4
+infinite-horizon-mdps.md: 1fcf1ea6f18c621b81adb876c0a6580d84b1966f
 intro.md: a75ae233746486b31e9bce1236d540ee804dbd44
+iterative-trajectory-optimization.md: 610d74b5deacf1ad32137143ca2695670f5680de
 model-interfaces.md: ffaaa43909eec1f2e345e9f554cb5d47fec191a4
+model-predictive-path-integral-control.md: e9be95561f1c8efaf5a135c5d53c9fae8314b9a5
 modeling-controlled-systems.md: ffaaa43909eec1f2e345e9f554cb5d47fec191a4
+monte-carlo-bellman-estimation.md: 3c74f342a7ba3e7edcbbb98d770fee29fa6b41cd
+mpc-variants-reliability.md: ffaaa43909eec1f2e345e9f554cb5d47fec191a4
+numerical-trajectory-optimization.md: ffaaa43909eec1f2e345e9f554cb5d47fec191a4
+parametric-controllers.md: ffaaa43909eec1f2e345e9f554cb5d47fec191a4
+path-integral-stochastic-control.md: e9be95561f1c8efaf5a135c5d53c9fae8314b9a5
+policy-gradients.md: ffaaa43909eec1f2e345e9f554cb5d47fec191a4
+receding-horizon-control.md: ffaaa43909eec1f2e345e9f554cb5d47fec191a4
+regularized-dp.md: 1fcf1ea6f18c621b81adb876c0a6580d84b1966f
+regularized-policy-learning.md: 1fcf1ea6f18c621b81adb876c0a6580d84b1966f
+stochastic-dp.md: 1fcf1ea6f18c621b81adb876c0a6580d84b1966f
 stochastic-dynamics-observation.md: ffaaa43909eec1f2e345e9f554cb5d47fec191a4
+weighted-residual-methods.md: 6cf32cb3d936a2621d34253cfed355bb9b300c4c

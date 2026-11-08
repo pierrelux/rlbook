@@ -88,6 +88,87 @@ terme récurrent avant de l'employer dans un chapitre.
 | prefill / decode | préremplissage / décodage |
 | throughput | débit |
 | governor (battery current) | limiteur de courant |
+| fitted value iteration / value iteration | itération sur les valeurs ajustée / itération sur les valeurs |
+| Bellman backup | mise à jour de Bellman |
+| greedy / ε-greedy | glouton / ε-glouton |
+| replay buffer / replay ratio | tampon de rejeu / taux de rejeu |
+| target network / online network | réseau cible / réseau en ligne |
+| warm start / cold start | démarrage à chaud / à froid |
+| mini-batch | mini-lot |
+| behavior policy | politique de comportement |
+| bootstrapping (TD) | autoamorçage |
+| TD error | erreur de différence temporelle |
+| importance sampling | échantillonnage préférentiel |
+| action gap | écart entre actions |
+| deadly triad | triade mortelle |
+| policy iteration / policy evaluation | itération sur les politiques / évaluation de politique |
+| on-policy / off-policy | sur politique / hors politique |
+| test function / hat functions | fonction test / fonctions chapeau |
+| Chebyshev | Tchebychev |
+| semi-gradient | semi-gradient |
+| soft actor-critic | acteur-critique souple |
+| MDP | processus de décision markovien (en toutes lettres) |
+| sup-norm | norme sup |
+| stochastic shortest path | plus court chemin stochastique |
+| iLQR / DDP | commande linéaire quadratique itérative (iLQR) / programmation dynamique différentielle (DDP) |
+| cost-to-go | coût restant |
+| backward / forward pass | passe arrière / passe avant |
+| line search | recherche linéaire |
+| decision epoch | époque de décision |
+| terminal ingredients | éléments terminaux |
+| recursive feasibility | faisabilité récursive |
+| setpoint | consigne |
+| tube / economic MPC | commande prédictive à tubes / économique |
+| probability distribution | loi (loi de proposition, loi cible) |
+| self-normalized | autonormalisé |
+| surrogate model | modèle de substitution |
+| PDE | équation aux dérivées partielles (EDP) |
+| effective sample size | taille d'échantillon effective |
+| seed | germe |
+| clipping | écrêtage |
+| curse of dimensionality | fléau de la dimension |
+| slack variables | variables d'écart |
+| backup controller | correcteur de secours |
+| reference governor | gouverneur de référence |
+| replay buffer | tampon de rejeu |
+| target network | réseau cible |
+| actor / critic | acteur / critique |
+| soft max / soft Bellman | maximum adouci / Bellman adouci |
+| score-function estimator | estimateur par fonction de score |
+| reparameterization trick | astuce de reparamétrisation |
+| likelihood ratio | rapport de vraisemblance |
+| control variate | variable de contrôle |
+| baseline | référence |
+| advantage / GAE | avantage / estimation généralisée de l'avantage (GAE) |
+| surrogate loss | perte de substitution |
+| trust region | région de confiance |
+| checkpoint | point de contrôle |
+| epoch | époque |
+| credit assignment | attribution du mérite |
+| algorithm names (DQN, PPO, SAC, TD3, REINFORCE, Q-learning…) | kept as is |
+| smooth Bellman equation | équation de Bellman lisse (soft → adouci) |
+| value / policy iteration | itération sur les valeurs / sur les politiques |
+| greedy | glouton |
+| regularizer | régularisateur |
+| inverse RL | apprentissage par renforcement inverse |
+| path integral | intégrale de chemin |
+| certainty equivalence | équivalence de certitude |
+| IVP | problème à valeur initiale |
+| stiff | raide |
+| zero-order hold | bloqueur d'ordre zéro |
+| feasible | réalisable |
+| saddle point | point de selle |
+| QP | programme quadratique |
+| direct transcription | transcription directe |
+| defect | défaut |
+| mesh / node | maillage / nœud |
+| stage (collocation, RK) / stage cost | étage / coût d'étage |
+| sparse | creux |
+| interior-point methods | méthodes de points intérieurs |
+| condensing | condensation |
+| cart-pole / swing-up | chariot-pendule / redressement |
+| input shaper | façonneur d'entrée |
+| initial guess | amorce (random seed → germe) |
 
 ## Liens vers les titres
 
