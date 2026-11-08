@@ -364,8 +364,8 @@ $$
 \langle R(\cdot;\theta), p_i \rangle_w = 0, \qquad i = 1, \ldots, n.
 $$ (eq:weighted-residual-conditions)
 
-The choice of test functions is the method, and three choices account for
-almost everything in use.
+A method is defined by its test functions, and three choices of test
+functions cover almost every method in use.
 
 | **Method** | **Test functions** $p_i$ | **Conditions** ($n$ equations) |
 |:-----------|:--------------------------|:-------------------------------|
@@ -375,14 +375,39 @@ almost everything in use.
 
 #### Collocation: a Zero Residual at Chosen States
 
-Collocation picks $n$ states and asks the residual to vanish there,
-$R(s_i;\theta) = 0$ for $i = 1, \ldots, n$. A point mass at $s_i$ picks out
-the value $R(s_i)$, so this is {eq}`eq:weighted-residual-conditions` with
-point masses as test functions, as the dual-pairing formulation of
+Collocation is the method of the
+[continuous-time collocation chapter](continuous-time-collocation.md#sec-collocation-nodal-slopes),
+applied to a different equation. There, each piece of a trajectory was stored
+by its values at nodes, in a Lagrange basis whose cardinal functions equal one
+at their own node and zero at the others, and the differential equation was
+imposed only at the collocation points: at each one, the slope of the
+interpolating polynomial had to match the slope $\mathbf f$ prescribed by the
+dynamics. Between the points, nothing was imposed. Here the unknown is the
+value function instead of a trajectory, and the equation is the Bellman
+equation instead of $\dot{\mathbf x} = \mathbf f$. Collocation picks $n$
+states $s_1, \ldots, s_n$ and asks the residual to vanish there,
+
+$$
+R(s_i;\theta) = 0, \qquad i = 1, \ldots, n .
+$$
+
+With a nodal basis, Lagrange polynomials through the collocation points or
+the hat functions of piecewise-linear interpolation, the coefficient
+$\theta_i$ is the value at $s_i$, and the condition reads
+$\theta_i = (\Bellman v_\theta)(s_i)$. The value stored at each node must
+equal the Bellman backup computed from the interpolated function, as the
+slope stored at each node had to equal the slope given by the dynamics. The
+interpolated backward recursion {eq}`eq:interpolated-bellman` of the
+finite-horizon chapter imposed the same condition, one stage at a time.
+
+In the language of test functions, a point mass at $s_i$ picks out the value
+$R(s_i)$, so collocation is {eq}`eq:weighted-residual-conditions` with point
+masses as test functions, as the dual-pairing formulation of
 {cite:t}`LegrandJunca2025` makes precise. No integral over states appears, so
-each condition costs one evaluation of the Bellman operator. What the
-conditions buy is a residual that vanishes at the nodes and is unconstrained
-between them.
+each condition costs one evaluation of the Bellman operator. The conditions
+make the residual vanish at the nodes and leave it unconstrained between
+them, as the residual of the differential equation is unconstrained between
+the collocation points of a trajectory.
 
 Where to collocate is a choice of its own. For a polynomial of degree
 $n - 1$, the standard choice is the zeros of the $n$-th Chebyshev
@@ -393,8 +418,8 @@ $\Phi_{ij} = \varphi_j(s_i)$ built on them is well conditioned, and the
 polynomial through them is within a small factor of the best polynomial
 approximation of a smooth function, so a residual that vanishes at them stays
 small between them. Equally spaced nodes have none of these properties once
-the degree is high. For a local basis the natural collocation points are the
-nodes of the basis itself, where one hat function equals one and the others
+the degree is high. For a nodal basis the collocation points are the nodes of
+the basis itself, where one cardinal function equals one and the others
 vanish, so that the interpolation matrix is the identity and the coefficients
 are the values at the nodes.
 

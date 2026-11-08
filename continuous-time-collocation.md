@@ -799,6 +799,7 @@ Both integration and differentiation forms have collocation nodes. Their
 algebraic residuals differ: one matches state values after integrating
 slopes, while the other matches slopes after interpolating state values.
 
+(sec-collocation-nodal-slopes)=
 ## From Nodal Slopes to Collocation Constraints
 
 How do those fixed maps convert differential equations into algebraic
