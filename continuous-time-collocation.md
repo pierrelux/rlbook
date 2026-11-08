@@ -30,7 +30,13 @@ optimization problem is a nonlinear program (NLP).
 The direct-collocation formulation used here stores state and control
 values at selected times and interpolates between them with low-degree
 polynomials. The differential equation is enforced at selected points on each
-time interval. This chapter develops that construction from one simple example
+time interval, the **collocation points**. The word comes from the Latin
+*collocare*, to place together: at each of these points the polynomial and the
+differential equation are made to agree, and between them nothing is imposed.
+{cite:t}`FrazerJonesSkan1937` defined collocation as "the act of
+assigning the error at given points or stations", which for a differential
+equation means making its error zero there.
+This chapter develops that construction from one simple example
 through Euler, trapezoidal, and Hermite--Simpson transcriptions, then applies it
 to the motion of an overhead crane.
 
