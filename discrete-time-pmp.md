@@ -17,7 +17,7 @@ KKT conditions characterize its local solutions. How do those multipliers
 organize themselves when the equality constraints are a forward dynamical
 recursion?
 
-If we take the Bolza formulation of the DOCP and apply the KKT conditions directly, we obtain an optimization system with many multipliers and constraints. Written in raw form, it looks like any other nonlinear program. But in control, this structure has a long history and a name of its own: the **Pontryagin principle**. In fact, the discrete-time version can be seen as the structured KKT system that results from introducing multipliers for the dynamics and collecting terms stage by stage.
+If we take the Bolza formulation of the DOCP and apply the KKT conditions directly, we obtain an optimization system with many multipliers and constraints. Written in raw form, it looks like any other nonlinear program. But in control, this structure has a long history and a name of its own: the **Pontryagin principle**. The discrete-time version is the KKT system that results when we introduce a multiplier for each dynamics constraint and collect the terms stage by stage.
 
 We work with the Bolza program
 
@@ -132,7 +132,7 @@ $$
 \mathbf{h}(\mathbf{x}_T^\star)=\mathbf{0}.
 $$
 
-The triplet "forward state, backward costate, control stationarity" is the discrete-time Euler–Lagrange system tailored to control with dynamics. It is the same KKT logic as before, but organized stagewise through the Hamiltonian.
+Together, the forward state equation, the backward costate equation and control stationarity form the discrete-time Euler–Lagrange system for problems whose constraints are dynamics. It is the same KKT logic as before, but organized stagewise through the Hamiltonian.
 
 ```{prf:proposition} Discrete-time Pontryagin necessary conditions (summary)
 At a local minimum of the DOCP
@@ -258,7 +258,7 @@ Consider an unconstrained DOCP with objective $J = c_T(x_T) + \sum_{t=1}^{T-1} c
 :::{solution} ex-trajectories-costate
 :class: dropdown
 
-By definition, $V_t(x_t)$ is the minimum future cost starting from $x_t$. At the optimal trajectory, the envelope theorem gives $\nabla_{x_t} V_t = \lambda_t$, the marginal value of the state. Economically, $\lambda_t$ is the rate at which the optimal cost-to-go changes under a small perturbation of the state $x_t$ (the cost increases by approximately $\lambda_t^\top \delta x_t$ for a perturbation $\delta x_t$)—it is the "shadow price" of the state at time $t$.
+By definition, $V_t(x_t)$ is the minimum future cost starting from $x_t$. At the optimal trajectory, the envelope theorem gives $\nabla_{x_t} V_t = \lambda_t$, the marginal value of the state. Economically, $\lambda_t$ is the rate at which the optimal cost-to-go changes under a small perturbation of the state $x_t$ (the cost increases by approximately $\lambda_t^\top \delta x_t$ for a perturbation $\delta x_t$). It is the "shadow price" of the state at time $t$.
 :::
 
 ---

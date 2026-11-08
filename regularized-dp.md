@@ -34,7 +34,7 @@ As $\beta \to \infty$, $\mathrm{L}_\beta$ converges to the standard Bellman oper
 
    $$ \pi(a|s) = \frac{\exp\left(\beta\left(r(s,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a) v^\star_\beta(j)\right)\right)}{\sum_{a' \in \mathcal{A}_s} \exp\left(\beta\left(r(s,a') + \gamma \sum_{j \in \mathcal{S}} p(j|s,a') v^\star_\beta(j)\right)\right)} $$
 
-Despite the confusing terminology, the above "softmax" policy is the smooth counterpart of the argmax in the original optimality equation, not of the max: it is a soft-argmax. The smooth counterpart of the max is the log-sum-exp. The same policy is also called a Boltzmann or Gibbs policy. As the temperature $1/\beta$ goes to zero, the softmax concentrates on the maximizing actions and we recover the greedy policy and the hard Bellman equation.
+The terminology is confusing: the "softmax" policy above is the smooth counterpart of the argmax in the original optimality equation, not of the max: it is a soft-argmax. The smooth counterpart of the max is the log-sum-exp. The same policy is also called a Boltzmann or Gibbs policy. As the temperature $1/\beta$ goes to zero, the softmax concentrates on the maximizing actions and we recover the greedy policy and the hard Bellman equation.
 
 ### Stochastic Policies: Exploration and the Partition Function
 
@@ -44,7 +44,7 @@ It is costly when the action set is continuous. The softmax policy is then a den
 
 
 
-This formulation is interesting for several reasons. First, smoothness is a desirable property from an optimization standpoint. Unlike $\gamma$, we view $\beta$ as a hyperparameter of our algorithm, which we can control to achieve the desired level of accuracy.
+The smooth formulation has two advantages. First, a smooth operator is easier to optimize through. Unlike $\gamma$, we view $\beta$ as a hyperparameter of our algorithm, which we can control to achieve the desired level of accuracy.
 
 Second, we presented the equations pragmatically, by replacing the max with the log-sum-exp (a smooth maximum) and the argmax with the softmax (a smooth argmax). The same equations come out of two other starting points, and this chapter follows all three routes:
 
@@ -687,7 +687,7 @@ At the softmax policy the log-sum-exp equals the expected $q$ plus the entropy b
 
 ### Equivalence Between Smooth Bellman Equations and Entropy-Regularized MDPs
 
-We have now seen three ways to arrive at the smooth Bellman equation: as a smoothed maximum, from Gumbel noise on the rewards, and as the optimality equation of a regularized MDP. It is worth writing the third one as an optimization problem over policies, because that is the form used by maximum entropy RL. With entropy weight $\alpha = 1/\beta$, the entropy-regularized MDP is
+We have now seen three ways to arrive at the smooth Bellman equation: as a smoothed maximum, from Gumbel noise on the rewards, and as the optimality equation of a regularized MDP. The third one can be written as an optimization problem over policies, the form used by maximum entropy RL. With entropy weight $\alpha = 1/\beta$, the entropy-regularized MDP is
 
 $$
 \max_\pi\; \mathbb{E}_\pi \left[ \sum_{t=0}^\infty \gamma^t \Big( r(s_t, a_t) + \alpha H\big(\pi(\cdot|s_t)\big) \Big) \right],
@@ -815,7 +815,7 @@ $$
 3. **return** $\hat\theta = \theta_k$
 ````
 
-**What the model assumes.** The setup is a strong one, and naming its assumptions explains why inverse RL is hard in general.
+The setup rests on strong assumptions, and naming them explains why inverse RL is hard in general.
 
 - *Rationality.* The decision maker is assumed to solve the MDP exactly. People do not; the literature on bounded rationality studies how they fall short, and Rust himself has written skeptically about whether people follow Bellman's principle of optimality. The assumption is still a useful starting point, in the same way a linear model is.
 - *Observability.* Rust observes the state and the action. In many applications one or both are missing. With logged prices, for instance, an unchanged price may be a decision to keep it or simply the absence of a decision, and the action itself must be inferred, which makes the problem partially observable.
@@ -845,8 +845,8 @@ be estimated from weighted trajectories.
 
 Smoothness changes the operator but does not remove the need to represent its
 unknown value function. How can an infinite-dimensional functional equation be
-reduced to finitely many coefficients and test conditions? [Weighted-residual
-methods](weighted-residual-methods.md) provide the general approximation
+reduced to finitely many coefficients and test conditions? [Parametric value
+functions](weighted-residual-methods.md) develops the general approximation
 machinery.
 
 ## Self-checks

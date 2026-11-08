@@ -660,7 +660,7 @@ The maximum value can be achieved by searching over the space of deterministic M
 
 $$ v^*(s) = \max_{\boldsymbol{\pi} \in \Pi^{\mathrm{HR}}} v^{\boldsymbol{\pi}}(s) = \max _{\boldsymbol{\pi} \in \Pi^{M D}} v^{\boldsymbol{\pi}}(s), \quad s \in S$$
 
-This equality significantly simplifies the computational complexity of our algorithms, as the search problem can now be decomposed into $N$ sub-problems in which we only have to search over the set of possible actions. This is the backward induction algorithm, which we present a second time, but departing this time from the control-theoretic notation and using the MDP formalism:  
+This equality makes the search tractable: it decomposes into $N$ subproblems, and each searches only over the actions available at one stage. This is the backward induction algorithm, which we present a second time, but departing this time from the control-theoretic notation and using the MDP formalism:  
 
 ````{prf:algorithm} Backward Induction
 :label: backward-induction

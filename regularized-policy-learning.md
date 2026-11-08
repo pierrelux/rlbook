@@ -12,12 +12,12 @@ kernelspec:
 ---
 # Regularized and Residual-Based Policy Learning
 
-DDPG and TD3 address continuous actions by learning a deterministic policy that amortizes the $\arg\max_a q(s,a)$ operation. But deterministic policies have a fundamental limitation: they require external exploration noise (Gaussian perturbations in TD3) and can converge to suboptimal deterministic behaviors without adequate coverage of the state-action space.
+DDPG and TD3 address continuous actions by learning a deterministic policy that amortizes the $\arg\max_a q(s,a)$ operation. A deterministic policy does not explore by itself. It needs noise added to its actions (Gaussian perturbations in TD3), and without enough coverage of the state-action space it can settle on a suboptimal deterministic behavior.
 
 Gradient estimators make stochastic actors trainable, while regularized dynamic
-programming specifies the stochastic policy they should approach. Can these
-pieces avoid both the continuous-action integral in the soft Bellman equation
-and the repeated optimization of a hard maximum?
+programming specifies the stochastic policy they should approach. Can the two be combined to avoid both the integral over continuous actions
+in the soft Bellman equation and the repeated optimization of a hard
+maximum?
 
 [Entropy-regularized dynamic programming](regularized-dp.md) presents an alternative: MDPs where the agent maximizes expected return plus a bonus for policy randomness. This yields stochastic policies with exploration built into the objective itself. The smooth Bellman operator replaces the hard max with a soft-max:
 
@@ -31,12 +31,12 @@ $$
 v^*(s) = \frac{1}{\beta} \log \int_{\mathcal{A}} \exp\left(\beta \cdot q^*(s,a)\right) da
 $$
 
-This integral is intractable. We face an infinite-dimensional sum over the continuous action space. The very smoothness that gives us stochastic policies creates a new computational barrier, distinct from but analogous to the $\arg\max$ problem in standard FQI.
+This integral over the action space has no closed form in general. The smoothing that gives stochastic policies therefore creates a computational problem of its own, analogous to the $\arg\max$ over continuous actions in standard FQI.
 
 ## From Intractable Integral to Tractable Expectation
 
-How can the continuous-action log-partition integral be rewritten as an
-expectation under the policy being learned?
+The integral that defines the log-partition function over continuous actions
+can be rewritten as an expectation under the policy being learned.
 
 Soft actor-critic (SAC) {cite:p}`haarnoja2018soft,haarnoja2018sacapplications` exploits an equivalence between the intractable integral and an expectation. The optimal policy under entropy regularization is the Boltzmann distribution $\pi^*(a|s) \propto \exp(\beta \cdot q^*(s,a))$. Under this policy, the soft value function becomes:
 
@@ -53,9 +53,6 @@ $$
 The minimum over twin Q-networks applies the clipped double-Q trick from TD3. Exploration comes from the policy's stochasticity rather than external noise.
 
 ## Learning the Policy: Matching the Boltzmann Distribution
-
-Which divergence or equivalent stochastic objective moves the actor toward the
-Boltzmann distribution induced by the soft Q-function?
 
 The Q-network update assumes a policy $\pi_{\boldsymbol{\phi}}$ that approximates the Boltzmann distribution $\pi^*(a|s) \propto \exp(\beta \cdot q^*(s,a))$. Training such a policy presents a problem: the Boltzmann distribution requires the partition function $Z(s) = \int_{\mathcal{A}} \exp(\beta \cdot q(s,a))da$, the very integral we are trying to avoid. SAC sidesteps this by minimizing the KL divergence from the policy to the (unnormalized) Boltzmann distribution:
 
@@ -120,16 +117,13 @@ We can now differentiate through $f_{\boldsymbol{\phi}}$ and the Q-network, as D
 
 The algorithm interleaves three updates. The Q-networks (lines 7-10) follow fitted Q-iteration with the soft Bellman target: sample a next action $\tilde{a}'_i$ from the current policy, compute the entropy-adjusted target $y_i = r_i + \gamma[\min_j q^j_{\text{target}}(s'_i, \tilde{a}'_i) - \alpha \log \pi_{\boldsymbol{\phi}}(\tilde{a}'_i|s'_i)]$, and minimize squared error. The minimum over twin Q-networks mitigates overestimation as in TD3. The policy (lines 12-13) updates to match the Boltzmann distribution induced by the current Q-function, using the reparameterization trick for gradient estimation. Target networks update via EMA (lines 15-16) to stabilize training.
 
-The stochastic policy serves the same amortization purpose as in DDPG and TD3: it replaces the intractable $\arg\max$ operation with a fast network forward pass. SAC's entropy regularization produces exploration through the policy's inherent stochasticity rather than external noise. This makes SAC more robust to hyperparameters and eliminates the need to tune exploration schedules.
+The stochastic policy serves the same amortization purpose as in DDPG and TD3: it replaces the intractable $\arg\max$ operation with a fast network forward pass. SAC's entropy regularization produces exploration through the policy's inherent stochasticity rather than external noise. As a result, SAC is less sensitive to hyperparameters, and there is no exploration schedule to tune.
 
 ## Path Consistency Learning (PCL)
 
-Can a soft-optimal policy be trained by enforcing multi-step consistency
-directly rather than constructing one-step Bellman targets?
+DDPG, TD3, and SAC all follow the same solution template from fitted Q-iteration: compute Bellman targets using the current Q-function, fit the Q-function to those targets, repeat. This is **successive approximation**, the function iteration $v_{k+1} = \Proj \Bellman v_k$ of the [chapter on fitted value methods](approximate-bellman-equations.md).
 
-DDPG, TD3, and SAC all follow the same solution template from fitted Q-iteration: compute Bellman targets using the current Q-function, fit the Q-function to those targets, repeat. This is **successive approximation**, the function iteration approach $v_{k+1} = \Proj \Bellman v_k$ from the [projection methods chapter](approximate-bellman-equations.md).
-
-Path Consistency Learning (PCL) {cite:p}`Nachum2017` solves the Bellman equation differently. Instead of iterating the operator, it directly minimizes a **residual**. This is the least-squares approach from projection methods: solve $\Residual(v) = 0$ by minimizing $\|\Residual(v)\|^2$. The method exploits special structure (smooth Bellman operators under deterministic dynamics) that conventional methods cannot leverage.
+Path Consistency Learning (PCL) {cite:p}`Nachum2017` solves the Bellman equation differently. Instead of iterating the operator, it directly minimizes a **residual**. This is the least-squares approach of weighted-residual methods: solve $\Residual(v) = 0$ by minimizing $\|\Residual(v)\|^2$. It relies on a structure that one-step methods do not use, the smooth Bellman operator under deterministic dynamics.
 
 ### The Path Consistency Property
 
@@ -167,7 +161,7 @@ $$
 
 where $\varepsilon(s,a)$ is sampling error with $\mathbb{E}_{a \sim \pi}[\varepsilon(s,a)] = 0$. Individual actions give noisy estimates that fluctuate around the mean.
 
-**For the optimal policy under entropy regularization**, the Boltzmann structure produces an exact pointwise identity. The optimal policy is:
+**For the optimal policy under entropy regularization**, the Boltzmann form of the policy gives an identity that holds exactly at every action. The optimal policy is:
 
 $$
 \pi^*(a|s) = \frac{\exp(q^*(s,a)/\alpha)}{\exp(v^*(s)/\alpha)}
@@ -211,7 +205,7 @@ $$
 R(s_0:s_d; \pi^*, v^*) = v^*(s_0) - \gamma^d v^*(s_d) - \sum_{t=0}^{d-1} \gamma^t[r_t - \alpha\log\pi^*(a_t|s_t)] = 0
 $$ (eq:path-residual)
 
-The telescoping produces an exact identity: $R = 0$ for every action sequence, not just in expectation. The behavior policy never appears because the constraint holds as a deterministic identity for any observed $(s_0, a_0, \ldots, s_d)$. This enables off-policy learning without importance sampling.
+The telescoped equation is an exact identity: $R = 0$ for every action sequence, not just in expectation. The behavior policy never appears because the constraint holds as a deterministic identity for any observed $(s_0, a_0, \ldots, s_d)$. This enables off-policy learning without importance sampling.
 
 ```{prf:remark} Contrasting General Policies and Optimal Boltzmann Policies
 :class: dropdown
@@ -227,7 +221,7 @@ This property is unique to soft-max operators. For hard-max, $v^*(s) = \max_a q^
 
 ### Structural Requirements: Deterministic Dynamics and Entropy Regularization
 
-PCL's two structural requirements (deterministic dynamics and entropy regularization) are not arbitrary design choices. Each addresses a fundamental theoretical issue.
+PCL has two requirements, deterministic dynamics and entropy regularization, and each one removes a specific obstacle.
 
 #### Deterministic Dynamics: Avoiding the Double Sampling Problem
 
@@ -324,7 +318,7 @@ $$
 \min_{\boldsymbol{\theta}, \boldsymbol{\phi}} \sum_{\text{segments}} \frac{1}{2} R(s_i:s_{i+d}; \boldsymbol{\theta}, \boldsymbol{\phi})^2
 $$
 
-This is the least-squares residual approach from the [projection methods chapter](approximate-bellman-equations.md). SAC computes targets $y_i$ and fits to them (successive approximation). PCL directly minimizes the residual without computing targets or performing a separate fitting step.
+This is Bellman residual minimization, the least-squares condition of the [chapter on parametric value functions](weighted-residual-methods.md). SAC computes targets $y_i$ and fits to them (successive approximation). PCL directly minimizes the residual without computing targets or performing a separate fitting step.
 
 Gradient descent gives:
 
@@ -375,7 +369,7 @@ $$
 R(s_i:s_{i+d}; \boldsymbol{\theta}) = v_{\boldsymbol{\theta}}(s_i) - \gamma^d v_{\boldsymbol{\theta}}(s_{i+d}) - \sum_{t=0}^{d-1} \gamma^t[r_{i+t} - \alpha \log \pi_{\boldsymbol{\theta}}(a_{i+t}|s_{i+t})]
 $$
 
-and the gradient combines both value and policy contributions through the same parameters. This unified architecture eliminates the actor-critic separation: one Q-network serves both roles.
+and the gradient combines both value and policy contributions through the same parameters. With this parameterization there is no separate actor and critic: one Q-network serves both roles.
 
 ### Connection to Existing Methods
 
@@ -387,7 +381,7 @@ and the gradient combines both value and policy contributions through the same p
 
 ### PCL vs SAC: Residual Minimization vs Successive Approximation
 
-Both methods solve entropy-regularized MDPs but use fundamentally different solution strategies:
+Both methods solve entropy-regularized MDPs, with different solution strategies:
 
 | **Aspect** | **SAC** | **PCL** |
 |:-----------|:--------|:--------|
@@ -406,9 +400,6 @@ PCL requires deterministic dynamics. It gains multi-step telescoping and off-pol
 PCL amortizes at a different level than DDPG/TD3/SAC. Those methods amortize the action maximization: learn a policy network that outputs $\arg\max_a q(s,a)$ directly. PCL amortizes the solution of the Bellman equation itself. Instead of repeatedly applying the Bellman operator (which requires $\int_{\mathcal{A}} \exp(q/\alpha) da$ at every iteration), PCL samples path segments and minimizes their residual. The computational cost of verifying optimality across all states and path lengths is distributed across training through sampled gradient updates.
 
 ## Model Predictive Path Integral Control
-
-How does online trajectory optimization compare with amortizing action
-selection into a learned policy?
 
 The [MPPI development](model-predictive-path-integral-control.md#sec-mppi) constructs
 a distribution over finite control sequences by exponentially tilting a
@@ -469,9 +460,6 @@ decision.
 
 ## An Alternative: Euler Equation Methods
 
-Can first-order optimality eliminate the value function and yield a functional
-equation directly in the policy?
-
 The methods developed in this chapter all parameterize policies, but they remain rooted in the Bellman equation. NFQCA, DDPG, TD3, and SAC learn Q-functions through successive approximation, then derive policies by maximizing these Q-functions. PCL minimizes a path residual derived from the soft Bellman equation. The policy serves as an amortized optimizer for a value-based objective.
 
 There is a different approach, developed in computational economics {cite:p}`Judd1992,Rust1996,ndp`, that also parameterizes policies but solves an entirely different functional equation. Consider a control problem with continuous states and actions, deterministic dynamics $s' = f(s,a)$, and differentiable reward $r(s,a)$. The optimal action $\pi^*(s)$ satisfies the first-order condition:
@@ -499,7 +487,7 @@ $$
 
 This is root-finding, not fixed-point iteration. Newton-type methods replace the successive approximation of fitted Q-iteration. The Euler operator is not a contraction, so convergence guarantees are problem-dependent.
 
-What does this mean for reinforcement learning? The Euler approach shares the amortization idea: learn a policy network that directly outputs actions. But the training objective comes from first-order optimality conditions rather than from Bellman residuals or Q-function maximization. This raises questions worth considering. Could Euler-style objectives provide useful training signals for actor-critic methods? When dynamics are known or learned, could first-order conditions offer advantages over value-based objectives? The connection between these traditions remains underexplored.
+What does this mean for reinforcement learning? The Euler approach shares the amortization idea: learn a policy network that directly outputs actions. But the training objective comes from first-order optimality conditions rather than from Bellman residuals or Q-function maximization. Whether Euler-style objectives give useful training signals for actor-critic methods, and whether first-order conditions help when the dynamics are known or learned, are open questions; the two traditions have had little contact.
 
 ## Summary
 

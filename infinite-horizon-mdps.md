@@ -536,7 +536,7 @@ Equivalently, $\pi = \mathrm{Greedy}(v)$ is any decision rule with $\BellmanPi v
 
 ### Optimality of Deterministic Stationary Policies
 
-The definition of optimality at the start of the chapter compares $\boldsymbol{\pi}^*$ with every policy in $\Pi^{\mathrm{HR}}$: history-dependent, nonstationary and randomized. The comparison is componentwise, so $\boldsymbol{\pi}^*$ must be at least as good as every other policy in every starting state. Searching that class directly is hopeless. A history-dependent rule $\pi_t(a \mid h_t)$ with $h_t = (s_1, a_1, \ldots, a_{t-1}, s_t)$ depends on a history that grows with $t$, and a nonstationary policy needs one rule per stage, which for an infinite horizon means infinitely many. Even restricted to deterministic Markov policies, enumerating every policy and evaluating each one is out of reach. The next result shows that nothing is lost by searching a much smaller set.
+The definition of optimality at the start of the chapter compares $\boldsymbol{\pi}^*$ with every policy in $\Pi^{\mathrm{HR}}$: history-dependent, nonstationary and randomized. The comparison is componentwise, so $\boldsymbol{\pi}^*$ must be at least as good as every other policy in every starting state. That class is far too large to search directly. A history-dependent rule $\pi_t(a \mid h_t)$ with $h_t = (s_1, a_1, \ldots, a_{t-1}, s_t)$ depends on a history that grows with $t$, and a nonstationary policy needs one rule per stage, which for an infinite horizon means infinitely many. Even restricted to deterministic Markov policies, enumerating every policy and evaluating each one is out of reach. The next result shows that nothing is lost by searching a much smaller set.
 
 ````{prf:theorem} Optimality equation and stationary optimal policies
 :label: thm-stationary-optimal
@@ -551,7 +551,7 @@ v_\gamma^{\pi^*} = v^*_\gamma = \sup_{\boldsymbol{\pi} \in \Pi^{\mathrm{HR}}} v_
 $$
 ````
 
-See {cite}`Puterman1994`, Section 6.2, for the proof. The contraction property is shown in the proof of {prf:ref}`value-iteration-convergence` below. Two consequences are worth stating. First, the supremum over $\Pi^{\mathrm{HR}}$ is attained, by a deterministic stationary policy, so we may restrict the search to the set $\Pi^{MD}$ of deterministic Markov decision rules applied at every stage. Second, the optimal value function is unique but the optimal policy need not be: when several actions attain the maximum in some state, each choice gives an optimal policy. Note also that the theorem is specific to the discounted infinite-horizon case. In a finite-horizon problem the optimal policy depends on the stage in general.
+See {cite}`Puterman1994`, Section 6.2, for the proof. The contraction property is shown in the proof of {prf:ref}`value-iteration-convergence` below. The theorem has two consequences. First, the supremum over $\Pi^{\mathrm{HR}}$ is attained, by a deterministic stationary policy, so we may restrict the search to the set $\Pi^{MD}$ of deterministic Markov decision rules applied at every stage. Second, the optimal value function is unique but the optimal policy need not be: when several actions attain the maximum in some state, each choice gives an optimal policy. The theorem is specific to the discounted infinite-horizon case. In a finite-horizon problem the optimal policy depends on the stage in general.
 
 ### Q-Functions
 
@@ -604,11 +604,11 @@ The optimality equations are operator equations. Therefore, we can apply general
 6. **return** $v_n, \pi$  
 ````
 
-The termination criterion in this algorithm is based on a specific bound that provides guarantees on the quality of the solution. This is in contrast to supervised learning, where we often use arbitrary termination criteria based on computational budget or early stopping when the learning curve flattens. This is because establishing implementable generalization bounds in supervised learning is challenging.
+The termination criterion in this algorithm is based on a specific bound that provides guarantees on the quality of the solution. This is in contrast to supervised learning, where we often use arbitrary termination criteria based on computational budget or early stopping when the learning curve flattens. Supervised learning rarely has generalization bounds that can be computed and used as a stopping test.
 
 However, in the dynamic programming context, we can derive various bounds that can be implemented in practice. These bounds help us terminate our procedure with a guarantee on the precision of our value function and, correspondingly, on the optimality of the resulting policy.
 
-This detail is easy to miss. The value iteration in {cite:t}`SuttonBarto2018` stops when the change falls below a small threshold $\theta$, without relating $\theta$ to the quality of the returned policy. The threshold $\varepsilon(1-\gamma)/(2\gamma)$ above is chosen so that the answer comes with a certificate: you fix the accuracy $\varepsilon$ in advance, the loop runs until the test passes, and the greedy policy it returns is then guaranteed to be $\varepsilon$-optimal ({prf:ref}`value-iteration-convergence`). Two caveats apply. The guarantee concerns the exact arithmetic; floating-point rounding is not part of the analysis, and with $\gamma$ close to one a very small $\varepsilon$ may be below what float32 or even float64 can resolve. And whether a certificate matters depends on the application. Nobody needs one to solve a grid world, but an economist who reports a policy's monetary value, or an engineer who must document a safety margin, does.
+The value iteration in {cite:t}`SuttonBarto2018` stops when the change falls below a small threshold $\theta$, without relating $\theta$ to the quality of the returned policy. The threshold $\varepsilon(1-\gamma)/(2\gamma)$ above is chosen so that the answer comes with a certificate: you fix the accuracy $\varepsilon$ in advance, the loop runs until the test passes, and the greedy policy it returns is then guaranteed to be $\varepsilon$-optimal ({prf:ref}`value-iteration-convergence`). Two caveats apply. The guarantee concerns the exact arithmetic; floating-point rounding is not part of the analysis, and with $\gamma$ close to one a very small $\varepsilon$ may be below what float32 or even float64 can resolve. And whether a certificate matters depends on the application. Nobody needs one to solve a grid world, but an economist who reports a policy's monetary value, or an engineer who must document a safety margin, does.
 
 The value function is only an instrument. What we want in the end is a policy, and given $v^*_\gamma$ (or any approximation of it) we obtain one by the greedy step $\mathrm{Greedy}(v)$: for each state, compute the one-step lookahead $r(s,a) + \gamma \sum_j p(j \mid s,a) v(j)$ for every action and keep the best. With arrays of shape $(|\mathcal{S}|, |\mathcal{A}|)$ this is a single `argmax` along the action axis. Nothing is simulated forward, because $v$ already summarizes the future.
 
@@ -1014,7 +1014,7 @@ print("\n".join(rows))
 
 Standard policy iteration needs about 3 evaluations, while one improvable state per iteration needs 20 to 30. Choosing the state blindly costs about 200, because most draws land on states that are already greedy. The guarantee itself is only finite termination: the counting argument bounds the number of evaluations by the number of policies, which grows exponentially with the number of states, and there are MDPs on which badly chosen single-state rules do take exponentially many steps.
 
-In practice policy iteration converges in very few iterations, often a handful, even for large problems. The reason is that it is Newton's method in disguise, a connection made by {cite:t}`PutermanBrumelle1979` and developed in {ref}`sec-newton-kantorovich-pi`. Each iteration costs more than a value-iteration step, though. Both algorithms pay about $|\mathcal{S}|^2|\mathcal{A}|$ operations for a greedy step, but policy iteration adds a direct policy evaluation, a linear solve of order $|\mathcal{S}|^3$.
+In practice policy iteration converges in very few iterations, often a handful, even for large problems. Policy iteration is Newton's method applied to the Bellman equation, a connection made by {cite:t}`PutermanBrumelle1979` and developed in {ref}`sec-newton-kantorovich-pi`. Each iteration costs more than a value-iteration step, though. Both algorithms pay about $|\mathcal{S}|^2|\mathcal{A}|$ operations for a greedy step, but policy iteration adds a direct policy evaluation, a linear solve of order $|\mathcal{S}|^3$.
 
 ### Modified Policy Iteration
 
@@ -1071,7 +1071,7 @@ measured NVIDIA L4 run used below, one decode stream produces a token every
 almost six times as fast as one. A scheduler that decodes as soon as one
 request is ready keeps the batch small and wastes that capacity. A scheduler
 that keeps prefilling to grow the batch leaves the requests already in it
-waiting. The MDP decides where to switch.
+waiting. Solving the MDP gives the point at which to switch.
 
 An exact request-level Markov state would contain every prompt length, generated
 token count, cache allocation, and waiting time. For computation, these
@@ -1338,14 +1338,14 @@ Newton's method is often written as the familiar update:
 $$
 x_{k+1} = x_k - [DF(x_k)]^{-1} F(x_k),
 $$
-which makes it look as though the essence of the method is "take a derivative and invert it." But the real workhorse behind Newton's method (both in finite and infinite dimensions) is **linearization**.
+which makes the method look like "take a derivative and invert it." What Newton's method does, in finite and in infinite dimensions, is **linearization**.
 
 At each step, the idea is to replace the nonlinear operator $F:X \to Y$ by a local surrogate model of the form
 
 $$
 F(x+h) \approx F(x) + Lh,
 $$
-where $L$ is a linear map capturing how small perturbations in the input propagate to changes in the output. This is a Taylor-like expansion in Banach spaces: the role of the derivative is precisely to provide the correct notion of such a linear operator.
+where $L$ is a linear map capturing how small perturbations in the input propagate to changes in the output. This is a Taylor-like expansion in Banach spaces: the derivative is what defines such a linear operator.
 
 To find a root of $F$, we impose the condition that the surrogate vanishes at the next iterate:
 
@@ -1364,7 +1364,7 @@ $$
 F'(x; h) = \lim_{t \to 0} \frac{F(x + th) - F(x)}{t}
 $$
 
-This quantity measures how the function $F$ changes along the ray $x + th$. While this limit may exist for each direction $h$ separately, it doesn't guarantee that the derivative is linear in $h$. This is a key limitation: the Gâteaux derivative can exist in all directions but still fail to provide a good linear approximation.
+This quantity measures how the function $F$ changes along the ray $x + th$. While this limit may exist for each direction $h$ separately, it doesn't guarantee that the derivative is linear in $h$. The Gâteaux derivative can therefore exist in every direction and still fail to give a good linear approximation.
 
 **2. Hadamard Directional Derivative**
 
@@ -1378,13 +1378,13 @@ This is a stronger condition than Gâteaux differentiability because it requires
 
 **3. Fréchet Derivative**
 
-The strongest and most natural notion: $F$ is Fréchet differentiable at $x$ if there exists a bounded linear operator $L$ such that:
+The strongest of the three notions: $F$ is Fréchet differentiable at $x$ if there exists a bounded linear operator $L$ such that:
 
 $$
 \lim_{h \to 0} \frac{\|F(x + h) - F(x) - Lh\|}{\|h\|} = 0
 $$
 
-This definition directly addresses the inadequacy of the previous notions. Unlike Gâteaux and Hadamard derivatives, the Fréchet derivative explicitly requires the existence of a linear operator $L$ that provides a good approximation. Key properties:
+Unlike the Gâteaux and Hadamard derivatives, the Fréchet derivative requires a linear operator $L$ that approximates $F$ uniformly. Its properties:
 
 - $L$ must be **linear** in $h$ (unlike the directional derivatives above)
 - The approximation error is $o(\|h\|)$, uniform in all directions
@@ -1397,9 +1397,9 @@ $$
 \text{Fréchet differentiable} \Rightarrow \text{Hadamard directionally diff.} \Rightarrow \text{Gâteaux directionally diff.}
 $$
 
-In the context of the Newton-Kantorovich method, we work with an operator $F: X \to Y$ where both $X$ and $Y$ are Banach spaces. The Fréchet derivative $F'(x)$ is the best linear approximation of $F$ near $x$, and it's exactly this linear operator $L$ that we use in our linearization $F(x+h) \approx F(x) + F'(x)h$.
+In the context of the Newton-Kantorovich method, we work with an operator $F: X \to Y$ where both $X$ and $Y$ are Banach spaces. The Fréchet derivative $F'(x)$ is the best linear approximation of $F$ near $x$, and it is the operator $L$ used in the linearization $F(x+h) \approx F(x) + F'(x)h$.
 
-Now apart from those mathematical technicalities, Newton-Kantorovich has in essence the same structure as that of the original Newton's method. That is, it applies the following sequence of steps:
+Apart from these technicalities, Newton-Kantorovich has the same structure as Newton's method in finite dimensions:
 
 1. **Linearize the Operator**:
    Given an approximation $ x_n $, we consider the Fréchet derivative of $ F $, denoted by $ F'(x_n) $. This derivative is a linear operator that provides a local approximation of $ F $ near $ x_n $.
@@ -1423,7 +1423,7 @@ Now apart from those mathematical technicalities, Newton-Kantorovich has in esse
 4. **Repeat Until Convergence**:
    We repeat the linearization and update steps until the solution $ x_n $ converges to the desired tolerance, which can be verified by checking that $ \|F(x_n)\| $ is sufficiently small, or by monitoring the norm $ \|x_{n+1} - x_n\| $.
 
-The convergence of Newton-Kantorovich does not hinge on $ F $ being a contraction over the entire domain (as it could be the case for successive approximation). The convergence properties of the Newton-Kantorovich method are as follows:
+The convergence of Newton-Kantorovich does not hinge on $ F $ being a contraction over the entire domain (as it does for successive approximation). The convergence properties of the Newton-Kantorovich method are as follows:
 
 1. **Local Convergence**: Under mild conditions (e.g., $F$ is Fréchet differentiable and $F'(x)$ is invertible near the solution), the method converges locally. This means that if the initial guess is sufficiently close to the true solution, the method will converge.
 
@@ -1435,7 +1435,7 @@ The convergence of Newton-Kantorovich does not hinge on $ F $ being a contractio
    \|x_{n+1} - x^*\| \leq C\|x_n - x^*\|^2
    $$
 
-   where $x^*$ is the true solution and $C$ is some constant. This quadratic convergence is significantly faster than the linear convergence typically seen in methods like successive approximation.
+   where $x^*$ is the true solution and $C$ is some constant. Quadratic convergence is much faster than the linear convergence of successive approximation.
 
 ### Newton-Kantorovich Applied to Bellman Optimality
 
@@ -1639,9 +1639,9 @@ $$
 v_{k+1} = \frac{\alpha - 1}{\alpha} v_k + \frac{1}{\alpha} \Bellman v_k.
 $$
 
-This is relaxed value iteration with step size $1/\alpha$. Taking $\alpha > 1$ damps the step: the update remains a global contraction, but with the larger modulus $1 - (1-\gamma)/\alpha$, so it is slower than standard value iteration. Taking $\alpha < 1$ lengthens the step, which is over-relaxation. The sup-norm argument then gives a contraction only for $\alpha > (1+\gamma)/2$, with modulus $(1+\gamma)/\alpha - 1$, which exceeds $\gamma$. Near the solution, however, the rate is set by the eigenvalues of $\gamma P_{\pi^*}$. The constant mode now contracts at $1 - (1-\gamma)/\alpha < \gamma$, so over-relaxation is faster whenever $P_{\pi^*}$ has no eigenvalues close to $-1$. For every $\alpha$, the update requires only pointwise operations rather than solving a linear system. The Newton perspective thus unifies existing algorithms and generates new ones by systematically exploring different approximations to the generalized Jacobian.
+This is relaxed value iteration with step size $1/\alpha$. Taking $\alpha > 1$ damps the step: the update remains a global contraction, but with the larger modulus $1 - (1-\gamma)/\alpha$, so it is slower than standard value iteration. Taking $\alpha < 1$ lengthens the step, which is over-relaxation. The sup-norm argument then gives a contraction only for $\alpha > (1+\gamma)/2$, with modulus $(1+\gamma)/\alpha - 1$, which exceeds $\gamma$. Near the solution, however, the rate is set by the eigenvalues of $\gamma P_{\pi^*}$. The constant mode now contracts at $1 - (1-\gamma)/\alpha < \gamma$, so over-relaxation is faster whenever $P_{\pi^*}$ has no eigenvalues close to $-1$. For every $\alpha$, the update requires only pointwise operations rather than solving a linear system. Each choice of approximation to the generalized Jacobian gives an algorithm: the exact Jacobian gives policy iteration, the identity gives value iteration, and the scaled identity gives relaxed value iteration.
 
-The connection to semismooth Newton methods places policy iteration within a broader mathematical framework that extends far beyond dynamic programming. Semismooth Newton methods are used in optimization (for complementarity problems and variational inequalities), in PDE-constrained optimization (for problems with control constraints), and in economics (for equilibrium problems). The Bellman equation, viewed through this lens, is simply one instance of a piecewise smooth equation, and the tools developed for such equations apply directly.
+Policy iteration is therefore a semismooth Newton method, a class of methods used well beyond dynamic programming. Semismooth Newton methods are used in optimization (for complementarity problems and variational inequalities), in PDE-constrained optimization (for problems with control constraints), and in economics (for equilibrium problems). The Bellman equation is one instance of a piecewise smooth equation, and the convergence theory developed for such equations applies to it.
 
 ### Policy Iteration as a Newton Method
 

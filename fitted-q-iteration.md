@@ -283,7 +283,7 @@ exact policy, and its mean waiting time is 5.76 seconds rather than 5.24.
 
 The narrow buffer covers 41.73 percent of feasible pairs and disagrees with the
 exact policy in 19 states (38.78 percent). In 15 of those states the buffer
-contains no visit to the action the fitted policy selects. The log follows
+contains no visit to the action that the fitted policy selects. The log follows
 decode priority, which never prefills while a request is decoding, so the
 regressor has no data on the batching decisions that the exact policy makes.
 Its choices there are extrapolations: it idles in several states with six
@@ -634,7 +634,7 @@ is all here: a neural network, bootstrapped targets, and a buffer whose
 transitions were collected by earlier policies. The design choices are what
 keep it in check. Targets are held fixed for $K$ steps by the target network,
 each fit is warm-started, and the large buffer averages the data over many
-policies, so that the distribution the fit sees changes slowly even though
+policies, so that the distribution of the data used by each fit changes slowly even though
 the policy changes at every step.
 
 (sec-fqi-double-dqn)=
@@ -1133,7 +1133,7 @@ In the collision-avoidance example, why did one event with a 2% collision probab
 :::{solution} ex-fqi-check-5
 :class: dropdown
 
-Extra trees predict the average of the targets in a leaf, so a single cost three times larger than all the others combined raises the prediction of every state that shares a leaf with that event's epochs. Fitting the cost relative to the current message's own estimate turns the target into a correction factor of ordinary size, so the event no longer dominates the leaves it falls in.
+Extra trees predict the average of the targets in a leaf, so a single cost three times larger than all the others combined raises the prediction of every state that shares a leaf with that event's epochs. Fitting the cost relative to the current message's own estimate turns the target into a correction factor of ordinary size, so the event no longer dominates the leaves that contain it.
 :::
 
 :::{exercise} Indices of a flattened loop

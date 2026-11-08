@@ -112,8 +112,8 @@ steps that lead from it to FQI and NFQCA.
 ## A Motivating Example: Harvesting a Fishery Near a Tipping Point
 
 This example shows what goes wrong when a value function on a continuum is
-stored in a few numbers, and how the way it is stored changes the decisions
-it produces. A regulator sets the annual quota for a fish stock. Before the season, a survey
+stored in a few numbers, and how the choice of representation changes the
+decisions that the stored function produces. A regulator sets the annual quota for a fish stock. Before the season, a survey
 gives the stock $x$, measured as a fraction of the carrying capacity of the
 habitat. The regulator chooses the *escapement* $s \in [0, x]$, the part of the
 stock left in the water to spawn. The rest, $x - s$, is caught and sold at a
@@ -269,28 +269,30 @@ the boxes.
 
 ### Step 1: Choose a Parametric Value Function
 
-The approximation is a linear combination of $n$ basis functions,
+The unknown value function is replaced by a family $v(s;\theta)$ indexed by
+a parameter vector $\theta \in \mathbb{R}^n$. Nothing in the five steps
+requires $\theta$ to enter linearly: a neural network $v(s;\theta)$ with $n$
+weights is such a family, and every condition below applies to it. Linearity
+matters for solving. When the family is a linear combination of $n$ basis
+functions,
 
 $$
 v(s;\theta) = \sum_{j=1}^n \theta_j \varphi_j(s),
 $$
 
-and the only unknowns are the coefficients $\theta \in \mathbb{R}^n$. Two
-kinds of basis are in common use. A global basis, such as Chebyshev
+each condition reduces to linear algebra and can be written out, so this
+chapter uses linear families to make the steps explicit. The
+[next chapter](approximate-bellman-equations.md) shows that the solver that
+carries over to neural networks needs nothing from the representation beyond
+the ability to fit it to data.
+
+Two kinds of basis are in common use. A global basis, such as Chebyshev
 polynomials or Fourier modes, gives every coefficient influence over the whole
 state space, and its error decreases exponentially in $n$ when the function
 is smooth. A local basis, such as the hat functions of piecewise-linear
 interpolation, splines with small support, or radial basis functions, lets
 each coefficient act near one node, and its error decreases at a rate set by
 the node spacing, whatever the smoothness of the function.
-
-Nothing in the steps requires $\theta$ to enter linearly. A neural network
-$v(s;\theta)$ is a function class with $n$ parameters as well, and every
-condition below applies to it. Linearity matters for solving: with a linear
-basis, each condition reduces to linear algebra and can be written out, which
-is why this chapter uses one. The [next chapter](approximate-bellman-equations.md)
-shows that the solver that carries over to neural networks needs nothing from
-the representation beyond the ability to fit it to data.
 
 ::::{admonition} The fishery at Step 1
 :class: note

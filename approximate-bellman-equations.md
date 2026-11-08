@@ -352,7 +352,7 @@ where there are data, and only there.
 ## Propagation of Fitting Errors
 
 Every fit is only approximately right. This section bounds how far from $v^*$
-fitted value iteration ends, and how good the policy it returns is.
+fitted value iteration ends, and how good the returned policy is.
 
 The finite-horizon chapter answered this for backward recursion with
 interpolation: with nonnegative weights, the error of the stored values is
@@ -691,8 +691,8 @@ The counterexample has a second reading. The chain moves from state 1 to
 state 2 and stays there, so its stationary distribution puts all its mass on
 state 2. If the fit weights each state by that distribution, it minimizes
 $(2\theta - 2\gamma\theta_k)^2$ alone, and $\theta_{k+1} = \gamma\theta_k$
-converges. The equal weighting was the problem: it fits the value at a state
-the process does not occupy as much as the value at the state it does.
+converges. The equal weighting was the problem: it gives the state that the
+process leaves at once the same weight as the state where it stays.
 
 This observation is a theorem for policy evaluation {cite}`TsitsiklisVanRoy1997`,
 proved to explain the convergence of TD(0) with linear features. Take a finite
