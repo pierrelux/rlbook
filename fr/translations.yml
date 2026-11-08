@@ -4,3 +4,6 @@
 # `python3 tools/french.py diff <chapter>.md` prints what changed.
 # After updating a translation, run `python3 tools/french.py mark <chapter>.md`.
 intro.md: a75ae233746486b31e9bce1236d540ee804dbd44
+model-interfaces.md: ffaaa43909eec1f2e345e9f554cb5d47fec191a4
+modeling-controlled-systems.md: ffaaa43909eec1f2e345e9f554cb5d47fec191a4
+stochastic-dynamics-observation.md: ffaaa43909eec1f2e345e9f554cb5d47fec191a4

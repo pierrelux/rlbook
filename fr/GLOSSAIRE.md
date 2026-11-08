@@ -18,7 +18,8 @@ terme récurrent avant de l'employer dans un chapitre.
   pour la politique, `log` et non `ln`.
 - Typographie québécoise : guillemets « » avec espaces insécables, espace
   insécable avant le deux-points seulement (pas avant ; ! ?). Décimales avec
-  un point dans les formules et le code, comme en anglais.
+  un point partout, y compris dans le texte, pour rester cohérent avec les
+  formules, le code et les figures.
 - Les titres de sections suivent la casse française (majuscule au premier mot
   seulement).
 

@@ -103,6 +103,27 @@ def insert_notice(text: str, notice: str) -> str:
     return "".join(lines[:start]) + notice + "\n" + "".join(lines[start:])
 
 
+def code_cells(text: str) -> list[str]:
+    """Bodies of code cells, without their option lines."""
+    cells = []
+    for match in re.finditer(r"^(`{3,})\{code-cell\}[^\n]*\n(.*?)^\1\s*$", text, flags=re.M | re.S):
+        body = [line for line in match.group(2).splitlines() if not line.startswith(":")]
+        cells.append("\n".join(body).strip())
+    return cells
+
+
+def code_mismatches() -> list[str]:
+    """Translated chapters whose code cells differ from the English ones."""
+    bad = []
+    for chapter in chapters():
+        french = FR / chapter
+        if french.exists() and code_cells(french.read_text(encoding="utf-8")) != code_cells(
+            (ROOT / chapter).read_text(encoding="utf-8")
+        ):
+            bad.append(chapter)
+    return bad
+
+
 def translate_toc(entries: list, parts: dict[str, str]) -> None:
     for entry in entries:
         if "title" in entry:
@@ -132,6 +153,9 @@ def french_config() -> dict:
 
 def cmd_build(args: argparse.Namespace) -> int:
     manifest = load_yaml(MANIFEST)
+    for chapter in code_mismatches():
+        print(f"warning: code cells in fr/{chapter} differ from the English; "
+              "the French build will re-execute them", file=sys.stderr)
     if SRC.exists():
         shutil.rmtree(SRC)
     SRC.mkdir(parents=True)
@@ -212,7 +236,10 @@ def cmd_status(args: argparse.Namespace) -> int:
     for title in titles:
         if title not in parts:
             print(f"Part title without a French name in fr/book.yml: {title}")
-    return 1 if args.strict and stale else 0
+    mismatched = code_mismatches()
+    for chapter in mismatched:
+        print(f"Code cells differ from the English in fr/{chapter}; copy them over unchanged")
+    return 1 if args.strict and (stale or mismatched) else 0
 
 
 def cmd_diff(args: argparse.Namespace) -> int:
