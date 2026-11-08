@@ -407,10 +407,13 @@ masses as test functions, as the dual-pairing formulation of
 each condition costs one evaluation of the Bellman operator. The conditions
 make the residual vanish at the nodes and leave it unconstrained between
 them, as the residual of the differential equation is unconstrained between
-the collocation points of a trajectory. The name says as much: to collocate,
-from the Latin *collocare*, is to place together, and the approximation and
-the exact equation are placed together at a finite set of points, times for a
-trajectory and states for a value function.
+the collocation points of a trajectory. The name says as much. To collocate,
+from the Latin *collocare*, is to place together, and in the definition of
+{cite:t}`FrazerJonesSkan1937` that the
+[collocation chapter](continuous-time-collocation.md) recalled, it is "the act
+of assigning the error at given points or stations". The approximation and the
+exact equation are placed together at a finite set of points: times for a
+trajectory, states for a value function.
 
 Where to collocate is a choice of its own. For a polynomial of degree
 $n - 1$, the standard choice is the zeros of the $n$-th Chebyshev
