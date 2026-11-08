@@ -31,7 +31,14 @@ fini qui en résulte est un programme non linéaire (PNL).
 La formulation par collocation directe utilisée ici stocke les valeurs de
 l'état et de la commande à des instants choisis et les interpole entre ces
 instants par des polynômes de bas degré. L'équation différentielle est imposée
-en des points choisis de chaque intervalle de temps. Ce chapitre développe
+en des points choisis de chaque intervalle de temps, les **points de
+collocation**. Le mot vient du latin *collocare*, placer ensemble : en chacun
+de ces points, on fait concorder le polynôme et l'équation différentielle, et
+rien n'est imposé entre eux. {cite:t}`FrazerJonesSkan1937` définissaient la
+collocation comme « l'action d'assigner l'erreur en des points ou stations
+donnés » (*the act of assigning the error at given points or stations*), ce
+qui, pour une équation différentielle, revient à y annuler son erreur.
+Ce chapitre développe
 cette construction à partir d'un exemple simple, en passant par les
 transcriptions d'Euler, des trapèzes et de Hermite--Simpson, puis l'applique
 au mouvement d'un pont roulant.

@@ -427,7 +427,11 @@ formulation par appariement dual de {cite:t}`LegrandJunca2025`. Aucune
 intégrale sur les états n'apparaît, de sorte que chaque condition coûte une
 évaluation de l'opérateur de Bellman. Les conditions annulent le résidu aux
 nœuds et le laissent libre entre eux, comme le résidu de l'équation
-différentielle est libre entre les points de collocation d'une trajectoire.
+différentielle est libre entre les points de collocation d'une trajectoire. Le nom
+le dit : collocation vient du latin *collocare*, placer ensemble, et
+l'approximation et l'équation exacte sont placées ensemble en un ensemble fini
+de points, des instants pour une trajectoire et des états pour une fonction
+de valeur.
 
 Où placer les points de collocation est un choix à part entière. Pour un
 polynôme de degré $n - 1$, le choix habituel est l'ensemble des zéros du
