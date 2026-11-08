@@ -1,0 +1,6 @@
+# One entry per translated chapter: the English commit the French file was
+# last brought in line with. `python3 tools/french.py status` lists the
+# chapters whose English source changed since then, and
+# `python3 tools/french.py diff <chapter>.md` prints what changed.
+# After updating a translation, run `python3 tools/french.py mark <chapter>.md`.
+intro.md: a75ae233746486b31e9bce1236d540ee804dbd44

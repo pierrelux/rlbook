@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="fr">
+<meta charset="utf-8">
+<meta name="robots" content="noindex">
+<title>Français</title>
+<script>
+// Language switch from the top menu: open the same chapter in the other
+// edition. MyST serves this page from <base>/build/, so its own path gives
+// the site's base; the chapter comes from the referring page.
+(function () {
+  var toFrench = "fr" === "fr";
+  var here = location.pathname;
+  var base = here.slice(0, here.lastIndexOf("/build/"));
+  var english = toFrench ? base : base.replace(/\/fr$/, "");
+  var french = english + "/fr";
+  var from = toFrench ? english : french;
+  var to = toFrench ? french : english;
+  var slug = "/";
+  try {
+    var ref = new URL(document.referrer);
+    if (ref.origin === location.origin && ref.pathname.indexOf(from + "/") === 0) {
+      slug = ref.pathname.slice(from.length);
+      if (toFrench && slug.indexOf("/fr/") === 0) slug = slug.slice(3);
+    }
+  } catch (e) {}
+  location.replace(to + slug);
+})();
+</script>
+</html>

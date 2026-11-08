@@ -1,0 +1,23 @@
+# French metadata for the book. tools/french.py builds the French myst.yml
+# from the English one: the TOC structure always follows the English book,
+# and only the strings below are replaced.
+project:
+  title: "L'apprentissage par renforcement, des fondements à la pratique : dynamique, commande et apprentissage"
+  description: "Une introduction de niveau supérieur à l'apprentissage par renforcement comme cadre de modélisation, d'optimisation et de commande, qui relie modèles dynamiques, données et applications au-delà des bancs d'essai habituels."
+site:
+  logo_text: "Renforcement et commande"
+  logo_alt: "Une trajectoire qui spirale vers un point fixe"
+# English part title -> French part title. A part missing here keeps its
+# English title, and `tools/french.py status` reports it.
+parts:
+  Modeling Sequential Decisions: Modélisation des décisions séquentielles
+  Trajectory Optimization: Optimisation de trajectoires
+  Model Predictive Control: Commande prédictive
+  Dynamic Programming: Programmation dynamique
+  Approximate Dynamic Programming: Programmation dynamique approchée
+  Policy Optimization: Optimisation des politiques
+  Demos: Démonstrations
+  Appendix: Annexes
+# English action title -> French action title.
+actions:
+  View on GitHub: Voir sur GitHub

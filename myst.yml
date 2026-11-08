@@ -18,6 +18,8 @@ project:
     - _build/**
     - exports/**
     - lab/**
+    # French chapters are built separately by tools/french.py.
+    - fr/**
   static_files:
     - interactive
   plugins:
@@ -100,5 +102,7 @@ site:
     outline_maxdepth: 1
     style: _static/custom.css
   actions:
+    - title: Français
+      url: _static/francais.html
     - title: View on GitHub
       url: https://github.com/pierrelux/rlbook

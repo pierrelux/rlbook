@@ -9,6 +9,9 @@ if ! uv run micromamba --version >/dev/null 2>&1; then
 fi
 
 BASE_URL="$BOOK_BASE_URL" uv run jupyter-book build --html --execute --strict
+# French edition into _build/html/fr. It reuses the English execution cache.
+BASE_URL="$BOOK_BASE_URL" uv run python tools/french.py build
+uv run python tools/french.py status
 uv run jupyter lite build \
   --contents notebooks \
   --output-dir _build/html/lab \

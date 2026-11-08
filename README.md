@@ -191,3 +191,28 @@ the optimizers. The aircraft's synthetic gust process is separate from the
 historical mean-wind snapshot. Controller comparisons keep planner random
 numbers independent from the realized physical disturbances.
 
+
+## French edition
+
+French chapters live in `fr/` under the same file names as the English ones,
+and the **Français** / **English** button in the top menu switches to the same
+chapter in the other edition. `publish.sh` builds the French site into
+`_build/html/fr` with `tools/french.py build`. Chapters without a French file
+appear in English under a short notice, and translated chapters whose English
+source changed since their translation show an "update pending" notice.
+
+`fr/translations.yml` records the English commit each French chapter matches.
+After editing an English chapter:
+
+```bash
+python3 tools/french.py status                 # which translations are stale
+python3 tools/french.py diff stochastic-dp.md   # English changes to carry over
+python3 tools/french.py mark stochastic-dp.md   # after updating fr/stochastic-dp.md
+```
+
+Part titles and the site title are in `fr/book.yml`; the TOC itself always
+follows `myst.yml`. Terminology and typography rules are in `fr/GLOSSAIRE.md`.
+Keep code cells identical to the English ones so the French build reuses the
+execution cache. When a French heading replaces an English one that other
+chapters link to implicitly, add the English slug as an explicit label above
+it, for example `(decision-rules-and-policies)=`.
