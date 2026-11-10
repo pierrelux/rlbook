@@ -206,7 +206,7 @@ def panel_b():
     parts.append(f'<text class="gnote" x="{f(v.x + 14)}" y="{f(y2 - 4)}">'
                  f'implicit: one linear solve, valid at the fixed point only</text>')
     parts.append(f'<text class="geq" x="{f(v.x + 14)}" y="{f(y2 + 20)}">'
-                 f'{mtext("∂v_{θ}/∂θ = (I − γP_{π})^{−1} ∂r_{π}/∂θ")}</text>')
+                 f'{mtext("∂v_{θ}/∂θ = (I − γP_{π})^{−1} g_{θ}")}</text>')
     return "\n  ".join(parts)
 
 

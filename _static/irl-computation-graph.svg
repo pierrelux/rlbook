@@ -84,6 +84,6 @@
   <text class="gnote" x="562.0" y="341.0">memory and truncation error grow with depth</text>
   <path class="e g" d="M540.0,289.0 C508.0,390.0 78.0,390.0 54.0,292.0" marker-end="url(#h-g)"/>
   <text class="gnote" x="562.0" y="364.0">implicit: one linear solve, valid at the fixed point only</text>
-  <text class="geq" x="562.0" y="388.0"><tspan dy="0">∂v</tspan><tspan class="up" font-size="11" dy="4">θ</tspan><tspan dy="-4">/∂θ = (I − γP</tspan><tspan class="up" font-size="11" dy="4">π</tspan><tspan dy="-4">)</tspan><tspan class="up" font-size="11" dy="-6">−1</tspan><tspan dy="6"> ∂r</tspan><tspan class="up" font-size="11" dy="4">π</tspan><tspan dy="-4">/∂θ</tspan></text>
+  <text class="geq" x="562.0" y="388.0"><tspan dy="0">∂v</tspan><tspan class="up" font-size="11" dy="4">θ</tspan><tspan dy="-4">/∂θ = (I − γP</tspan><tspan class="up" font-size="11" dy="4">π</tspan><tspan dy="-4">)</tspan><tspan class="up" font-size="11" dy="-6">−1</tspan><tspan dy="6"> g</tspan><tspan class="up" font-size="11" dy="4">θ</tspan></text>
 </g>
 </svg>

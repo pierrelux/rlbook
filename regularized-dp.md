@@ -691,6 +691,7 @@ The contrast also has a history. {cite:t}`PutermanBrumelle1979` established the 
 
 {cite:t}`rust1987optimal` solved his smooth Bellman equation this way. He did not call it policy iteration. He recognized an operator equation, a root-finding problem in a function space, and applied Newton-Kantorovich to it, after a few rounds of successive approximation to get close enough for Newton's method to converge quickly.
 
+(sec-smooth-entropy-equivalence)=
 ### Equivalence Between Smooth Bellman Equations and Entropy-Regularized MDPs
 
 We have now seen three ways to arrive at the smooth Bellman equation: as a smoothed maximum, from Gumbel noise on the rewards, and as the optimality equation of a regularized MDP. The third one can be written as an optimization problem over policies, the form used by maximum entropy RL. With entropy weight $\alpha = 1/\beta$, the entropy-regularized MDP is
@@ -794,13 +795,35 @@ $$
 
 This is the second, deeper reason Rust used these equations. Besides being smooth, they follow from the random-utility models of {cite:t}`McFadden1974`, the standard statistical basis of discrete choice in econometrics, in the same way that least squares follows from assuming Gaussian noise. In machine learning terms, McFadden's conditional logit is multiclass logistic regression with a structural interpretation.
 
-**The estimator.** Given observed pairs $(s_t, a_t)$, maximize the log-likelihood $\ell(\theta) = \sum_t \log \pi_\theta(a_t \mid s_t)$. Every evaluation of $\ell$ requires solving the smooth Bellman equation for the current $\theta$, so the problem is bilevel: an outer maximization over $\theta$ around an inner fixed-point problem. Rust called his algorithm the nested fixed point (NFXP) algorithm. The gradient of $\ell$ needs $\partial v_\theta / \partial\theta$, which the implicit function theorem provides without differentiating through the iterations of the inner solver. Differentiating $v_\theta = \mathrm{L}_{\beta,\theta} v_\theta$ and using the derivative of $\mathrm{L}_\beta$ from {ref}`sec-smooth-pi-newton`,
+**The estimator.** Given observed pairs $(s_t, a_t)$, maximize the log-likelihood $\ell(\theta) = \sum_t \log \pi_\theta(a_t \mid s_t)$. Every evaluation of $\ell$ requires solving the smooth Bellman equation for the current $\theta$, so the problem is bilevel: an outer maximization over $\theta$ around an inner fixed-point problem. Rust called his algorithm the nested fixed point (NFXP) algorithm. The gradient of $\ell$ needs $\partial v_\theta / \partial\theta$, which the implicit function theorem provides without differentiating through the iterations of the inner solver.
+
+The parameters reach $v_\theta$ along two routes: directly, through the reward $r_\theta$, and indirectly, through the value that the operator is applied to, which also depends on $\theta$. To keep the two routes apart, write the operator as a function of both of its arguments,
 
 $$
-\frac{\partial v_\theta}{\partial \theta} = (\mathbf{I} - \gamma\mathbf{P}_{\pi_\theta})^{-1}\, \frac{\partial \mathbf{r}_{\pi_\theta}}{\partial\theta}, \qquad \frac{\partial \mathbf{r}_{\pi_\theta}}{\partial\theta}(s) = \sum_a \pi_\theta(a\mid s)\, \frac{\partial r_\theta(s,a)}{\partial \theta}.
+\mathrm{L}_\beta(v, \theta)(s) = \frac{1}{\beta}\log\sum_a \exp\Big(\beta\big(r_\theta(s,a) + \gamma\sum_j p(j\mid s,a)\, v(j)\big)\Big),
 $$
 
-The matrix to invert is the one of policy evaluation, already factored by the Newton steps of the inner solver. For rewards linear in the parameters, $r_\theta(s,a) = \theta^\top\phi(s,a)$, this derivative is the vector of expected discounted feature counts under the softmax policy, the quantity that {cite:t}`ziebart2008maximum` matches to the empirical feature counts. The score of one observation is then
+so that $\mathrm{L}_{\beta,\theta} v = \mathrm{L}_\beta(v, \theta)$ and $v_\theta$ solves $v_\theta = \mathrm{L}_\beta(v_\theta, \theta)$. Here $\partial v_\theta/\partial\theta$ is the Jacobian of the map $\theta \mapsto v_\theta$, which accounts for every route, while $\partial \mathrm{L}_\beta/\partial v$ and $\partial \mathrm{L}_\beta/\partial\theta$ are partial derivatives, each taken with the other argument held fixed. The chain rule applied to both sides of the fixed-point equation gives
+
+$$
+\frac{\partial v_\theta}{\partial\theta} = \frac{\partial \mathrm{L}_\beta}{\partial v}(v_\theta,\theta)\,\frac{\partial v_\theta}{\partial\theta} + \frac{\partial \mathrm{L}_\beta}{\partial \theta}(v_\theta,\theta).
+$$
+
+The derivative of the log-sum-exp with respect to its arguments is the softmax, and this gives both partial derivatives. With respect to $v$, it is $\gamma\mathbf{P}_{\pi_\theta}$, as in {ref}`sec-smooth-pi-newton`. With respect to $\theta$, it is the reward gradient averaged under the softmax policy. Solving for the Jacobian,
+
+$$
+\frac{\partial v_\theta}{\partial \theta} = (\mathbf{I} - \gamma\mathbf{P}_{\pi_\theta})^{-1}\, \mathbf{g}_\theta, \qquad \mathbf{g}_\theta(s) = \frac{\partial \mathrm{L}_\beta}{\partial \theta}(v_\theta,\theta)(s) = \sum_a \pi_\theta(a\mid s)\, \frac{\partial r_\theta(s,a)}{\partial \theta}.
+$$
+
+**Why no term differentiates $\pi_\theta$.** The softmax policy $\pi_\theta$ depends on $\theta$, yet no derivative of $\pi_\theta$ appears in this formula. In the derivation above, $\pi_\theta$ is never a function being differentiated: it appears only as the weights that come out of the derivative of the log-sum-exp. A second derivation shows why nothing is missing. At the fixed point, $v_\theta$ is the entropy-regularized value of its own softmax policy,
+
+$$
+v_\theta = (\mathbf{I}-\gamma\mathbf{P}_{\pi_\theta})^{-1}\Big(\mathbf{r}_{\pi_\theta} + \frac{1}{\beta}\mathbf{H}_{\pi_\theta}\Big), \qquad \mathbf{r}_{\pi_\theta}(s) = \sum_a \pi_\theta(a\mid s)\, r_\theta(s,a),
+$$
+
+and $\theta$ now enters in four places: through $r_\theta$, and through $\pi_\theta$ in $\mathbf{P}_{\pi_\theta}$, $\mathbf{r}_{\pi_\theta}$ and $\mathbf{H}_{\pi_\theta}$. Differentiating every occurrence produces three terms that contain the derivative of $\pi_\theta$, and these three terms sum to zero. The reason is that $\pi_\theta(\cdot\mid s)$ maximizes $\sum_a \pi(a\mid s)\big(q_\theta(s,a) - \frac{1}{\beta}\log\pi(a\mid s)\big)$ over the simplex, the Bellman optimality equation of the entropy-regularized MDP in {ref}`sec-smooth-entropy-equivalence`. At a maximizer, a small change of $\pi$ that keeps it a distribution changes the objective only at second order, so the policy's own movement with $\theta$ contributes nothing at first order. This is the envelope theorem ({prf:ref}`thm-envelope`): the derivative of an optimal value with respect to a parameter is the partial derivative of the objective with the optimizer held fixed. Only the direct route through $r_\theta$ remains, and it gives $\mathbf{g}_\theta$. The cancellation is specific to $v_\theta$, which is an optimal value. The log-likelihood $\log\pi_\theta(a_t \mid s_t)$ is not maximized by $\pi_\theta$, so its gradient, the score below, does differentiate the policy.
+
+The matrix to invert is the one of policy evaluation, already factored by the Newton steps of the inner solver. For rewards linear in the parameters, $r_\theta(s,a) = \theta^\top\phi(s,a)$, this derivative is the vector of expected discounted feature counts under the softmax policy, the quantity that {cite:t}`ziebart2008maximum` matches to the empirical feature counts. The score of one observation is then, with $\nabla_\theta$ again following every route through which $\theta$ acts,
 
 $$
 \nabla_\theta \log\pi_\theta(a\mid s) = \beta\Big(\nabla_\theta q_\theta(s,a) - \sum_{a'}\pi_\theta(a'\mid s)\,\nabla_\theta q_\theta(s,a')\Big), \qquad \nabla_\theta q_\theta(s,a) = \nabla_\theta r_\theta(s,a) + \gamma\sum_j p(j\mid s,a)\,\frac{\partial v_\theta}{\partial \theta}(j).
@@ -832,13 +855,13 @@ $$
 (a) Behavioral cloning fits a generic network to state-action pairs, and backpropagation runs through a fixed number of layers. (b) Rust's estimator uses the same data and loss, but its network maps the reward parameters $\theta$ through the Bellman operator, applied until $v_\theta = \mathrm{L}_{\beta,\theta} v_\theta$, to the softmax policy. The gradient can return to $\theta$ through every Bellman layer (dashed, unrolled) or in one step by the implicit function theorem (solid), which holds only at the fixed point.
 :::
 
-Such a network has, in effect, infinitely many layers, one per application of the Bellman operator, and there are two ways to differentiate through it. The first truncates the inner solver after $K$ iterations and backpropagates through all of them, as backpropagation through time does for a recurrent network. This is called unrolled differentiation. Its memory grows with $K$, and the gradient inherits the truncation error. The second uses only the condition that defines the fixed point. Write it as $F(v, \theta) = \mathrm{L}_{\beta,\theta} v - v = 0$. If $\partial F/\partial v$ is invertible at a solution, the implicit function theorem gives a differentiable map $\theta \mapsto v_\theta$ near that solution, with
+Such a network has, in effect, infinitely many layers, one per application of the Bellman operator, and there are two ways to differentiate through it. The first truncates the inner solver after $K$ iterations and backpropagates through all of them, as backpropagation through time does for a recurrent network. This is called unrolled differentiation. Its memory grows with $K$, and the gradient inherits the truncation error. The second uses only the condition that defines the fixed point. Write it as $F(v, \theta) = \mathrm{L}_\beta(v, \theta) - v = 0$. If $\partial F/\partial v$ is invertible at a solution, the implicit function theorem gives a differentiable map $\theta \mapsto v_\theta$ near that solution, with
 
 $$
 \frac{\partial v_\theta}{\partial \theta} = -\left(\frac{\partial F}{\partial v}\right)^{-1} \frac{\partial F}{\partial \theta}.
 $$
 
-Here $\partial F/\partial v = \gamma\mathbf{P}_{\pi_\theta} - \mathbf{I}$, which is invertible for $\gamma < 1$, and $\partial F/\partial\theta = \partial\mathbf{r}_{\pi_\theta}/\partial\theta$, which gives the formula used by NFXP. The formula holds at the fixed point and nowhere else. This is why NFXP solves the inner problem to high accuracy at every outer step, so that each evaluation of the likelihood costs a full solve, and why Rust invested in a fast inner solver: successive approximation, which converges from any starting point, followed by Newton-Kantorovich steps, which converge quadratically once close to the solution.
+Here $\partial F/\partial v = \gamma\mathbf{P}_{\pi_\theta} - \mathbf{I}$, which is invertible for $\gamma < 1$, and $\partial F/\partial\theta = \mathbf{g}_\theta$, which gives the formula used by NFXP. The formula holds at the fixed point and nowhere else. This is why NFXP solves the inner problem to high accuracy at every outer step, so that each evaluation of the likelihood costs a full solve, and why Rust invested in a fast inner solver: successive approximation, which converges from any starting point, followed by Newton-Kantorovich steps, which converge quadratically once close to the solution.
 
 **The constrained formulation.** The bilevel problem can also be written as a single constrained problem: maximize $\ell$ jointly over $\theta$ and $v$, subject to $v = \mathrm{L}_{\beta,\theta} v$. {cite:t}`SuJudd2012` proposed this formulation, known as mathematical programming with equilibrium constraints (MPEC), as an alternative to NFXP. A general-purpose constrained solver handles the Bellman equations, which then need to hold only at convergence rather than at every outer step. The price is a larger optimization problem, with one unknown per state in addition to $\theta$.
 
