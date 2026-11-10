@@ -239,6 +239,8 @@ $$ v(s) = \frac{1}{\beta} \log \sum_{a \in \mathcal{A}_s} \exp\left(\beta\left(r
 
 Nous sommes arrivés à l'**équation de Bellman lisse**.
 
+C'est la forme close qui distingue la loi de Gumbel. Pour d'autres lois de chocs, le maximum espéré $\mathbb{E}[\max_i \{x_i + \epsilon_i\}]$ reste une fonction lisse des $x_i$, mais il a rarement une forme close. Avec des chocs gaussiens, par exemple, il n'en a pas au-delà de deux actions, et le calculer exige d'intégrer sur le bruit continu, ce qui est précisément le calcul que la construction devait éviter. Le lemme en donne aussi la raison profonde : le maximum de variables de Gumbel indépendantes de même échelle est encore une variable de Gumbel, de sorte que la famille est stable sous l'opération que l'équation de Bellman applique à chaque pas.
+
 ### Étape 6 : récapitulatif de la dérivation
 
 Pour récapituler l'enchaînement logique :
@@ -523,6 +525,8 @@ conjuguée, un maximum lisse souhaité?
 
 Les PDM régularisés {cite}`geist2019` offrent un autre point de vue sur l'origine des équations de Bellman lisses. Ce cadre propose une approche plus générale, dans laquelle on cherche des politiques optimales selon le critère à horizon infini tout en tenant compte d'un régularisateur qui oriente le type de politiques que l'on cherche à obtenir.
 
+Le cadre ne fixe pas le régularisateur. Toute fonction fortement convexe $\Omega$ sur le simplexe des probabilités donne un opérateur de Bellman régularisé, un argument de contraction et une politique optimale, de même que la pénalité L2 n'est qu'un régularisateur parmi d'autres en apprentissage supervisé. Des choix différents donnent des maxima lisses différents. Une entropie de Tsallis, par exemple, donne des politiques qui attribuent une probabilité nulle aux actions suffisamment mauvaises {cite}`Lee2018Sparse`. En pratique, l'entropie de Shannon négative est de loin le choix le plus courant : son conjugué et sa politique optimale ont des formes closes, et elle coïncide avec le modèle de Gumbel de la section précédente.
+
 Mettons en place la notation nécessaire. Rappelons d'abord que l'opérateur d'évaluation d'une politique stationnaire de règle de décision $\pi$ est défini par :
 
 $$ \BellmanPi \mathbf{v} = \mathbf{r}_\pi + \gamma \mathbf{P}_\pi \mathbf{v} $$
@@ -685,6 +689,8 @@ $$
 
 À la politique softmax, le log-sum-exp est égal au $q$ espéré plus le bonus d'entropie, $\mathrm{L}_\beta v = \mathbf{r}_{\pi_v} + \gamma\mathbf{P}_{\pi_v} v + \frac{1}{\beta}\mathbf{H}_{\pi_v}$. Le membre de droite vaut donc $\mathbf{r}_{\pi_v} + \frac{1}{\beta}\mathbf{H}_{\pi_v}$, et le pas de Newton est exactement l'évaluation régularisée par l'entropie de la politique softmax. L'itération sur les politiques lisse est la méthode de Newton-Kantorovitch appliquée à l'équation de Bellman lisse, sans l'appareil semi-lisse qu'exige le max strict.
 
+Le contraste a aussi une histoire. {cite:t}`PutermanBrumelle1979` ont établi la correspondance entre l'itération sur les politiques et la méthode de Newton pour l'équation de Bellman stricte, dont l'opérateur n'a pas de dérivée là où des actions sont à égalité, avant que les dérivées généralisées des opérateurs non lisses ne deviennent des outils courants. La lecture semi-lisse de {ref}`sec-newton-kantorovich-pi` n'a été établie que bien plus tard {cite}`Gargiani2022`. Pour l'opérateur lisse, la théorie classique de Newton-Kantorovitch s'applique telle quelle.
+
 {cite:t}`rust1987optimal` a résolu son équation de Bellman lisse de cette façon. Il ne l'appelait pas itération sur les politiques. Il y a reconnu une équation d'opérateur, un problème de recherche de racine dans un espace fonctionnel, et lui a appliqué la méthode de Newton-Kantorovitch, après quelques rondes d'approximations successives pour s'approcher suffisamment de la solution pour que la méthode de Newton converge rapidement.
 
 ### Équivalence entre les équations de Bellman lisses et les PDM régularisés par l'entropie
@@ -817,11 +823,27 @@ $$
 3. **renvoyer** $\hat\theta = \theta_k$
 ````
 
+**Un réseau qui contient une équation de Bellman.** Comparons l'estimateur au clonage comportemental, qui ajuste une politique aux mêmes paires $(s_t, a_t)$ par maximum de vraisemblance. Avec des actions discrètes, le clonage comportemental est un problème de classification : l'état entre dans un réseau (un MLP, un transformeur, n'importe quelle architecture), le réseau produit une distribution sur les actions, et la rétropropagation minimise la perte d'entropie croisée. L'estimateur de Rust a les mêmes données et la même perte. Seul le réseau diffère. Les paramètres $\theta$ définissent la récompense $r_\theta$, la récompense entre dans l'opérateur de Bellman lisse, l'opérateur est appliqué jusqu'à atteindre son point fixe $v_\theta$, et la sortie est le softmax du $q_\theta$ obtenu. L'hypothèse que le décideur résout un PDM est intégrée à l'architecture comme un biais inductif, de la même façon que les convolutions intègrent une structure de translation dans un modèle d'images.
+
+Un tel réseau a en fait une infinité de couches, une par application de l'opérateur de Bellman, et il y a deux façons de le dériver. La première tronque le solveur intérieur après $K$ itérations et rétropropage à travers toutes, comme la rétropropagation dans le temps le fait pour un réseau récurrent. C'est la différentiation déroulée. Sa mémoire croît avec $K$, et le gradient hérite de l'erreur de troncature. La seconde n'utilise que la condition qui définit le point fixe. Écrivons-la $F(v, \theta) = \mathrm{L}_{\beta,\theta} v - v = 0$. Si $\partial F/\partial v$ est inversible en une solution, le théorème des fonctions implicites donne une application différentiable $\theta \mapsto v_\theta$ au voisinage de cette solution, avec
+
+$$
+\frac{\partial v_\theta}{\partial \theta} = -\left(\frac{\partial F}{\partial v}\right)^{-1} \frac{\partial F}{\partial \theta}.
+$$
+
+Ici $\partial F/\partial v = \gamma\mathbf{P}_{\pi_\theta} - \mathbf{I}$, inversible pour $\gamma < 1$, et $\partial F/\partial\theta = \partial\mathbf{r}_{\pi_\theta}/\partial\theta$, ce qui donne la formule utilisée par NFXP. La formule est valide au point fixe et nulle part ailleurs. C'est pourquoi NFXP résout le problème intérieur avec une grande précision à chaque pas extérieur, de sorte que chaque évaluation de la vraisemblance coûte une résolution complète, et pourquoi Rust a soigné la rapidité du solveur intérieur : l'approximation successive, qui converge depuis n'importe quel point de départ, puis des pas de Newton-Kantorovitch, qui convergent quadratiquement une fois près de la solution.
+
+**La formulation contrainte.** Le problème à deux niveaux peut aussi s'écrire comme un seul problème sous contraintes : maximiser $\ell$ conjointement en $\theta$ et en $v$, sous la contrainte $v = \mathrm{L}_{\beta,\theta} v$. {cite:t}`SuJudd2012` ont proposé cette formulation, appelée programmation mathématique avec contraintes d'équilibre (MPEC), comme alternative à NFXP. Un solveur sous contraintes généraliste traite les équations de Bellman, qui n'ont alors besoin d'être satisfaites qu'à la convergence plutôt qu'à chaque pas extérieur. Le prix est un problème d'optimisation plus grand, avec une inconnue par état en plus de $\theta$.
+
 Ce cadre repose sur des hypothèses fortes, et les nommer explique pourquoi l'apprentissage par renforcement inverse est difficile en général.
 
 - *Rationalité.* On suppose que le décideur résout exactement le PDM. Les gens ne le font pas; la littérature sur la rationalité limitée étudie en quoi ils s'en écartent, et Rust lui-même a exprimé son scepticisme quant au fait que les gens suivent le principe d'optimalité de Bellman. L'hypothèse reste un point de départ utile, comme l'est un modèle linéaire.
 - *Observabilité.* Rust observe l'état et l'action. Dans bien des applications, l'un ou l'autre manque, voire les deux. Avec des historiques de prix, par exemple, un prix inchangé peut être une décision de le maintenir ou simplement l'absence de décision, et l'action elle-même doit être inférée, ce qui rend le problème partiellement observable.
 - *Identifiabilité.* De nombreuses fonctions de récompense expliquent tout aussi bien le même comportement. Avec des maxima stricts, une récompense constante rend toute politique optimale, et l'ajout d'un terme de façonnage $\gamma\Phi(s') - \Phi(s)$ à n'importe quelle récompense laisse les politiques optimales inchangées {cite}`NgHaradaRussell1999`. L'application qui associe un comportement aux récompenses n'est pas injective; les données peuvent donc au mieux isoler un ensemble de récompenses candidates. L'économétrie structurelle rétablit l'identification en restreignant la récompense à une famille paramétrique, en fixant le facteur d'actualisation et l'échelle $\beta$, et en normalisant la récompense d'une action. L'acceptabilité de ces restrictions dépend du but : prédire ce que ferait Zurcher face à de nouveaux prix de moteurs est une exigence plus faible que retrouver ce qu'il voulait « vraiment ».
+
+**L'apprentissage par renforcement inverse après Rust.** {cite:t}`NgRussell2000` ont introduit l'apprentissage par renforcement inverse en apprentissage automatique, avec des récompenses linéaires en des caractéristiques et une caractérisation des récompenses pour lesquelles une politique observée est optimale. L'apprentissage par imitation antagoniste génératif (GAIL) {cite}`Ho2016GAIL` reproduit la distribution des paires état-action à l'aide d'un discriminateur antagoniste. On lit parfois le discriminateur comme une récompense, mais rien n'exige qu'il soit cohérent avec une équation de Bellman, et la méthode est plus proche du clonage comportemental que de l'estimateur de Rust. Le *upside-down RL* {cite}`Schmidhuber2019UDRL` et les *decision transformers* {cite}`Chen2021DecisionTransformer` vont plus loin dans cette direction : un modèle de séquences entraîné sur des trajectoires est conditionné par un rendement souhaité et doit produire des actions qui l'atteignent. Ces méthodes imitent un comportement sans retrouver de récompense. Le clonage comportemental compte aussi en robotique, où des démonstrations recueillies en déplaçant le robot à la main fournissent une initialisation que l'apprentissage par renforcement affine ensuite.
+
+Retrouver une récompense reste utile quand le but est d'expliquer un comportement plutôt que de le reproduire. Le choix d'itinéraire en transport en est un exemple. Le modèle logit récursif {cite}`Fosgerau2013` applique la construction de Gumbel à un voyageur qui se déplace tronçon par tronçon dans un réseau routier, et la récompense estimée indique à un planificateur quelles caractéristiques d'un itinéraire les gens valorisent en dehors du temps de parcours.
 
 ## Synthèse et perspectives
 

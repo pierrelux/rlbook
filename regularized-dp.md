@@ -237,6 +237,8 @@ $$ v(s) = \frac{1}{\beta} \log \sum_{a \in \mathcal{A}_s} \exp\left(\beta\left(r
 
 We have arrived at the **smooth Bellman equation**.
 
+The closed form is what singles out the Gumbel distribution. For other shock distributions, the expected maximum $\mathbb{E}[\max_i \{x_i + \epsilon_i\}]$ is still a smooth function of the $x_i$, but it rarely has a closed form. With Gaussian shocks, for example, it has none beyond two actions, and computing it requires integrating over the continuous noise, which is the computation the construction was meant to avoid. The lemma also states the underlying reason: the maximum of independent Gumbel variables with a common scale is again Gumbel, so the family is closed under the operation that the Bellman equation applies at every step.
+
 ### Step 6: Summary of the Derivation
 
 To recap the logical flow:
@@ -521,6 +523,8 @@ maximum through conjugate duality?
 
 Regularized MDPs {cite}`geist2019` provide another perspective on how the smooth Bellman equations come to be. This framework offers a more general approach in which we seek to find optimal policies under the infinite horizon criterion while also accounting for a regularizer that influences the kind of policies we try to obtain.
 
+The framework does not fix the regularizer. Any strongly convex function $\Omega$ on the probability simplex yields a regularized Bellman operator, a contraction argument and an optimal policy, in the same way that the L2 penalty is only one of many regularizers in supervised learning. Different choices give different smooth maxima. A Tsallis entropy, for instance, gives policies that assign zero probability to sufficiently poor actions {cite}`Lee2018Sparse`. In practice the negative Shannon entropy is by far the most common choice: its conjugate and its optimal policy have closed forms, and it coincides with the Gumbel model of the previous section.
+
 Let's set up some necessary notation. First, recall that the policy evaluation operator for a stationary policy with decision rule $\pi$ is defined as:
 
 $$ \BellmanPi \mathbf{v} = \mathbf{r}_\pi + \gamma \mathbf{P}_\pi \mathbf{v} $$
@@ -683,6 +687,8 @@ $$
 
 At the softmax policy the log-sum-exp equals the expected $q$ plus the entropy bonus, $\mathrm{L}_\beta v = \mathbf{r}_{\pi_v} + \gamma\mathbf{P}_{\pi_v} v + \frac{1}{\beta}\mathbf{H}_{\pi_v}$. The right-hand side is therefore $\mathbf{r}_{\pi_v} + \frac{1}{\beta}\mathbf{H}_{\pi_v}$, and the Newton step is exactly the entropy-regularized evaluation of the softmax policy. Smooth policy iteration is the Newton-Kantorovich method applied to the smooth Bellman equation, without the semismooth machinery that the hard max requires.
 
+The contrast also has a history. {cite:t}`PutermanBrumelle1979` established the correspondence between policy iteration and Newton's method for the hard Bellman equation, whose operator has no derivative where actions tie, before generalized derivatives for nonsmooth operators had become standard tools. The semismooth reading of {ref}`sec-newton-kantorovich-pi` was worked out much later {cite}`Gargiani2022`. For the smooth operator, the classical Newton-Kantorovich theory applies as is.
+
 {cite:t}`rust1987optimal` solved his smooth Bellman equation this way. He did not call it policy iteration. He recognized an operator equation, a root-finding problem in a function space, and applied Newton-Kantorovich to it, after a few rounds of successive approximation to get close enough for Newton's method to converge quickly.
 
 ### Equivalence Between Smooth Bellman Equations and Entropy-Regularized MDPs
@@ -815,11 +821,27 @@ $$
 3. **return** $\hat\theta = \theta_k$
 ````
 
+**A network that contains a Bellman equation.** Compare the estimator with behavioral cloning, which fits a policy to the same pairs $(s_t, a_t)$ by maximum likelihood. With discrete actions, behavioral cloning is a classification problem: the state enters a network (an MLP, a transformer, any architecture), the network outputs a distribution over actions, and backpropagation minimizes the cross-entropy loss. Rust's estimator has the same data and the same loss. Only the network differs. The parameters $\theta$ define the reward $r_\theta$, the reward enters the smooth Bellman operator, the operator is applied until it reaches its fixed point $v_\theta$, and the output is the softmax of the resulting $q_\theta$. The hypothesis that the decision maker solves an MDP is built into the architecture as an inductive bias, in the way that convolutions build translation structure into an image model.
+
+Such a network has, in effect, infinitely many layers, one per application of the Bellman operator, and there are two ways to differentiate through it. The first truncates the inner solver after $K$ iterations and backpropagates through all of them, as backpropagation through time does for a recurrent network. This is called unrolled differentiation. Its memory grows with $K$, and the gradient inherits the truncation error. The second uses only the condition that defines the fixed point. Write it as $F(v, \theta) = \mathrm{L}_{\beta,\theta} v - v = 0$. If $\partial F/\partial v$ is invertible at a solution, the implicit function theorem gives a differentiable map $\theta \mapsto v_\theta$ near that solution, with
+
+$$
+\frac{\partial v_\theta}{\partial \theta} = -\left(\frac{\partial F}{\partial v}\right)^{-1} \frac{\partial F}{\partial \theta}.
+$$
+
+Here $\partial F/\partial v = \gamma\mathbf{P}_{\pi_\theta} - \mathbf{I}$, which is invertible for $\gamma < 1$, and $\partial F/\partial\theta = \partial\mathbf{r}_{\pi_\theta}/\partial\theta$, which gives the formula used by NFXP. The formula holds at the fixed point and nowhere else. This is why NFXP solves the inner problem to high accuracy at every outer step, so that each evaluation of the likelihood costs a full solve, and why Rust invested in a fast inner solver: successive approximation, which converges from any starting point, followed by Newton-Kantorovich steps, which converge quadratically once close to the solution.
+
+**The constrained formulation.** The bilevel problem can also be written as a single constrained problem: maximize $\ell$ jointly over $\theta$ and $v$, subject to $v = \mathrm{L}_{\beta,\theta} v$. {cite:t}`SuJudd2012` proposed this formulation, known as mathematical programming with equilibrium constraints (MPEC), as an alternative to NFXP. A general-purpose constrained solver handles the Bellman equations, which then need to hold only at convergence rather than at every outer step. The price is a larger optimization problem, with one unknown per state in addition to $\theta$.
+
 The setup rests on strong assumptions, and naming them explains why inverse RL is hard in general.
 
 - *Rationality.* The decision maker is assumed to solve the MDP exactly. People do not; the literature on bounded rationality studies how they fall short, and Rust himself has written skeptically about whether people follow Bellman's principle of optimality. The assumption is still a useful starting point, in the same way a linear model is.
 - *Observability.* Rust observes the state and the action. In many applications one or both are missing. With logged prices, for instance, an unchanged price may be a decision to keep it or simply the absence of a decision, and the action itself must be inferred, which makes the problem partially observable.
 - *Identifiability.* Many reward functions explain the same behavior equally well. With hard maxima, a constant reward makes every policy optimal, and adding a shaping term $\gamma\Phi(s') - \Phi(s)$ to any reward leaves the optimal policies unchanged {cite}`NgHaradaRussell1999`. The map from rewards to behavior is many-to-one, so the data can at best single out a set of candidate rewards. Structural econometrics restores identification by restricting the reward to a parametric family, fixing the discount factor and the scale $\beta$, and normalizing one action's reward. Whether such restrictions are acceptable depends on the goal: predicting what Zurcher would do under new engine prices is a weaker demand than recovering what he "really" wanted.
+
+**Inverse RL after Rust.** {cite:t}`NgRussell2000` introduced inverse RL to machine learning, with rewards linear in features and a characterization of the rewards under which an observed policy is optimal. Generative adversarial imitation learning (GAIL) {cite}`Ho2016GAIL` matches the distribution of state-action pairs with the help of an adversarial discriminator. The discriminator is sometimes read as a reward, but nothing requires it to be consistent with a Bellman equation, and the method is closer to behavioral cloning than to Rust's estimator. Upside-down RL {cite}`Schmidhuber2019UDRL` and decision transformers {cite}`Chen2021DecisionTransformer` go further in that direction: a sequence model trained on trajectories is conditioned on a desired return and asked to produce actions that achieve it. These methods imitate behavior without recovering a reward. Behavioral cloning also matters in robotics, where demonstrations collected by moving the robot by hand provide an initialization that RL then fine-tunes.
+
+Recovering a reward remains useful when the goal is to explain behavior rather than to reproduce it. Route choice in transportation is an example. The recursive logit model {cite}`Fosgerau2013` applies the Gumbel construction to a traveler moving link by link through a road network, and the estimated reward tells a planner which features of a route people value besides travel time.
 
 ## Summary and Outlook
 
