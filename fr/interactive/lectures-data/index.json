@@ -5,8 +5,141 @@
   "fr": "Automne 2026"
  },
  "folder_url": "https://drive.google.com/drive/folders/1iwN-j6IJP9l8EOkXrcxy4DpWRNcTixr8",
- "updated": "2026-11-05",
+ "updated": "2026-11-09",
  "lectures": [
+  {
+   "date": "2026-11-09",
+   "week": 10,
+   "title": {
+    "en": "Where the smooth Bellman equation comes from: Rust's Gumbel shocks and Fenchel duality; smooth policy iteration as Newton-Kantorovich; inverse RL by implicit differentiation",
+    "fr": "D'où vient l'équation de Bellman lisse : les chocs de Gumbel de Rust et la dualité de Fenchel ; l'itération de politique lisse comme Newton-Kantorovitch ; le RL inverse par différentiation implicite"
+   },
+   "chapters": [
+    {
+     "slug": "regularized-dp",
+     "title": "Entropy-Regularized Dynamic Programming"
+    }
+   ],
+   "drive": "https://drive.google.com/file/d/1l8pPBysj0b3t2IddJqniuLOLr8p4Ia7d/view",
+   "duration_ms": 6578620,
+   "thumb": "2026-11-09.jpg",
+   "paragraphs": 134,
+   "cleaned": true,
+   "tldr": [
+    {
+     "notion": {
+      "en": "Rust's augmented MDP",
+      "fr": "Le MDP augmenté de Rust"
+     },
+     "p": 3,
+     "exam": true
+    },
+    {
+     "notion": {
+      "en": "Ex ante value",
+      "fr": "Valeur ex ante"
+     },
+     "p": 13,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Gumbel random utility identity",
+      "fr": "Identité d'utilité aléatoire de Gumbel"
+     },
+     "p": 16,
+     "exam": true
+    },
+    {
+     "notion": {
+      "en": "Soft argmax from a noisy argmax",
+      "fr": "Soft argmax à partir d'un argmax bruité"
+     },
+     "p": 22,
+     "exam": true
+    },
+    {
+     "notion": {
+      "en": "Why Gumbel",
+      "fr": "Pourquoi Gumbel"
+     },
+     "p": 28,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Regularized MDPs and the convex conjugate",
+      "fr": "MDP régularisés et conjugué convexe"
+     },
+     "p": 40,
+     "exam": true
+    },
+    {
+     "notion": {
+      "en": "Gradient of the conjugate is the argmax",
+      "fr": "Le gradient du conjugué est l'argmax"
+     },
+     "p": 44,
+     "exam": true
+    },
+    {
+     "notion": {
+      "en": "Regularization preserves contraction",
+      "fr": "La régularisation préserve la contraction"
+     },
+     "p": 48,
+     "exam": true
+    },
+    {
+     "notion": {
+      "en": "Entropy gives log-sum-exp and softmax",
+      "fr": "L'entropie donne log-somme-exp et softmax"
+     },
+     "p": 73,
+     "exam": true
+    },
+    {
+     "notion": {
+      "en": "Newton-Kantorovich is smooth policy iteration",
+      "fr": "Newton-Kantorovitch est l'itération de politique lisse"
+     },
+     "p": 86,
+     "exam": true
+    },
+    {
+     "notion": {
+      "en": "Inverse RL as structured maximum likelihood",
+      "fr": "Le RL inverse comme maximum de vraisemblance structuré"
+     },
+     "p": 100,
+     "exam": true
+    },
+    {
+     "notion": {
+      "en": "Implicit differentiation through the fixed point",
+      "fr": "Différentiation implicite à travers le point fixe"
+     },
+     "p": 115,
+     "exam": true
+    },
+    {
+     "notion": {
+      "en": "Rust's hybrid solver",
+      "fr": "Le solveur hybride de Rust"
+     },
+     "p": 126,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Inverse RL versus behavioral cloning",
+      "fr": "RL inverse contre clonage comportemental"
+     },
+     "p": 129,
+     "exam": false
+    }
+   ]
+  },
   {
    "date": "2026-11-05",
    "week": 9,

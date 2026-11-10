@@ -12,11 +12,6 @@ kernelspec:
 ---
 # Fonctions de valeur paramétriques
 
-:::{note} Traduction à mettre à jour
-La version anglaise de ce chapitre a été modifiée depuis cette traduction.
-Le menu « English » mène à la version à jour.
-:::
-
 Les chapitres de programmation dynamique ont résolu les équations de Bellman en
 stockant un nombre par état, ou par état de la grille. Cela fonctionne pour le
 réservoir, le traitement antibiotique et une rivière de huit tronçons, et cela
@@ -433,10 +428,13 @@ intégrale sur les états n'apparaît, de sorte que chaque condition coûte une
 évaluation de l'opérateur de Bellman. Les conditions annulent le résidu aux
 nœuds et le laissent libre entre eux, comme le résidu de l'équation
 différentielle est libre entre les points de collocation d'une trajectoire. Le nom
-le dit : collocation vient du latin *collocare*, placer ensemble, et
-l'approximation et l'équation exacte sont placées ensemble en un ensemble fini
-de points, des instants pour une trajectoire et des états pour une fonction
-de valeur.
+le dit. Collocation vient du latin *collocare*, placer ensemble, et dans la
+définition de {cite:t}`FrazerJonesSkan1937` que rappelait le
+[chapitre sur la collocation](continuous-time-collocation.md), c'est
+« l'action d'assigner l'erreur en des points ou stations donnés ».
+L'approximation et l'équation exacte sont placées ensemble en un ensemble fini
+de points : des instants pour une trajectoire, des états pour une fonction de
+valeur.
 
 Où placer les points de collocation est un choix à part entière. Pour un
 polynôme de degré $n - 1$, le choix habituel est l'ensemble des zéros du
