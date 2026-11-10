@@ -823,6 +823,15 @@ $$
 
 **A network that contains a Bellman equation.** Compare the estimator with behavioral cloning, which fits a policy to the same pairs $(s_t, a_t)$ by maximum likelihood. With discrete actions, behavioral cloning is a classification problem: the state enters a network (an MLP, a transformer, any architecture), the network outputs a distribution over actions, and backpropagation minimizes the cross-entropy loss. Rust's estimator has the same data and the same loss. Only the network differs. The parameters $\theta$ define the reward $r_\theta$, the reward enters the smooth Bellman operator, the operator is applied until it reaches its fixed point $v_\theta$, and the output is the softmax of the resulting $q_\theta$. The hypothesis that the decision maker solves an MDP is built into the architecture as an inductive bias, in the way that convolutions build translation structure into an image model.
 
+{numref}`fig-irl-computation-graph` draws the two estimators side by side.
+
+:::{figure} _static/irl-computation-graph.svg
+:label: fig-irl-computation-graph
+:alt: Two computation graphs. Top, behavioral cloning: the state enters a generic network that outputs a policy, which enters a cross-entropy loss together with the observed action; a gradient arrow runs back from the loss to the network. Bottom, Rust's estimator: theta enters a reward box, then a chain of Bellman-operator boxes framed as repeated until the fixed point, then the value v_theta, a softmax, and the same loss. Two gradient routes run back from v_theta: a dashed one through every Bellman box, labeled unrolled, and a single curved arrow to theta, labeled implicit, with the formula for the derivative of v_theta.
+
+(a) Behavioral cloning fits a generic network to state-action pairs, and backpropagation runs through a fixed number of layers. (b) Rust's estimator uses the same data and loss, but its network maps the reward parameters $\theta$ through the Bellman operator, applied until $v_\theta = \mathrm{L}_{\beta,\theta} v_\theta$, to the softmax policy. The gradient can return to $\theta$ through every Bellman layer (dashed, unrolled) or in one step by the implicit function theorem (solid), which holds only at the fixed point.
+:::
+
 Such a network has, in effect, infinitely many layers, one per application of the Bellman operator, and there are two ways to differentiate through it. The first truncates the inner solver after $K$ iterations and backpropagates through all of them, as backpropagation through time does for a recurrent network. This is called unrolled differentiation. Its memory grows with $K$, and the gradient inherits the truncation error. The second uses only the condition that defines the fixed point. Write it as $F(v, \theta) = \mathrm{L}_{\beta,\theta} v - v = 0$. If $\partial F/\partial v$ is invertible at a solution, the implicit function theorem gives a differentiable map $\theta \mapsto v_\theta$ near that solution, with
 
 $$
