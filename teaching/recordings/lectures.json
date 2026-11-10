@@ -196,6 +196,16 @@
         "Diego",
         "Hank"
       ]
+    },
+    "2026-11-09": {
+      "title": {
+        "en": "Where the smooth Bellman equation comes from: Rust's Gumbel shocks and Fenchel duality; smooth policy iteration as Newton-Kantorovich; inverse RL by implicit differentiation",
+        "fr": "D'où vient l'équation de Bellman lisse : les chocs de Gumbel de Rust et la dualité de Fenchel ; l'itération de politique lisse comme Newton-Kantorovitch ; le RL inverse par différentiation implicite"
+      },
+      "chapters": [
+        "regularized-dp"
+      ],
+      "redact": []
     }
   },
   "corrections": {
