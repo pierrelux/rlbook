@@ -194,21 +194,26 @@ par plus de dix à la traversée du point de bascule, et est régulière ailleur
 Supposons maintenant que nous ne puissions stocker que $n$ nombres. Deux choix
 sont naturels.
 
-- Un polynôme de Tchebychev, $\hat v(x; \theta) = \sum_{j=0}^{n-1} \theta_j T_j(2x/1.6 - 1)$.
-  La base est régulière et globale : chaque coefficient modifie la valeur pour
-  chaque stock.
-- L'interpolation linéaire par morceaux sur $n$ nœuds uniformes, les fonctions
-  chapeau du chapitre sur l'horizon fini. Chaque coefficient est la valeur en un
-  nœud, et il ne modifie la valeur qu'entre les deux nœuds voisins.
+- Un polynôme de Tchebychev, $v(x; \theta) = \sum_{j=1}^{n} \theta_j \varphi_j(x)$
+  avec $\varphi_j(x) = T_{j-1}(2x/1.6 - 1)$. La base est régulière et globale :
+  chaque coefficient modifie la valeur pour chaque stock.
+- L'interpolation linéaire par morceaux sur $n$ nœuds uniformes,
+  $v(x;\theta) = \sum_{j=1}^{n} \theta_j \varphi_j(x)$ où les $\varphi_j$ sont
+  les fonctions chapeau du chapitre sur l'horizon fini. Chaque coefficient est
+  la valeur en un nœud, et il ne modifie la valeur qu'entre les deux nœuds
+  voisins.
 
-Aucun des deux ne peut satisfaire l'équation de Bellman pour chaque stock. Le
-résidu
+Aucun des deux ne peut satisfaire l'équation de Bellman pour chaque stock.
+Notons $v_\theta = v(\cdot;\theta)$ la fonction entière. Le résidu
 
 $$
-R(x; \theta) = (\Bellman \hat v)(x) - \hat v(x; \theta)
+R(x; \theta) = (\Bellman v_\theta)(x) - v(x; \theta)
 $$
 
-mesure de combien elle échoue en $x$. La collocation choisit $n$ points
+mesure de combien elle échoue en $x$. Les deux termes dépendent de $\theta$ :
+l'opérateur est appliqué à la fonction $v_\theta$, et le résultat est évalué
+en $x$. L'état s'écrit $x$ dans cet exemple parce que $s$ désigne
+l'échappement; les sections générales qui suivent l'écrivent $s$. La collocation choisit $n$ points
 $x_1, \ldots, x_n$ et exige que le résidu s'y annule :
 
 $$
@@ -218,7 +223,7 @@ $$
 Nous employons les nœuds de Tchebychev pour le polynôme et les nœuds
 d'interpolation pour les fonctions chapeau, et nous résolvons les $n$ équations
 non linéaires par itération fonctionnelle. Chaque itération calcule la mise à
-jour de Bellman aux nœuds avec le $\hat v$ courant, puis choisit le $\theta$
+jour de Bellman aux nœuds avec le $v_\theta$ courant, puis choisit le $\theta$
 qui reproduit ces cibles aux nœuds. La {numref}`fig-fishery-collocation`
 montre les deux approximations avec $n = 12$.
 
@@ -311,7 +316,16 @@ $n$ lorsque la fonction est régulière. Une base locale, comme les fonctions
 chapeau de l'interpolation linéaire par morceaux, les splines à petit support
 ou les fonctions de base radiales, fait agir chaque coefficient près d'un nœud,
 et son erreur décroît à un taux fixé par l'espacement des nœuds, quelle que
-soit la régularité de la fonction.
+soit la régularité de la fonction. Le codage par tuiles, la représentation
+linéaire sur laquelle {cite:t}`Sutton1996` et une grande part des premiers
+travaux d'apprentissage par renforcement s'appuyaient, est une base locale de
+ce type : plusieurs grilles superposées et décalées partitionnent l'espace
+d'états, chaque cellule est une caractéristique binaire, et $v(s;\theta)$ est
+la somme des poids des cellules qui contiennent $s$. Les représentations
+linéaires ont dominé l'apprentissage par renforcement jusqu'à ce que les
+réseaux de neurones les supplantent dans les années 2010, et elles restent le
+cadre où la théorie est complète. Pour égaler un réseau profond, toutefois, un
+modèle linéaire peut exiger un très grand nombre de caractéristiques.
 
 ::::{admonition} La pêcherie à l'étape 1
 :class: note
@@ -462,6 +476,20 @@ $$ (eq:projected-bellman)
 La solution approchée est un point fixe de l'opérateur de Bellman suivi d'une
 projection, et c'est cette forme que l'étape 4 exploite.
 
+Le membre de droite se lit comme une composition d'applications entre
+fonctions, et non comme un produit de matrices. $\Bellman v_\theta$ est
+l'opérateur appliqué à la fonction $v_\theta$, ce qui donne une nouvelle
+fonction, et $\Proj\,\Bellman v_\theta$ est cette fonction passée par la
+procédure d'interpolation, ce qui donne un élément de l'espace engendré. Avec
+des parenthèses, $\Proj\big(\Bellman(v_\theta)\big)$. Dans un programme,
+$\Proj$ est un appel comme une routine d'interpolation : elle reçoit les
+valeurs de $\Bellman v_\theta$ aux nœuds et renvoie les coefficients de
+l'interpolant. L'application composée $\Proj\Bellman$ est un nouvel
+opérateur, et {eq}`eq:projected-bellman` est une nouvelle équation de type
+Bellman dont la solution est l'approximation. Les ouvrages de programmation
+dynamique approchée, à la suite de {cite:t}`BertsekasTsitsiklis1996`, notent
+souvent la projection $\Pi$; il ne s'agit pas d'une politique.
+
 ::::{admonition} La pêcherie à l'étape 3
 :class: note
 
@@ -491,7 +519,14 @@ $xy$, on garde $(v_1, v_2, 0)$, et l'erreur $(0, 0, v_3)$ est orthogonale au
 plan. Avec $\Proj$ désignant maintenant la projection $w$-orthogonale sur
 $\mathcal{V}$, les conditions de Galerkin s'écrivent de nouveau
 $v_\theta = \Proj\,\Bellman v_\theta$, l'équation de Bellman projetée
-{eq}`eq:projected-bellman` avec un autre $\Proj$.
+{eq}`eq:projected-bellman` avec un autre $\Proj$. L'orthogonalité s'entend
+ici pour le produit scalaire pondéré $\langle \cdot, \cdot \rangle_w$.
+Lorsque $w$ n'est pas uniforme, la même application, vue dans la géométrie
+euclidienne non pondérée, est une projection oblique; elle n'est orthogonale
+qu'après avoir multiplié chaque état par $\sqrt{w(s)}$. En apprentissage par
+renforcement, $w$ est la loi des états présents dans les données, et le
+[chapitre suivant](approximate-bellman-equations.md#sec-abe-convergence)
+montre que ce choix décide de la convergence de l'itération.
 
 Les conditions sont des intégrales sur l'espace d'états; la méthode de
 Galerkin a donc besoin d'une règle de quadrature pour elles, en plus de la
@@ -531,6 +566,25 @@ fonctions, et elle n'est pas une équation de Bellman projetée. Le
 [chapitre suivant](approximate-bellman-equations.md) revient sur la différence
 entre ajuster une mise à jour et minimiser le résidu, qui sépare les
 algorithmes employés en pratique de celui-ci.
+
+Cette différence est souvent brouillée. On décrit fréquemment DQN et les
+autres méthodes de valeur ajustée comme minimisant l'erreur de Bellman, ce
+qu'elles ne font pas : elles ajustent $v_\theta$ à des cibles calculées à
+partir de l'itéré précédent et tenues fixes (le gradient ne traverse pas la
+cible), ce qui revient à résoudre Galerkin ou la collocation par itération,
+et non à minimiser le résidu par moindres carrés. La minimisation du résidu
+de Bellman est l'algorithme du gradient du résidu de {cite:t}`Baird1995`,
+que l'apprentissage par renforcement courant n'a pas adopté, en partie parce
+qu'un gradient sans biais du carré du résidu exige deux tirages indépendants
+de l'état suivant à partir du même état, ce qu'une seule trajectoire en ligne
+ne fournit pas. La méthode de ce type la plus connue aujourd'hui est
+l'apprentissage par cohérence de chemin {cite}`Nachum2017`. Elle minimise le
+carré du résidu de l'équation de Bellman lisse du
+[chapitre sur la régularisation entropique](regularized-dp.md), écrite le
+long d'un chemin de plusieurs pas, et suppose une dynamique déterministe, ce
+qui supprime le problème du double tirage. L'objectif d'équilibre des
+trajectoires qui sert à entraîner les réseaux de flots génératifs est une
+condition de cohérence du même type {cite}`Malkin2022,Tiapkin2024`.
 
 ```{admonition} Pourquoi tester contre des fonctions suffit
 :class: dropdown
@@ -602,7 +656,12 @@ paramétrique à des mises à jour de Bellman, puis recalculer les mises à jour
 est l'algorithme que le [chapitre suivant](approximate-bellman-equations.md)
 appelle itération sur les valeurs ajustée et généralise à tout régresseur.
 
-La convergence de l'itération est une question distincte. L'opérateur de
+La convergence de l'itération est une question distincte. Être une
+contraction est une propriété d'un opérateur relativement à une norme : un
+opérateur contractant pour la norme sup ne l'est pas forcément pour une norme
+$L^2$ pondérée, et inversement. L'opérateur composé $\Proj\Bellman$
+n'hérite donc de la contraction de $\Bellman$ que si $\Proj$ n'allonge pas
+les distances pour la même norme. L'opérateur de
 Bellman est une $\gamma$-contraction pour la norme sup, de sorte que
 l'itération sur les valeurs converge à partir de tout point de départ
 ({prf:ref}`value-iteration-convergence`). Si $\Proj$ n'augmente pas les

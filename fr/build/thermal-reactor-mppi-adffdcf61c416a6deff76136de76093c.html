@@ -1,0 +1,1460 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Thermal reactor · PDE dynamics and MPPI control</title>
+    <style>
+      :root {
+        --paper: #f6f7f4;
+        --panel: #fff;
+        --ink: #24313a;
+        --muted: #607079;
+        --rule: #dce2df;
+        --blue: #176787;
+        --orange: #b95525;
+        --soft: #edf2ef;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--paper);
+        color: var(--ink);
+        font:
+          15px/1.55 system-ui,
+          -apple-system,
+          sans-serif;
+      }
+      main {
+        max-width: 1280px;
+        margin: auto;
+        padding: 24px 28px 64px;
+      }
+      .eyebrow {
+        color: var(--blue);
+        font: 600 12px/1.5 system-ui;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+      }
+      h1 {
+        font:
+          500 clamp(27px, 4vw, 42px) / 1.18 Georgia,
+          serif;
+        margin: 10px 0 16px;
+        max-width: 850px;
+      }
+      h2 {
+        font:
+          500 23px/1.3 Georgia,
+          serif;
+        margin: 0 0 12px;
+      }
+      h3 {
+        font-size: 15px;
+        margin: 0;
+      }
+      p {
+        margin: 8px 0 16px;
+      }
+      .intro {
+        max-width: 840px;
+        color: var(--muted);
+      }
+      .dimensions {
+        display: flex;
+        gap: 24px;
+        margin: 22px 0;
+      }
+      .dimensions div {
+        padding-right: 24px;
+        border-right: 1px solid var(--rule);
+      }
+      .dimensions strong {
+        display: block;
+        font:
+          500 26px Georgia,
+          serif;
+      }
+      .dimensions span {
+        font-size: 12px;
+        color: var(--muted);
+      }
+      .tabs {
+        display: flex;
+        border-bottom: 1px solid var(--rule);
+        margin: 16px 0 16px;
+        gap: 8px;
+      }
+      button,
+      select {
+        font: inherit;
+        color: inherit;
+        border: 1px solid #bac8c7;
+        border-radius: 6px;
+        background: white;
+        padding: 7px 12px;
+        cursor: pointer;
+      }
+      button:hover,
+      select:hover {
+        border-color: var(--blue);
+      }
+      button:focus-visible,
+      select:focus-visible,
+      input:focus-visible {
+        outline: 3px solid #58a6c7;
+        outline-offset: 2px;
+      }
+      .tabs button {
+        border: 0;
+        border-radius: 6px 6px 0 0;
+        background: transparent;
+        padding: 12px 16px;
+      }
+      .tabs button[aria-selected="true"] {
+        background: var(--blue);
+        color: white;
+      }
+      .toolbar {
+        display: flex;
+        align-items: end;
+        flex-wrap: wrap;
+        gap: 14px;
+        margin-bottom: 16px;
+      }
+      label {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+        font-size: 12px;
+        color: var(--muted);
+      }
+      label select {
+        font-size: 14px;
+        color: var(--ink);
+      }
+      .timeline {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        background: var(--soft);
+        padding: 12px 16px;
+        border-radius: 8px;
+        margin: 16px 0 22px;
+      }
+      .timeline input {
+        flex: 1;
+        min-width: 60px;
+        accent-color: var(--blue);
+      }
+      .time {
+        font-variant-numeric: tabular-nums;
+        min-width: 80px;
+      }
+      .panel {
+        background: var(--panel);
+        border: 1px solid var(--rule);
+        border-radius: 10px;
+        padding: 20px;
+        min-width: 0;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 18px;
+      }
+      .map {
+        display: block;
+        width: 100%;
+        height: auto;
+      }
+      .caption,
+      .note {
+        color: var(--muted);
+        font-size: 13px;
+      }
+      .caption {
+        margin: 8px 0 0;
+      }
+      .labelrow {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        align-items: baseline;
+      }
+      .badge {
+        font-size: 12px;
+        border-radius: 4px;
+        background: var(--soft);
+        padding: 3px 7px;
+      }
+      .stats {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 10px;
+        margin: 10px 0;
+      }
+      .stat {
+        border-top: 1px solid var(--rule);
+        padding-top: 9px;
+      }
+      .stat b {
+        display: block;
+        font-size: 18px;
+        font-weight: 500;
+        font-variant-numeric: tabular-nums;
+      }
+      .stat span {
+        font-size: 11px;
+        color: var(--muted);
+      }
+      .bad {
+        color: #a33128;
+      }
+      .heaterbars {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        font-size: 11px;
+        color: var(--muted);
+      }
+      .heaterbars span {
+        display: inline-flex;
+        gap: 5px;
+        align-items: center;
+      }
+      .heaterbars i {
+        display: inline-block;
+        width: 45px;
+        height: 6px;
+        background: #e5e8e3;
+      }
+      .heaterbars em {
+        height: 6px;
+        background: var(--orange);
+        display: block;
+      }
+      .strip {
+        width: 100%;
+        height: 210px;
+        display: block;
+        margin-top: 16px;
+      }
+      .wide {
+        margin-top: 18px;
+      }
+      .candidates {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+      }
+      .candidate {
+        padding: 12px;
+        min-width: 0;
+      }
+      .candidate.chosen {
+        border: 2px solid var(--blue);
+      }
+      .candidate button {
+        width: 100%;
+        text-align: left;
+        border: 0;
+        padding: 0;
+        background: transparent;
+      }
+      .candidate .mini {
+        width: 100%;
+        height: 95px;
+        display: block;
+      }
+      .weight {
+        background: var(--soft);
+        height: 5px;
+        margin: 6px 0;
+      }
+      .weight i {
+        display: block;
+        background: var(--blue);
+        height: 5px;
+      }
+      .spark {
+        width: 100%;
+        height: 86px;
+        display: block;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+      }
+      th,
+      td {
+        text-align: left;
+        padding: 9px 10px;
+        border-bottom: 1px solid var(--rule);
+      }
+      th {
+        font-size: 11px;
+        color: var(--muted);
+        font-weight: 600;
+      }
+      td {
+        font-variant-numeric: tabular-nums;
+      }
+      .tablewrap {
+        overflow: auto;
+      }
+      summary {
+        cursor: pointer;
+        color: var(--blue);
+      }
+      details {
+        margin: 20px 0;
+      }
+      .error {
+        padding: 20px;
+        background: #fff1ec;
+        color: #963d26;
+        border-radius: 8px;
+      }
+      a {
+        color: var(--blue);
+      }
+      [hidden] {
+        display: none !important;
+      }
+      .loading {
+        opacity: 0.6;
+        pointer-events: none;
+      }
+      footer {
+        border-top: 1px solid var(--rule);
+        margin-top: 30px;
+        padding-top: 15px;
+        font-size: 12px;
+        color: var(--muted);
+      }
+      @media (max-width: 760px) {
+        main {
+          padding: 22px 14px;
+        }
+        .grid {
+          grid-template-columns: 1fr;
+        }
+        .candidates {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        .panel {
+          padding: 14px;
+        }
+        .dimensions {
+          gap: 12px;
+        }
+        .dimensions div {
+          padding-right: 12px;
+        }
+        .dimensions strong {
+          font-size: 23px;
+        }
+        .tabs {
+          gap: 0;
+        }
+        .tabs button {
+          font-size: 13px;
+          padding: 10px;
+        }
+        .timeline {
+          gap: 8px;
+          padding: 10px;
+          flex-wrap: wrap;
+        }
+        .timeline input {
+          order: 2;
+          flex-basis: 100%;
+        }
+        .time {
+          min-width: 48px;
+        }
+        .labelrow {
+          flex-wrap: wrap;
+        }
+        .stats {
+          grid-template-columns: repeat(2, 1fr);
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        * {
+          scroll-behavior: auto;
+        }
+      }
+      .plume-panels {
+        display: grid;
+        gap: 20px;
+      }
+      .plume-panels.compare {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      .plume-flow {
+        display: flex;
+        align-items: center;
+        gap: 28px;
+        margin-bottom: 10px;
+      }
+      .plume-flow canvas {
+        width: 310px;
+        max-width: 100%;
+        flex-shrink: 0;
+      }
+      .plume-flow p {
+        max-width: 610px;
+        color: var(--muted);
+      }
+      .tabs {
+        flex-wrap: wrap;
+      }
+      [hidden] {
+        display: none !important;
+      }
+      @media (max-width: 700px) {
+        .plume-panels.compare {
+          grid-template-columns: 1fr;
+        }
+        .plume-flow {
+          flex-direction: column;
+          align-items: start;
+          gap: 0;
+        }
+        #plume .toolbar select {
+          max-width: 100%;
+          width: 100%;
+        }
+        #plume .toolbar label {
+          max-width: 100%;
+        }
+        #plume .timeline {
+          flex-wrap: wrap;
+        }
+        #plume-time {
+          order: 3;
+          flex-basis: 100%;
+        }
+      }
+      .recovery-target-row {
+        display: flex;
+        gap: 22px;
+        align-items: center;
+        margin: 14px 0;
+      }
+      .recovery-target-row > div {
+        width: 190px;
+        flex-shrink: 0;
+      }
+      .recovery-target-row canvas {
+        width: 100%;
+      }
+      .recovery-target-row p {
+        max-width: 560px;
+        color: var(--muted);
+      }
+      .recovery-heading {
+        margin-top: 28px;
+      }
+      #recovery canvas,
+      #stirring canvas {
+        display: block;
+        width: 100%;
+      }
+      #recovery-controls {
+        width: 100%;
+      }
+      .table-wrap {
+        overflow-x: auto;
+      }
+      @media (max-width: 700px) {
+        .recovery-target-row {
+          flex-wrap: wrap;
+          gap: 12px;
+        }
+        .recovery-target-row > div {
+          width: calc(50% - 6px);
+        }
+        #recovery .toolbar label,
+        #recovery .toolbar select,
+        #stirring .toolbar label,
+        #stirring .toolbar select {
+          max-width: 100%;
+        }
+        #recovery .timeline,
+        #stirring .timeline {
+          flex-wrap: wrap;
+        }
+        #recovery-time,
+        #recovery-future,
+        #stirring-time,
+        #stirring-future {
+          order: 3;
+          flex-basis: 100%;
+        }
+        #stirring .candidates {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <div class="eyebrow">Simulation &amp; control · Standalone prototype</div>
+      <h1 id="demo-title">Watch a cold pulse move through the reactor.</h1>
+      <p id="demo-intro" class="intro">
+        A cold pulse enters through part of the inlet. Flow stretches it
+        downstream while heating and reaction change the temperature and
+        conversion fields. Follow its motion, then compare two heating
+        schedules.
+      </p>
+      <div class="dimensions">
+        <div><strong>4,096</strong><span>physical state values</span></div>
+        <div>
+          <strong id="input-dimension">4</strong
+          ><span id="input-kind">heater inputs</span>
+        </div>
+        <div id="sequence-dimension" hidden>
+          <strong id="sample-dimension">24</strong
+          ><span>sampled sequence parameters</span>
+        </div>
+      </div>
+      <div id="loadstatus" role="status">Loading numerical PDE recordings…</div>
+      <div id="app" hidden>
+        <div class="tabs" role="tablist" aria-label="Experiment views">
+          <button role="tab" aria-selected="true" data-view="plume">
+            PDE dynamics
+          </button>
+          <button role="tab" aria-selected="false" data-view="recovery">
+            Field recovery
+          </button>
+          <button role="tab" aria-selected="false" data-view="stirring">
+            Stirring control
+          </button>
+          <button role="tab" aria-selected="false" data-view="execution">
+            Executed fields</button
+          ><button role="tab" aria-selected="false" data-view="candidates">
+            Inside an MPPI update</button
+          ><button role="tab" aria-selected="false" data-view="validation">
+            Surrogate vs PDE
+          </button>
+        </div>
+        <p id="scenario-context" class="caption">
+          Prescribed shear flow · deterministic inlet pulse · numerical PDE
+          responses
+        </p>
+        <section id="plume"></section>
+        <section id="recovery" hidden></section>
+        <section id="stirring" hidden></section>
+        <section id="execution" hidden>
+          <div class="toolbar">
+            <label
+              >Paired trial<select
+                aria-label="Paired trial"
+                id="trial"
+              ></select></label
+            ><label
+              >Controller<select aria-label="Controller" id="controller">
+                <option value="stochastic">Stochastic MPPI</option>
+                <option value="mean">Mean-inlet MPPI</option>
+                <option value="constant">Constant heating</option>
+              </select></label
+            ><label
+              >Compare with<select aria-label="Compare with" id="comparison">
+                <option value="constant">Constant heating</option>
+                <option value="mean">Mean-inlet MPPI</option>
+                <option value="stochastic">Stochastic MPPI</option>
+              </select></label
+            >
+          </div>
+          <div class="timeline">
+            <button id="play" aria-label="Play executed fields">Play</button
+            ><button id="reset">Reset</button
+            ><input
+              id="time"
+              aria-label="Execution time"
+              type="range"
+              min="0"
+              max="80"
+              value="0"
+            /><output id="time-label" class="time">0 s</output
+            ><label
+              >Speed<select aria-label="Speed" id="speed">
+                <option value="500">Slow</option>
+                <option value="160" selected>Normal</option>
+                <option value="60">Fast</option>
+              </select></label
+            >
+          </div>
+          <div class="grid" id="executed-panels"></div>
+          <p class="note">
+            Both controllers encounter the same realized inlet-temperature
+            disturbance. Heatmaps show numerical PDE states; colors use the same
+            fixed scales in every run. Dashed lines separate the four heater
+            zones.
+          </p>
+          <div class="panel wide">
+            <h2 id="trials-title">Paired trials</h2>
+            <p class="caption" id="paired-caption"></p>
+            <div class="tablewrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Trial / controller</th>
+                    <th>Completed</th>
+                    <th>Heating energy¹</th>
+                    <th>Min. outlet conversion</th>
+                    <th>Max. temperature</th>
+                    <th>Quality / heat violation</th>
+                  </tr>
+                </thead>
+                <tbody id="results"></tbody>
+              </table>
+            </div>
+            <p class="caption">
+              ¹ Integral of mean heater fraction, in seconds. Crosses or
+              incomplete runs are not counted as energy-saving successes.
+              Violations are measured at the 2 s execution grid.
+            </p>
+          </div>
+        </section>
+        <section id="candidates" hidden>
+          <div class="toolbar">
+            <label
+              >Saved planning instant<select
+                aria-label="Saved planning instant"
+                id="snapshot"
+              ></select></label
+            ><label
+              >Field<select aria-label="Candidate field" id="candidate-field">
+                <option value="0">Temperature</option>
+                <option value="1">Conversion</option>
+              </select></label
+            >
+          </div>
+          <p class="note" id="snapshot-note"></p>
+          <div class="timeline">
+            <button id="future-play">Play futures</button
+            ><button id="future-reset">Reset</button
+            ><input
+              id="future"
+              aria-label="Prediction time ahead"
+              type="range"
+              min="0"
+              max="20"
+              value="20"
+            /><output id="future-label" class="time">+0 s</output>
+          </div>
+          <div id="candidate-grid" class="candidates"></div>
+          <div class="panel wide">
+            <div class="labelrow">
+              <h2>The weighted control update</h2>
+              <span id="acceptance" class="badge"></span>
+            </div>
+            <p class="caption" id="update-note"></p>
+            <div class="grid">
+              <div>
+                <h3>Surrogate prediction</h3>
+                <canvas id="updated-surrogate" class="map"></canvas>
+              </div>
+              <div>
+                <h3>PDE response under the same forecast</h3>
+                <canvas id="updated-pde" class="map"></canvas>
+              </div>
+            </div>
+            <canvas id="updated-controls" class="spark"></canvas>
+            <p class="caption">
+              The weights average the 24 latent control parameters. A sigmoid
+              converts the updated parameters to bounded heater settings, and
+              interpolation supplies the heating sequence. That sequence is
+              simulated again to obtain these fields; candidate field images are
+              never averaged. Only the first 2 s control is executed before
+              replanning.
+            </p>
+          </div>
+        </section>
+        <section id="validation" hidden>
+          <div class="toolbar">
+            <label
+              >Same controls and inlet history<select
+                aria-label="Same controls and inlet history"
+                id="validation-snapshot"
+              ></select></label
+            ><label
+              >Field<select aria-label="Validation field" id="validation-field">
+                <option value="0">Temperature</option>
+                <option value="1">Conversion</option>
+              </select></label
+            >
+          </div>
+          <div class="timeline">
+            <input
+              id="validation-time"
+              aria-label="Validation prediction time ahead"
+              type="range"
+              min="0"
+              max="20"
+              value="20"
+            /><output id="validation-label" class="time">+40 s</output>
+          </div>
+          <div class="grid">
+            <div class="panel">
+              <h3>Learned surrogate</h3>
+              <canvas id="validation-surrogate" class="map"></canvas>
+            </div>
+            <div class="panel">
+              <h3>Numerical PDE</h3>
+              <canvas id="validation-pde" class="map"></canvas>
+            </div>
+          </div>
+          <div class="panel wide">
+            <h3>Surrogate − PDE</h3>
+            <canvas id="validation-error" class="map"></canvas>
+            <p id="frame-error" class="caption"></p>
+          </div>
+          <div class="panel wide">
+            <h2>Held-out prediction checks</h2>
+            <div id="validation-stats" class="stats"></div>
+            <p class="caption">
+              Test episodes are separate from training and checkpoint selection.
+              Criteria: average temperature RMSE below 10 K and average
+              outlet-conversion MAE below 0.02 over 40 s rollouts. Peak
+              underprediction is reported separately.
+            </p>
+            <div id="numerical-note" class="note"></div>
+          </div>
+        </section>
+        <details id="mppi-model-details" hidden>
+          <summary>Model, uncertainty, and recorded computation</summary>
+          <p>
+            This is an illustrative 8 m × 2 m flow-through reactor, discretized
+            into 64 × 32 cells. Each cell stores temperature and remaining
+            reactant fraction. Flow moves left to right at 0.2 m/s. Conversion
+            is one minus the reactant fraction.
+          </p>
+          <p>
+            Four heating fractions lie between zero and one. The target is at
+            least 95% outlet conversion while keeping all cells at or below 1070
+            K. The observed inlet fluctuation has a 20 s correlation time and a
+            15 K stationary standard deviation.
+          </p>
+          <p>
+            The controller replans every 2 s over 40 s. Its default update uses
+            128 candidate sequences, four conditional inlet futures, and two
+            weighted updates. Proposed controls are checked with the PDE under
+            conditional mean inlet conditions. This check does not guarantee
+            feasibility under every random disturbance.
+          </p>
+          <p>
+            The surrogate projects predicted reactant fractions onto [0, 1]; its
+            temperature predictions are unrestricted. This prevents impossible
+            fractions but does not establish prediction accuracy. The validation
+            report includes the raw fraction-bound excess.
+          </p>
+          <p id="computation"></p>
+          <div class="tablewrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Trial / controller</th>
+                  <th>Mean decision time</th>
+                  <th>Rejected updates</th>
+                  <th>Mean ESS</th>
+                  <th>One-step T RMSE</th>
+                </tr>
+              </thead>
+              <tbody id="diagnostics"></tbody>
+            </table>
+          </div>
+          <h3>Sampling sensitivity at the same planning state</h3>
+          <p class="note">
+            Three independent planning seeds per setting. The reported cost
+            re-evaluates the chosen sequence in the PDE against 32 fresh shared
+            inlet futures.
+          </p>
+          <div class="tablewrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Candidates</th>
+                  <th>Inlet futures</th>
+                  <th>PDE cost · mean ± SD</th>
+                  <th>Median planning time</th>
+                </tr>
+              </thead>
+              <tbody id="sensitivity-results"></tbody>
+            </table>
+          </div>
+          <p id="planning-comparison" class="note"></p>
+          <p>
+            <a href="thermal-reactor-data/manifest.json"
+              >Numerical metadata and diagnostics</a
+            >
+            ·
+            <a href="../artifacts/thermal_reactor/README.md"
+              >Model and regeneration guide</a
+            >
+            ·
+            <a href="../_static/thermal_reactor/control.pdf"
+              >Static comparison figure (PDF)</a
+            >
+          </p>
+        </details>
+      </div>
+      <footer>
+        Illustrative thermal-reactor model inspired by flash calcination. All
+        views replay saved numerical fields. No simulation or training runs in
+        this browser.
+      </footer>
+    </main>
+    <script type="module">
+      import { createPlumeView } from "./thermal-plume-replay.js";
+      import { createRecoveryView } from "./thermal-recovery-replay.js";
+      import { createStirringView } from "./thermal-stirring-replay.js";
+      const $ = (id) => document.getElementById(id),
+        base = "./thermal-reactor-data/";
+      const names = {
+        constant: "Constant heating",
+        mean: "Mean-inlet MPPI",
+        stochastic: "Stochastic MPPI",
+      };
+      const hues = ["#176787", "#b95525", "#298066", "#92704f"];
+      let data,
+        timer = null,
+        futureTimer = null,
+        runPair = [],
+        snapData = null,
+        validationData = null,
+        generation = 0,
+        snapshotGeneration = 0,
+        validationGeneration = 0;
+      const cache = new Map();
+      async function fields(desc) {
+        if (!cache.has(desc.file))
+          cache.set(
+            desc.file,
+            fetch(base + desc.file, { cache: "no-store" })
+              .then((r) => {
+                if (!r.ok) throw Error(`Cannot load ${desc.file}`);
+                return r.arrayBuffer();
+              })
+              .then((b) => {
+                if (b.byteLength !== desc.shape.reduce((a, c) => a * c, 1) * 4)
+                  throw Error("Unexpected field-array size");
+                return new Float32Array(b);
+              })
+              .catch((error) => {
+                cache.delete(desc.file);
+                throw error;
+              }),
+          );
+        return cache.get(desc.file);
+      }
+      function setup(canvas, height) {
+        const width = Math.max(80, canvas.clientWidth || 480),
+          dpr = Math.min(devicePixelRatio || 1, 2);
+        canvas.width = width * dpr;
+        canvas.height = height * dpr;
+        canvas.style.height = height + "px";
+        const ctx = canvas.getContext("2d");
+        ctx.scale(dpr, dpr);
+        return { ctx, width, height };
+      }
+      function valueAt(array, frame, channel, index, dataset = data) {
+        const count = dataset.config.nx * dataset.config.ny;
+        const value = array[(frame * 2 + channel) * count + index];
+        return channel === 1 ? 1 - value : value;
+      }
+      function heatmap(
+        canvas,
+        array,
+        frame,
+        channel,
+        {
+          mini = false,
+          errorAgainst = null,
+          dataset = data,
+          differenceLabel = false,
+          referenceFrame = frame,
+        } = {},
+      ) {
+        const available = canvas.clientWidth || 480,
+          targetHeight = mini
+            ? Math.max(40, available / 4 + 8)
+            : Math.max(130, (available - 56) / 4 + 86);
+        const ny = dataset.config.ny,
+          nx = dataset.config.nx,
+          { ctx, width, height } = setup(canvas, targetHeight);
+        const left = mini ? 5 : 42,
+          top = mini ? 4 : 26,
+          right = mini ? 5 : 14,
+          bottom = mini ? 5 : 60;
+        const w = width - left - right,
+          h = Math.min(height - top - bottom, w / 4);
+        const key = errorAgainst
+          ? channel === 0
+            ? "temperature_error_K"
+            : "conversion_error"
+          : channel === 0
+            ? "temperature_K"
+            : "conversion";
+        const limits = dataset.limits[key],
+          lut =
+            dataset.colormaps[
+              errorAgainst ? "RdBu_r" : channel === 0 ? "magma" : "viridis"
+            ];
+        const pixels = document.createElement("canvas");
+        pixels.width = nx;
+        pixels.height = ny;
+        const pc = pixels.getContext("2d"),
+          im = pc.createImageData(nx, ny);
+        for (let y = 0; y < ny; y++)
+          for (let x = 0; x < nx; x++) {
+            const idx = y * nx + x;
+            let v = valueAt(array, frame, channel, idx, dataset);
+            if (errorAgainst)
+              v -= valueAt(errorAgainst, referenceFrame, channel, idx, dataset);
+            const rgb =
+              lut[
+                Math.min(
+                  255,
+                  Math.max(
+                    0,
+                    Math.round(
+                      ((v - limits[0]) / (limits[1] - limits[0])) * 255,
+                    ),
+                  ),
+                )
+              ];
+            const at = ((ny - 1 - y) * nx + x) * 4;
+            im.data.set([...rgb, 255], at);
+          }
+        pc.putImageData(im, 0, 0);
+        ctx.imageSmoothingEnabled = false;
+        ctx.drawImage(pixels, left, top, w, h);
+        ctx.strokeStyle = "rgba(255,255,255,.65)";
+        ctx.setLineDash([4, 4]);
+        ctx.beginPath();
+        ctx.moveTo(left + w / 2, top);
+        ctx.lineTo(left + w / 2, top + h);
+        ctx.moveTo(left, top + h / 2);
+        ctx.lineTo(left + w, top + h / 2);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        if (!mini) {
+          ctx.font = "11px system-ui";
+          ctx.fillStyle = "#607079";
+          ctx.fillText("Inlet →", left, 14);
+          ctx.fillText("Outlet", left + w - 34, 14);
+          ctx.font = "10px system-ui";
+          for (let j = 0; j < 4; j++) {
+            const hx = left + 5 + ((j % 2) * w) / 2,
+              hy = top + h - ((Math.floor(j / 2) + 1) * h) / 2 + 13;
+            ctx.fillStyle = "rgba(0,0,0,.55)";
+            ctx.fillRect(hx - 2, hy - 10, 21, 13);
+            ctx.fillStyle = "#fff";
+            ctx.fillText("H" + (j + 1), hx, hy);
+          }
+          ctx.fillStyle = "#607079";
+          for (const [v, where] of [
+            [0, 0],
+            [4, 0.5],
+            [8, 1],
+          ])
+            ctx.fillText(
+              v + " m",
+              left + w * where - (where === 1 ? 20 : 0),
+              top + h + 17,
+            );
+          ctx.fillText("2 m", 4, top + 5);
+          ctx.fillText("0 m", 4, top + h);
+          const barY = top + h + 30,
+            barW = w * 0.55;
+          for (let j = 0; j < 256; j++) {
+            ctx.fillStyle = `rgb(${lut[j]})`;
+            ctx.fillRect(left + (j / 256) * barW, barY, barW / 256 + 1, 8);
+          }
+          ctx.fillStyle = "#607079";
+          ctx.fillText(String(limits[0]), left, barY + 22);
+          ctx.fillText(String(limits[1]), left + barW - 24, barY + 22);
+          ctx.fillText(
+            errorAgainst
+              ? channel === 0
+                ? differenceLabel
+                  ? "Change (K)"
+                  : "Error (K)"
+                : differenceLabel
+                  ? "Change in conversion"
+                  : "Conversion error"
+              : channel === 0
+                ? "Temperature (K)"
+                : "Conversion",
+            left + barW + 12,
+            barY + 8,
+          );
+        }
+      }
+      function spark(canvas, controls, cursor = 0) {
+        const { ctx, width, height } = setup(canvas, 86),
+          pad = 22;
+        ctx.font = "10px system-ui";
+        ctx.fillStyle = "#607079";
+        ctx.fillText(width < 280 ? "u" : "Heater fraction", 4, 12);
+        hues.forEach((color, a) => {
+          ctx.strokeStyle = color;
+          ctx.lineWidth = 1.5;
+          ctx.beginPath();
+          controls.forEach((u, i) => {
+            const x =
+                pad + (i / Math.max(1, controls.length)) * (width - 2 * pad),
+              y = height - 15 - u[a] * (height - 32);
+            i ? ctx.lineTo(x, y) : ctx.moveTo(x, y);
+            ctx.lineTo(
+              pad +
+                ((i + 1) / Math.max(1, controls.length)) * (width - 2 * pad),
+              y,
+            );
+          });
+          ctx.stroke();
+          ctx.fillStyle = color;
+          ctx.fillText("H" + (a + 1), width - 128 + a * 31, 12);
+        });
+        ctx.fillStyle = "#607079";
+        ctx.fillText("0", 4, height - 15);
+        ctx.fillText("1", 4, 25);
+        ctx.fillText("0 s", pad, height - 2);
+        ctx.fillText(controls.length * 2 + " s", width - pad - 24, height - 2);
+        ctx.strokeStyle = "#a5adaa";
+        ctx.lineWidth = 1;
+        const x =
+          pad +
+          (Math.min(cursor, controls.length) / Math.max(1, controls.length)) *
+            (width - 2 * pad);
+        ctx.beginPath();
+        ctx.moveTo(x, 18);
+        ctx.lineTo(x, height - 12);
+        ctx.stroke();
+      }
+      function stop() {
+        if (timer !== null) clearInterval(timer);
+        timer = null;
+        $("play").textContent = "Play";
+        $("play").setAttribute("aria-label", "Play executed fields");
+      }
+      function stopFuture() {
+        if (futureTimer !== null) clearInterval(futureTimer);
+        futureTimer = null;
+        $("future-play").textContent = "Play futures";
+      }
+      function panel(run, slot) {
+        return `<article class="panel"><div class="labelrow"><h2>${names[run.controller]}</h2><span class="badge">PDE execution</span></div><h3>Temperature</h3><canvas id="T${slot}" class="map" aria-label="Executed temperature field"></canvas><h3>Conversion</h3><canvas id="c${slot}" class="map" aria-label="Executed conversion field"></canvas><div class="stats" id="stats${slot}"></div><div class="heaterbars" id="heaters${slot}"></div><canvas id="controls${slot}" class="spark" aria-label="Four heating inputs over time"></canvas><p id="run-note${slot}" class="caption"></p></article>`;
+      }
+      async function loadRuns() {
+        stop();
+        const token = ++generation;
+        const trial = +$("trial").value;
+        const chosen = [$("controller").value, $("comparison").value];
+        const runs = chosen.map((method) =>
+          data.runs.find((r) => r.trial === trial && r.controller === method),
+        );
+        $("executed-panels").classList.add("loading");
+        const arrays = await Promise.all(runs.map((r) => fields(r.fields)));
+        if (token !== generation) return;
+        runPair = runs.map((run, i) => ({ run, array: arrays[i] }));
+        $("executed-panels").innerHTML = runs.map(panel).join("");
+        $("executed-panels").classList.remove("loading");
+        drawRuns();
+      }
+      function stat(value, label, bad = false) {
+        return `<div class="stat"><b${bad ? ' class="bad"' : ""}>${value}</b><span>${label}</span></div>`;
+      }
+      function drawRuns() {
+        const requested = +$("time").value;
+        $("time-label").textContent = requested * 2 + " s";
+        runPair.forEach(({ run, array }, slot) => {
+          const k = Math.min(requested, run.fields.shape[0] - 1),
+            u = run.controls[Math.min(k, run.controls.length - 1)] || [
+              0, 0, 0, 0,
+            ];
+          heatmap($("T" + slot), array, k, 0);
+          heatmap($("c" + slot), array, k, 1);
+          const conversion = run.outlet_conversion[k],
+            peak = run.peak_temperature_K[k],
+            energy = run.controls
+              .slice(0, k)
+              .reduce((s, c) => s + (c.reduce((a, b) => a + b, 0) / 4) * 2, 0),
+            gust = run.disturbances[Math.min(k, 79)];
+          $("stats" + slot).innerHTML =
+            stat(
+              (conversion * 100).toFixed(1) + "%",
+              "Outlet conversion · target ≥95%",
+              conversion < 0.95,
+            ) +
+            stat(
+              peak.toFixed(1) + " K",
+              "Maximum · limit 1070 K",
+              peak > 1070,
+            ) +
+            stat(energy.toFixed(1) + " s", "Normalized heating energy") +
+            stat(
+              (gust >= 0 ? "+" : "") + gust.toFixed(1) + " K",
+              k === 80
+                ? "Last applied inlet fluctuation"
+                : "Observed inlet fluctuation",
+            );
+          $("heaters" + slot).innerHTML = u
+            .map(
+              (v, j) =>
+                `<span>H${j + 1} <i><em style="width:${v * 100}%"></em></i> ${(v * 100).toFixed(0)}%</span>`,
+            )
+            .join("");
+          spark($("controls" + slot), run.controls, k);
+          const rec = run.decisions[Math.min(k, run.decisions.length - 1)];
+          $("run-note" + slot).textContent = run.metrics.completed
+            ? (rec?.ess?.length
+                ? `At this decision: ESS ${rec.ess.at(-1).toFixed(1)}; ${rec.accepted} accepted and ${rec.rejected} rejected update(s). `
+                : "") +
+              (k === 80
+                ? "The episode is complete; the last applied control is shown."
+                : "The control displayed applies to the next interval.")
+            : `Planning failed at ${run.metrics.steps_completed * 2} s. Field timestamp: ${k * 2} s${requested > k ? " (held at the final recorded state)" : ""}.`;
+        });
+      }
+      async function loadSnapshot() {
+        stopFuture();
+        const token = ++snapshotGeneration;
+        const s = data.snapshots[+$("snapshot").value];
+        if (!s) return;
+        const arrays = [];
+        // A small static server can reject a burst of eight new connections.
+        for (const desc of [
+          ...s.candidates.map((c) => c.fields),
+          s.surrogate,
+          s.pde,
+        ]) {
+          arrays.push(await fields(desc));
+          if (token !== snapshotGeneration) return;
+        }
+        $("loadstatus").textContent =
+          "Saved PDE fields · four prescribed heaters";
+        if (token !== snapshotGeneration) return;
+        snapData = { s, arrays };
+        $("snapshot-note").textContent =
+          `Six of 128 candidates from trial 1 at t = ${s.time_s} s. Costs average ${s.ensemble_size} inlet future(s); each movie shows the same first future. Weights include the Gaussian proposal correction, so their order can differ from cost order. Displayed weights are from the full batch. ESS = ${s.ess.toFixed(1)}.`;
+        $("candidate-grid").innerHTML = s.candidates
+          .map(
+            (c, j) =>
+              `<article class="panel candidate"><h3>Candidate ${c.index + 1}</h3><canvas id="mini${j}" class="mini"></canvas><div class="weight"><i style="width:${Math.min(100, c.weight * 100)}%"></i></div><div class="caption">Weight ${(100 * c.weight).toFixed(2)}% · cost ${c.cost === null ? "invalid" : c.cost.toFixed(3)}</div><canvas id="spark${j}" class="spark"></canvas></article>`,
+          )
+          .join("");
+        $("acceptance").textContent = s.accepted
+          ? "Accepted for execution"
+          : "Rejected; incumbent retained";
+        $("update-note").textContent =
+          `Estimated proposed cost ${s.proposed_cost === null ? "invalid" : s.proposed_cost.toFixed(4)}, incumbent ${s.incumbent_cost === null ? "invalid" : s.incumbent_cost.toFixed(4)}. Conditional-mean PDE constraint check: ${s.mean_feasible ? "passed" : "failed"}.`;
+        drawSnapshot();
+      }
+      function drawSnapshot() {
+        if (!snapData) return;
+        const { s, arrays } = snapData,
+          k = +$("future").value,
+          ch = +$("candidate-field").value;
+        $("future-label").textContent = "+" + k * 2 + " s";
+        s.candidates.forEach((c, j) => {
+          heatmap($("mini" + j), arrays[j], k, ch, { mini: true });
+          spark($("spark" + j), c.controls, k);
+        });
+        heatmap($("updated-surrogate"), arrays[6], k, ch);
+        heatmap($("updated-pde"), arrays[7], k, ch);
+        spark($("updated-controls"), s.proposed_controls, k);
+      }
+      async function loadValidation() {
+        const token = ++validationGeneration;
+        const s = data.snapshots[+$("validation-snapshot").value];
+        if (!s) return;
+        const a = await fields(s.surrogate),
+          b = await fields(s.pde);
+        if (token !== validationGeneration) return;
+        validationData = { s, a, b };
+        drawValidation();
+      }
+      function drawValidation() {
+        if (!validationData) return;
+        const { a, b } = validationData,
+          k = +$("validation-time").value,
+          ch = +$("validation-field").value;
+        $("validation-label").textContent = "+" + k * 2 + " s";
+        heatmap($("validation-surrogate"), a, k, ch);
+        heatmap($("validation-pde"), b, k, ch);
+        heatmap($("validation-error"), a, k, ch, { errorAgainst: b });
+        let sum = 0,
+          max = 0;
+        const count = data.config.nx * data.config.ny;
+        for (let i = 0; i < count; i++) {
+          const e = valueAt(a, k, ch, i) - valueAt(b, k, ch, i);
+          sum += e * e;
+          max = Math.max(max, Math.abs(e));
+        }
+        $("frame-error").textContent =
+          `This frame: RMSE ${Math.sqrt(sum / count).toFixed(ch ? 4 : 2)}${ch ? "" : " K"}; maximum absolute error ${max.toFixed(ch ? 4 : 2)}${ch ? "" : " K"}. The diverging scale is centered at zero and fixed across time.`;
+      }
+      function redraw() {
+        plume.draw();
+        recovery.draw();
+        stirring.draw();
+        if (!$("execution").hidden) drawRuns();
+        if (!$("candidates").hidden) drawSnapshot();
+        if (!$("validation").hidden) drawValidation();
+      }
+      const plume = createPlumeView({ $, heatmap, setup, stat });
+      const recovery = createRecoveryView({ $, heatmap, setup, stat });
+      const stirring = createStirringView({ $, setup, stat });
+      try {
+        const r = await fetch(base + "manifest.json", { cache: "no-store" });
+        if (!r.ok)
+          throw Error(
+            "The offline experiment artifacts have not been exported. Run the export stage first.",
+          );
+        data = await r.json();
+        $("loadstatus").textContent =
+          "Saved PDE fields · four prescribed heaters";
+        $("loadstatus").className = "note";
+        $("app").hidden = false;
+        const trials = [...new Set(data.runs.map((r) => r.trial))];
+        $("trials-title").textContent =
+          `${trials.length} paired trial${trials.length === 1 ? "" : "s"}`;
+        $("trial").innerHTML = trials
+          .map((i) => `<option value="${i}">${i + 1}</option>`)
+          .join("");
+        const options = data.snapshots
+          .map(
+            (s, i) =>
+              `<option value="${i}">${names[s.controller]} · ${s.time_s} s</option>`,
+          )
+          .join("");
+        $("snapshot").innerHTML = options;
+        $("validation-snapshot").innerHTML = options;
+        $("results").innerHTML = data.summary.rows
+          .map(
+            (r) =>
+              `<tr><td>${r.trial + 1} · ${names[r.controller]}</td><td>${r.completed ? "160 s" : r.steps_completed * 2 + " s (failed)"}</td><td>${r.normalized_heating_energy_s.toFixed(2)}</td><td${r.minimum_outlet_conversion < 0.95 ? ' class="bad"' : ""}>${(100 * r.minimum_outlet_conversion).toFixed(2)}%</td><td${r.maximum_temperature_K > 1070 ? ' class="bad"' : ""}>${r.maximum_temperature_K.toFixed(1)} K</td><td>${r.quality_violation_duration_s} / ${r.temperature_violation_duration_s} s</td></tr>`,
+          )
+          .join("");
+        const pair = data.summary.paired_energy_stochastic_minus_mean;
+        $("paired-caption").textContent = pair
+          ? `Stochastic minus mean-inlet MPPI heating energy: ${pair.mean.toFixed(2)} ± ${pair.ci95_halfwidth?.toFixed(2) ?? "—"} s (paired 95% t interval, ${pair.n} completed pairs).`
+          : "No complete paired energy comparison is available.";
+        const v = data.surrogate_validation;
+        $("validation-stats").innerHTML =
+          stat(
+            v.temperature_rmse_K.toFixed(2) + " K",
+            "Temperature RMSE",
+            v.temperature_rmse_K >= 10,
+          ) +
+          stat(
+            v.outlet_conversion_mae.toFixed(4),
+            "Outlet-conversion MAE",
+            v.outlet_conversion_mae >= 0.02,
+          ) +
+          stat(
+            v.peak_underprediction_p95_K.toFixed(2) + " K",
+            "95th percentile peak underprediction",
+          ) +
+          stat(
+            v.passed ? "Passed" : "Experimental",
+            "Held-out criteria",
+            !v.passed,
+          );
+        const n = data.numerical_validation;
+        $("numerical-note").textContent =
+          `PDE refinement over 40 s: halving the maximum timestep changes temperature by ${n.time_refinement.temperature_rmse_K.toFixed(3)} K RMSE; doubling both mesh dimensions changes it by ${n.space_refinement.temperature_rmse_K.toFixed(2)} K RMSE.`;
+        $("computation").textContent =
+          "Timings are local wall-clock measurements and include PDE validation and first-use compilation where needed. The model-comparison calls also capture candidate snapshots. These offline measurements do not establish a real-time implementation.";
+        $("diagnostics").innerHTML = data.summary.rows
+          .map(
+            (r) =>
+              `<tr><td>${r.trial + 1} · ${names[r.controller]}</td><td>${(r.planning_runtime_s / Math.max(1, r.steps_completed)).toFixed(2)} s</td><td>${r.rejected}</td><td>${r.mean_ess?.toFixed(1) ?? "—"}</td><td>${r.prediction_temperature_rmse_K?.toFixed(2) ?? "Pending audit"} K</td></tr>`,
+          )
+          .join("");
+        const groups = new Map();
+        for (const row of data.sensitivity.sampling || []) {
+          const key = row.candidates + "-" + row.ensemble;
+          if (!groups.has(key)) groups.set(key, []);
+          groups.get(key).push(row);
+        }
+        $("sensitivity-results").innerHTML = [...groups.values()]
+          .map((rs) => {
+            const valid = rs.filter((r) =>
+                Number.isFinite(r.held_out_pde_cost),
+              ),
+              times = rs.map((r) => r.runtime_s).sort((a, b) => a - b);
+            const meanCost =
+              valid.reduce((s, r) => s + r.held_out_pde_cost, 0) /
+              Math.max(1, valid.length);
+            const sdCost = Math.sqrt(
+              valid.reduce(
+                (s, r) => s + (r.held_out_pde_cost - meanCost) ** 2,
+                0,
+              ) / Math.max(1, valid.length - 1),
+            );
+            return `<tr><td>${rs[0].candidates}</td><td>${rs[0].ensemble}</td><td>${valid.length ? meanCost.toFixed(4) + " ± " + sdCost.toFixed(4) : "Failed"}</td><td>${times[Math.floor(times.length / 2)].toFixed(2)} s</td></tr>`;
+          })
+          .join("");
+        $("planning-comparison").textContent = (
+          data.sensitivity.model_comparison || []
+        )
+          .map(
+            (r) =>
+              `${r.rollout_model}: ${r.runtime_s.toFixed(2)} s planning time, held-out PDE cost ${r.held_out_pde_cost?.toFixed(4) ?? "unavailable"}.`,
+          )
+          .join(" ");
+        if (!["#recovery", "#stirring"].includes(location.hash))
+          await plume.init();
+      } catch (e) {
+        $("loadstatus").className = "error";
+        $("loadstatus").textContent = e.message;
+        console.error(e);
+      }
+      for (const id of ["trial", "controller", "comparison"])
+        $(id).onchange = () =>
+          loadRuns().catch((e) => {
+            $("loadstatus").textContent = e.message;
+          });
+      $("time").oninput = () => {
+        stop();
+        drawRuns();
+      };
+      $("reset").onclick = () => {
+        stop();
+        $("time").value = 0;
+        drawRuns();
+      };
+      $("speed").onchange = stop;
+      $("play").onclick = () => {
+        if (timer !== null) {
+          stop();
+          return;
+        }
+        if (+$("time").value >= 80) $("time").value = 0;
+        $("play").textContent = "Pause";
+        $("play").setAttribute("aria-label", "Pause executed fields");
+        timer = setInterval(() => {
+          $("time").value = Math.min(80, +$("time").value + 1);
+          drawRuns();
+          if (+$("time").value === 80) stop();
+        }, +$("speed").value);
+      };
+      $("snapshot").onchange = loadSnapshot;
+      $("candidate-field").onchange = drawSnapshot;
+      $("future").oninput = () => {
+        stopFuture();
+        drawSnapshot();
+      };
+      $("future-reset").onclick = () => {
+        stopFuture();
+        $("future").value = 0;
+        drawSnapshot();
+      };
+      $("future-play").onclick = () => {
+        if (futureTimer !== null) {
+          stopFuture();
+          return;
+        }
+        if (+$("future").value === 20) $("future").value = 0;
+        $("future-play").textContent = "Pause";
+        futureTimer = setInterval(() => {
+          $("future").value = Math.min(20, +$("future").value + 1);
+          drawSnapshot();
+          if (+$("future").value === 20) stopFuture();
+        }, 250);
+      };
+      $("validation-snapshot").onchange = loadValidation;
+      $("validation-field").onchange = drawValidation;
+      $("validation-time").oninput = drawValidation;
+      document.querySelectorAll("[data-view]").forEach(
+        (button) =>
+          (button.onclick = async () => {
+            stop();
+            stopFuture();
+            plume.pause();
+            recovery.pause();
+            stirring.pause();
+            document
+              .querySelectorAll("[data-view]")
+              .forEach((b) =>
+                b.setAttribute("aria-selected", String(b === button)),
+              );
+            for (const view of [
+              "plume",
+              "recovery",
+              "stirring",
+              "execution",
+              "candidates",
+              "validation",
+            ])
+              $(view).hidden = view !== button.dataset.view;
+            const isPlume = button.dataset.view === "plume";
+            const isRecovery = button.dataset.view === "recovery";
+            const isStirring = button.dataset.view === "stirring";
+            $("input-dimension").textContent = isStirring ? "3" : "4";
+            $("input-kind").textContent = isStirring
+              ? "stirring inputs"
+              : "heater inputs";
+            $("sample-dimension").textContent = isStirring ? "60" : "24";
+            $("demo-title").textContent = isStirring
+              ? "Steer warm and cold material through the reactor."
+              : isRecovery
+                ? "Restore the reactor’s operating fields."
+                : "Watch a cold pulse move through the reactor.";
+            $("demo-intro").textContent = isStirring
+              ? "Choose where to stir as the inlet temperature changes. Watch how the controls bend and stretch the fields, then compare the resulting downstream uniformity with fixed-flow operation."
+              : isRecovery
+                ? "A cold patch is moving downstream. Choose when and where to heat so the temperature and conversion fields return toward their desired state. Compare the recovery with unchanged heating, then inspect the sampled controls behind an MPPI update."
+                : "A cold pulse enters through part of the inlet. Flow stretches it downstream while heating and reaction change the temperature and conversion fields. Follow its motion, then compare two heating schedules.";
+            history.replaceState(null, "", "#" + button.dataset.view);
+            $("sequence-dimension").hidden = isPlume;
+            $("mppi-model-details").hidden =
+              isPlume || isRecovery || isStirring;
+            $("scenario-context").textContent = isStirring
+              ? "Jacketed reactor · controlled incompressible flow · deterministic uneven feed · direct PDE planning"
+              : isRecovery
+                ? "Field restoration · nominal heating 46% · direct PDE planning · known normal inlet after 14 s"
+                : isPlume
+                  ? "Prescribed shear flow · deterministic inlet pulse · numerical PDE responses"
+                  : "Original MPPI experiment · uniform flow · uncertain inlet temperature. The surrogate was trained for this scenario, not the shear-flow plume.";
+            $("loadstatus").textContent = isStirring
+              ? "Saved direct-PDE stirring control"
+              : isRecovery
+                ? "Saved direct-PDE MPPI recovery"
+                : isPlume
+                  ? "Saved PDE fields · four prescribed heaters"
+                  : data.status;
+            try {
+              if (isRecovery) await recovery.init();
+              if (isStirring) await stirring.init();
+              if (isPlume) await plume.init();
+              if (button.dataset.view === "execution" && !runPair.length)
+                await loadRuns();
+              if (button.dataset.view === "candidates" && !snapData)
+                await loadSnapshot();
+              if (button.dataset.view === "validation" && !validationData)
+                await loadValidation();
+              redraw();
+            } catch (e) {
+              $("loadstatus").textContent = e.message;
+            }
+          }),
+      );
+      window.addEventListener("resize", redraw);
+      if (["#recovery", "#stirring"].includes(location.hash))
+        document
+          .querySelector(`[data-view="${location.hash.slice(1)}"]`)
+          .click();
+    </script>
+  </body>
+</html>
