@@ -717,13 +717,37 @@ v(s) = \max_{\pi(\cdot|s) \in \Delta(\mathcal{A}_s)} \sum_a \pi(a|s) \big( q(s,a
 \qquad q(s,a) = r(s,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a)\, v(j).
 $$
 
-Le problème intérieur est la conjuguée convexe de l'entropie négative pondérée, que nous avons calculée dans « Retrouver les équations de Bellman lisses ». Une vérification directe est aussi rapide. En notant $\pi_q$ la softmax de $\beta q(s,\cdot)$, pour toute distribution $\pi$,
+Le problème intérieur est la conjuguée convexe de l'entropie négative pondérée, que nous avons calculée dans « Retrouver les équations de Bellman lisses ». Une vérification directe est aussi rapide, et elle montre d'où vient la politique softmax. Soit $\pi_q$ la politique softmax de $q$ à la température $\alpha$,
 
 $$
-\sum_a \pi(a|s) \big( q(s,a) - \alpha \log \pi(a|s) \big) = \alpha \log\sum_a \exp\big(q(s,a)/\alpha\big) - \alpha\, \mathrm{KL}\big(\pi(\cdot|s) \,\big\|\, \pi_q(\cdot|s)\big),
+\pi_q(a|s) = \frac{\exp\big(q(s,a)/\alpha\big)}{\sum_{a'} \exp\big(q(s,a')/\alpha\big)},
 $$
 
-et la divergence KL est positive ou nulle, et nulle seulement en $\pi = \pi_q$. Le maximum est le log-sum-exp avec $\beta = 1/\alpha$, atteint par la politique softmax. La fonction de valeur qui résout l'équation de Bellman lisse est donc la valeur optimale du PDM régularisé par l'entropie, et la politique softmax en est la politique optimale. Les deux descriptions ne diffèrent que par la façon de présenter le problème : comme un lissage de l'opérateur de Bellman, ou comme un compromis entre la récompense et l'entropie de la politique. Les algorithmes d'apprentissage par renforcement à entropie maximale comme *soft actor-critic* utilisent les deux : l'opérateur lisse pour sa différentiabilité, et l'objectif régularisé pour expliquer pourquoi la politique doit rester stochastique.
+c'est-à-dire la softmax de $\beta q(s,\cdot)$ du début du chapitre, puisque $\beta = 1/\alpha$. En prenant le logarithme et en multipliant par $\alpha$, on exprime $q$ à l'aide de $\pi_q$ :
+
+$$
+q(s,a) = \alpha \log\sum_{a'} \exp\big(q(s,a')/\alpha\big) + \alpha \log \pi_q(a|s).
+$$
+
+En substituant cette expression dans le terme associé à chaque action, on obtient
+
+$$
+q(s,a) - \alpha \log \pi(a|s) = \alpha \log\sum_{a'} \exp\big(q(s,a')/\alpha\big) - \alpha \log \frac{\pi(a|s)}{\pi_q(a|s)}.
+$$
+
+Le premier terme du membre de droite ne dépend pas de $a$. Prenons maintenant la moyenne des deux membres selon $a \sim \pi(\cdot|s)$. Le premier terme est inchangé, puisque les probabilités $\pi(a|s)$ somment à un. La moyenne du second terme est, par définition, la divergence de Kullback-Leibler (KL) entre $\pi$ et $\pi_q$,
+
+$$
+\mathrm{KL}\big(\pi(\cdot|s) \,\big\|\, \pi_q(\cdot|s)\big) = \sum_a \pi(a|s) \log \frac{\pi(a|s)}{\pi_q(a|s)},
+$$
+
+avec la convention que les actions telles que $\pi(a|s) = 0$ contribuent zéro. Le rapport est toujours défini, car $\pi_q(a|s) > 0$ pour toute action. Pour toute distribution $\pi$, on obtient donc
+
+$$
+\sum_a \pi(a|s) \big( q(s,a) - \alpha \log \pi(a|s) \big) = \alpha \log\sum_a \exp\big(q(s,a)/\alpha\big) - \alpha\, \mathrm{KL}\big(\pi(\cdot|s) \,\big\|\, \pi_q(\cdot|s)\big).
+$$
+
+Seul le terme KL dépend de $\pi$ : maximiser le membre de gauche en $\pi$ revient donc à rendre la divergence KL aussi petite que possible. Or la divergence KL n'est jamais négative : par l'inégalité de Jensen appliquée à la fonction concave $\log$, $-\mathrm{KL} = \sum_a \pi(a|s) \log \frac{\pi_q(a|s)}{\pi(a|s)} \le \log \sum_{a:\,\pi(a|s)>0} \pi_q(a|s) \le \log 1 = 0$. Les deux inégalités ne sont des égalités que si $\pi = \pi_q$. Le maximum est donc atteint par la politique softmax $\pi_q$, et sa valeur est $\alpha \log\sum_a \exp(q(s,a)/\alpha) = \frac{1}{\beta}\log\sum_a \exp(\beta q(s,a))$, le membre de droite de l'équation de Bellman lisse. La fonction de valeur qui résout l'équation de Bellman lisse est donc la valeur optimale du PDM régularisé par l'entropie, et la politique softmax en est la politique optimale. Les deux descriptions ne diffèrent que par la façon de présenter le problème : comme un lissage de l'opérateur de Bellman, ou comme un compromis entre la récompense et l'entropie de la politique. Les algorithmes d'apprentissage par renforcement à entropie maximale comme *soft actor-critic* utilisent les deux : l'opérateur lisse pour sa différentiabilité, et l'objectif régularisé pour expliquer pourquoi la politique doit rester stochastique.
 
 (sec-continuous-actions)=
 ## Espaces d'actions et d'états continus

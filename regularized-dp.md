@@ -715,13 +715,37 @@ v(s) = \max_{\pi(\cdot|s) \in \Delta(\mathcal{A}_s)} \sum_a \pi(a|s) \big( q(s,a
 \qquad q(s,a) = r(s,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a)\, v(j).
 $$
 
-The inner problem is the convex conjugate of the scaled negative entropy, which we computed in "Recovering the Smooth Bellman Equations". A direct check is also short. Writing $\pi_q$ for the softmax of $\beta q(s,\cdot)$, for any distribution $\pi$,
+The inner problem is the convex conjugate of the scaled negative entropy, which we computed in "Recovering the Smooth Bellman Equations". A direct check is also short, and it shows where the softmax policy comes from. Let $\pi_q$ be the softmax policy of $q$ at temperature $\alpha$,
 
 $$
-\sum_a \pi(a|s) \big( q(s,a) - \alpha \log \pi(a|s) \big) = \alpha \log\sum_a \exp\big(q(s,a)/\alpha\big) - \alpha\, \mathrm{KL}\big(\pi(\cdot|s) \,\big\|\, \pi_q(\cdot|s)\big),
+\pi_q(a|s) = \frac{\exp\big(q(s,a)/\alpha\big)}{\sum_{a'} \exp\big(q(s,a')/\alpha\big)},
 $$
 
-and the KL divergence is nonnegative and zero only at $\pi = \pi_q$. The maximum is the log-sum-exp with $\beta = 1/\alpha$, attained by the softmax policy. So the value function that solves the smooth Bellman equation is the optimal value of the entropy-regularized MDP, and the softmax policy is its optimal policy. The two descriptions differ only in how they present the problem: as smoothing the Bellman operator, or as trading off reward against policy entropy. Maximum entropy RL algorithms such as soft actor-critic use both, the smooth operator for its differentiability and the regularized objective to explain why the policy should stay stochastic.
+which is the softmax of $\beta q(s,\cdot)$ from the start of the chapter, since $\beta = 1/\alpha$. Taking the logarithm and multiplying by $\alpha$ expresses $q$ through $\pi_q$:
+
+$$
+q(s,a) = \alpha \log\sum_{a'} \exp\big(q(s,a')/\alpha\big) + \alpha \log \pi_q(a|s).
+$$
+
+Substituting this into the per-action term gives
+
+$$
+q(s,a) - \alpha \log \pi(a|s) = \alpha \log\sum_{a'} \exp\big(q(s,a')/\alpha\big) - \alpha \log \frac{\pi(a|s)}{\pi_q(a|s)}.
+$$
+
+The first term on the right does not depend on $a$. Now average both sides over $a \sim \pi(\cdot|s)$. The first term is unchanged, because the probabilities $\pi(a|s)$ sum to one. The average of the second term is, by definition, the Kullback-Leibler (KL) divergence between $\pi$ and $\pi_q$,
+
+$$
+\mathrm{KL}\big(\pi(\cdot|s) \,\big\|\, \pi_q(\cdot|s)\big) = \sum_a \pi(a|s) \log \frac{\pi(a|s)}{\pi_q(a|s)},
+$$
+
+with the convention that actions with $\pi(a|s) = 0$ contribute zero. The ratio is always defined, since $\pi_q(a|s) > 0$ for every action. For any distribution $\pi$ we therefore get
+
+$$
+\sum_a \pi(a|s) \big( q(s,a) - \alpha \log \pi(a|s) \big) = \alpha \log\sum_a \exp\big(q(s,a)/\alpha\big) - \alpha\, \mathrm{KL}\big(\pi(\cdot|s) \,\big\|\, \pi_q(\cdot|s)\big).
+$$
+
+Only the KL term depends on $\pi$, so maximizing the left side over $\pi$ is the same as making the KL divergence as small as possible. The KL divergence is never negative: by Jensen's inequality applied to the concave $\log$, $-\mathrm{KL} = \sum_a \pi(a|s) \log \frac{\pi_q(a|s)}{\pi(a|s)} \le \log \sum_{a:\,\pi(a|s)>0} \pi_q(a|s) \le \log 1 = 0$. Both inequalities are equalities only when $\pi = \pi_q$. The maximum is therefore attained by the softmax policy $\pi_q$, and its value is $\alpha \log\sum_a \exp(q(s,a)/\alpha) = \frac{1}{\beta}\log\sum_a \exp(\beta q(s,a))$, the right-hand side of the smooth Bellman equation. So the value function that solves the smooth Bellman equation is the optimal value of the entropy-regularized MDP, and the softmax policy is its optimal policy. The two descriptions differ only in how they present the problem: as smoothing the Bellman operator, or as trading off reward against policy entropy. Maximum entropy RL algorithms such as soft actor-critic use both, the smooth operator for its differentiability and the regularized objective to explain why the policy should stay stochastic.
 
 (sec-continuous-actions)=
 ## Continuous Action and State Spaces
