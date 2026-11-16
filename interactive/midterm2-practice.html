@@ -774,47 +774,9 @@ pi = q.argmax(axis=0)                     # line 4</code></pre>
   <p class="rehearses"><b>Rehearses:</b> the weighted residual framework and its three main methods.</p>
 </article>
 
-<article class="q" id="q32" data-type="mcq" data-core="1" data-min="2" data-block="H">
-  <div class="q-head"><span class="q-num">Q32</span><span class="tag core">core</span><span class="tag min">2 min</span></div>
-  <div class="stem">
-    <p>"DQN minimizes the Bellman error." Which statement is correct?</p>
-  </div>
-  <ol class="opts">
-    <li><span class="letter">a</span><span>True: its loss is the squared difference between \(q_\theta\) and the Bellman target</span></li>
-    <li data-correct><span class="letter">b</span><span>False: the target is computed from earlier parameters and held fixed (a stop gradient), so each fit is a regression on a fixed target, the projection step of a projected Bellman iteration; minimizing the residual would differentiate through the target as well</span></li>
-    <li><span class="letter">c</span><span>False: DQN minimizes the KL divergence to the softmax policy</span></li>
-    <li><span class="letter">d</span><span>True, as long as the replay buffer is large enough</span></li>
-  </ol>
-  <div class="actions"><span class="verdict"></span></div>
-  <div class="expl" hidden>
-    <p>Fitted value methods run an outer loop of successive approximation and an inner loop that fits \(v_\theta\) (or \(q_\theta\)) to \(\mathsf{L}v_{\theta_k}\): Galerkin or collocation solved by iteration, one regression per outer step. Least squares on the residual is rare in RL: the max makes it nonsmooth, and an unbiased gradient of the squared residual needs two independent successor samples from the same state. Baird's residual algorithm (1995) and path consistency learning (which needs the smooth Bellman equation and deterministic dynamics) are the examples. FQI with trees, NFQ, DQN and DDPG differ mostly in how far they run the inner loop.</p>
-  </div>
-  <p class="rehearses"><b>Rehearses:</b> fitting a backup versus minimizing the Bellman residual.</p>
-</article>
 
-<article class="q" id="q33" data-type="work" data-core="1" data-min="8" data-block="H">
-  <div class="q-head"><span class="q-num">Q33</span><span class="tag core">core</span><span class="tag min">8 min, on paper</span></div>
-  <div class="stem">
-    <p>Two states, one action, all rewards zero, so \(v^\star = 0\). State 1 moves to state 2, and state 2 stays in state 2. One feature: \(v(1;\theta) = \theta\), \(v(2;\theta) = 2\theta\). Fitted value iteration computes the targets \(\mathsf{L}v_{\theta_k}\) at both states and fits \(\theta_{k+1}\) by weighted least squares with weights \((w_1, w_2)\).</p>
-  </div>
-  <ol class="parts" type="a">
-    <li>Show that both targets equal \(2\gamma\theta_k\).</li>
-    <li>With equal weights, show that \(\theta_{k+1} = \tfrac{6\gamma}{5}\theta_k\). For which \(\gamma\) does the iteration diverge? Does the feature space contain \(v^\star\)?</li>
-    <li>Give the factor for general \((w_1, w_2)\). What happens with \(w = (1, 0)\) and with \(w = (0, 1)\)?</li>
-    <li>Which of these weightings is the on-policy one, and what result does that illustrate? Why does the sup-norm contraction of \(\mathsf{L}\) not protect you in (b)?</li>
-  </ol>
-  <div class="actions"><button type="button" class="reveal">Show solution</button></div>
-  <div class="sol" hidden>
-    <p>(a) Both states move to state 2 with reward 0, so \((\mathsf{L}v_{\theta_k})(s) = \gamma\, v(2;\theta_k) = 2\gamma\theta_k\) for \(s = 1, 2\).</p>
-    <p>(b) Minimize \((\theta - 2\gamma\theta_k)^2 + (2\theta - 2\gamma\theta_k)^2\): the derivative is zero when \(5\theta = 6\gamma\theta_k\). The iterates diverge for \(\gamma &gt; 5/6\) from any \(\theta_0 \ne 0\), although \(v^\star = 0\) is represented exactly at \(\theta = 0\). The fit puts a line through the origin and overshoots the constant target at state 2, where it predicts \(\tfrac{12}{5}\gamma\theta_k\).</p>
-    <p>(c) \(\theta(w_1 + 4w_2) = 2\gamma\theta_k(w_1 + 2w_2)\), so the factor is \(2\gamma\frac{w_1 + 2w_2}{w_1 + 4w_2}\). With \(w = (1, 0)\) it is \(2\gamma\), divergent for \(\gamma &gt; 1/2\). With \(w = (0, 1)\) it is \(\gamma\), always convergent.</p>
-    <p>(d) Under the policy, the chain spends all its time in state 2 after one step, so the on-policy (stationary) weighting is \(w = (0, 1)\). That is the Tsitsiklis and Van Roy result: for policy evaluation with linear features, the projection weighted by the on-policy distribution makes \(\mathsf{P}\mathsf{L}_\pi\) a contraction. In general, \(\mathsf{L}\) contracts in the sup norm, while a weighted least-squares projection is a nonexpansion only in its own weighted \(\ell_2\) norm. Composing them gives no guarantee in either norm: contraction depends on the norm. Averagers (fits with nonnegative weights that sum to one, such as hat-function interpolation) are sup-norm nonexpansions, and they keep \(\mathsf{P}\mathsf{L}\) a sup-norm \(\gamma\)-contraction.</p>
-  </div>
-  <p class="rehearses"><b>Rehearses:</b> the projected Bellman iteration on a small example, and why the weighting decides convergence.</p>
-</article>
-
-<article class="q" id="q34" data-type="mcq" data-min="2" data-block="H">
-  <div class="q-head"><span class="q-num">Q34</span><span class="tag min">2 min</span></div>
+<article class="q" id="q32" data-type="mcq" data-min="2" data-block="H">
+  <div class="q-head"><span class="q-num">Q32</span><span class="tag min">2 min</span></div>
   <div class="stem">
     <p>Collocation with a nodal basis imposes \(\theta_i = (\mathsf{L}v_\theta)(s_i)\) at the nodes, that is \(v_\theta = \mathsf{P}\mathsf{L}v_\theta\) with \(\mathsf{P}\) the interpolation through the nodes. Successive approximation on this equation means:</p>
   </div>
@@ -831,8 +793,8 @@ pi = q.argmax(axis=0)                     # line 4</code></pre>
   <p class="rehearses"><b>Rehearses:</b> collocation as repeated interpolation, and when it is stable.</p>
 </article>
 
-<article class="q" id="q35" data-type="mcq" data-min="2" data-block="H">
-  <div class="q-head"><span class="q-num">Q35</span><span class="tag min">2 min</span></div>
+<article class="q" id="q33" data-type="mcq" data-min="2" data-block="H">
+  <div class="q-head"><span class="q-num">Q33</span><span class="tag min">2 min</span></div>
   <div class="stem">
     <p>TD(0) with linear features and LSTD, applied to evaluate a fixed policy from on-policy data, converge to the same \(\theta\). Which equation does that \(\theta\) solve?</p>
   </div>
