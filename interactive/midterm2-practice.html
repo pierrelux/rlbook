@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Midterm 2 Practice</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<script>
+window.MathJax = {
+  tex: { inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']] },
+  svg: { fontCache: 'global' },
+  options: { skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'] }
+};
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-svg.js"></script>
+<style>
+/* Layout: one reading column in study mode; one full-viewport card in presenter mode. Palette and type follow the book's custom.css. */
+:root {
+  --font-display: "Newsreader", Georgia, "Times New Roman", serif;
+  --font-sans: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --bg: #f6f7f4;
+  --bg-raised: #ffffff;
+  --bg-sunken: #eaeeec;
+  --ink: #1b2430;
+  --ink-muted: #5c6874;
+  --rule: #d2d9d7;
+  --structure: #2f6f8f;
+  --structure-soft: #e2edf1;
+  --good: #2e7d5b;
+  --good-soft: #e4f0e9;
+  --warn: #b8860b;
+  --warn-soft: #f5ecd2;
+  --bad: #a83a32;
+  --bad-soft: #f5e5e3;
+  --shadow: 0 1px 2px rgba(20, 30, 40, 0.06);
+  --radius: 6px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #121920; --bg-raised: #1b2430; --bg-sunken: #0d141a;
+    --ink: #edf1f1; --ink-muted: #a8b2b9; --rule: #34434d;
+    --structure: #7fb3cf; --structure-soft: #1f3540;
+    --good: #7cc8a4; --good-soft: #1d3a2d;
+    --warn: #e0b64a; --warn-soft: #3d3418;
+    --bad: #e08a82; --bad-soft: #432323;
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #121920; --bg-raised: #1b2430; --bg-sunken: #0d141a;
+  --ink: #edf1f1; --ink-muted: #a8b2b9; --rule: #34434d;
+  --structure: #7fb3cf; --structure-soft: #1f3540;
+  --good: #7cc8a4; --good-soft: #1d3a2d;
+  --warn: #e0b64a; --warn-soft: #3d3418;
+  --bad: #e08a82; --bad-soft: #432323;
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; }
+body {
+  background: var(--bg); color: var(--ink);
+  font-family: var(--font-sans); font-size: 1rem; line-height: 1.55;
+  padding-block: 0; padding-inline: 16px;
+}
+.wrap { max-width: 46rem; margin: 0 auto; padding-block: 1.5rem 4rem; }
+h1, h2, h3 { font-family: var(--font-display); font-weight: 600; text-wrap: balance; line-height: 1.2; margin: 0; }
+h1 { font-size: 2.1rem; }
+h2 { font-size: 1.35rem; margin-top: 2.5rem; padding-top: 1rem; border-top: 1px solid var(--rule); }
+h2 small { font-family: var(--font-sans); font-weight: 500; font-size: .8rem; color: var(--ink-muted); margin-left: .6rem; letter-spacing: .02em; }
+p { margin: .5rem 0; }
+.lede { color: var(--ink-muted); max-width: 40rem; }
+.toolbar { display: flex; flex-wrap: wrap; gap: .5rem .75rem; align-items: center; margin-top: 1rem; }
+button {
+  font: 500 .85rem/1 var(--font-sans); color: var(--ink);
+  background: var(--bg-raised); border: 1px solid var(--rule); border-radius: 999px;
+  padding: .55rem .9rem; cursor: pointer; box-shadow: var(--shadow);
+}
+button:hover { border-color: var(--structure); }
+button:focus-visible { outline: 3px solid var(--structure-soft); outline-offset: 2px; }
+button.primary { background: var(--structure); color: #fff; border-color: var(--structure); }
+.kbd { font-family: var(--font-mono); font-size: .75rem; color: var(--ink-muted); }
+.progress { font-family: var(--font-mono); font-size: .8rem; color: var(--ink-muted); margin-left: auto; font-variant-numeric: tabular-nums; }
+
+/* Question cards */
+.q { background: var(--bg-raised); border: 1px solid var(--rule); border-radius: var(--radius); box-shadow: var(--shadow); padding: 1.1rem 1.25rem 1.25rem; margin-top: 1rem; }
+.q-head { display: flex; flex-wrap: wrap; gap: .4rem .6rem; align-items: baseline; margin-bottom: .5rem; }
+.q-num { font-family: var(--font-mono); font-size: .8rem; color: var(--structure); font-weight: 500; }
+.tag { font-size: .7rem; letter-spacing: .05em; text-transform: uppercase; padding: .15rem .5rem; border-radius: 999px; background: var(--bg-sunken); color: var(--ink-muted); }
+.tag.core { background: var(--structure-soft); color: var(--structure); }
+.tag.min { font-family: var(--font-mono); text-transform: none; letter-spacing: 0; }
+.stem { font-size: 1.02rem; }
+.stem p { margin: .4rem 0; }
+.opts { list-style: none; padding: 0; margin: .9rem 0 0; display: grid; gap: .45rem; }
+.opts li {
+  display: grid; grid-template-columns: 1.6rem 1fr; gap: .5rem; align-items: start;
+  padding: .55rem .7rem; border: 1px solid var(--rule); border-radius: var(--radius);
+  cursor: pointer; background: var(--bg);
+}
+.opts li:hover { border-color: var(--structure); }
+.opts li .letter { font-family: var(--font-mono); font-size: .8rem; color: var(--ink-muted); padding-top: .15rem; }
+.opts li.picked { border-color: var(--structure); }
+.q.revealed .opts li[data-correct] { border-color: var(--good); background: var(--good-soft); }
+.q.revealed .opts li.picked:not([data-correct]) { border-color: var(--bad); background: var(--bad-soft); }
+.q.revealed .opts li { cursor: default; }
+.parts { margin: .6rem 0 0; padding-left: 1.3rem; }
+.parts li { margin: .3rem 0; }
+.actions { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: .9rem; align-items: center; }
+.verdict { font-size: .85rem; font-weight: 500; }
+.verdict.ok { color: var(--good); }
+.verdict.no { color: var(--bad); }
+.expl, .sol { margin-top: .9rem; padding: .8rem .95rem; border-left: 3px solid var(--structure); background: var(--structure-soft); border-radius: 0 var(--radius) var(--radius) 0; font-size: .95rem; }
+.expl p:first-child, .sol p:first-child { margin-top: 0; }
+.expl p:last-child, .sol p:last-child { margin-bottom: 0; }
+.rehearses { margin-top: .75rem; font-size: .8rem; color: var(--ink-muted); }
+.rehearses b { font-weight: 500; color: var(--ink); }
+code { font-family: var(--font-mono); font-size: .9em; background: var(--bg-sunken); padding: .05em .3em; border-radius: 3px; }
+pre { font-family: var(--font-mono); font-size: .85rem; line-height: 1.45; background: var(--bg-sunken); border-radius: var(--radius); padding: .75rem .9rem; overflow-x: auto; margin: .6rem 0; }
+pre code { background: none; padding: 0; font-size: inherit; }
+mjx-container { overflow-x: auto; overflow-y: hidden; max-width: 100%; }
+mjx-container[display="true"] { margin: .6rem 0 !important; }
+.note { font-size: .85rem; color: var(--ink-muted); }
+
+/* Presenter mode */
+body.presenter { overflow: hidden; }
+body.presenter .wrap { max-width: none; padding: 0; height: 100%; display: flex; flex-direction: column; }
+body.presenter .intro, body.presenter h2, body.presenter .q { display: none; }
+body.presenter .q.current { display: block; flex: 1; overflow: auto; border: 0; box-shadow: none; background: var(--bg); margin: 0; padding: 2.5vh 6vw 10vh; font-size: calc(1rem + 0.9vw); }
+body.presenter .q.current .stem { font-size: calc(1.05rem + 1vw); max-width: 60ch; }
+body.presenter .q.current .opts { max-width: 70ch; gap: .6rem; }
+body.presenter .q.current .expl, body.presenter .q.current .sol { max-width: 70ch; font-size: calc(.95rem + .6vw); }
+body.presenter .q.current .parts { max-width: 65ch; }
+body.presenter .q.current pre { font-size: calc(.85rem + .5vw); max-width: 70ch; }
+body.presenter .q.current .q-num { font-size: calc(.8rem + .4vw); }
+body.presenter .q.current .rehearses { display: none; }
+body.presenter .q.current .actions { display: none; }
+.deck {
+  display: none; position: fixed; left: 0; right: 0; bottom: 0; z-index: 10;
+  padding: .5rem 1rem calc(.5rem + env(safe-area-inset-bottom, 0px));
+  background: var(--bg-raised); border-top: 1px solid var(--rule);
+  align-items: center; gap: .6rem; flex-wrap: wrap;
+}
+body.presenter .deck { display: flex; }
+.deck .where { font-family: var(--font-mono); font-size: .85rem; color: var(--ink-muted); font-variant-numeric: tabular-nums; }
+.deck .block-name { font-family: var(--font-display); font-size: 1rem; }
+.deck .spacer { flex: 1; }
+.deck .kbd { display: none; }
+@media (min-width: 700px) { .deck .kbd { display: inline; } }
+@media (prefers-reduced-motion: no-preference) { .opts li { transition: border-color .12s ease, background .12s ease; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="intro">
+  <h1>Midterm 2 Practice</h1>
+  <p class="lede">IFT 6162, Monday November 16, 2026. The second midterm is Thursday November 19, 13:30, on paper. It covers what we did in class since the first one: backward induction and its proof, interpolating the cost-to-go, LQR and the Riccati recursion, stochastic dynamic programming and policy classes, infinite-horizon discounted MDPs, Bellman operators and contraction, value and policy iteration, and the smooth (entropy-regularized) Bellman equations. Function approximation is not on it. Work each question before you reveal the answer. Items marked <span class="tag core">core</span> are the ones to make sure you can do.</p>
+  <div class="toolbar">
+    <button id="btn-presenter" class="primary" type="button">Presenter mode</button>
+    <button id="btn-core" type="button">Core only: off</button>
+    <button id="btn-reset" type="button">Clear my answers</button>
+    <span class="kbd">In presenter mode: ← → move, R reveals, Esc exits</span>
+    <span class="progress" id="progress"></span>
+  </div>
+</header>
+
+<h2 data-block="A">A. Backward induction <small>finite horizon, deterministic</small></h2>
+
+<article class="q" id="q1" data-type="mcq" data-core="1" data-min="2" data-block="A">
+  <div class="q-head"><span class="q-num">Q1</span><span class="tag core">core</span><span class="tag min">2 min</span></div>
+  <div class="stem">
+    <p>Backward induction is run on a problem with horizon \(T\), terminal cost \(c_\mathrm{T}\) and dynamics \(\mathbf{x}_{t+1} = \mathbf{f}_t(\mathbf{x}_t, \mathbf{u}_t)\). What does it return?</p>
+  </div>
+  <ol class="opts">
+    <li><span class="letter">a</span><span>One optimal control sequence \(\mathbf{u}_1^\star, \dots, \mathbf{u}_{T-1}^\star\) for the given initial state, like a transcribed NLP</span></li>
+    <li data-correct><span class="letter">b</span><span>A cost-to-go \(J_t^\star(\mathbf{x})\) and a decision rule \(\pi_t^\star(\mathbf{x})\) for every stage \(t\) and every state \(\mathbf{x}\); both depend on \(t\) in general</span></li>
+    <li><span class="letter">c</span><span>A single stationary value function \(J^\star(\mathbf{x})\), the fixed point of the Bellman operator, obtained by value iteration</span></li>
+    <li><span class="letter">d</span><span>A local optimum near the initial guess</span></li>
+  </ol>
+  <div class="actions"><span class="verdict"></span></div>
+  <div class="expl" hidden>
+    <p>Two arrays come out: the values (the min) and the policy (the argmin), indexed by stage and state. That is feedback: what to do in every state at every stage, not one plan from one \(\mathbf{x}_1\). With a horizon fixed in advance, the cost-to-go from state \(\mathbf{x}\) depends on how many stages remain, so do not drop the stage index. In the finite-horizon case the procedure is called backward induction; the name value iteration is reserved for successive approximation on a fixed-point equation. Backward induction gives the global optimum when each one-step problem is solved exactly.</p>
+  </div>
+  <p class="rehearses"><b>Rehearses:</b> what object dynamic programming computes, and why it is stage-dependent.</p>
+</article>
+
+<article class="q" id="q2" data-type="work" data-core="1" data-min="7" data-block="A">
+  <div class="q-head"><span class="q-num">Q2</span><span class="tag core">core</span><span class="tag min">7 min, on paper</span></div>
+  <div class="stem">
+    <p>The states are the integers \(x \in \{0, 1, 2\}\) and the controls are \(u \in \{-1, 0, +1\}\), with dynamics \(x_{t+1} = x_t + u_t\) (a control that would leave \(\{0,1,2\}\) is not allowed). Stage cost \(c(x, u) = 2x + 2|u|\), terminal cost \(c_\mathrm{T}(x) = x\), horizon \(T = 3\), so decisions are made at \(t = 1, 2\).</p>
+  </div>
+  <ol class="parts" type="a">
+    <li>Write \(J_3^\star\), then compute \(J_2^\star(x)\) and \(\pi_2^\star(x)\) for the three states.</li>
+    <li>Compute \(J_1^\star(x)\) and \(\pi_1^\star(x)\).</li>
+    <li>Compare \(\pi_1^\star\) and \(\pi_2^\star\). Why do they differ?</li>
+    <li>From \(x_1 = 2\), write the optimal trajectory and check its cost against \(J_1^\star(2)\).</li>
+  </ol>
+  <div class="actions"><button type="button" class="reveal">Show solution</button></div>
+  <div class="sol" hidden>
+    <p>(a) \(J_3^\star(x) = x = (0, 1, 2)\). At \(t = 2\), \(J_2^\star(x) = \min_u \{2x + 2|u| + J_3^\star(x+u)\}\). For \(x = 0\): stay, \(0\). For \(x = 1\): down costs \(2 + 2 + 0 = 4\), stay costs \(2 + 1 = 3\): stay, \(J_2^\star(1) = 3\). For \(x = 2\): down costs \(4 + 2 + 1 = 7\), stay costs \(4 + 2 = 6\): stay, \(J_2^\star(2) = 6\). So \(J_2^\star = (0, 3, 6)\) and \(\pi_2^\star = (0, 0, 0)\).</p>
+    <p>(b) \(J_1^\star(x) = \min_u \{2x + 2|u| + J_2^\star(x+u)\}\). For \(x = 1\): down \(2 + 2 + 0 = 4\), stay \(2 + 3 = 5\): down, \(J_1^\star(1) = 4\). For \(x = 2\): down \(4 + 2 + 3 = 9\), stay \(4 + 6 = 10\): down, \(J_1^\star(2) = 9\). So \(J_1^\star = (0, 4, 9)\) and \(\pi_1^\star = (0, -1, -1)\).</p>
+    <p>(c) At the last decision, moving costs 2 and saves only one unit of terminal cost, so you stay. With two stages left, moving down at \(t = 1\) lowers \(x_2\) and \(x_3\) by one, which saves 2 on the stage cost at \(t = 2\) and 1 on the terminal cost, more than the price of 2. The number of remaining stages is part of the situation: with a fixed horizon the optimal decision rule depends on \(t\). Stationarity comes with the discounted infinite-horizon case.</p>
+    <p>(d) \(x_1 = 2 \to x_2 = 1 \to x_3 = 1\): \((4 + 2) + (2 + 0) + 1 = 9 = J_1^\star(2)\).</p>
+  </div>
+  <p class="rehearses"><b>Rehearses:</b> running backward induction by hand and reading the two arrays it produces.</p>
+</article>
+
+<article class="q" id="q3" data-type="mcq" data-core="1" data-min="3" data-block="A">
+  <div class="q-head"><span class="q-num">Q3</span><span class="tag core">core</span><span class="tag min">3 min</span></div>
+  <div class="stem">
+    <p>The proof that backward induction is optimal uses a cut-and-paste argument. From state \(\mathbf{x}\) at stage \(t\), an arbitrary sequence costs 11: its first step costs 2 and its tail costs 9, while the optimal tail from the same \(\mathbf{x}_{t+1}\) costs 7. Three first steps are available, costing 2, 3 and 1, and leading to states whose optimal tails cost 7, 4 and 8. Which reading is correct?</p>
+  </div>
+  <ol class="opts">
+    <li><span class="letter">a</span><span>\(J_t^\star(\mathbf{x}) = 9\), because the best tail after the first step is 7</span></li>
+    <li><span class="letter">b</span><span>\(J_t^\star(\mathbf{x}) = 1 + 4 = 5\), taking the cheapest first step and the cheapest tail</span></li>
+    <li data-correct><span class="letter">c</span><span>Cut: the sequence costs at least \(2 + 7 = 9\). Paste: the first steps followed by their optimal tails cost 9, 7 and 9, so \(J_t^\star(\mathbf{x}) = 7\), and every sequence costs at least that much (\(11 \ge 9 \ge 7\))</span></li>
+    <li><span class="letter">d</span><span>The argument needs gradients of the cost with respect to the first control</span></li>
+  </ol>
+  <div class="actions"><span class="verdict"></span></div>
+  <div class="expl" hidden>
+    <p>Step 1 (cut) gives a lower bound for every sequence: replacing its tail by the optimal tail from the same successor cannot increase the cost. Step 2 (paste) compares first steps, each followed by its optimal tail, and the argmin attains the bound. Option (b) pairs a first step with a tail that starts from a different state. "The proof constructs a solution, so backward induction plays two roles: it is both a proof and an algorithm." No gradients and no constrained solver are involved.</p>
+  </div>
+  <p class="rehearses"><b>Rehearses:</b> the two inequalities of the cut-and-paste proof.</p>
+</article>
+
+<article class="q" id="q4" data-type="mcq" data-core="1" data-min="2" data-block="A">
+  <div class="q-head"><span class="q-num">Q4</span><span class="tag core">core</span><span class="tag min">2 min</span></div>
+  <div class="stem">
+    <p>A reservoir system has 4 reservoirs (state dimension \(n = 4\)) and one release per reservoir, over 52 weekly stages. Each storage is discretized into 100 levels. How large is the table that backward induction stores, and how does that compare with transcribing the problem for a single initial state?</p>
+  </div>
+  <ol class="opts">
+    <li><span class="letter">a</span><span>About \(52 \times 400\) entries, linear in the dimension</span></li>
+    <li data-correct><span class="letter">b</span><span>\(100^4 = 10^8\) values per stage, about \(5 \times 10^9\) in all, each needing its own minimization over releases; a transcription has on the order of \(52 \times (4 + 4) \approx 400\) unknowns but answers for one initial state only</span></li>
+    <li><span class="letter">c</span><span>\(4^{100}\) values per stage</span></li>
+    <li><span class="letter">d</span><span>The table has the same size as the transcription, because both discretize time into 52 stages</span></li>
+  </ol>
+  <div class="actions"><span class="verdict"></span></div>
+  <div class="expl" hidden>
+    <p>A grid with \(N\) levels per coordinate has \(N^n\) nodes: Bellman's curse of dimensionality. It is the price of asking for an answer everywhere. Trajectory optimization keeps a cost polynomial in the dimension (about \(T(n+m)\) unknowns) by giving up the global, closed-loop answer. Linear interpolation or splines do not remove the exponential count of nodes. Function approximation and Monte Carlo integration are the two levers the rest of the course pulls.</p>
+  </div>
+  <p class="rehearses"><b>Rehearses:</b> counting the cost of a grid and placing DP against trajectory optimization.</p>
+</article>
+
+<article class="q" id="q5" data-type="mcq" data-core="1" data-min="2" data-block="A">
+  <div class="q-head"><span class="q-num">Q5</span><span class="tag core">core</span><span class="tag min">2 min</span></div>
+  <div class="stem">
+    <p>The reservoir grid stores one value per 10 hm³. A release sends the storage to 1033.7 hm³, between the nodes 1030 and 1040, where the next-stage values are \(v_{t+1}(1030) = 50\) and \(v_{t+1}(1040) = 60\). Which value does each rule use?</p>
+  </div>
+  <ol class="opts">
+    <li data-correct><span class="letter">a</span><span>Rounding uses 50 (nearest node, a zero-order hold); linear interpolation uses \(0.63 \cdot 50 + 0.37 \cdot 60 = 53.7\). Both are convex combinations of stored values, unlike a cubic spline, whose cardinal functions have negative lobes</span></li>
+    <li><span class="letter">b</span><span>Rounding uses 60; linear interpolation uses 55</span></li>
+    <li><span class="letter">c</span><span>Linear interpolation uses \(0.37 \cdot 50 + 0.63 \cdot 60 = 56.3\)</span></li>
+    <li><span class="letter">d</span><span>Both rules must call the simulator again at 1033.7</span></li>
+  </ol>
+  <div class="actions"><span class="verdict"></span></div>
+  <div class="expl" hidden>
+    <p>With \(\lambda = (1033.7 - 1030)/10 = 0.37\), \(\hat J_{t+1} = (1 - \lambda)\, v_{t+1,i} + \lambda\, v_{t+1,i+1}\): the closer node gets the larger weight. The nodal representation \(\hat J_t(\mathbf{x}) = \sum_i v_{t,i}\,\ell_i(\mathbf{x})\) with \(\ell_i(\mathbf{x}^{(j)}) = \delta_{ij}\) is the same idea as in collocation, with the nodes placed in the state space instead of on the time axis. Nonnegative weights keep \(\hat J\) within the range of the stored values; a spline can overshoot near a jump, such as the switch of a bang-bang release table, but it is more accurate on smooth functions.</p>
+  </div>
+  <p class="rehearses"><b>Rehearses:</b> evaluating the interpolated Bellman recursion at an off-grid successor.</p>
+</article>
+
+<article class="q" id="q6" data-type="mcq" data-min="2" data-block="A">
+  <div class="q-head"><span class="q-num">Q6</span><span class="tag min">2 min</span></div>
+  <div class="stem">
+    <p>A learned approximation \(\hat J_{t+1}\) is off by the same constant everywhere: \(\hat J_{t+1}(\mathbf{x}) = J^\star_{t+1}(\mathbf{x}) + 40\) for every \(\mathbf{x}\). What happens to the decision rule computed from it at stage \(t\)?</p>
+  </div>
+  <ol class="opts">
+    <li><span class="letter">a</span><span>It shifts toward cheaper actions</span></li>
+    <li data-correct><span class="letter">b</span><span>Nothing: the argmin of \(c_t(\mathbf{x}, \mathbf{u}) + \hat J_{t+1}(\mathbf{f}_t(\mathbf{x}, \mathbf{u}))\) is unchanged by a constant shift; only the ordering the cost-to-go induces over actions matters for the policy</span></li>
+    <li><span class="letter">c</span><span>It becomes random</span></li>
+    <li><span class="letter">d</span><span>It changes in proportion to the error, 40</span></li>
+  </ol>
+  <div class="actions"><span class="verdict"></span></div>
+  <div class="expl" hidden>
+    <p>"If you want to deploy a policy, what matters is the ordering encoded in the argmin." Every candidate gets the same 40 added, so the comparison between candidates is the same. This is why learning methods aim for a value function that preserves the ordering over actions rather than the exact values. An economist who reads \(J\) as a monetary value does care about the 40.</p>
+  </div>
+  <p class="rehearses"><b>Rehearses:</b> what part of a value function the policy actually uses.</p>
+</article>
+
+<h2 data-block="B">B. LQR and iLQR <small>backward induction over matrices</small></h2>
+
+<article class="q" id="q7" data-type="work" data-core="1" data-min="8" data-block="B">
+  <div class="q-head"><span class="q-num">Q7</span><span class="tag core">core</span><span class="tag min">8 min, on paper</span></div>
+  <div class="stem">
+    <p>Scalar LQR: \(x_{t+1} = x_t + u_t\), cost \(\tfrac12 x_T^2 + \tfrac12\sum_{t=0}^{T-1}(x_t^2 + u_t^2)\), so \(A = B = Q = R = Q_T = 1\), with \(T = 2\).</p>
+  </div>
+  <ol class="parts" type="a">
+    <li>Assume \(J_{t+1}^\star(x) = \tfrac12 P_{t+1} x^2\). Write the one-step problem at stage \(t\), set its derivative in \(u\) to zero, and get \(u_t^\star = -K_t x_t\) with \(K_t\) in terms of \(P_{t+1}\).</li>
+    <li>Substitute back to get the Riccati recursion for \(P_t\) in this scalar case.</li>
+    <li>Compute \(K_1, P_1, K_0, P_0\). What is the optimal cost from \(x_0 = 2\)?</li>
+    <li>Run the recursion backward for many stages. To what does \(P_t\) converge, and what is the limiting gain?</li>
+  </ol>
+  <div class="actions"><button type="button" class="reveal">Show solution</button></div>
+  <div class="sol" hidden>
+    <p>(a) \(J_t^\star(x) = \min_u \tfrac12\left[x^2 + u^2 + P_{t+1}(x + u)^2\right]\). Setting the derivative to zero: \(u + P_{t+1}(x + u) = 0\), so \(u_t^\star = -\frac{P_{t+1}}{1 + P_{t+1}}\,x\) and \(K_t = \frac{P_{t+1}}{1 + P_{t+1}}\). This is \((R + B^\top P_{t+1} B)^{-1} B^\top P_{t+1} A\) with every matrix equal to 1.</p>
+    <p>(b) Plugging in, \(x + u^\star = \frac{x}{1 + P_{t+1}}\), and \(P_t = 1 + K_t^2 + P_{t+1}(1 - K_t)^2 = 1 + \frac{P_{t+1}}{1 + P_{t+1}}\). The general form \(Q + A^\top P A - A^\top P B (R + B^\top P B)^{-1} B^\top P A\) gives the same: \(1 + P - P^2/(1+P)\).</p>
+    <p>(c) \(P_2 = Q_T = 1\). \(K_1 = 1/2\), \(P_1 = 3/2\). \(K_0 = (3/2)/(5/2) = 3/5\), \(P_0 = 1 + 3/5 = 8/5\). Optimal cost from \(x_0 = 2\): \(\tfrac12 \cdot \tfrac85 \cdot 4 = 16/5\). Check: \(u_0 = -6/5\), \(x_1 = 4/5\), \(u_1 = -2/5\), \(x_2 = 2/5\), cost \(\tfrac12\left[4 + \tfrac{36}{25} + \tfrac{16}{25} + \tfrac{4}{25} + \tfrac{4}{25}\right] = \tfrac12 \cdot \tfrac{160}{25} = \tfrac{16}{5}\).</p>
+    <p>(d) The fixed point solves \(P = 1 + P/(1+P)\), that is \(P^2 - P - 1 = 0\), so \(P_\infty = (1 + \sqrt5)/2 \approx 1.618\) and \(K_\infty = P_\infty/(1 + P_\infty) = 1/P_\infty \approx 0.618\). Far from the end of the horizon the gain is nearly constant; near the end it changes because fewer stages remain. The gains are time-varying in the finite-horizon problem, and no grid or interpolation was needed: the value function stays exactly quadratic.</p>
+  </div>
+  <p class="rehearses"><b>Rehearses:</b> deriving the Riccati recursion as backward induction specialized to linear dynamics and quadratic costs.</p>
+</article>
+
+<article class="q" id="q8" data-type="mcq" data-core="1" data-min="2" data-block="B">
+  <div class="q-head"><span class="q-num">Q8</span><span class="tag core">core</span><span class="tag min">2 min</span></div>
+  <div class="stem">
+    <p>Which statement about the finite-horizon LQR solution is correct?</p>
+  </div>
+  <ol class="opts">
+    <li data-correct><span class="letter">a</span><span>The cost-to-go stays exactly quadratic, \(\tfrac12 \mathbf{x}^\top P_t \mathbf{x}\), so backward induction carries one matrix per stage instead of a table; \(R_t \succ 0\) makes the one-step minimization in \(\mathbf{u}\) well posed, and the policy is linear, \(\mathbf{u}_t^\star = -K_t \mathbf{x}_t\)</span></li>
+    <li><span class="letter">b</span><span>The Riccati recursion runs forward in time from \(P_0 = Q_0\)</span></li>
+    <li><span class="letter">c</span><span>One needs \(Q_t \succ 0\) strictly; \(R_t = 0\) is fine</span></li>
+    <li><span class="letter">d</span><span>The gain \(K_t\) depends on the current state \(\mathbf{x}_t\)</span></li>
+  </ol>
+  <div class="actions"><span class="verdict"></span></div>
+  <div class="expl" hidden>
+    <p>"The discrete-time Riccati equation is the Bellman equation, that is, backward induction, specialized to linear quadratic systems." It starts at \(P_T = Q_T\) and runs backward. The minimization in \(\mathbf{u}\) needs \(R_t + B_t^\top P_{t+1} B_t\) positive definite, which \(R_t \succ 0\) guarantees; \(Q_t \succeq 0\) is enough. The gains are computed offline, during the backward pass, and do not depend on the state: the feedback is linear. In code, solve the linear system rather than forming the inverse.</p>
+  </div>
+  <p class="rehearses"><b>Rehearses:</b> the assumptions and the output of the Riccati recursion.</p>
+</article>
+
+<article class="q" id="q9" data-type="mcq" data-min="2" data-block="B">
+  <div class="q-head"><span class="q-num">Q9</span><span class="tag min">2 min</span></div>
+  <div class="stem">
+    <p>iLQR is run on the boat-docking problem. Besides a nominal plan \((\bar{\mathbf{x}}_t, \bar{\mathbf{u}}_t)\), it returns gains \(K_t\). The boat is then perturbed by noise during execution and the controller applies \(\mathbf{u}_t = \bar{\mathbf{u}}_t - K_t(\mathbf{x}_t - \bar{\mathbf{x}}_t)\). Which statement is correct?</p>
+  </div>
+  <ol class="opts">
+    <li><span class="letter">a</span><span>This is MPC, since it uses the measured state</span></li>
+    <li data-correct><span class="letter">b</span><span>This is a local, time-varying feedback controller: it corrects deviations inside a tube around the nominal trajectory where the linearization holds, without re-solving anything; with too much noise the state leaves the tube and the correction fails</span></li>
+    <li><span class="letter">c</span><span>The gains make the controller globally optimal for the nonlinear system</span></li>
+    <li><span class="letter">d</span><span>The gains are only used during optimization and are discarded afterward</span></li>
+  </ol>
+  <div class="actions"><span class="verdict"></span></div>
+  <div class="expl" hidden>
+    <p>Each iLQR iteration linearizes the dynamics and quadratizes the cost around the current plan, solves the local LQR problem by a Riccati backward pass, then simulates forward with a line search. The gains are a by-product of that backward pass, and they give feedback for free near the plan. MPC re-solves an optimization from each measured state; iLQR can be used inside MPC, but the tracking controller above is not MPC. DDP has the same structure and keeps the second-order terms of the dynamics that iLQR drops.</p>
+  </div>
+  <p class="rehearses"><b>Rehearses:</b> what iLQR returns and where its feedback is valid.</p>
+</article>
+
+<h2 data-block="C">C. Stochastic DP and policies <small>expectations, policy classes, ordering</small></h2>
+
+<article class="q" id="q10" data-type="work" data-core="1" data-min="7" data-block="C">
+  <div class="q-head"><span class="q-num">Q10</span><span class="tag core">core</span><span class="tag min">7 min, on paper</span></div>
+  <div class="stem">
+    <p>A machine is either good (G) or worn (W). Each period you either <em>run</em> it or <em>repair</em> it, and you maximize the expected total reward over two decisions (\(t = 1, 2\)), with terminal reward 0.</p>
+    <ul>
+      <li>Run in G: reward 10; next state G with probability 0.7, W with probability 0.3.</li>
+      <li>Run in W: reward 4; stays W.</li>
+      <li>Repair (in either state): reward \(-1\); next state G.</li>
+    </ul>
+  </div>
+  <ol class="parts" type="a">
+    <li>Compute \(v_2^\star\) and the last-stage decision rule \(\pi_2^\star\).</li>
+    <li>Compute \(v_1^\star\) and \(\pi_1^\star\). Write the expectation explicitly.</li>
+    <li>Is the optimal policy stationary? Why is that expected here?</li>
+    <li>Would randomizing between run and repair in W at \(t = 1\) ever do better? Answer with one inequality.</li>
+  </ol>
+  <div class="actions"><button type="button" class="reveal">Show solution</button></div>
+  <div class="sol" hidden>
+    <p>(a) At the last decision there is no future: \(v_2^\star(\mathrm{G}) = \max(10, -1) = 10\) (run), \(v_2^\star(\mathrm{W}) = \max(4, -1) = 4\) (run).</p>
+    <p>(b) G: run gives \(10 + 0.7 \cdot 10 + 0.3 \cdot 4 = 18.2\), repair gives \(-1 + 10 = 9\): run, \(v_1^\star(\mathrm{G}) = 18.2\). W: run gives \(4 + 4 = 8\), repair gives \(-1 + 10 = 9\): repair, \(v_1^\star(\mathrm{W}) = 9\).</p>
+    <p>(c) No: in W the rule is repair at \(t = 1\) and run at \(t = 2\). Repairing pays off only if a period remains to enjoy the good state. With a fixed horizon, the optimal Markov deterministic policy exists but depends on the stage.</p>
+    <p>(d) No. For any distribution \(q\) over actions, \(\sum_a q(a)\, w(a) \le \max_a w(a)\): a mixture of 8 and 9 is at most 9. Combined with state sufficiency, this is why a Markov deterministic optimal policy exists among all history-dependent randomized ones.</p>
+  </div>
+  <p class="rehearses"><b>Rehearses:</b> backward induction with an expectation, and why the finite-horizon policy depends on \(t\).</p>
+</article>
+
+<article class="q" id="q11" data-type="mcq" data-core="1" data-min="2" data-block="C">
+  <div class="q-head"><span class="q-num">Q11</span><span class="tag core">core</span><span class="tag min">2 min</span></div>
+  <div class="stem">
+    <p>Policies can be Markovian or history-dependent, deterministic or randomized (classes MD, MR, HD, HR). Which statement is correct for a finite-horizon MDP with finite states and actions?</p>
+  </div>
+  <ol class="opts">
+    <li><span class="letter">a</span><span>HR policies can do strictly better, because they use more information</span></li>
+    <li data-correct><span class="letter">b</span><span>\(\Pi^{MD} \subset \Pi^{HR}\), and the supremum over \(\Pi^{HR}\) is attained by a policy in \(\Pi^{MD}\); that policy is in general nonstationary, one decision rule per stage</span></li>
+    <li><span class="letter">c</span><span>An optimal policy exists in \(\Pi^{MD}\) and it is always stationary</span></li>
+    <li><span class="letter">d</span><span>Randomized policies are needed whenever the transitions are random</span></li>
+  </ol>
+  <div class="actions"><span class="verdict"></span></div>
+  <div class="expl" hidden>
+    <p>Two facts make it work. State sufficiency: with Markovian dynamics and rewards, the optimal return from a history depends on it only through the current state (backward induction on the history-based equations). And randomizing never beats the best action when maximizing an expectation. The history grows exponentially with \(t\), so restricting to MD rules is what makes the computation possible. Stationarity is a separate question: in the finite-horizon case the rules depend on \(t\).</p>
+  </div>
+  <p class="rehearses"><b>Rehearses:</b> the policy classes and the reduction to Markov deterministic rules.</p>
+</article>
+
+<article class="q" id="q12" data-type="mcq" data-core="1" data-min="2" data-block="C">
+  <div class="q-head"><span class="q-num">Q12</span><span class="tag core">core</span><span class="tag min">2 min</span></div>
+  <div class="stem">
+    <p>Two policies on a two-state problem have expected returns \(v^{\pi_A} = (3, 5)\) and \(v^{\pi_B} = (4, 4)\), one entry per initial state. Which is better?</p>
+  </div>
+  <ol class="opts">
+    <li><span class="letter">a</span><span>\(\pi_A\), because its total \(3 + 5\) is larger</span></li>
+    <li><span class="letter">b</span><span>\(\pi_B\), because its worst case is larger</span></li>
+    <li data-correct><span class="letter">c</span><span>Neither: under the componentwise partial order the two are not comparable. An optimal policy must be at least as good as both in every state</span></li>
+    <li><span class="letter">d</span><span>They are equally good, since \(3 + 5 = 4 + 4\)</span></li>
+  </ol>
+  <div class="actions"><span class="verdict"></span></div>
+  <div class="expl" hidden>
+    <p>Optimality presupposes an ordering, and for MDPs it is \(v^{\pi} \ge v^{\pi'}\) in every state. That is a partial order, so two policies can be incomparable; the remarkable fact is that an optimal policy dominates all others simultaneously. Each entry is itself an expectation: taking the mean of the return is a modeling choice that makes the decision maker risk-neutral. Risk-sensitive criteria such as CVaR look at the tail of the return distribution instead.</p>
+  </div>
+  <p class="rehearses"><b>Rehearses:</b> the componentwise ordering of policies and the expectation as a modeling choice.</p>
+</article>
+
+<article class="q" id="q13" data-type="mcq" data-min="2" data-block="C">
+  <div class="q-head"><span class="q-num">Q13</span><span class="tag min">2 min</span></div>
+  <div class="stem">
+    <p>The inflow to a reservoir network is a 6-dimensional continuous random vector, and the Bellman backup needs \(\mathbb{E}_{\mathbf{w}}[J_{t+1}(\mathbf{f}_t(\mathbf{x}, \mathbf{u}, \mathbf{w}))]\). You replace the expectation by an average over \(M\) simulated inflows. Which statement is correct?</p>
+  </div>
+  <ol class="opts">
+    <li data-correct><span class="letter">a</span><span>The estimator only needs a simulator of \(\mathbf{w}\), not its density, and its standard error decreases like \(1/\sqrt{M}\) whatever the dimension of \(\mathbf{w}\)</span></li>
+    <li><span class="letter">b</span><span>Its error decreases like \(1/M^6\), as for a tensor-product quadrature rule</span></li>
+    <li><span class="letter">c</span><span>It is biased unless \(M\) exceeds the number of grid states</span></li>
+    <li><span class="letter">d</span><span>It requires the transition matrix \(p(\mathbf{x}' \mid \mathbf{x}, \mathbf{u})\) in closed form</span></li>
+  </ol>
+  <div class="actions"><span class="verdict"></span></div>
+  <div class="expl" hidden>
+    <p>A quadrature rule with \(K\) points per dimension needs \(K^6\) points, the curse of dimensionality again, now on the noise. Monte Carlo integration is unbiased for a fixed \(J_{t+1}\), and its variance is \(\mathrm{Var}/M\) independently of the dimension. The same idea underlies empirical risk minimization in supervised learning. Function approximation and Monte Carlo integration are the two ingredients the course combines from here on.</p>
+  </div>
+  <p class="rehearses"><b>Rehearses:</b> why sampling replaces quadrature in the stochastic Bellman backup.</p>
+</article>
+
+<h2 data-block="D">D. Infinite horizon and policy evaluation <small>discounting, Neumann series, operators</small></h2>
+
+<article class="q" id="q14" data-type="mcq" data-min="2" data-block="D">
+  <div class="q-head"><span class="q-num">Q14</span><span class="tag min">2 min</span></div>
+  <div class="stem">
+    <p>Rewards satisfy \(|r(s,a)| \le 2\) and \(\gamma = 0.95\). Which statement about the discounted value of any policy is correct?</p>
+  </div>
+  <ol class="opts">
+    <li data-correct><span class="letter">a</span><span>\(|v^\pi(s)| \le 2/(1 - 0.95) = 40\) in every state, and the same return is obtained, undiscounted, in a modified MDP where every state moves to a zero-reward absorbing state with probability 0.05 at each step</span></li>
+    <li><span class="letter">b</span><span>\(|v^\pi(s)| \le 2 \cdot 0.95 = 1.9\)</span></li>
+    <li><span class="letter">c</span><span>The values may be infinite because the horizon is infinite</span></li>
+    <li><span class="letter">d</span><span>The equivalence with a random horizon holds for any horizon distribution with mean 20</span></li>
+  </ol>
+  <div class="actions"><span class="verdict"></span></div>
+  <div class="expl" hidden>
+    <p>Geometric series: \(\sum_{t \ge 1}\gamma^{t-1} \cdot 2 = 2/(1-\gamma)\). The discount is a continuation probability: at each step the process survives with probability \(\gamma\), so the horizon is geometric with mean \(1/(1-\gamma) = 20\). The equivalence (swap the sums) uses the geometric distribution specifically; another distribution with the same mean gives a different criterion.</p>
+  </div>
+  <p class="rehearses"><b>Rehearses:</b> bounded values and the two readings of the discount factor.</p>
+</article>
+
+<article class="q" id="q15" data-type="work" data-core="1" data-min="7" data-block="D">
+  <div class="q-head"><span class="q-num">Q15</span><span class="tag core">core</span><span class="tag min">7 min, on paper</span></div>
+  <div class="stem">
+    <p>A fixed policy \(\pi\) on two states, \(\gamma = 0.9\):
+    \[ \mathbf{P}_\pi = \begin{pmatrix} 0.5 & 0.5 \\ 0 & 1 \end{pmatrix}, \qquad \mathbf{r}_\pi = \begin{pmatrix} 1 \\ 0 \end{pmatrix}. \]</p>
+  </div>
+  <ol class="parts" type="a">
+    <li>Solve \((\mathbf{I} - \gamma\mathbf{P}_\pi)\mathbf{v} = \mathbf{r}_\pi\) by hand.</li>
+    <li>Run three steps of \(\mathbf{v}_{k+1} = \mathbf{r}_\pi + \gamma\mathbf{P}_\pi \mathbf{v}_k\) from \(\mathbf{v}_0 = \mathbf{0}\). How fast does the error in state 1 shrink? Compare with the guaranteed factor \(\gamma\).</li>
+    <li>Write \(\mathbf{v}^\pi\) as a Neumann series and say why it converges, using \(\|\mathbf{P}_\pi\|_\infty\).</li>
+    <li>Is \(\mathsf{L}_\pi \mathbf{v} = \mathbf{r}_\pi + \gamma\mathbf{P}_\pi\mathbf{v}\) a linear operator?</li>
+  </ol>
+  <div class="actions"><button type="button" class="reveal">Show solution</button></div>
+  <div class="sol" hidden>
+    <p>(a) State 2 never leaves and earns nothing: \(v(2) = 0.9\,v(2)\), so \(v(2) = 0\). State 1: \(v(1) = 1 + 0.45\,v(1) + 0.45\,v(2)\), so \(v(1) = 1/0.55 = 20/11 \approx 1.818\).</p>
+    <p>(b) \(\mathbf{v}_1 = (1, 0)\), \(\mathbf{v}_2 = (1.45, 0)\), \(\mathbf{v}_3 = (1.6525, 0)\). Errors in state 1: \(0.818, 0.368, 0.166\), each \(0.45\) times the previous. The guarantee \(\gamma = 0.9\) is a worst case over all states; here state 1 stays put only half of the time, so its error decays at \(\gamma \cdot 0.5\).</p>
+    <p>(c) \(\mathbf{v}^\pi = \sum_{t \ge 0} (\gamma\mathbf{P}_\pi)^t \mathbf{r}_\pi\). Each row of \(\mathbf{P}_\pi\) sums to one, so \(\|\mathbf{P}_\pi\|_\infty = 1\) and \(\rho(\gamma\mathbf{P}_\pi) \le \|\gamma\mathbf{P}_\pi\|_\infty = \gamma < 1\), which is the condition for the series to converge to \((\mathbf{I} - \gamma\mathbf{P}_\pi)^{-1}\). Here the eigenvalues of \(\gamma\mathbf{P}_\pi\) are \(0.45\) and \(0.9\).</p>
+    <p>(d) No, it is affine: \(\mathsf{L}_\pi(\mathbf{v}_1 + \mathbf{v}_2) \ne \mathsf{L}_\pi\mathbf{v}_1 + \mathsf{L}_\pi\mathbf{v}_2\) because \(\mathbf{r}_\pi\) appears once on the left and twice on the right. Policy evaluation is the fixed-point problem \(\mathbf{v} = \mathsf{L}_\pi\mathbf{v}\), equivalently the root-finding problem \(\mathsf{L}_\pi\mathbf{v} - \mathbf{v} = 0\).</p>
+  </div>
+  <p class="rehearses"><b>Rehearses:</b> the three views of policy evaluation (linear system, iteration, Neumann series) on a small example.</p>
+</article>
+
+<article class="q" id="q16" data-type="mcq" data-core="1" data-min="2" data-block="D">
+  <div class="q-head"><span class="q-num">Q16</span><span class="tag core">core</span><span class="tag min">2 min</span></div>
+  <div class="stem">
+    <p>Which statement about the Banach fixed-point theorem is correct?</p>
+  </div>
+  <ol class="opts">
+    <li><span class="letter">a</span><span>An operator that is not a contraction has no fixed point</span></li>
+    <li><span class="letter">b</span><span>A contraction has a fixed point, but successive approximation only finds it from a good initial guess</span></li>
+    <li data-correct><span class="letter">c</span><span>A contraction on a complete normed space has exactly one fixed point, and successive approximation converges to it from any starting point; the proof is the algorithm</span></li>
+    <li><span class="letter">d</span><span>Contraction in the sup norm implies contraction, with the same factor, in every norm on \(\mathbb{R}^n\)</span></li>
+  </ol>
+  <div class="actions"><span class="verdict"></span></div>
+  <div class="expl" hidden>
+    <p>The condition is sufficient, not necessary: non-contractions may still have fixed points. The proof builds the Cauchy sequence \(x_{n+1} = \mathsf{T}(x_n)\), which is "an algorithm in disguise", and gives the a posteriori bound \(\|x_{n+1} - x^\star\| \le \frac{q}{1-q}\|x_{n+1} - x_n\|\). The contraction property is attached to a norm: \(\mathsf{L}_\pi\) contracts in \(\|\cdot\|_\infty\) but need not contract in a weighted \(\ell_2\) norm, which is one of the technical roots of the deadly triad.</p>
+  </div>
+  <p class="rehearses"><b>Rehearses:</b> what a contraction guarantees, and what it does not.</p>
+</article>
+
+<h2 data-block="E">E. Bellman optimality and value iteration <small>the max, greedy policies, stopping rules</small></h2>
+
+<article class="q" id="q17" data-type="work" data-core="1" data-min="8" data-block="E">
+  <div class="q-head"><span class="q-num">Q17</span><span class="tag core">core</span><span class="tag min">8 min, on paper</span></div>
+  <div class="stem">
+    <p>Two states, \(\gamma = 0.9\). In state 1 you can <em>stay</em> (reward 1, remain in 1) or <em>go</em> (reward 0, move to 2). State 2 has one action, <em>stay</em> (reward 2, remain in 2).</p>
+  </div>
+  <ol class="parts" type="a">
+    <li>Write the Bellman optimality equation and solve it for \(v^\star\). Which policy is optimal?</li>
+    <li>Run value iteration from \(v_0 = 0\) for three sweeps. After each sweep, write the greedy action in state 1.</li>
+    <li>What is wrong with the greedy policy after the first sweep, and why does it get fixed?</li>
+    <li>With \(\varepsilon = 0.1\), the stopping test is \(\|v_{n+1} - v_n\|_\infty < \varepsilon(1-\gamma)/(2\gamma)\). About how many sweeps does it take? What does the test guarantee?</li>
+  </ol>
+  <div class="actions"><button type="button" class="reveal">Show solution</button></div>
+  <div class="sol" hidden>
+    <p>(a) \(v(2) = 2 + 0.9\,v(2)\), so \(v^\star(2) = 20\). \(v(1) = \max\{1 + 0.9\,v(1),\; 0 + 0.9\,v(2)\}\). Staying forever gives \(1/0.1 = 10\); going gives \(0.9 \cdot 20 = 18\). So \(v^\star = (18, 20)\) and the optimal policy is to go.</p>
+    <p>(b) \(v_1 = (\max(1, 0), 2) = (1, 2)\); greedy w.r.t. \(v_1\) in state 1: stay \(1 + 0.9 = 1.9\) versus go \(0.9 \cdot 2 = 1.8\), so <em>stay</em>. \(v_2 = (1.9, 3.8)\); greedy: stay \(2.71\) versus go \(3.42\), so <em>go</em>. \(v_3 = (3.42, 5.42)\); greedy: go.</p>
+    <p>(c) After one sweep, \(v_1\) only knows one step of reward, and the payoff of going (a delayed reward) has not propagated yet. Each sweep adds one step of lookahead; the greedy policy can be optimal long before the values are accurate, and here it is from the second sweep on.</p>
+    <p>(d) The threshold is \(0.1 \cdot 0.1/1.8 \approx 0.0056\). The change in state 2 is \(2 \cdot 0.9^{n}\) at sweep \(n+1\), which is the largest one, so we need \(2 \cdot 0.9^n < 0.0056\), \(n \ge 56\): about 57 sweeps. Then \(\|v_{n+1} - v^\star\|_\infty \le \varepsilon/2 = 0.05\) and the greedy policy is \(\varepsilon\)-optimal: its value is within 0.1 of \(v^\star\) in every state. (Running it gives \(v \approx (17.95, 19.95)\).)</p>
+  </div>
+  <p class="rehearses"><b>Rehearses:</b> value iteration by hand, greedy extraction, and the stopping rule that certifies the result.</p>
+</article>
+
+<article class="q" id="q18" data-type="mcq" data-core="1" data-min="2" data-block="E">
+  <div class="q-head"><span class="q-num">Q18</span><span class="tag core">core</span><span class="tag min">2 min</span></div>
+  <div class="stem">
+    <p>The Bellman optimality operator is written \(\mathsf{L}\mathbf{v} = \max_{\pi \in \Pi^{MD}}\{\mathbf{r}_\pi + \gamma\mathbf{P}_\pi\mathbf{v}\}\). How is it computed in practice, and what follows?</p>
+  </div>
+  <ol class="opts">
+    <li><span class="letter">a</span><span>By enumerating all \(|\mathcal{A}|^{|\mathcal{S}|}\) decision rules and comparing their values</span></li>
+    <li data-correct><span class="letter">b</span><span>State by state, \((\mathsf{L}\mathbf{v})(s) = \max_a\{r(s,a) + \gamma\sum_j p(j\mid s,a)\,v(j)\}\), because policies are compared componentwise; the max makes \(\mathsf{L}\) nonlinear, so there is no closed-form solve as for \(\mathsf{L}_\pi\)</span></li>
+    <li><span class="letter">c</span><span>By one linear solve with the best transition matrix</span></li>
+    <li><span class="letter">d</span><span>It is linear, like \(\mathsf{L}_\pi\), because each term inside the max is affine</span></li>
+  </ol>
+  <div class="actions"><span class="verdict"></span></div>
+  <div class="expl" hidden>
+    <p>Each state can pick its own best action, and a decision rule that does so in every state attains the max over rules: a greedy selector. A max of affine maps is convex and piecewise affine, not linear. The fixed point \(v^\star\) is unique (a sup-norm \(\gamma\)-contraction), but optimal policies need not be: any rule that is greedy with respect to \(v^\star\) (conserving, in Puterman's terms) is optimal over all history-dependent randomized policies, and ties give several.</p>
+  </div>
+  <p class="rehearses"><b>Rehearses:</b> the componentwise form of the Bellman optimality operator and the uniqueness of \(v^\star\).</p>
+</article>
+
+<article class="q" id="q19" data-type="mcq" data-core="1" data-min="3" data-block="E">
+  <div class="q-head"><span class="q-num">Q19</span><span class="tag core">core</span><span class="tag min">3 min</span></div>
+  <div class="stem">
+    <p>Inspect this value iteration. <code>P</code> has shape <code>(S, A, S)</code>, <code>r</code> has shape <code>(S, A)</code>, and the goal is an \(\varepsilon\)-optimal policy. Which lines are wrong?</p>
+<pre><code>v = np.zeros(S)
+while True:
+    q = r + gamma * P @ v                 # line 1
+    v_new = q.max(axis=1)                 # line 2
+    if np.abs(v_new - v).max() &lt; eps:     # line 3
+        break
+    v = v_new
+pi = q.argmax(axis=0)                     # line 4</code></pre>
+  </div>
+  <ol class="opts">
+    <li><span class="letter">a</span><span>Line 1: the expectation should be <code>v @ P</code></span></li>
+    <li><span class="letter">b</span><span>Line 2: it should be a min</span></li>
+    <li data-correct><span class="letter">c</span><span>Line 3 compares the step with \(\varepsilon\) instead of \(\varepsilon(1-\gamma)/(2\gamma)\), which gives no \(\varepsilon\)-optimality guarantee, and line 4 takes the argmax over states instead of over actions (<code>axis=1</code>)</span></li>
+    <li><span class="letter">d</span><span>The code is correct</span></li>
+  </ol>
+  <div class="actions"><span class="verdict"></span></div>
+  <div class="expl" hidden>
+    <p><code>P @ v</code> sums over the last axis, which is the next state: shape <code>(S, A)</code>, as needed. A small step does not by itself bound the error: the a posteriori bound turns \(\|v_{n+1} - v_n\| &lt; \delta\) into \(\|v_{n+1} - v^\star\| \le \frac{\gamma}{1-\gamma}\delta\), and with \(\gamma = 0.99\) a step of \(\varepsilon\) can leave you \(99\varepsilon\) away. The threshold \(\varepsilon(1-\gamma)/(2\gamma)\) is chosen so that the greedy policy comes with a certificate, a point often missing from textbook implementations. A sharper test uses the span \(\max_s d(s) - \min_s d(s)\) of \(d = v_{n+1} - v_n\) with threshold \(\varepsilon(1-\gamma)/\gamma\): it ignores uniform shifts and often stops much earlier.</p>
+  </div>
+  <p class="rehearses"><b>Rehearses:</b> reading a value-iteration loop and checking its stopping test and its greedy step.</p>
+</article>
+
+<article class="q" id="q20" data-type="mcq" data-min="2" data-block="E">
+  <div class="q-head"><span class="q-num">Q20</span><span class="tag min">2 min</span></div>
+  <div class="stem">
+    <p>Value iteration on a problem with \(\gamma = 0.9\) produces an iterate with Bellman residual \(\|\mathsf{L}v - v\|_\infty = 0.02\). What can you say about \(\|v - v^\star\|_\infty\)?</p>
+  </div>
+  <ol class="opts">
+    <li><span class="letter">a</span><span>It is at most 0.02</span></li>
+    <li><span class="letter">b</span><span>It is at most \(0.9 \cdot 0.02 = 0.018\)</span></li>
+    <li data-correct><span class="letter">c</span><span>It is at most \(0.02/(1 - 0.9) = 0.2\)</span></li>
+    <li><span class="letter">d</span><span>Nothing, without knowing \(v^\star\)</span></li>
+  </ol>
+  <div class="actions"><span class="verdict"></span></div>
+  <div class="expl" hidden>
+    <p>Triangle inequality and contraction: \(\|v - v^\star\| \le \|v - \mathsf{L}v\| + \|\mathsf{L}v - \mathsf{L}v^\star\| \le 0.02 + 0.9\,\|v - v^\star\|\), so \(\|v - v^\star\| \le 0.02/0.1\). The residual is computable from \(v\) alone, which is what makes it a certificate. The factor \(1/(1-\gamma)\) is also why small residuals are not enough when \(\gamma\) is close to one.</p>
+  </div>
+  <p class="rehearses"><b>Rehearses:</b> turning a computable residual into an error bound.</p>
+</article>
+
+<h2 data-block="F">F. Policy iteration and Newton <small>evaluation, improvement, Newton-Kantorovich</small></h2>
+
+<article class="q" id="q21" data-type="mcq" data-core="1" data-min="2" data-block="F">
+  <div class="q-head"><span class="q-num">Q21</span><span class="tag core">core</span><span class="tag min">2 min</span></div>
+  <div class="stem">
+    <p>Value iteration and policy iteration solve the same equation \(v = \mathsf{L}v\). Which pairing is correct?</p>
+  </div>
+  <ol class="opts">
+    <li data-correct><span class="letter">a</span><span>Value iteration is successive approximation (linear rate, cheap steps); policy iteration is Newton-Kantorovich applied to \(\mathsf{L}v - v = 0\) (few iterations, each one a linear solve with \(\mathbf{I} - \gamma\mathbf{P}_\pi\))</span></li>
+    <li><span class="letter">b</span><span>Both are Newton methods; policy iteration uses a line search</span></li>
+    <li><span class="letter">c</span><span>Policy iteration is successive approximation on the space of policies, with a linear rate</span></li>
+    <li><span class="letter">d</span><span>Value iteration needs the derivative of \(\mathsf{L}\); policy iteration does not</span></li>
+  </ol>
+  <div class="actions"><span class="verdict"></span></div>
+  <div class="expl" hidden>
+    <p>In the fixed-point lab, each method draws a line through \((v, \mathsf{L}v)\) and jumps to where it meets \(y = v\). Slope zero gives successive approximation and value iteration. The slope of \(\mathsf{L}\) gives Newton: where the greedy action is unique, the derivative of \(\mathsf{L}\) at \(v\) is \(\gamma\mathbf{P}_\pi\) for the greedy \(\pi\), and the Newton step solves \((\mathbf{I} - \gamma\mathbf{P}_\pi)v_{\text{new}} = \mathbf{r}_\pi\), which is exactly evaluating the greedy policy. At ties the max is not differentiable, and the semismooth Newton view handles that. Rust's solver used both: cheap successive approximation from anywhere, then Newton near the fixed point.</p>
+  </div>
+  <p class="rehearses"><b>Rehearses:</b> placing value iteration and policy iteration among the general methods for operator equations.</p>
+</article>
+
+<article class="q" id="q22" data-type="mcq" data-core="1" data-min="3" data-block="F">
+  <div class="q-head"><span class="q-num">Q22</span><span class="tag core">core</span><span class="tag min">3 min</span></div>
+  <div class="stem">
+    <p>The proof that policy iteration improves monotonically goes: \(\pi_{n+1}\) is greedy for \(\mathbf{v}^n\), so \(\mathsf{L}_{\pi_{n+1}}\mathbf{v}^n \ge \mathbf{v}^n\), that is \(\mathbf{r}_{\pi_{n+1}} \ge (\mathbf{I} - \gamma\mathbf{P}_{\pi_{n+1}})\mathbf{v}^n\). Which fact lets us conclude \(\mathbf{v}^{n+1} \ge \mathbf{v}^n\)?</p>
+  </div>
+  <ol class="opts">
+    <li><span class="letter">a</span><span>\(\mathbf{I} - \gamma\mathbf{P}_\pi\) is symmetric positive definite</span></li>
+    <li data-correct><span class="letter">b</span><span>\((\mathbf{I} - \gamma\mathbf{P}_{\pi_{n+1}})^{-1} = \sum_t (\gamma\mathbf{P}_{\pi_{n+1}})^t\) has nonnegative entries, so multiplying both sides by it preserves the inequality</span></li>
+    <li><span class="letter">c</span><span>The Bellman operator is a contraction</span></li>
+    <li><span class="letter">d</span><span>The greedy policy is unique</span></li>
+  </ol>
+  <div class="actions"><span class="verdict"></span></div>
+  <div class="expl" hidden>
+    <p>The Neumann series is a sum of products of nonnegative matrices, so the inverse is monotone. The proof never uses greediness in every state: improving one state where \(\mathsf{L}_{\pi_{n+1}}\mathbf{v}^n &gt; \mathbf{v}^n\) is enough to make progress, which is what actor-critic methods exploit. In a finite MDP there are finitely many policies and each strictly improves, so policy iteration stops when a rule repeats (keep \(\pi_n\) on ties to avoid cycling), and the stopping rule is exact: the last policy is optimal, not \(\varepsilon\)-optimal.</p>
+  </div>
+  <p class="rehearses"><b>Rehearses:</b> the policy improvement argument.</p>
+</article>
+
+<article class="q" id="q23" data-type="mcq" data-min="2" data-block="F">
+  <div class="q-head"><span class="q-num">Q23</span><span class="tag min">2 min</span></div>
+  <div class="stem">
+    <p>Modified policy iteration replaces the exact evaluation \((\mathbf{I} - \gamma\mathbf{P}_\pi)^{-1}\mathbf{r}_\pi\) by \(k\) applications of \(\mathsf{L}_\pi\), starting from the current \(\mathbf{v}\). Which statement is correct?</p>
+  </div>
+  <ol class="opts">
+    <li><span class="letter">a</span><span>\(k = 1\) gives policy iteration and \(k = \infty\) gives value iteration</span></li>
+    <li data-correct><span class="letter">b</span><span>\(k = 1\) gives value iteration and \(k = \infty\) gives policy iteration; in between it is Newton's method with an approximate step, trading the \(|\mathcal{S}|^3\) solve for \(k\) matrix-vector products</span></li>
+    <li><span class="letter">c</span><span>It only converges for \(k \ge |\mathcal{S}|\)</span></li>
+    <li><span class="letter">d</span><span>It needs the policy to be stochastic</span></li>
+  </ol>
+  <div class="actions"><span class="verdict"></span></div>
+  <div class="expl" hidden>
+    <p>One application of \(\mathsf{L}_\pi\) with \(\pi\) greedy for \(\mathbf{v}\) is \(\mathsf{L}\mathbf{v}\): a value iteration sweep. Infinitely many is the Neumann series, the exact evaluation. Truncating the series after \(k\) terms keeps each iteration cheap while taking larger steps than value iteration.</p>
+  </div>
+  <p class="rehearses"><b>Rehearses:</b> the continuum between value iteration and policy iteration.</p>
+</article>
+
+<h2 data-block="G">G. Smooth Bellman equations <small>log-sum-exp, Gumbel noise, entropy regularization</small></h2>
+
+<article class="q" id="q24" data-type="mcq" data-core="1" data-min="3" data-block="G">
+  <div class="q-head"><span class="q-num">Q24</span><span class="tag core">core</span><span class="tag min">3 min</span></div>
+  <div class="stem">
+    <p>In some state, two actions have \(q(s, a_1) = 0\) and \(q(s, a_2) = \log 3\), and \(\beta = 1\). The smooth value is \(\frac1\beta\log\sum_a e^{\beta q(s,a)}\) and the policy is the softmax. Which is correct?</p>
+  </div>
+  <ol class="opts">
+    <li data-correct><span class="letter">a</span><span>\(v(s) = \log 4 \approx 1.39\), above the hard max \(\log 3 \approx 1.10\), and \(\pi = (1/4, 3/4)\); as \(\beta \to \infty\) the value tends to \(\log 3\) and the policy to \((0, 1)\)</span></li>
+    <li><span class="letter">b</span><span>\(v(s) = \log 3\) and \(\pi = (0, 1)\) for any \(\beta\)</span></li>
+    <li><span class="letter">c</span><span>\(v(s) = \tfrac12\log 3\), the average, and \(\pi = (1/2, 1/2)\)</span></li>
+    <li><span class="letter">d</span><span>\(v(s) = \log 4\) and \(\pi = (1/3, 2/3)\)</span></li>
+  </ol>
+  <div class="actions"><span class="verdict"></span></div>
+  <div class="expl" hidden>
+    <p>\(e^0 + e^{\log 3} = 4\), and the softmax weights are \(1/4\) and \(3/4\). The log-sum-exp is the smooth counterpart of the max, and the softmax is the smooth counterpart of the argmax (a soft argmax). It always satisfies \(\max_a q \le \frac1\beta\log\sum_a e^{\beta q} \le \max_a q + \frac{\log|\mathcal{A}|}{\beta}\); here \(\log 4 = \log 3 + \log(4/3)\), within the \(\log 2\) slack. As \(\beta \to 0\) the policy becomes uniform.</p>
+  </div>
+  <p class="rehearses"><b>Rehearses:</b> computing a smooth backup and its softmax policy.</p>
+</article>
+
+<article class="q" id="q25" data-type="mcq" data-core="1" data-min="2" data-block="G">
+  <div class="q-head"><span class="q-num">Q25</span><span class="tag core">core</span><span class="tag min">2 min</span></div>
+  <div class="stem">
+    <p>In Rust's construction, each action's reward is perturbed by a shock \(\epsilon(a)\), i.i.d. Gumbel with scale \(1/\beta\) and mean zero, which the agent observes before acting and the modeler does not. The agent acts greedily in the augmented MDP. Which statement is correct?</p>
+  </div>
+  <ol class="opts">
+    <li><span class="letter">a</span><span>The agent's policy is stochastic, because it randomizes to explore</span></li>
+    <li data-correct><span class="letter">b</span><span>The agent is deterministic given \((s, \boldsymbol\epsilon)\); averaged over the shocks, its ex ante value satisfies the smooth Bellman equation, \(\mathbb{E}[\max_a(x_a + \epsilon_a)] = \frac1\beta\log\sum_a e^{\beta x_a}\), and the probability that \(a\) wins the noisy argmax is the softmax</span></li>
+    <li><span class="letter">c</span><span>The same closed form holds for Gaussian shocks</span></li>
+    <li><span class="letter">d</span><span>To use it, one must discretize the shocks and solve the augmented MDP on its larger state space</span></li>
+  </ol>
+  <div class="actions"><span class="verdict"></span></div>
+  <div class="expl" hidden>
+    <p>The augmented MDP is an ordinary MDP on an uncountable state space \((s, \boldsymbol\epsilon)\), solved by the hard Bellman equation. It is only a device: we never discretize \(\boldsymbol\epsilon\). The ex ante value \(v(s) = \mathbb{E}_{\boldsymbol\epsilon}[\tilde v(s, \boldsymbol\epsilon)]\) lives on the original states, and the Gumbel random utility identity gives the log-sum-exp in closed form. The softmax policy is the modeler's view: the chance that action \(a\) wins, \(\mathbb{E}[\mathbb{1}\{a \text{ wins}\}]\). The closed form is specific to the Gumbel distribution; with Gaussian shocks one integrates numerically.</p>
+  </div>
+  <p class="rehearses"><b>Rehearses:</b> the Gumbel route to the smooth Bellman equation.</p>
+</article>
+
+<article class="q" id="q26" data-type="work" data-core="1" data-min="8" data-block="G">
+  <div class="q-head"><span class="q-num">Q26</span><span class="tag core">core</span><span class="tag min">8 min, on paper</span></div>
+  <div class="stem">
+    <p>Entropy regularization on one state with two actions, rewards \(r(a_1) = 1\) and \(r(a_2) = 0\), both returning to the same state, \(\gamma = 0.5\), \(\beta = 1\). The regularizer is the negative entropy \(\Omega(\pi) = \sum_a \pi(a)\log\pi(a)\).</p>
+  </div>
+  <ol class="parts" type="a">
+    <li>Show that \(\max_{p \in [0,1]}\; p\,q_1 + (1-p)\,q_2 - \big[p\log p + (1-p)\log(1-p)\big]\) equals \(\log(e^{q_1} + e^{q_2})\), and that the maximizer is the softmax. (This is \(\Omega^\star\) and \(\nabla\Omega^\star\).)</li>
+    <li>Write the smooth Bellman equation for this problem and solve it for \(v^\star_\beta\).</li>
+    <li>Give the optimal softmax policy. Check that the regularized evaluation \((1-\gamma)v = r_\pi + H(\pi)\) gives the same \(v\).</li>
+    <li>Compare with the unregularized optimum \(v^\star\) and with the bound \(v^\star \le v^\star_\beta \le v^\star + \frac{\log|\mathcal{A}|}{\beta(1-\gamma)}\).</li>
+  </ol>
+  <div class="actions"><button type="button" class="reveal">Show solution</button></div>
+  <div class="sol" hidden>
+    <p>(a) The derivative in \(p\) is \(q_1 - q_2 - \log p + \log(1-p) = 0\), so \(\frac{p}{1-p} = e^{q_1 - q_2}\) and \(p = \frac{e^{q_1}}{e^{q_1} + e^{q_2}}\), the softmax. Substituting \(\log p = q_1 - \log Z\) and \(\log(1-p) = q_2 - \log Z\) with \(Z = e^{q_1} + e^{q_2}\), the objective becomes \(p q_1 + (1-p) q_2 - p(q_1 - \log Z) - (1-p)(q_2 - \log Z) = \log Z\). The objective is strictly concave, so this is the maximum.</p>
+    <p>(b) \(q(a_1) = 1 + 0.5v\), \(q(a_2) = 0.5v\), so \(v = \log(e^{1 + 0.5v} + e^{0.5v}) = 0.5v + \log(1 + e)\), and \(v^\star_\beta = 2\log(1 + e) \approx 2.627\).</p>
+    <p>(c) \(\pi(a_1) = \frac{e}{1+e} \approx 0.731\), \(\pi(a_2) \approx 0.269\). Then \(r_\pi \approx 0.731\), \(H(\pi) \approx 0.582\), and \((r_\pi + H)/(1 - \gamma) \approx 1.313/0.5 \approx 2.627\). This is \((\mathbf{I} - \gamma\mathbf{P}_\pi)\mathbf{v} = \mathbf{r}_\pi - \boldsymbol\Omega_\pi\) with \(-\Omega = H\), and the identity log-sum-exp \(=\) expected \(q\) under the softmax \(+\) entropy.</p>
+    <p>(d) Without regularization, always take \(a_1\): \(v^\star = 1/(1-0.5) = 2\). The bound gives \(2 \le 2.627 \le 2 + \log 2/0.5 \approx 3.386\). The gap is a bias from the temperature, which no number of iterations removes; it shrinks as \(\beta\) grows.</p>
+  </div>
+  <p class="rehearses"><b>Rehearses:</b> the convex conjugate of the negative entropy, and solving a smooth Bellman equation by hand.</p>
+</article>
+
+<article class="q" id="q27" data-type="mcq" data-core="1" data-min="2" data-block="G">
+  <div class="q-head"><span class="q-num">Q27</span><span class="tag core">core</span><span class="tag min">2 min</span></div>
+  <div class="stem">
+    <p>A regularized MDP uses a strongly convex \(\Omega\) on each \(\pi(\cdot\mid s)\). Which statement is correct?</p>
+  </div>
+  <ol class="opts">
+    <li data-correct><span class="letter">a</span><span>The regularized Bellman operator is \(v(s) \mapsto \Omega^\star(q(s,\cdot)) = \max_\pi \langle \pi, q(s,\cdot)\rangle - \Omega(\pi)\); it is still a sup-norm \(\gamma\)-contraction, and the optimal policy is \(\nabla\Omega^\star(q^\star_\Omega(s,\cdot))\), unique and generally stochastic</span></li>
+    <li><span class="letter">b</span><span>Regularization breaks the contraction, so successive approximation may diverge</span></li>
+    <li><span class="letter">c</span><span>Any regularizer gives the log-sum-exp</span></li>
+    <li><span class="letter">d</span><span>The optimal regularized policy is deterministic, as in the hard case</span></li>
+  </ol>
+  <div class="actions"><span class="verdict"></span></div>
+  <div class="expl" hidden>
+    <p>The convex conjugate turns "max over policies of expected \(q\) minus a penalty" into a smooth max, and its gradient is the maximizer. Strong convexity makes that gradient Lipschitz: the policy moves by a bounded amount when \(q\) changes. The negative Shannon entropy gives the log-sum-exp and the softmax; other regularizers give other smooth maxima (a Tsallis entropy gives sparse policies that put zero mass on poor actions). Regularized evaluation solves \((\mathbf{I} - \gamma\mathbf{P}_\pi)\mathbf{v} = \mathbf{r}_\pi - \boldsymbol\Omega_\pi\).</p>
+  </div>
+  <p class="rehearses"><b>Rehearses:</b> the regularized MDP framework and the role of the convex conjugate.</p>
+</article>
+
+<article class="q" id="q28" data-type="mcq" data-min="2" data-block="G">
+  <div class="q-head"><span class="q-num">Q28</span><span class="tag min">2 min</span></div>
+  <div class="stem">
+    <p>Smooth policy iteration alternates the entropy-regularized evaluation of a softmax policy with a softmax improvement. Which statement is correct?</p>
+  </div>
+  <ol class="opts">
+    <li><span class="letter">a</span><span>Like policy iteration, it stops after finitely many iterations when a policy repeats</span></li>
+    <li data-correct><span class="letter">b</span><span>It is the Newton-Kantorovich method on \(v - \mathsf{L}_\beta v = 0\): the derivative of \(\mathsf{L}_\beta\) is \(\gamma\mathbf{P}_{\pi_v}\) for the softmax policy \(\pi_v\), so each Newton step is a linear solve with \(\mathbf{I} - \gamma\mathbf{P}_{\pi_v}\); the iterates approach the optimum without reaching it, so it stops on a residual tolerance</span></li>
+    <li><span class="letter">c</span><span>It needs the semismooth machinery because the log-sum-exp has kinks</span></li>
+    <li><span class="letter">d</span><span>The evaluation step solves \((\mathbf{I} - \gamma\mathbf{P}_\pi)\mathbf{v} = \mathbf{r}_\pi\) with no entropy term</span></li>
+  </ol>
+  <div class="actions"><span class="verdict"></span></div>
+  <div class="expl" hidden>
+    <p>The derivative of the log-sum-exp is the softmax, so \(\mathsf{L}_\beta\) is differentiable everywhere and the classical Newton theory applies, with no ties to worry about. Softmax policies form a continuum, so there is no finite termination; the stopping test uses the Bellman residual \(\|\mathsf{L}_\beta v - v\|_\infty &lt; \varepsilon(1-\gamma)\), which certifies the current policy. A test on the change of the policy would certify nothing. The evaluation includes the entropy bonus \(\mathbf{H}_\pi/\beta\) on the right-hand side.</p>
+  </div>
+  <p class="rehearses"><b>Rehearses:</b> smooth policy iteration as Newton's method.</p>
+</article>
+
+<article class="q" id="q29" data-type="mcq" data-min="3" data-block="G">
+  <div class="q-head"><span class="q-num">Q29</span><span class="tag min">3 min</span></div>
+  <div class="stem">
+    <p>Rust estimates a reward parameter \(\theta\) by maximum likelihood on observed bus-engine decisions: \(\theta \mapsto r_\theta \mapsto v^\star_\theta\) (the fixed point of the smooth Bellman operator) \(\mapsto\) softmax policy \(\mapsto\) log-likelihood. To get the gradient of \(v^\star_\theta\) with respect to \(\theta\), he writes \(F(v, \theta) = \mathsf{L}_{\beta,\theta}v - v = 0\). Which is correct?</p>
+  </div>
+  <ol class="opts">
+    <li><span class="letter">a</span><span>Unroll 1000 sweeps of smooth value iteration and backpropagate through all of them; this is the only exact option</span></li>
+    <li data-correct><span class="letter">b</span><span>By the implicit function theorem, \(\partial v^\star/\partial\theta = -\left(\partial F/\partial v\right)^{-1}\partial F/\partial\theta = (\mathbf{I} - \gamma\mathbf{P}_{\pi})^{-1}\,\partial\mathsf{L}_{\beta,\theta}/\partial\theta\), evaluated at the fixed point, so each gradient step needs a full solve first</span></li>
+    <li><span class="letter">c</span><span>The formula holds at any \(v\), converged or not</span></li>
+    <li><span class="letter">d</span><span>The recovered \(\theta\) is guaranteed to be the true reward</span></li>
+  </ol>
+  <div class="actions"><span class="verdict"></span></div>
+  <div class="expl" hidden>
+    <p>Here \(\partial F/\partial v = \gamma\mathbf{P}_\pi - \mathbf{I}\) with \(\pi\) the softmax policy, the same matrix as in a smooth policy iteration step. The implicit function theorem holds at the solution of \(F = 0\), so the outer loop on \(\theta\) wraps an inner fixed-point solve: a bilevel problem. Smoothness is what makes the likelihood differentiable at all. Inverse RL is many-to-one: several rewards explain the same behavior, so the estimate need not be the true reward without extra structure.</p>
+  </div>
+  <p class="rehearses"><b>Rehearses:</b> implicit differentiation through a Bellman fixed point (inverse RL).</p>
+</article>
+
+
+</div>
+
+<div class="deck" role="toolbar" aria-label="Presenter controls">
+  <span class="where" id="deck-where"></span>
+  <span class="block-name" id="deck-block"></span>
+  <span class="spacer"></span>
+  <button type="button" id="deck-prev">← Prev</button>
+  <button type="button" id="deck-reveal" class="primary">Reveal (R)</button>
+  <button type="button" id="deck-next">Next →</button>
+  <button type="button" id="deck-exit">Exit (Esc)</button>
+</div>
+
+<script>
+(function () {
+  const allQs = Array.from(document.querySelectorAll('.q'));
+  const blockNames = {};
+  document.querySelectorAll('h2[data-block]').forEach(h => {
+    blockNames[h.dataset.block] = h.childNodes[0].textContent.trim();
+  });
+  const STORE = 'ift6162-midterm2-practice-v1';
+  let state = {};
+  try { state = JSON.parse(localStorage.getItem(STORE) || '{}') || {}; } catch (e) { state = {}; }
+  function save() { try { localStorage.setItem(STORE, JSON.stringify(state)); } catch (e) {} }
+
+  function reveal(q, pickedIndex) {
+    q.classList.add('revealed');
+    const expl = q.querySelector('.expl, .sol');
+    if (expl) expl.hidden = false;
+    const btn = q.querySelector('button.reveal');
+    if (btn) btn.hidden = true;
+    const v = q.querySelector('.verdict');
+    if (v && q.dataset.type === 'mcq') {
+      const opts = q.querySelectorAll('.opts li');
+      if (pickedIndex == null) { v.textContent = ''; }
+      else if (opts[pickedIndex].hasAttribute('data-correct')) { v.textContent = 'Correct.'; v.className = 'verdict ok'; }
+      else { v.textContent = 'Not this one. See why below.'; v.className = 'verdict no'; }
+    }
+  }
+  function applyState(q) {
+    const s = state[q.id];
+    if (!s) return;
+    if (s.picked != null) {
+      const opts = q.querySelectorAll('.opts li');
+      if (opts[s.picked]) opts[s.picked].classList.add('picked');
+    }
+    if (s.revealed) reveal(q, s.picked);
+  }
+  function updateProgress() {
+    const done = allQs.filter(q => state[q.id] && state[q.id].revealed).length;
+    const el = document.getElementById('progress');
+    if (el) el.textContent = done + ' / ' + allQs.length + ' revealed';
+  }
+
+  allQs.forEach(q => {
+    q.querySelectorAll('.opts li').forEach((li, i) => {
+      li.addEventListener('click', () => {
+        if (q.classList.contains('revealed')) return;
+        q.querySelectorAll('.opts li').forEach(o => o.classList.remove('picked'));
+        li.classList.add('picked');
+        state[q.id] = { picked: i, revealed: true };
+        save();
+        reveal(q, i);
+        updateProgress();
+      });
+    });
+    const btn = q.querySelector('button.reveal');
+    if (btn) btn.addEventListener('click', () => {
+      state[q.id] = { revealed: true };
+      save();
+      reveal(q, null);
+      updateProgress();
+    });
+    applyState(q);
+  });
+  updateProgress();
+
+  document.getElementById('btn-reset').addEventListener('click', () => {
+    state = {}; save();
+    allQs.forEach(q => {
+      q.classList.remove('revealed');
+      q.querySelectorAll('.opts li').forEach(o => o.classList.remove('picked'));
+      const expl = q.querySelector('.expl, .sol'); if (expl) expl.hidden = true;
+      const btn = q.querySelector('button.reveal'); if (btn) btn.hidden = false;
+      const v = q.querySelector('.verdict'); if (v) { v.textContent = ''; v.className = 'verdict'; }
+    });
+    updateProgress();
+  });
+
+  // Core-only filter (study mode and presenter order).
+  let coreOnly = false;
+  const coreBtn = document.getElementById('btn-core');
+  function activeQs() { return coreOnly ? allQs.filter(q => q.dataset.core) : allQs; }
+  function applyCoreFilter() {
+    allQs.forEach(q => { q.hidden = coreOnly && !q.dataset.core; });
+    coreBtn.textContent = 'Core only: ' + (coreOnly ? 'on' : 'off');
+  }
+  coreBtn.addEventListener('click', () => { coreOnly = !coreOnly; applyCoreFilter(); });
+
+  // Presenter mode: one question at a time, independent of the study-mode answers.
+  let presenting = false, cur = 0;
+  const body = document.body;
+  function show(i) {
+    const qs = activeQs();
+    cur = Math.max(0, Math.min(qs.length - 1, i));
+    allQs.forEach(q => q.classList.remove('current'));
+    const q = qs[cur];
+    q.classList.add('current'); q.hidden = false;
+    document.getElementById('deck-where').textContent = (cur + 1) + ' / ' + qs.length + '  ·  ' + q.dataset.min + ' min' + (q.dataset.core ? '  ·  core' : '');
+    document.getElementById('deck-block').textContent = blockNames[q.dataset.block] || '';
+    q.scrollTop = 0;
+    try { history.replaceState(null, '', '#' + q.id); } catch (e) {}
+  }
+  function currentQ() { return activeQs()[cur]; }
+  function presenterReveal() {
+    const q = currentQ();
+    q.classList.add('revealed');
+    const expl = q.querySelector('.expl, .sol'); if (expl) expl.hidden = false;
+  }
+  function presenterHide(q) {
+    if (!q) return;
+    if (state[q.id] && state[q.id].revealed) return; // keep the student's own reveal
+    q.classList.remove('revealed');
+    const expl = q.querySelector('.expl, .sol'); if (expl) expl.hidden = true;
+  }
+  function enter(i) {
+    presenting = true; body.classList.add('presenter');
+    show(i == null ? 0 : i);
+    try { document.documentElement.requestFullscreen && document.documentElement.requestFullscreen().catch(() => {}); } catch (e) {}
+  }
+  function exit() {
+    presenting = false; body.classList.remove('presenter');
+    allQs.forEach(q => { q.classList.remove('current'); presenterHide(q); });
+    applyCoreFilter();
+    try { document.fullscreenElement && document.exitFullscreen(); } catch (e) {}
+  }
+  document.getElementById('btn-presenter').addEventListener('click', () => enter(0));
+  document.getElementById('deck-prev').addEventListener('click', () => { presenterHide(currentQ()); show(cur - 1); });
+  document.getElementById('deck-next').addEventListener('click', () => { presenterHide(currentQ()); show(cur + 1); });
+  document.getElementById('deck-reveal').addEventListener('click', presenterReveal);
+  document.getElementById('deck-exit').addEventListener('click', exit);
+  document.addEventListener('keydown', e => {
+    if (!presenting) return;
+    if (e.key === 'ArrowRight' || e.key === 'PageDown') { presenterHide(currentQ()); show(cur + 1); e.preventDefault(); }
+    else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { presenterHide(currentQ()); show(cur - 1); e.preventDefault(); }
+    else if (e.key === 'r' || e.key === 'R' || e.key === ' ') { presenterReveal(); e.preventDefault(); }
+    else if (e.key === 'Escape') { exit(); }
+  });
+
+  // Deep link: #q7 jumps to that card in study mode.
+  const m = /^#(q\d+)$/.exec(location.hash || '');
+  if (m) { const t = document.getElementById(m[1]); if (t) t.scrollIntoView(); }
+})();
+</script>
+</body>
+</html>
