@@ -5,8 +5,149 @@
   "fr": "Automne 2026"
  },
  "folder_url": "https://drive.google.com/drive/folders/1iwN-j6IJP9l8EOkXrcxy4DpWRNcTixr8",
- "updated": "2026-11-09",
+ "updated": "2026-11-16",
  "lectures": [
+  {
+   "date": "2026-11-16",
+   "week": 11,
+   "title": {
+    "en": "Midterm 2 announcements; entropy regularization as a reward penalty and the KL step behind soft actor-critic; approximate dynamic programming: the Bellman residual, collocation, Galerkin and least squares; TD and LSTD as projection methods; fitted value methods",
+    "fr": "Annonces sur l'intra 2 ; la régularisation entropique comme pénalité sur la récompense et l'étape de KL derrière soft actor-critic ; programmation dynamique approximative : le résidu de Bellman, collocation, Galerkin et moindres carrés ; TD et LSTD comme méthodes de projection ; méthodes de valeur ajustée"
+   },
+   "chapters": [
+    {
+     "slug": "regularized-dp",
+     "title": "Entropy-Regularized Dynamic Programming"
+    },
+    {
+     "slug": "weighted-residual-methods",
+     "title": "Parametric Value Functions"
+    },
+    {
+     "slug": "fitted-q-iteration",
+     "title": "Learning from Logged and Online Data"
+    }
+   ],
+   "drive": "https://drive.google.com/file/d//view",
+   "duration_ms": 6242676,
+   "thumb": "2026-11-16.jpg",
+   "paragraphs": 113,
+   "cleaned": true,
+   "tldr": [
+    {
+     "notion": {
+      "en": "Three routes to the smooth Bellman equation",
+      "fr": "Trois chemins vers l'équation de Bellman lisse"
+     },
+     "p": 4,
+     "exam": true
+    },
+    {
+     "notion": {
+      "en": "Entropy as a reward penalty",
+      "fr": "L'entropie comme pénalité sur la récompense"
+     },
+     "p": 9,
+     "exam": true
+    },
+    {
+     "notion": {
+      "en": "Same objective, different estimators",
+      "fr": "Même objectif, estimateurs différents"
+     },
+     "p": 13,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "The softmax policy in closed form",
+      "fr": "La politique softmax sous forme fermée"
+     },
+     "p": 16,
+     "exam": true
+    },
+    {
+     "notion": {
+      "en": "The KL identity behind soft actor-critic",
+      "fr": "L'identité de KL derrière soft actor-critic"
+     },
+     "p": 18,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "What makes it learning",
+      "fr": "Ce qui en fait de l'apprentissage"
+     },
+     "p": 21,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "The Bellman residual and test functions",
+      "fr": "Le résidu de Bellman et les fonctions test"
+     },
+     "p": 38,
+     "exam": true
+    },
+    {
+     "notion": {
+      "en": "Collocation, Galerkin, least squares",
+      "fr": "Collocation, Galerkin, moindres carrés"
+     },
+     "p": 48,
+     "exam": true
+    },
+    {
+     "notion": {
+      "en": "DQN does not minimize the Bellman residual",
+      "fr": "DQN ne minimise pas le résidu de Bellman"
+     },
+     "p": 61,
+     "exam": true
+    },
+    {
+     "notion": {
+      "en": "Collocation is repeated interpolation",
+      "fr": "La collocation est une interpolation répétée"
+     },
+     "p": 73,
+     "exam": true
+    },
+    {
+     "notion": {
+      "en": "Galerkin is projection, fitted at every step",
+      "fr": "Galerkin est une projection, ajustée à chaque étape"
+     },
+     "p": 90,
+     "exam": true
+    },
+    {
+     "notion": {
+      "en": "TD and LSTD are Galerkin methods",
+      "fr": "TD et LSTD sont des méthodes de Galerkin"
+     },
+     "p": 94,
+     "exam": true
+    },
+    {
+     "notion": {
+      "en": "Contraction depends on the norm",
+      "fr": "La contraction dépend de la norme"
+     },
+     "p": 102,
+     "exam": true
+    },
+    {
+     "notion": {
+      "en": "Fitted value methods",
+      "fr": "Méthodes de valeur ajustée"
+     },
+     "p": 106,
+     "exam": true
+    }
+   ]
+  },
   {
    "date": "2026-11-09",
    "week": 10,

@@ -206,6 +206,18 @@
         "regularized-dp"
       ],
       "redact": []
+    },
+    "2026-11-16": {
+      "title": {
+        "en": "Midterm 2 announcements; entropy regularization as a reward penalty and the KL step behind soft actor-critic; approximate dynamic programming: the Bellman residual, collocation, Galerkin and least squares; TD and LSTD as projection methods; fitted value methods",
+        "fr": "Annonces sur l'intra 2 ; la régularisation entropique comme pénalité sur la récompense et l'étape de KL derrière soft actor-critic ; programmation dynamique approximative : le résidu de Bellman, collocation, Galerkin et moindres carrés ; TD et LSTD comme méthodes de projection ; méthodes de valeur ajustée"
+      },
+      "chapters": [
+        "regularized-dp",
+        "weighted-residual-methods",
+        "fitted-q-iteration"
+      ],
+      "redact": []
     }
   },
   "corrections": {
