@@ -708,7 +708,9 @@ $$
 \mathbb{E}_\pi \left[ \sum_{t=0}^\infty \gamma^t \big( r(s_t, a_t) - \alpha \log \pi(a_t|s_t) \big) \right].
 $$
 
-La régularisation par l'entropie revient donc à payer $-\alpha\log\pi(a|s)$ pour prendre l'action $a$, un coût élevé pour les actions que la politique prend rarement. C'est la forme qu'estiment les méthodes fondées sur des échantillons comme *soft actor-critic*, puisqu'elle ne demande que la probabilité de l'action effectivement prise. Dans le PDM augmenté de la section {ref}`sec-gumbel-side-by-side`, la même quantité est le choc espéré sur l'action choisie.
+La régularisation par l'entropie revient donc à payer $-\alpha\log\pi(a|s)$ pour prendre l'action $a$, un coût élevé pour les actions que la politique prend rarement. C'est la forme qu'estiment les méthodes fondées sur des échantillons comme *soft actor-critic*, puisqu'elle ne demande que la probabilité de l'action effectivement prise. Contrairement aux chocs de Gumbel du modèle de Rust, il s'agit d'une transformation déterministe de la récompense. Dans le PDM augmenté de la section {ref}`sec-gumbel-side-by-side`, la même quantité est le choc espéré sur l'action choisie.
+
+Les deux formes sont égales en espérance mais donnent des estimateurs différents. La première calcule exactement l'entropie de $\pi(\cdot|s_t)$ en chaque état visité, une somme ou une intégrale sur toutes les actions. La seconde n'évalue $-\alpha\log\pi(a_t|s_t)$ qu'en l'action tirée. Elle est sans biais et moins coûteuse, mais plus bruitée, parce que l'aléa de $a_t$ entre désormais dans la pénalité autant que dans la récompense. Remplacer une quantité tirée par son espérance conditionnelle sachant l'état est une technique de réduction de variance que la littérature de simulation appelle Monte-Carlo conditionnel.
 
 L'équation d'optimalité de Bellman de ce problème maximise, dans chaque état, sur la distribution $\pi(\cdot|s)$ :
 
@@ -717,7 +719,7 @@ v(s) = \max_{\pi(\cdot|s) \in \Delta(\mathcal{A}_s)} \sum_a \pi(a|s) \big( q(s,a
 \qquad q(s,a) = r(s,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a)\, v(j).
 $$
 
-Le problème intérieur est la conjuguée convexe de l'entropie négative pondérée, que nous avons calculée dans « Retrouver les équations de Bellman lisses ». Une vérification directe est aussi rapide, et elle montre d'où vient la politique softmax. Soit $\pi_q$ la politique softmax de $q$ à la température $\alpha$,
+Le problème intérieur est la conjuguée convexe de l'entropie négative pondérée, que nous avons calculée dans « Retrouver les équations de Bellman lisses ». Cette lecture est venue plus tard. En apprentissage par renforcement, vers 2017 {cite}`haarnoja2017reinforcement,Nachum2017,Schulman2017equivalence`, le maximiseur a été trouvé à la main : maximiser $\sum_a \pi(a|s)\big(q(s,a) - \alpha\log\pi(a|s)\big)$ sous la contrainte $\sum_a \pi(a|s) = 1$ avec un multiplicateur de Lagrange $\lambda$. Annuler la dérivée par rapport à $\pi(a|s)$ donne $q(s,a) - \alpha\log\pi(a|s) - \alpha - \lambda = 0$, donc $\pi(a|s) \propto \exp(q(s,a)/\alpha)$, et la normalisation donne la politique softmax et la valeur log-sum-exp. Le cadre des PDM régularisés {cite}`Geist2019` donne le même résultat sans calcul dès que l'on connaît la conjuguée de l'entropie. Une vérification directe est aussi rapide, et elle montre d'où vient la politique softmax. Soit $\pi_q$ la politique softmax de $q$ à la température $\alpha$,
 
 $$
 \pi_q(a|s) = \frac{\exp\big(q(s,a)/\alpha\big)}{\sum_{a'} \exp\big(q(s,a')/\alpha\big)},
@@ -748,6 +750,8 @@ $$
 $$
 
 Seul le terme KL dépend de $\pi$ : maximiser le membre de gauche en $\pi$ revient donc à rendre la divergence KL aussi petite que possible. Or la divergence KL n'est jamais négative : par l'inégalité de Jensen appliquée à la fonction concave $\log$, $-\mathrm{KL} = \sum_a \pi(a|s) \log \frac{\pi_q(a|s)}{\pi(a|s)} \le \log \sum_{a:\,\pi(a|s)>0} \pi_q(a|s) \le \log 1 = 0$. Les deux inégalités ne sont des égalités que si $\pi = \pi_q$. Le maximum est donc atteint par la politique softmax $\pi_q$, et sa valeur est $\alpha \log\sum_a \exp(q(s,a)/\alpha) = \frac{1}{\beta}\log\sum_a \exp(\beta q(s,a))$, le membre de droite de l'équation de Bellman lisse. La fonction de valeur qui résout l'équation de Bellman lisse est donc la valeur optimale du PDM régularisé par l'entropie, et la politique softmax en est la politique optimale. Les deux descriptions ne diffèrent que par la façon de présenter le problème : comme un lissage de l'opérateur de Bellman, ou comme un compromis entre la récompense et l'entropie de la politique. Les algorithmes d'apprentissage par renforcement à entropie maximale comme *soft actor-critic* utilisent les deux : l'opérateur lisse pour sa différentiabilité, et l'objectif régularisé pour expliquer pourquoi la politique doit rester stochastique.
+
+La forme KL est aussi ce qui permet à *soft actor-critic* {cite}`haarnoja2018soft` de traiter des actions continues. Sur un ensemble d'actions continu, $\pi_q$ a une constante de normalisation incalculable, mais cette constante ne dépend pas de $\pi$ : minimiser $\mathrm{KL}(\pi \,\|\, \pi_q)$ sur une famille commode, des politiques gaussiennes par exemple, ne demande que $q$ et des tirages de $\pi$. C'est de l'inférence variationnelle, le procédé qui sert à entraîner les autoencodeurs variationnels : on ajuste une loi simple à une loi que l'on ne sait évaluer qu'à une constante près.
 
 (sec-continuous-actions)=
 ## Espaces d'actions et d'états continus

@@ -119,6 +119,22 @@ politique ajustée, et le remplacer par l'opérateur lisse $\mathrm{L}_\beta$ de
 {ref}`sec-regularized-operators` donne l'itération sur les valeurs lisse
 ajustée.
 
+L'algorithme est formé de deux boucles imbriquées. La boucle extérieure est
+l'approximation successive : elle calcule les cibles de Bellman à partir de
+la fonction courante et les tient fixes. La boucle intérieure est une
+optimisation : elle ajuste la fonction à ces cibles, sous forme fermée pour
+une base linéaire, en construisant des arbres pour un ensemble d'arbres, ou
+par des pas de gradient pour un réseau de neurones. Nous appelons **méthode
+de valeur ajustée** tout algorithme de cette structure. {cite:t}`Gordon1995`
+a donné la première analyse de sa convergence. L'itération Q ajustée de
+{cite:t}`ernst2005tree` en est un cas, avec des arbres extrêmement aléatoires
+comme ajustement et des valeurs d'action au lieu de valeurs d'état; NFQ
+{cite}`riedmiller2005neural` en est un autre, avec un réseau de neurones. Les
+algorithmes des chapitres suivants diffèrent surtout par le nombre de pas de
+la boucle intérieure exécutés avant de recalculer les cibles : DQN en exécute
+un nombre fixe de pas de gradient, la période de son réseau cible, et c'est
+ce choix, non un principe nouveau, qui le sépare de NFQ.
+
 Les deux ajustements du chapitre précédent marquent les extrémités d'une
 gamme. La collocation calcule des cibles en exactement $n$ états, autant qu'il
 y a de fonctions de base, et les interpole : $\Proj$ est l'opérateur
@@ -904,7 +920,15 @@ $$ (eq:lstd-galerkin)
 C'est la solution **LSTD (différence temporelle par moindres carrés)** de
 {cite:t}`BradtkeBarto1996`, un système linéaire $n\times n$
 $\mathbf{A}\theta = \mathbf{b}$, et le pendant de Galerkin du pas de
-collocation {eq}`eq:collocation-newton`. L'algorithme pratique ne forme jamais
+collocation {eq}`eq:collocation-newton`. L'apprentissage par différence
+temporelle avec des caractéristiques linéaires, TD(0), converge vers le même
+point fixe {cite}`TsitsiklisVanRoy1997` : TD et LSTD sont donc deux solveurs
+d'une même équation de Galerkin, le premier par approximation stochastique,
+le second en résolvant le système linéaire. Ni l'un ni l'autre n'a été conçu
+ainsi; leur lecture comme équations projetées est due à Bertsekas
+{cite}`BertsekasTsitsiklis1996,Bertsekas2011`, et la méthode de Galerkin
+elle-même est d'usage courant en économie numérique {cite}`ndp`.
+L'algorithme pratique ne forme jamais
 explicitement $\boldsymbol\Phi$ sur tous les états ni $\mathbf{P}_\pi$. Il
 accumule
 $\mathbf{A} = \mathbb{E}_{s \sim \xi}[\boldsymbol{\varphi}(s)(\boldsymbol{\varphi}(s) - \gamma \boldsymbol{\varphi}(s'))^\top]$

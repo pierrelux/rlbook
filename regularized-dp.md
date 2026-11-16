@@ -706,7 +706,9 @@ $$
 \mathbb{E}_\pi \left[ \sum_{t=0}^\infty \gamma^t \big( r(s_t, a_t) - \alpha \log \pi(a_t|s_t) \big) \right].
 $$
 
-Entropy regularization therefore amounts to paying $-\alpha\log\pi(a|s)$ for taking action $a$, a cost that is high for actions the policy rarely takes. This is the form that sample-based methods such as soft actor-critic estimate, since it only needs the probability of the action that was taken. In the augmented MDP of {ref}`sec-gumbel-side-by-side`, the same quantity is the expected shock on the chosen action.
+Entropy regularization therefore amounts to paying $-\alpha\log\pi(a|s)$ for taking action $a$, a cost that is high for actions the policy rarely takes. Unlike the Gumbel shocks of Rust's model, this is a deterministic transformation of the reward. This is the form that sample-based methods such as soft actor-critic estimate, since it only needs the probability of the action that was taken.
+
+The two forms are equal in expectation but give different estimators. The first computes the entropy of $\pi(\cdot|s_t)$ exactly at every visited state, a sum or an integral over all actions. The second evaluates $-\alpha\log\pi(a_t|s_t)$ only at the sampled action. It is unbiased and cheaper, but noisier, because the randomness of $a_t$ now enters the penalty as well as the reward. Replacing a sampled quantity by its conditional expectation given the state is a variance reduction technique known in the simulation literature as conditional Monte Carlo. In the augmented MDP of {ref}`sec-gumbel-side-by-side`, the same quantity is the expected shock on the chosen action.
 
 The Bellman optimality equation of this problem maximizes, in each state, over the distribution $\pi(\cdot|s)$:
 
@@ -715,7 +717,7 @@ v(s) = \max_{\pi(\cdot|s) \in \Delta(\mathcal{A}_s)} \sum_a \pi(a|s) \big( q(s,a
 \qquad q(s,a) = r(s,a) + \gamma \sum_{j \in \mathcal{S}} p(j|s,a)\, v(j).
 $$
 
-The inner problem is the convex conjugate of the scaled negative entropy, which we computed in "Recovering the Smooth Bellman Equations". A direct check is also short, and it shows where the softmax policy comes from. Let $\pi_q$ be the softmax policy of $q$ at temperature $\alpha$,
+The inner problem is the convex conjugate of the scaled negative entropy, which we computed in "Recovering the Smooth Bellman Equations". That reading came later. In reinforcement learning, around 2017 {cite}`haarnoja2017reinforcement,Nachum2017,Schulman2017equivalence`, the maximizer was found by hand: maximize $\sum_a \pi(a|s)\big(q(s,a) - \alpha\log\pi(a|s)\big)$ subject to $\sum_a \pi(a|s) = 1$ with a Lagrange multiplier $\lambda$. Setting the derivative with respect to $\pi(a|s)$ to zero gives $q(s,a) - \alpha\log\pi(a|s) - \alpha - \lambda = 0$, so $\pi(a|s) \propto \exp(q(s,a)/\alpha)$, and normalizing gives the softmax policy and the log-sum-exp value. The framework of regularized MDPs {cite}`Geist2019` gives the same result without computation once the conjugate of the entropy is known. A direct check is also short, and it shows where the softmax policy comes from. Let $\pi_q$ be the softmax policy of $q$ at temperature $\alpha$,
 
 $$
 \pi_q(a|s) = \frac{\exp\big(q(s,a)/\alpha\big)}{\sum_{a'} \exp\big(q(s,a')/\alpha\big)},
@@ -746,6 +748,8 @@ $$
 $$
 
 Only the KL term depends on $\pi$, so maximizing the left side over $\pi$ is the same as making the KL divergence as small as possible. The KL divergence is never negative: by Jensen's inequality applied to the concave $\log$, $-\mathrm{KL} = \sum_a \pi(a|s) \log \frac{\pi_q(a|s)}{\pi(a|s)} \le \log \sum_{a:\,\pi(a|s)>0} \pi_q(a|s) \le \log 1 = 0$. Both inequalities are equalities only when $\pi = \pi_q$. The maximum is therefore attained by the softmax policy $\pi_q$, and its value is $\alpha \log\sum_a \exp(q(s,a)/\alpha) = \frac{1}{\beta}\log\sum_a \exp(\beta q(s,a))$, the right-hand side of the smooth Bellman equation. So the value function that solves the smooth Bellman equation is the optimal value of the entropy-regularized MDP, and the softmax policy is its optimal policy. The two descriptions differ only in how they present the problem: as smoothing the Bellman operator, or as trading off reward against policy entropy. Maximum entropy RL algorithms such as soft actor-critic use both, the smooth operator for its differentiability and the regularized objective to explain why the policy should stay stochastic.
+
+The KL form is also what makes soft actor-critic {cite}`haarnoja2018soft` work with continuous actions. Over a continuous action set, $\pi_q$ has an intractable normalizing constant, but that constant does not depend on $\pi$, so minimizing $\mathrm{KL}(\pi \,\|\, \pi_q)$ over a tractable family, Gaussian policies for instance, needs only $q$ and samples from $\pi$. This is variational inference, the same device used to train variational autoencoders: a simple distribution is fitted to one that can be evaluated only up to a constant.
 
 (sec-continuous-actions)=
 ## Continuous Action and State Spaces

@@ -109,6 +109,20 @@ $\BellmanPi$ gives fitted policy evaluation, and replacing it by the smooth
 operator $\mathrm{L}_\beta$ of {ref}`sec-regularized-operators` gives fitted
 smooth value iteration.
 
+The algorithm is two nested loops. The outer loop is successive
+approximation: it computes Bellman targets from the current function and
+holds them fixed. The inner loop is an optimization: it fits the function to
+those targets, in closed form for a linear basis, by building trees for a
+tree ensemble, or by gradient steps for a neural network. We call every
+algorithm with this structure a **fitted value method**.
+{cite:t}`Gordon1995` gave the first analysis of when it converges. The
+fitted Q-iteration of {cite:t}`ernst2005tree` is one instance, with
+extremely randomized trees as the fit and action values in place of state
+values; NFQ {cite}`riedmiller2005neural` is another, with a neural network.
+The algorithms of the coming chapters differ mainly in how far the inner loop
+is run before the targets are recomputed: DQN runs it for a fixed number of
+gradient steps, the period of its target network, and that choice, not a new principle, is what separates it from NFQ.
+
 The two fits of the previous chapter mark the ends of a range. Collocation
 computes targets at exactly $n$ states, as many as there are basis functions,
 and interpolates them: $\Proj$ is the interpolation operator, and with
@@ -845,7 +859,14 @@ $$ (eq:lstd-galerkin)
 This is the **LSTD (least-squares temporal difference)** solution of
 {cite:t}`BradtkeBarto1996`, an $n\times n$ linear system
 $\mathbf{A}\theta = \mathbf{b}$, and the Galerkin counterpart of the
-collocation step {eq}`eq:collocation-newton`. The practical algorithm never
+collocation step {eq}`eq:collocation-newton`. Temporal-difference learning
+with linear features, TD(0), converges to the same fixed point
+{cite}`TsitsiklisVanRoy1997`, so TD and LSTD are two solvers of one Galerkin
+equation, the first by stochastic approximation and the second by solving the
+linear system. Neither was designed that way; the reading as projected
+equations is due to Bertsekas {cite}`BertsekasTsitsiklis1996,Bertsekas2011`,
+and the Galerkin method itself is standard in computational economics
+{cite}`ndp`. The practical algorithm never
 forms $\boldsymbol\Phi$ over all states or $\mathbf{P}_\pi$ explicitly. It
 accumulates $\mathbf{A} = \mathbb{E}_{s \sim \xi}[\boldsymbol{\varphi}(s)(\boldsymbol{\varphi}(s) - \gamma \boldsymbol{\varphi}(s'))^\top]$
 and $\mathbf{b} = \mathbb{E}_{s \sim \xi}[\boldsymbol{\varphi}(s) r]$ from

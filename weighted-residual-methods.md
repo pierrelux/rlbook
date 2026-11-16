@@ -181,20 +181,25 @@ elsewhere.
 
 Now suppose we may store only $n$ numbers. Two choices are natural.
 
-- A Chebyshev polynomial, $\hat v(x; \theta) = \sum_{j=0}^{n-1} \theta_j T_j(2x/1.6 - 1)$.
-  The basis is smooth and global: every coefficient changes the value at every
-  stock.
-- Piecewise-linear interpolation on $n$ uniform nodes, the hat functions of the
-  finite-horizon chapter. Each coefficient is the value at one node, and it
-  changes the value only between the two neighboring nodes.
+- A Chebyshev polynomial, $v(x; \theta) = \sum_{j=1}^{n} \theta_j \varphi_j(x)$
+  with $\varphi_j(x) = T_{j-1}(2x/1.6 - 1)$. The basis is smooth and global:
+  every coefficient changes the value at every stock.
+- Piecewise-linear interpolation on $n$ uniform nodes,
+  $v(x;\theta) = \sum_{j=1}^{n} \theta_j \varphi_j(x)$ with $\varphi_j$ the
+  hat functions of the finite-horizon chapter. Each coefficient is the value at
+  one node, and it changes the value only between the two neighboring nodes.
 
-Neither can satisfy the Bellman equation at every stock. The residual
+Neither can satisfy the Bellman equation at every stock. Write
+$v_\theta = v(\cdot;\theta)$ for the whole function. The residual
 
 $$
-R(x; \theta) = (\Bellman \hat v)(x) - \hat v(x; \theta)
+R(x; \theta) = (\Bellman v_\theta)(x) - v(x; \theta)
 $$
 
-measures by how much it fails at $x$. Collocation picks $n$ points
+measures by how much it fails at $x$. Both terms depend on $\theta$: the
+operator is applied to the function $v_\theta$, and the result is evaluated at
+$x$. The state is written $x$ in this example because $s$ is the escapement;
+the general sections below write it $s$. Collocation picks $n$ points
 $x_1, \ldots, x_n$ and asks the residual to vanish at them:
 
 $$
@@ -204,7 +209,7 @@ $$
 We use the Chebyshev nodes for the polynomial and the interpolation nodes for
 the hat functions, and we solve the $n$ nonlinear equations by function
 iteration. Each iteration computes the Bellman backup at the nodes with the
-current $\hat v$, then chooses the $\theta$ that reproduces those targets at
+current $v_\theta$, then chooses the $\theta$ that reproduces those targets at
 the nodes. {numref}`fig-fishery-collocation` shows both approximations with
 $n = 12$.
 
@@ -292,7 +297,15 @@ state space, and its error decreases exponentially in $n$ when the function
 is smooth. A local basis, such as the hat functions of piecewise-linear
 interpolation, splines with small support, or radial basis functions, lets
 each coefficient act near one node, and its error decreases at a rate set by
-the node spacing, whatever the smoothness of the function.
+the node spacing, whatever the smoothness of the function. Tile coding, the
+linear representation that {cite:t}`Sutton1996` and much of early
+reinforcement learning relied on, is a local basis of this kind: several
+overlapping grids partition the state space, each cell is a binary feature,
+and $v(s;\theta)$ is the sum of the weights of the cells that contain $s$.
+Linear representations were the norm in reinforcement learning until neural
+networks took over in the 2010s, and they remain the setting where the theory
+is complete. To match a deep network, though, a linear model may need a very
+large number of features.
 
 ::::{admonition} The fishery at Step 1
 :class: note
@@ -441,6 +454,19 @@ $$ (eq:projected-bellman)
 The approximate solution is a fixed point of the Bellman operator followed by
 a projection, which is the form that Step 4 exploits.
 
+Read the right-hand side as a composition of maps on functions, not as a
+product of matrices. $\Bellman v_\theta$ is the operator applied to the
+function $v_\theta$, which gives a new function, and $\Proj\,\Bellman v_\theta$
+is that function passed through the interpolation procedure, which gives an
+element of the span. With parentheses, $\Proj\big(\Bellman(v_\theta)\big)$.
+In code, $\Proj$ is a call such as an interpolation routine: it receives the
+values of $\Bellman v_\theta$ at the nodes and returns the coefficients of the
+interpolant. The composed map $\Proj\Bellman$ is a new operator, and
+{eq}`eq:projected-bellman` is a new Bellman-type equation whose solution is
+the approximation. Texts on approximate dynamic programming, following
+{cite:t}`BertsekasTsitsiklis1996`, often write the projection $\Pi$; it is not
+a policy.
+
 ::::{admonition} The fishery at Step 3
 :class: note
 
@@ -469,7 +495,13 @@ keeps $(v_1, v_2, 0)$, and the error $(0, 0, v_3)$ is orthogonal to the plane.
 With $\Proj$ now the $w$-orthogonal projection onto $\mathcal{V}$, the
 Galerkin conditions read again $v_\theta = \Proj\,\Bellman v_\theta$, the
 projected Bellman equation {eq}`eq:projected-bellman` with a different
-$\Proj$.
+$\Proj$. Orthogonality here is with respect to the weighted inner product
+$\langle \cdot, \cdot \rangle_w$. When $w$ is not uniform, the same map seen
+in the unweighted Euclidean geometry is an oblique projection; it is
+orthogonal only after rescaling each state by $\sqrt{w(s)}$. In reinforcement
+learning $w$ is the distribution of the states in the data, and the
+[next chapter](approximate-bellman-equations.md#sec-abe-convergence) shows
+that this choice decides whether the iteration converges.
 
 The conditions are integrals over the state space, so Galerkin needs a
 quadrature rule for them on top of the quadrature inside $\Bellman$. With an
@@ -506,6 +538,23 @@ residual is made orthogonal to a different set of functions, and it is not a
 projected Bellman equation. The [next chapter](approximate-bellman-equations.md)
 returns to the difference between fitting a backup and minimizing the
 residual, which separates the algorithms used in practice from this one.
+
+That difference is often blurred. DQN and the other fitted value methods are
+frequently described as minimizing the Bellman error, and they do not: they
+fit $v_\theta$ to targets computed from the previous iterate and held fixed
+(a stop-gradient on the target), which is Galerkin or collocation solved by
+iteration, not least squares on the residual. Bellman residual minimization
+is the residual-gradient algorithm of {cite:t}`Baird1995`, which mainstream
+reinforcement learning did not adopt, in part because an unbiased gradient
+of the squared residual needs two independent samples of the successor state
+from the same state, which a single online trajectory does not provide. The
+best known method of this kind today is path consistency learning
+{cite}`Nachum2017`. It minimizes the squared residual of the smooth Bellman
+equation of the [entropy-regularized chapter](regularized-dp.md), written
+along a path of several steps, and it assumes deterministic dynamics, which
+removes the double-sampling problem. The trajectory balance objective used to
+train generative flow networks is a consistency condition of the same kind
+{cite}`Malkin2022,Tiapkin2024`.
 
 ```{admonition} Why testing against functions is enough
 :class: dropdown
@@ -575,7 +624,12 @@ then recomputing the backups, is the algorithm that the
 [next chapter](approximate-bellman-equations.md) calls fitted value iteration
 and generalizes to any regressor.
 
-Whether the iteration converges is a separate question. The Bellman operator
+Whether the iteration converges is a separate question. Being a contraction
+is a property of an operator with respect to a norm: an operator that
+contracts in the sup norm need not contract in a weighted $L^2$ norm, and
+conversely. The composed operator $\Proj\Bellman$ therefore inherits the
+contraction of $\Bellman$ only if $\Proj$ does not expand distances in the
+same norm. The Bellman operator
 is a $\gamma$-contraction in the sup norm, so value iteration converges from
 any start ({prf:ref}`value-iteration-convergence`). If $\Proj$ does not
 increase sup-norm distances, then neither does the composition, and
