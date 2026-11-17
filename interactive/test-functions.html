@@ -225,7 +225,10 @@ function project(R, P) {
 
 /* ------------------------------------------------------------------ canvas helpers */
 function setup(canvas) {
-  const dpr = window.devicePixelRatio || 1, w = canvas.clientWidth, h = +canvas.getAttribute("height");
+  // the drawing height is kept in data-h: setting canvas.height rewrites the height attribute,
+  // so reading the attribute back would grow the canvas by the pixel ratio on every redraw
+  if (!canvas.dataset.h) canvas.dataset.h = canvas.getAttribute("height");
+  const dpr = window.devicePixelRatio || 1, w = canvas.clientWidth, h = +canvas.dataset.h;
   if (canvas.width !== Math.round(w * dpr) || canvas.height !== Math.round(h * dpr)) {
     canvas.width = Math.round(w * dpr); canvas.height = Math.round(h * dpr); canvas.style.height = h + "px";
   }
@@ -384,7 +387,7 @@ let drawing = false, lastPt = null;
 function canvasPoint(ev, canvas) { const r = canvas.getBoundingClientRect(); return [ev.clientX - r.left, ev.clientY - r.top]; }
 function paint(ev) {
   if (!rGeom) return;
-  const [px, py] = canvasPoint(ev, rCanvas), f = rGeom, w = rCanvas.clientWidth, h = +rCanvas.getAttribute("height");
+  const [px, py] = canvasPoint(ev, rCanvas), f = rGeom, w = rCanvas.clientWidth, h = +rCanvas.dataset.h;
   const s = Math.min(1, Math.max(0, (px - f.padL) / (w - f.padL - f.padR)));
   const y = Math.max(-1.05, Math.min(1.05, 1.1 - (py - f.padT) / (h - f.padT - f.padB) * 2.2));
   const k1 = Math.round(s * (M - 1));
