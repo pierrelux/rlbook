@@ -375,47 +375,64 @@ trace cette fonction pour les deux ajustements avec $n = 12$.
 (sec-wr-conditions)=
 ### Étape 3 : imposer $n$ conditions au résidu
 
-Le résidu est une fonction et $\theta$ a $n$ composantes; la condition
-$R(\cdot;\theta) = 0$ doit donc être remplacée par $n$ conditions scalaires.
-Les choix possibles viennent de la manière dont on peut vérifier qu'une
-fonction est nulle. Un vecteur $\mathbf{r} \in \mathbb{R}^m$ est nul si et
+Le résidu est une fonction de l'état, et $\theta$ n'a que $n$ composantes.
+L'équation $R(\cdot;\theta) = 0$ demande une condition en chaque état; il faut
+donc la remplacer par $n$ conditions scalaires. Pour les choisir, demandons
+d'abord comment on vérifie qu'un objet est nul, en commençant par un vecteur.
+
+Prenons $\mathbf{r} = (r_1, r_2, r_3) \in \mathbb{R}^3$. Le produit scalaire
+avec le vecteur de base $\mathbf{e}_i$ lit une coordonnée,
+$\langle \mathbf{r}, \mathbf{e}_i \rangle = r_i$; les trois tests contre
+$\mathbf{e}_1, \mathbf{e}_2, \mathbf{e}_3$ ne donnent donc tous zéro que si
+$\mathbf{r} = 0$. D'autres vecteurs test conviennent aussi, pourvu qu'ensemble
+ils atteignent toutes les directions. En général, $\mathbf{r}$ est nul si et
 seulement si $\langle \mathbf{r}, \mathbf{y} \rangle = 0$ pour tout
-$\mathbf{y}$, puisque $\mathbf{y} = \mathbf{r}$ donne $\|\mathbf{r}\|^2$. Il en
-va de même pour les fonctions avec le produit scalaire pondéré
+$\mathbf{y}$, et le seul test $\mathbf{y} = \mathbf{r}$ tranche la question,
+puisqu'il donne $\|\mathbf{r}\|^2$. Gardons maintenant seulement les deux
+tests $\mathbf{e}_1$ et $\mathbf{e}_2$. Le vecteur $\mathbf{r} = (0, 0, 5)$
+les passe tous les deux et n'est pas nul. Deux tests vérifient $\mathbf{r}$
+dans deux directions, celles du plan engendré par $\mathbf{e}_1$ et
+$\mathbf{e}_2$, et ne disent rien de la composante de $\mathbf{r}$
+orthogonale à ce plan. Passer les deux tests signifie que la composante de
+$\mathbf{r}$ dans le plan est nulle.
+
+Une fonction de l'état se comporte comme un vecteur qui aurait une coordonnée
+par état, et la somme du produit scalaire devient une intégrale. Avec un poids
+$w > 0$ sur les états, le produit scalaire pondéré de deux fonctions est
 
 $$
-\langle R, p \rangle_w = \int_{\mathcal{S}} R(s)\, p(s)\, w(s)\, ds,
+\langle R, p \rangle_w = \int_{\mathcal{S}} R(s)\, p(s)\, w(s)\, ds .
 $$
 
-où $w > 0$ est un poids sur les états : $R$ est la fonction nulle si et
-seulement si $\langle R, p \rangle_w = 0$ pour toute **fonction test** $p$.
-Tester contre toutes les fonctions $p$ est aussi impossible que tester en
-chaque état, mais tester contre $n$ fonctions test choisies $p_1, \ldots, p_n$
-donne exactement $n$ équations,
+L'argument donné pour les vecteurs s'applique encore : $R$ est la fonction
+nulle si et seulement si $\langle R, p \rangle_w = 0$ pour toute
+**fonction test** $p$, et le test $p = R$ donne $\|R\|_w^2$. Les vecteurs de
+base ont eux aussi un équivalent. Une masse ponctuelle en un état $s$ lit la
+valeur $R(s)$, comme $\mathbf{e}_i$ lit $r_i$. Une fonction a une infinité de
+directions, et aucun ensemble fini de tests ne peut toutes les vérifier.
+Tester contre $n$ fonctions test choisies $p_1, \ldots, p_n$ donne exactement
+les $n$ équations dont cette étape a besoin,
 
 $$
-\langle R(\cdot;\theta), p_i \rangle_w = 0, \qquad i = 1, \ldots, n.
+\langle R(\cdot;\theta), p_i \rangle_w = 0, \qquad i = 1, \ldots, n,
 $$ (eq:weighted-residual-conditions)
 
-Une méthode est définie par ses fonctions test, et trois choix de fonctions
-test couvrent presque toutes les méthodes en usage.
+et le prix à payer est celui des deux tests dans $\mathbb{R}^3$. Ces équations
+annulent le résidu dans les $n$ directions des tests et le laissent libre dans
+toutes les autres. Le résidu de la solution n'est en général pas la fonction
+nulle. C'est une fonction dans laquelle les $n$ tests ne détectent rien.
 
-| **Méthode** | **Fonctions test** $p_i$ | **Conditions** ($n$ équations) |
-|:-----------|:--------------------------|:-------------------------------|
-| Collocation | Masses ponctuelles en des états choisis $s_1, \ldots, s_n$ | $R(s_i; \theta) = 0$ |
-| Galerkin | Les fonctions de base $\varphi_i$ | $\langle R(\cdot;\theta), \varphi_i \rangle_w = 0$ |
-| Moindres carrés | Les dérivées $\partial R / \partial \theta_i$ du résidu | $\langle R(\cdot;\theta), \partial R/\partial\theta_i \rangle_w = 0$ |
-
-La {numref}`fig-test-functions` rend ce test concret. Son premier onglet
-trace un résidu, un ensemble de fonctions test et les produits scalaires sous
-forme de barres. Un résidu non nul rend une barre non nulle dès qu'il y a assez
-de tests, et toutes les barres sont nulles quand le résidu l'est. Avec
-seulement $n$ tests, un résidu peut les passer tous sans être nul : les tests
-voient le résidu dans $n$ directions, et un résidu sans composante dans ces
-directions leur échappe. Le bouton qui cache le résidu aux tests retire cette
-composante, et ce qui reste passe les $n$ tests. Les $n$ conditions de
-{eq}`eq:weighted-residual-conditions` annulent le résidu dans ces $n$
-directions seulement, et le choix des directions est le choix de la méthode.
+La {numref}`fig-test-functions` applique ces tests à des fonctions. Dans son
+premier onglet, chaque barre est le produit scalaire d'un résidu avec une
+fonction test, et choisir une barre ombre le produit $R\,p_i$, dont l'aire
+est la valeur de cette barre. Le bouton qui cache le résidu aux tests retranche
+une fonction qui donne les mêmes valeurs de test que le résidu : la projection
+orthogonale sur l'espace engendré par les tests pour les fonctions chapeau et
+les polynômes, et l'interpolant affine par morceaux aux nœuds pour les masses
+ponctuelles. Une fois le bouton pressé, toutes les barres sont nulles et le
+résidu reste visiblement non nul, comme $(0, 0, 5)$ face à $\mathbf{e}_1$ et
+$\mathbf{e}_2$. *Avec des polynômes comme fonctions test, cachez le résidu et
+prédisez quelles barres changent lorsque $n$ augmente de un.*
 
 :::{iframe} ../interactive/test-functions.html
 :label: fig-test-functions
@@ -423,39 +440,26 @@ directions seulement, et le choix des directions est le choix de la méthode.
 :title: Tester un résidu
 :class: test-functions-replay
 
-Tester si une fonction est nulle. Premier onglet : un résidu $R$, choisi ou
-dessiné, testé contre $n$ masses ponctuelles, fonctions chapeau ou polynômes ;
-chaque barre est un test, et l'aire ombrée est le produit $R\,p_i$ dont
-l'intégrale donne la barre choisie. Second onglet : une même équation
-d'évaluation de politique résolue par collocation, par Galerkin et par
-moindres carrés avec la même base ; chaque solution annule ses propres $n$
-tests et laisse non nulles les deux autres familles.
+Tester un résidu par des produits scalaires. Premier onglet : un résidu $R$,
+pris parmi les exemples ou dessiné au pointeur, est testé contre $n$ masses
+ponctuelles, fonctions chapeau ou polynômes. Chaque barre est un test, et
+l'aire ombrée sous le produit $R\,p_i$ est égale à la barre choisie. Second
+onglet : une même équation d'évaluation de politique est résolue par
+collocation, par Galerkin et par moindres carrés avec la même base. Chaque
+solution annule ses propres $n$ tests, et les tests des deux autres méthodes
+ne donnent pas zéro.
 :::
 
-Le second onglet résout une même équation de Bellman de trois façons, avec la
-même base et le même $n$, et teste chaque solution contre les trois familles.
-Le code ci-dessous calcule le même tableau pour six fonctions chapeau : chaque
-méthode annule sa propre colonne, et aucune n'annule les autres. Galerkin et
-les moindres carrés sont presque d'accord sur ce problème, et tous deux
-laissent un résidu d'environ $0.29$ en l'un des points de collocation. Les
-trois solutions sont trois fonctions différentes, chacune exacte dans ses
-propres directions.
+Comme les $n$ équations ne contrôlent le résidu que dans les directions des
+tests, l'approximation qu'elles produisent dépend du choix des fonctions test,
+et une méthode est définie par ce choix. Trois choix couvrent presque toutes
+les méthodes en usage.
 
-```{code-cell} python
-:tags: [hide-input]
-
-import sys
-from pathlib import Path
-
-sys.path.insert(0, str(Path.cwd() / "code"))
-from test_functions_demo import table
-
-rows = table(kind="hat", n=6)
-families = ("collocation", "galerkin", "least squares")
-print(f"{'solution':<15}" + "".join(f"{f:>15}" for f in families) + f"{'sup |v - v_pi|':>16}")
-for method, row in rows.items():
-    print(f"{method:<15}" + "".join(f"{row[f]:>15.4f}" for f in families) + f"{row['value error (sup)']:>16.3f}")
-```
+| **Méthode** | **Fonctions test** $p_i$ | **Conditions** ($n$ équations) |
+|:-----------|:--------------------------|:-------------------------------|
+| Collocation | Masses ponctuelles en des états choisis $s_1, \ldots, s_n$ | $R(s_i; \theta) = 0$ |
+| Galerkin | Les fonctions de base $\varphi_i$ | $\langle R(\cdot;\theta), \varphi_i \rangle_w = 0$ |
+| Moindres carrés | Les dérivées $\partial R / \partial \theta_i$ du résidu | $\langle R(\cdot;\theta), \partial R/\partial\theta_i \rangle_w = 0$ |
 
 #### Collocation : un résidu nul en des états choisis
 
@@ -549,6 +553,8 @@ les nœuds de Tchebychev pour le polynôme, et les nœuds d'interpolation pour l
 fonctions chapeau. Le panneau (b) de la {numref}`fig-fishery-collocation`
 montre les résidus des deux ajustements : nuls aux douze nœuds de chaque base,
 et d'environ $0.2$ à leurs pics entre les nœuds, pour les deux bases.
+Chaque ajustement passe ses douze tests, et le résidu entre les nœuds est la
+partie que les masses ponctuelles ne peuvent pas détecter.
 ::::
 
 #### Galerkin : un résidu orthogonal à la base
@@ -565,9 +571,11 @@ $$
 
 ce qui est la propriété qui définit une projection orthogonale : la composante
 de $\Bellman v_\theta$ qui se trouve dans $\mathcal{V}$ est $v_\theta$
-lui-même. Pour approcher un vecteur de $\mathbb{R}^3$ par un vecteur du plan
-$xy$, on garde $(v_1, v_2, 0)$, et l'erreur $(0, 0, v_3)$ est orthogonale au
-plan. Avec $\Proj$ désignant maintenant la projection $w$-orthogonale sur
+lui-même. L'exemple de vecteur du début de cette étape a la même structure.
+Pour approcher un vecteur de $\mathbb{R}^3$ par un vecteur du plan engendré
+par $\mathbf{e}_1$ et $\mathbf{e}_2$, on garde $(v_1, v_2, 0)$, et l'erreur
+$(0, 0, v_3)$ est orthogonale au plan; les tests $\mathbf{e}_1$ et
+$\mathbf{e}_2$ n'y détectent donc rien. Avec $\Proj$ désignant maintenant la projection $w$-orthogonale sur
 $\mathcal{V}$, les conditions de Galerkin s'écrivent de nouveau
 $v_\theta = \Proj\,\Bellman v_\theta$, l'équation de Bellman projetée
 {eq}`eq:projected-bellman` avec un autre $\Proj$. L'orthogonalité s'entend
@@ -636,6 +644,48 @@ long d'un chemin de plusieurs pas, et suppose une dynamique déterministe, ce
 qui supprime le problème du double tirage. L'objectif d'équilibre des
 trajectoires qui sert à entraîner les réseaux de flots génératifs est une
 condition de cohérence du même type {cite}`Malkin2022,Tiapkin2024`.
+
+Les trois méthodes calculent trois approximations différentes à partir de la
+même base, parce que chacune annule le résidu dans des directions différentes.
+Le second onglet de la {numref}`fig-test-functions` le montre sur un petit
+problème d'évaluation de politique sur $\mathcal{S} = [0, 1]$. L'état suivant
+est $s' = 0.8\sqrt{s} + 0.2u$, où $u$ vaut $0$, $1/2$ ou $1$ avec les
+probabilités $1/4$, $1/2$ et $1/4$. La récompense passe continûment de $0$ à
+$1$ autour de $s = 0.7$, et $\gamma = 0.9$. La politique est fixée;
+l'opérateur est donc $\BellmanPi$ et ne contient aucun maximum. Le résidu est
+alors affine en $\theta$, et chaque ensemble de conditions est un système
+linéaire en $\theta$. Le code ci-dessous résout les trois systèmes avec six
+fonctions chapeau et un poids $w$ uniforme, puis teste chaque solution contre
+les trois familles de fonctions test.
+
+```{code-cell} python
+:tags: [hide-input]
+
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path.cwd() / "code"))
+from test_functions_demo import table
+
+rows = table(kind="hat", n=6)
+families = ("collocation", "galerkin", "least squares")
+print("Largest |test value| of each solution, against each family of tests")
+print(f"{'solution':<15}" + "".join(f"{f:>15}" for f in families) + f"{'sup |v - v_pi|':>16}")
+for method, row in rows.items():
+    print(f"{method:<15}" + "".join(f"{row[f]:>15.4f}" for f in families) + f"{row['value error (sup)']:>16.3f}")
+```
+
+Chaque ligne a un zéro dans sa propre colonne, comme l'exigent les conditions
+de sa méthode, et aucune ligne n'a de zéro ailleurs. Les solutions de Galerkin
+et des moindres carrés sont proches l'une de l'autre sur ce problème. Toutes
+deux laissent un résidu d'environ $0.29$ en l'un des points de collocation, ce
+que les conditions de collocation interdisent. Aucune des trois solutions ne
+satisfait l'équation de Bellman, et aucune ne satisfait les conditions des
+deux autres méthodes. Choisir entre elles revient à choisir les directions
+dans lesquelles le résidu doit s'annuler. En apprentissage par renforcement,
+les conditions de Galerkin, avec les états pondérés par les données, sont les
+équations que résolvent TD(0) et LSTD, comme le montre le
+[chapitre suivant](approximate-bellman-equations.md#sec-abe-lstd).
 
 ```{admonition} Pourquoi tester contre des fonctions suffit
 :class: dropdown

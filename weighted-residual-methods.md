@@ -355,47 +355,64 @@ plots this function for the two fits with $n = 12$.
 (sec-wr-conditions)=
 ### Step 3: Impose $n$ Conditions on the Residual
 
-The residual is a function and $\theta$ has $n$ components, so the condition
-$R(\cdot;\theta) = 0$ must be replaced by $n$ scalar conditions. The choices
-come from how a function can be tested for being zero. A vector
-$\mathbf{r} \in \mathbb{R}^m$ is zero if and only if
-$\langle \mathbf{r}, \mathbf{y} \rangle = 0$ for every $\mathbf{y}$, since
-$\mathbf{y} = \mathbf{r}$ gives $\|\mathbf{r}\|^2$. The same holds for
-functions with the weighted inner product
+The residual is a function of the state, and $\theta$ has only $n$
+components. The equation $R(\cdot;\theta) = 0$ asks for one condition at every
+state, so it has to be replaced by $n$ scalar conditions. To choose them, we
+first ask how one checks that an object is zero, starting with a vector.
+
+Take $\mathbf{r} = (r_1, r_2, r_3) \in \mathbb{R}^3$. The inner product with
+the coordinate vector $\mathbf{e}_i$ reads off one coordinate,
+$\langle \mathbf{r}, \mathbf{e}_i \rangle = r_i$, so the three tests against
+$\mathbf{e}_1, \mathbf{e}_2, \mathbf{e}_3$ all return zero only when
+$\mathbf{r} = 0$. Other test vectors work as well, as long as together they
+reach every direction. In general, $\mathbf{r}$ is zero if and only if
+$\langle \mathbf{r}, \mathbf{y} \rangle = 0$ for every $\mathbf{y}$, and the
+single test $\mathbf{y} = \mathbf{r}$ settles the question, because it
+returns $\|\mathbf{r}\|^2$. Now keep only the two tests $\mathbf{e}_1$ and
+$\mathbf{e}_2$. The vector $\mathbf{r} = (0, 0, 5)$ passes both of them and
+is not zero. Two tests check $\mathbf{r}$ in two directions, those of the
+plane spanned by $\mathbf{e}_1$ and $\mathbf{e}_2$, and they say nothing
+about the component of $\mathbf{r}$ orthogonal to that plane. Passing both
+tests means that the component of $\mathbf{r}$ in the plane is zero.
+
+A function of the state behaves like a vector with one coordinate for each
+state, and the sum in the inner product becomes an integral. With a weight
+$w > 0$ over the states, the weighted inner product of two functions is
 
 $$
-\langle R, p \rangle_w = \int_{\mathcal{S}} R(s)\, p(s)\, w(s)\, ds,
+\langle R, p \rangle_w = \int_{\mathcal{S}} R(s)\, p(s)\, w(s)\, ds .
 $$
 
-where $w > 0$ is a weight over states: $R$ is the zero function if and only
-if $\langle R, p \rangle_w = 0$ for every **test function** $p$. Testing
-against every $p$ is as impossible as testing at every state, but testing
-against $n$ chosen test functions $p_1, \ldots, p_n$ gives exactly $n$
-equations,
+The argument for vectors carries over: $R$ is the zero function if and only
+if $\langle R, p \rangle_w = 0$ for every **test function** $p$, and the test
+$p = R$ returns $\|R\|_w^2$. The coordinate vectors have a counterpart as
+well. A point mass at a state $s$ reads off the value $R(s)$, as
+$\mathbf{e}_i$ reads off $r_i$. A function has infinitely many directions,
+and no finite set of tests can check them all. Testing against $n$ chosen
+test functions $p_1, \ldots, p_n$ gives exactly the $n$ equations that this
+step needs,
 
 $$
-\langle R(\cdot;\theta), p_i \rangle_w = 0, \qquad i = 1, \ldots, n.
+\langle R(\cdot;\theta), p_i \rangle_w = 0, \qquad i = 1, \ldots, n,
 $$ (eq:weighted-residual-conditions)
 
-A method is defined by its test functions, and three choices of test
-functions cover almost every method in use.
+and the price is the one paid with two tests in $\mathbb{R}^3$. The equations
+make the residual vanish in the $n$ directions of the tests and leave it
+free in every other direction. The residual of the solution is in general
+not the zero function. It is a function in which the $n$ tests detect
+nothing.
 
-| **Method** | **Test functions** $p_i$ | **Conditions** ($n$ equations) |
-|:-----------|:--------------------------|:-------------------------------|
-| Collocation | Point masses at chosen states $s_1, \ldots, s_n$ | $R(s_i; \theta) = 0$ |
-| Galerkin | The basis functions $\varphi_i$ | $\langle R(\cdot;\theta), \varphi_i \rangle_w = 0$ |
-| Least squares | The derivatives $\partial R / \partial \theta_i$ of the residual | $\langle R(\cdot;\theta), \partial R/\partial\theta_i \rangle_w = 0$ |
-
-{numref}`fig-test-functions` makes the test concrete. Its first tab plots a
-residual, a set of test functions and the inner products as bars. A nonzero
-residual makes some bar nonzero once there are enough tests, and the bars
-are all zero when the residual is. With only $n$ tests, a residual can pass
-every one of them and still be nonzero: the tests see the residual in $n$
-directions, and a residual with no component in those directions goes
-unseen. The button that hides the residual from the tests removes that
-component, and what remains passes all $n$ tests. The $n$ conditions of
-{eq}`eq:weighted-residual-conditions` force the residual to zero in those $n$
-directions only, and the choice of directions is the choice of method.
+{numref}`fig-test-functions` runs these tests on functions. In its first tab,
+each bar is the inner product of a residual with one test function, and
+selecting a bar shades the product $R\,p_i$, whose area is the value of that
+bar. The button that hides the residual from the tests subtracts a function
+that returns the same test values as the residual: the orthogonal projection
+onto the span of the tests for hat functions and polynomials, and the
+piecewise-linear interpolant through the nodes for point masses. After it is
+pressed, every bar is zero and the residual is still visibly nonzero, like
+$(0, 0, 5)$ against $\mathbf{e}_1$ and $\mathbf{e}_2$. *With polynomial
+tests, hide the residual and predict which bars change when $n$ increases by
+one.*
 
 :::{iframe} ../interactive/test-functions.html
 :label: fig-test-functions
@@ -403,37 +420,25 @@ directions only, and the choice of directions is the choice of method.
 :title: Testing a residual
 :class: test-functions-replay
 
-Testing a function for being zero. First tab: a residual $R$, chosen or drawn,
-tested against $n$ point masses, hat functions or polynomials; each bar is one
-test, and the shaded area is the product $R\,p_i$ whose integral is the
-selected bar. Second tab: one policy-evaluation equation solved by
-collocation, Galerkin and least squares with the same basis; each solution
-makes its own $n$ tests zero and leaves the other two families nonzero.
+Testing a residual with inner products. First tab: a residual $R$, taken from
+the presets or drawn with the pointer, is tested against $n$ point masses,
+hat functions or polynomials. Each bar is one test, and the shaded area under
+the product $R\,p_i$ equals the selected bar. Second tab: one
+policy-evaluation equation is solved by collocation, Galerkin and least
+squares with the same basis. Each solution makes its own $n$ tests return
+zero, and the tests of the other two methods do not.
 :::
 
-The second tab solves one Bellman equation three ways, with the same basis
-and the same $n$, and tests each solution against all three families. The
-code below computes the same table for six hat functions: each method makes
-its own column zero, and none makes the others zero. Galerkin and least
-squares nearly agree on this problem, and both leave a residual of about $0.29$
-at some collocation point. The three solutions are three different functions,
-each exact in its own directions.
+Since the $n$ equations control the residual only in the directions of the
+tests, the approximation that they produce depends on the choice of test
+functions, and a method is defined by that choice. Three choices cover almost
+every method in use.
 
-```{code-cell} python
-:tags: [hide-input]
-
-import sys
-from pathlib import Path
-
-sys.path.insert(0, str(Path.cwd() / "code"))
-from test_functions_demo import table
-
-rows = table(kind="hat", n=6)
-families = ("collocation", "galerkin", "least squares")
-print(f"{'solution':<15}" + "".join(f"{f:>15}" for f in families) + f"{'sup |v - v_pi|':>16}")
-for method, row in rows.items():
-    print(f"{method:<15}" + "".join(f"{row[f]:>15.4f}" for f in families) + f"{row['value error (sup)']:>16.3f}")
-```
+| **Method** | **Test functions** $p_i$ | **Conditions** ($n$ equations) |
+|:-----------|:--------------------------|:-------------------------------|
+| Collocation | Point masses at chosen states $s_1, \ldots, s_n$ | $R(s_i; \theta) = 0$ |
+| Galerkin | The basis functions $\varphi_i$ | $\langle R(\cdot;\theta), \varphi_i \rangle_w = 0$ |
+| Least squares | The derivatives $\partial R / \partial \theta_i$ of the residual | $\langle R(\cdot;\theta), \partial R/\partial\theta_i \rangle_w = 0$ |
 
 #### Collocation: a Zero Residual at Chosen States
 
@@ -523,7 +528,9 @@ The fishery used collocation, with the two standard choices of nodes: the
 Chebyshev nodes for the polynomial, and the interpolation nodes for the hat
 functions. Panel (b) of {numref}`fig-fishery-collocation` shows the residuals
 of the two fits: zero at the twelve nodes of each basis, and about $0.2$ at
-their peaks between the nodes, for both bases.
+their peaks between the nodes, for both bases. Each fit passes its twelve
+tests, and the residual between the nodes is the part that point masses
+cannot detect.
 ::::
 
 #### Galerkin: a Residual Orthogonal to the Basis
@@ -538,9 +545,12 @@ $$
 $$
 
 which is the defining property of an orthogonal projection: the component of
-$\Bellman v_\theta$ that lies in $\mathcal{V}$ is $v_\theta$ itself. To
-approximate a vector of $\mathbb{R}^3$ by a vector in the $xy$-plane, one
-keeps $(v_1, v_2, 0)$, and the error $(0, 0, v_3)$ is orthogonal to the plane.
+$\Bellman v_\theta$ that lies in $\mathcal{V}$ is $v_\theta$ itself. The
+vector example at the start of this step has the same structure. To
+approximate a vector of $\mathbb{R}^3$ by a vector in the plane spanned by
+$\mathbf{e}_1$ and $\mathbf{e}_2$, one keeps $(v_1, v_2, 0)$, and the error
+$(0, 0, v_3)$ is orthogonal to the plane, so the tests $\mathbf{e}_1$ and
+$\mathbf{e}_2$ detect nothing in it.
 With $\Proj$ now the $w$-orthogonal projection onto $\mathcal{V}$, the
 Galerkin conditions read again $v_\theta = \Proj\,\Bellman v_\theta$, the
 projected Bellman equation {eq}`eq:projected-bellman` with a different
@@ -604,6 +614,47 @@ along a path of several steps, and it assumes deterministic dynamics, which
 removes the double-sampling problem. The trajectory balance objective used to
 train generative flow networks is a consistency condition of the same kind
 {cite}`Malkin2022,Tiapkin2024`.
+
+The three methods compute three different approximations from the same
+basis, because each one makes the residual vanish in different directions.
+The second tab of {numref}`fig-test-functions` shows this on a small
+policy-evaluation problem on $\mathcal{S} = [0, 1]$. The next state is
+$s' = 0.8\sqrt{s} + 0.2u$, where $u$ equals $0$, $1/2$ or $1$ with
+probabilities $1/4$, $1/2$ and $1/4$. The reward rises smoothly from $0$ to
+$1$ around $s = 0.7$, and $\gamma = 0.9$. The policy is fixed, so the
+operator is $\BellmanPi$ and contains no maximum. The residual is then affine
+in $\theta$, and each set of conditions is a linear system in $\theta$. The
+code below solves the three systems with six hat functions and a uniform
+weight $w$, and then tests each solution against all three families of test
+functions.
+
+```{code-cell} python
+:tags: [hide-input]
+
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path.cwd() / "code"))
+from test_functions_demo import table
+
+rows = table(kind="hat", n=6)
+families = ("collocation", "galerkin", "least squares")
+print("Largest |test value| of each solution, against each family of tests")
+print(f"{'solution':<15}" + "".join(f"{f:>15}" for f in families) + f"{'sup |v - v_pi|':>16}")
+for method, row in rows.items():
+    print(f"{method:<15}" + "".join(f"{row[f]:>15.4f}" for f in families) + f"{row['value error (sup)']:>16.3f}")
+```
+
+Each row has a zero in its own column, as the conditions of that method
+require, and no row has a zero anywhere else. The Galerkin and least-squares
+solutions are close to each other on this problem. Both leave a residual of
+about $0.29$ at one of the collocation points, which is what the
+collocation conditions rule out. None of the three solutions satisfies the
+Bellman equation, and none satisfies the conditions of the other two
+methods. The choice between them is a choice of the directions in which the
+residual must vanish. In reinforcement learning, the Galerkin conditions with
+the states weighted by the data are the equations that TD(0) and LSTD solve,
+as the [next chapter](approximate-bellman-equations.md#sec-abe-lstd) shows.
 
 ```{admonition} Why testing against functions is enough
 :class: dropdown
