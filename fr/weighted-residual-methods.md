@@ -406,6 +406,57 @@ test couvrent presque toutes les méthodes en usage.
 | Galerkin | Les fonctions de base $\varphi_i$ | $\langle R(\cdot;\theta), \varphi_i \rangle_w = 0$ |
 | Moindres carrés | Les dérivées $\partial R / \partial \theta_i$ du résidu | $\langle R(\cdot;\theta), \partial R/\partial\theta_i \rangle_w = 0$ |
 
+La {numref}`fig-test-functions` rend ce test concret. Son premier onglet
+trace un résidu, un ensemble de fonctions test et les produits scalaires sous
+forme de barres. Un résidu non nul rend une barre non nulle dès qu'il y a assez
+de tests, et toutes les barres sont nulles quand le résidu l'est. Avec
+seulement $n$ tests, un résidu peut les passer tous sans être nul : les tests
+voient le résidu dans $n$ directions, et un résidu sans composante dans ces
+directions leur échappe. Le bouton qui cache le résidu aux tests retire cette
+composante, et ce qui reste passe les $n$ tests. Les $n$ conditions de
+{eq}`eq:weighted-residual-conditions` annulent le résidu dans ces $n$
+directions seulement, et le choix des directions est le choix de la méthode.
+
+:::{iframe} ../interactive/test-functions.html
+:label: fig-test-functions
+:width: 100%
+:title: Tester un résidu
+:class: test-functions-replay
+
+Tester si une fonction est nulle. Premier onglet : un résidu $R$, choisi ou
+dessiné, testé contre $n$ masses ponctuelles, fonctions chapeau ou polynômes ;
+chaque barre est un test, et l'aire ombrée est le produit $R\,p_i$ dont
+l'intégrale donne la barre choisie. Second onglet : une même équation
+d'évaluation de politique résolue par collocation, par Galerkin et par
+moindres carrés avec la même base ; chaque solution annule ses propres $n$
+tests et laisse non nulles les deux autres familles.
+:::
+
+Le second onglet résout une même équation de Bellman de trois façons, avec la
+même base et le même $n$, et teste chaque solution contre les trois familles.
+Le code ci-dessous calcule le même tableau pour six fonctions chapeau : chaque
+méthode annule sa propre colonne, et aucune n'annule les autres. Galerkin et
+les moindres carrés sont presque d'accord sur ce problème, et tous deux
+laissent un résidu d'environ $0.29$ en l'un des points de collocation. Les
+trois solutions sont trois fonctions différentes, chacune exacte dans ses
+propres directions.
+
+```{code-cell} python
+:tags: [hide-input]
+
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path.cwd() / "code"))
+from test_functions_demo import table
+
+rows = table(kind="hat", n=6)
+families = ("collocation", "galerkin", "least squares")
+print(f"{'solution':<15}" + "".join(f"{f:>15}" for f in families) + f"{'sup |v - v_pi|':>16}")
+for method, row in rows.items():
+    print(f"{method:<15}" + "".join(f"{row[f]:>15.4f}" for f in families) + f"{row['value error (sup)']:>16.3f}")
+```
+
 #### Collocation : un résidu nul en des états choisis
 
 La collocation est la méthode du

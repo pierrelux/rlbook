@@ -386,6 +386,55 @@ functions cover almost every method in use.
 | Galerkin | The basis functions $\varphi_i$ | $\langle R(\cdot;\theta), \varphi_i \rangle_w = 0$ |
 | Least squares | The derivatives $\partial R / \partial \theta_i$ of the residual | $\langle R(\cdot;\theta), \partial R/\partial\theta_i \rangle_w = 0$ |
 
+{numref}`fig-test-functions` makes the test concrete. Its first tab plots a
+residual, a set of test functions and the inner products as bars. A nonzero
+residual makes some bar nonzero once there are enough tests, and the bars
+are all zero when the residual is. With only $n$ tests, a residual can pass
+every one of them and still be nonzero: the tests see the residual in $n$
+directions, and a residual with no component in those directions goes
+unseen. The button that hides the residual from the tests removes that
+component, and what remains passes all $n$ tests. The $n$ conditions of
+{eq}`eq:weighted-residual-conditions` force the residual to zero in those $n$
+directions only, and the choice of directions is the choice of method.
+
+:::{iframe} ../interactive/test-functions.html
+:label: fig-test-functions
+:width: 100%
+:title: Testing a residual
+:class: test-functions-replay
+
+Testing a function for being zero. First tab: a residual $R$, chosen or drawn,
+tested against $n$ point masses, hat functions or polynomials; each bar is one
+test, and the shaded area is the product $R\,p_i$ whose integral is the
+selected bar. Second tab: one policy-evaluation equation solved by
+collocation, Galerkin and least squares with the same basis; each solution
+makes its own $n$ tests zero and leaves the other two families nonzero.
+:::
+
+The second tab solves one Bellman equation three ways, with the same basis
+and the same $n$, and tests each solution against all three families. The
+code below computes the same table for six hat functions: each method makes
+its own column zero, and none makes the others zero. Galerkin and least
+squares nearly agree on this problem, and both leave a residual of about $0.29$
+at some collocation point. The three solutions are three different functions,
+each exact in its own directions.
+
+```{code-cell} python
+:tags: [hide-input]
+
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path.cwd() / "code"))
+from test_functions_demo import table
+
+rows = table(kind="hat", n=6)
+families = ("collocation", "galerkin", "least squares")
+print(f"{'solution':<15}" + "".join(f"{f:>15}" for f in families) + f"{'sup |v - v_pi|':>16}")
+for method, row in rows.items():
+    print(f"{method:<15}" + "".join(f"{row[f]:>15.4f}" for f in families) + f"{row['value error (sup)']:>16.3f}")
+```
+
 #### Collocation: a Zero Residual at Chosen States
 
 Collocation is the method of the

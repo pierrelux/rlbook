@@ -1,0 +1,567 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Testing a residual</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap">
+<style>
+  :root {
+    --ink:#1b2430; --muted:#5c6874; --rule:#d2d9d7; --soft:#eaeeec; --raised:#ffffff;
+    --structure:#2f6f8f; --structure-soft:#e2edf1;
+    --blue:#0072b2; --orange:#d55e00; --green:#009e73; --purple:#b5578f; --gold:#b8860b;
+    --pos:#009e73; --neg:#d55e00;
+    color-scheme:light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ink:#edf1f1; --muted:#a8b2b9; --rule:#34434d; --soft:#0d141a; --raised:#1b2430;
+      --structure:#7fb3cf; --structure-soft:#1f3540;
+      --blue:#56b4e9; --orange:#e69f00; --green:#5fd0a8; --purple:#e19ac4; --gold:#e0b64a;
+      --pos:#5fd0a8; --neg:#f08a5d;
+      color-scheme:dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --ink:#edf1f1; --muted:#a8b2b9; --rule:#34434d; --soft:#0d141a; --raised:#1b2430;
+    --structure:#7fb3cf; --structure-soft:#1f3540;
+    --blue:#56b4e9; --orange:#e69f00; --green:#5fd0a8; --purple:#e19ac4; --gold:#e0b64a;
+    --pos:#5fd0a8; --neg:#f08a5d;
+    color-scheme:dark;
+  }
+  * { box-sizing:border-box; }
+  [hidden] { display:none !important; }
+  html, body { margin:0; background:transparent; }
+  body { color:var(--ink); font:14.5px/1.45 "IBM Plex Sans", system-ui, -apple-system, sans-serif; }
+  main { max-width:900px; margin:auto; padding:12px 14px 14px; }
+  .tabs { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px; border-bottom:1px solid var(--rule); padding-bottom:9px; }
+  button { font:inherit; font-size:13.5px; color:var(--ink); background:transparent; border:1px solid var(--rule);
+           border-radius:5px; padding:5px 10px; min-height:34px; cursor:pointer; }
+  button:hover { border-color:var(--structure); }
+  button[aria-pressed=true] { background:var(--structure-soft); border-color:var(--structure); font-weight:600; }
+  button:focus-visible, input:focus-visible { outline:3px solid var(--gold); outline-offset:2px; }
+  .tabs button { font-weight:600; }
+  .lead { margin:0 0 9px; color:var(--ink); }
+  .lead i, .read i { font-family:"Newsreader", Georgia, serif; font-size:1.06em; }
+  .row { display:flex; flex-wrap:wrap; gap:8px 14px; align-items:center; margin:0 0 8px; }
+  .lab { font-size:12px; color:var(--muted); margin-right:2px; }
+  .group { display:inline-flex; flex-wrap:wrap; align-items:center; }
+  .group button { border-radius:0; margin-left:-1px; }
+  .group button:first-of-type { border-radius:5px 0 0 5px; margin-left:0; }
+  .group button:last-of-type { border-radius:0 5px 5px 0; }
+  .slider { display:flex; align-items:center; gap:8px; font-size:13px; color:var(--muted); }
+  .slider input { width:150px; accent-color:var(--structure); }
+  output { color:var(--ink); font:500 13px "IBM Plex Mono", ui-monospace, monospace; min-width:1.6em; display:inline-block; }
+  label.check { display:inline-flex; gap:6px; align-items:center; font-size:13px; color:var(--muted); cursor:pointer; }
+  .panel { border:1px solid var(--rule); border-radius:6px; padding:6px 8px 4px; margin-bottom:8px; }
+  .panel h2 { font-size:12px; font-weight:600; color:var(--muted); margin:0 0 2px; letter-spacing:.2px; }
+  canvas { display:block; width:100%; touch-action:none; }
+  #r-canvas { cursor:crosshair; }
+  .legend { display:flex; flex-wrap:wrap; gap:2px 14px; font-size:12px; color:var(--muted); margin:2px 2px 0; }
+  .sw { display:inline-block; width:14px; height:3px; vertical-align:middle; margin-right:5px; border-radius:2px; }
+  .read { margin:2px 0 0; padding:7px 10px; border-left:3px solid var(--structure); min-height:44px; font-size:14px; }
+  .read.pass { border-left-color:var(--gold); }
+  .read.zero { border-left-color:var(--green); }
+  .read b { font-weight:600; }
+  .num { font-family:"IBM Plex Mono", ui-monospace, monospace; font-size:13px; }
+  @media (max-width:560px) { .slider input { width:110px; } }
+</style>
+</head>
+<body>
+<main>
+  <div class="tabs" role="group" aria-label="View">
+    <button data-tab="probe" aria-pressed="true">1 · Is this function zero?</button>
+    <button data-tab="bellman" aria-pressed="false">2 · Three solutions of one Bellman equation</button>
+  </div>
+
+  <!-- ============================================================ tab 1 -->
+  <section id="probe">
+    <p class="lead">A function <i>R</i> is zero if and only if ⟨<i>R</i>, <i>p</i>⟩ = 0 for every test function <i>p</i>.
+      Each bar below is one test. Drag on the top plot to draw your own <i>R</i>.</p>
+    <div class="row">
+      <span class="lab">Residual</span>
+      <div class="group" id="presets">
+        <button data-preset="bump">Two bumps</button>
+        <button data-preset="wiggle">Fast wiggle</button>
+        <button data-preset="zero">Zero</button>
+      </div>
+      <button id="hide">Hide <i>R</i> from these tests</button>
+    </div>
+    <div class="row">
+      <span class="lab">Tests</span>
+      <div class="group" id="families">
+        <button data-family="delta">Point masses (collocation)</button>
+        <button data-family="hat">Hat functions (Galerkin)</button>
+        <button data-family="poly">Polynomials (Galerkin)</button>
+      </div>
+      <div class="slider"><label for="n">Number of tests <i>n</i></label>
+        <input id="n" type="range" min="1" max="12" step="1" value="5"><output id="n-out">5</output></div>
+    </div>
+    <div class="panel">
+      <h2 id="r-title">The residual R(s) and the selected test function</h2>
+      <canvas id="r-canvas" height="210" aria-label="Residual and test functions"></canvas>
+      <div class="legend" id="r-legend"></div>
+    </div>
+    <div class="panel">
+      <h2 id="b-title">Test values</h2>
+      <canvas id="b-canvas" height="120" aria-label="Test values as bars"></canvas>
+    </div>
+    <p class="read" id="verdict"></p>
+  </section>
+
+  <!-- ============================================================ tab 2 -->
+  <section id="bellman" hidden>
+    <p class="lead">Policy evaluation on <i>s</i> ∈ [0, 1]: <i>s</i>′ = 0.8√<i>s</i> + 0.2<i>u</i>, <i>u</i> ∈ {0, ½, 1},
+      reward a smoothed step at 0.7, γ = 0.9. Each method makes the residual vanish against its own <i>n</i> tests, and only those.</p>
+    <div class="row">
+      <span class="lab">Solve by</span>
+      <div class="group" id="methods">
+        <button data-method="collocation">Collocation</button>
+        <button data-method="galerkin">Galerkin</button>
+        <button data-method="ls">Least squares</button>
+      </div>
+    </div>
+    <div class="row">
+      <span class="lab">Basis</span>
+      <div class="group" id="bases">
+        <button data-basis="hat">Hat functions</button>
+        <button data-basis="poly">Polynomials</button>
+      </div>
+      <div class="slider"><label for="m">Coefficients <i>n</i></label>
+        <input id="m" type="range" min="2" max="12" step="1" value="6"><output id="m-out">6</output></div>
+    </div>
+    <div class="panel">
+      <h2>Value function</h2>
+      <canvas id="v-canvas" height="130" aria-label="Exact and approximate value function"></canvas>
+      <div class="legend" id="v-legend"></div>
+    </div>
+    <div class="panel">
+      <h2>Bellman residual R(s; θ) = (L v<sub>θ</sub>)(s) − v(s; θ)</h2>
+      <canvas id="res-canvas" height="120" aria-label="Bellman residual"></canvas>
+    </div>
+    <div class="panel">
+      <h2>The same residual, tested three ways</h2>
+      <canvas id="t-canvas" height="125" aria-label="Test values for the three families"></canvas>
+    </div>
+    <p class="read" id="b-read"></p>
+  </section>
+</main>
+
+<script>
+(() => {
+"use strict";
+
+/* ------------------------------------------------------------------ theme */
+const root = document.documentElement;
+function syncTheme() {
+  let dark = null;
+  try {
+    if (window.parent && window.parent !== window) {
+      dark = window.parent.document.documentElement.classList.contains("dark");
+    }
+  } catch (e) { dark = null; }
+  if (dark === null) root.removeAttribute("data-theme");
+  else root.setAttribute("data-theme", dark ? "dark" : "light");
+  drawAll();
+}
+const css = name => getComputedStyle(root).getPropertyValue(name).trim();
+
+/* ------------------------------------------------------------------ numerics */
+const M = 401;                                   // grid on [0, 1]
+const S = Float64Array.from({length: M}, (_, k) => k / (M - 1));
+const QW = new Float64Array(M).fill(1 / (M - 1)); QW[0] *= 0.5; QW[M - 1] *= 0.5;
+const dot = (a, b) => { let t = 0; for (let k = 0; k < M; k++) t += QW[k] * a[k] * b[k]; return t; };
+const norm2 = a => Math.sqrt(dot(a, a));
+const supn = a => a.reduce((m, x) => Math.max(m, Math.abs(x)), 0);
+
+function hatNodes(n) { return n === 1 ? [0.5] : Array.from({length: n}, (_, i) => i / (n - 1)); }
+function chebNodes(n) {
+  return Array.from({length: n}, (_, i) => 0.5 - 0.5 * Math.cos((2 * (i + 1) - 1) * Math.PI / (2 * n))).sort((a, b) => a - b);
+}
+function hat(s, n, j) {
+  if (n === 1) return 1;
+  const h = 1 / (n - 1);
+  return Math.max(0, 1 - Math.abs(s - j * h) / h);
+}
+function legendreAll(s, n) {                    // shifted Legendre P_0..P_{n-1} at s
+  const x = 2 * s - 1, out = new Array(n);
+  out[0] = 1; if (n > 1) out[1] = x;
+  for (let k = 2; k < n; k++) out[k] = ((2 * k - 1) * x * out[k - 1] - (k - 1) * out[k - 2]) / k;
+  return out;
+}
+function basisAt(kind, s, n) {
+  if (kind === "hat") return Array.from({length: n}, (_, j) => hat(s, n, j));
+  return legendreAll(s, n);
+}
+function basisOnGrid(kind, n) {                 // n arrays of length M
+  const out = Array.from({length: n}, () => new Float64Array(M));
+  for (let k = 0; k < M; k++) { const b = basisAt(kind, S[k], n); for (let j = 0; j < n; j++) out[j][k] = b[j]; }
+  return out;
+}
+function solveLinear(A, b) {                    // Gaussian elimination, partial pivoting
+  const n = b.length, a = A.map((r, i) => [...r, b[i]]);
+  for (let c = 0; c < n; c++) {
+    let p = c; for (let r = c + 1; r < n; r++) if (Math.abs(a[r][c]) > Math.abs(a[p][c])) p = r;
+    [a[c], a[p]] = [a[p], a[c]];
+    for (let r = c + 1; r < n; r++) { const f = a[r][c] / a[c][c]; for (let k = c; k <= n; k++) a[r][k] -= f * a[c][k]; }
+  }
+  const x = new Array(n).fill(0);
+  for (let r = n - 1; r >= 0; r--) { let t = a[r][n]; for (let k = r + 1; k < n; k++) t -= a[r][k] * x[k]; x[r] = t / a[r][r]; }
+  return x;
+}
+function interpGrid(arr, s) {
+  const u = Math.min(Math.max(s, 0), 1) * (M - 1), k = Math.min(Math.floor(u), M - 2), t = u - k;
+  return arr[k] * (1 - t) + arr[k + 1] * t;
+}
+/* orthogonal projection onto span(P) in the uniform L2 inner product */
+function project(R, P) {
+  const n = P.length;
+  const G = P.map(a => P.map(b => dot(a, b)));
+  const c = solveLinear(G, P.map(a => dot(a, R)));
+  const out = new Float64Array(M);
+  for (let j = 0; j < n; j++) for (let k = 0; k < M; k++) out[k] += c[j] * P[j][k];
+  return out;
+}
+
+/* ------------------------------------------------------------------ canvas helpers */
+function setup(canvas) {
+  const dpr = window.devicePixelRatio || 1, w = canvas.clientWidth, h = +canvas.getAttribute("height");
+  if (canvas.width !== Math.round(w * dpr) || canvas.height !== Math.round(h * dpr)) {
+    canvas.width = Math.round(w * dpr); canvas.height = Math.round(h * dpr); canvas.style.height = h + "px";
+  }
+  const ctx = canvas.getContext("2d"); ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, w, h);
+  return {ctx, w, h};
+}
+function frame(g, ymin, ymax, ticks, padL = 34, padR = 8, padT = 6, padB = 18) {
+  const {ctx, w, h} = g;
+  const X = s => padL + s * (w - padL - padR);
+  const Y = y => padT + (ymax - y) / (ymax - ymin) * (h - padT - padB);
+  ctx.font = '11px "IBM Plex Mono", ui-monospace, monospace'; ctx.fillStyle = css("--muted");
+  ctx.strokeStyle = css("--rule"); ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(padL, Y(0)); ctx.lineTo(w - padR, Y(0)); ctx.stroke();
+  ctx.textAlign = "center";
+  for (const t of [0, 0.5, 1]) ctx.fillText(t === 0.5 ? "s" : String(t), X(t), h - 4);
+  ctx.textAlign = "right";
+  for (const t of (ticks || [ymin, 0, ymax])) ctx.fillText(fmtTick(t), padL - 5, Y(t) + 4);
+  return {X, Y, padL, padR, padT, padB};
+}
+function fmtTick(t) { return Math.abs(t) < 1e-12 ? "0" : (Math.abs(t) >= 10 ? t.toFixed(0) : Math.abs(t) >= 1 ? t.toFixed(1) : t.toFixed(2)); }
+function curve(ctx, f, X, Y, color, width, dash) {
+  ctx.strokeStyle = color; ctx.lineWidth = width; ctx.setLineDash(dash || []);
+  ctx.beginPath(); for (let k = 0; k < M; k++) { const x = X(S[k]), y = Y(f[k]); k ? ctx.lineTo(x, y) : ctx.moveTo(x, y); }
+  ctx.stroke(); ctx.setLineDash([]);
+}
+function bars(g, vals, x0, x1, scale, colorFn, opts = {}) {
+  const {ctx, h} = g, padT = 6, padB = opts.padB ?? 18, mid = padT + (h - padT - padB) / 2, half = (h - padT - padB) / 2;
+  const n = vals.length, slot = (x1 - x0) / n, bw = Math.max(3, Math.min(26, slot * 0.62));
+  ctx.strokeStyle = css("--rule"); ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(x0, mid); ctx.lineTo(x1, mid); ctx.stroke();
+  const rects = [];
+  vals.forEach((v, i) => {
+    const cx = x0 + slot * (i + 0.5), hh = Math.max(-1, Math.min(1, v / scale)) * half;
+    ctx.fillStyle = colorFn(v, i);
+    const top = hh >= 0 ? mid - hh : mid, ht = Math.max(1.5, Math.abs(hh));
+    ctx.fillRect(cx - bw / 2, Math.abs(hh) < 0.75 ? mid - 0.75 : top, bw, Math.abs(hh) < 0.75 ? 1.5 : ht);
+    if (opts.selected === i) { ctx.strokeStyle = css("--ink"); ctx.lineWidth = 1.5; ctx.strokeRect(cx - bw / 2 - 2.5, padT, bw + 5, h - padT - padB); }
+    rects.push([cx - slot / 2, cx + slot / 2]);
+  });
+  return rects;
+}
+
+/* ================================================================== tab 1 */
+const st = {preset: "bump", family: "hat", n: 5, sel: 2};
+let R = new Float64Array(M);
+function presetR(name) {
+  const out = new Float64Array(M);
+  for (let k = 0; k < M; k++) {
+    const s = S[k];
+    if (name === "bump") out[k] = 0.85 * Math.exp(-(((s - 0.3) / 0.11) ** 2)) - 0.6 * Math.exp(-(((s - 0.72) / 0.08) ** 2));
+    else if (name === "wiggle") out[k] = 0.7 * Math.sin(9 * Math.PI * s) * Math.exp(-(((s - 0.5) / 0.35) ** 2));
+  }
+  return out;
+}
+function tests() {                                // test functions on the grid (null for point masses)
+  if (st.family === "delta") return null;
+  return basisOnGrid(st.family, st.n);
+}
+function testValues(Rf) {
+  if (st.family === "delta") return hatNodes(st.n).map(s => interpGrid(Rf, s));
+  return tests().map(p => dot(Rf, p) / norm2(p));
+}
+/* the part of R that the tests see: hat interpolant at the nodes for point masses, projection otherwise */
+function visiblePart(Rf) {
+  if (st.family === "delta") {
+    const nodes = hatNodes(st.n), vals = nodes.map(s => interpGrid(Rf, s)), out = new Float64Array(M);
+    for (let k = 0; k < M; k++) { let t = 0; for (let j = 0; j < st.n; j++) t += vals[j] * hat(S[k], st.n, j); out[k] = t; }
+    return out;
+  }
+  return project(Rf, tests());
+}
+
+const rCanvas = document.getElementById("r-canvas"), bCanvas = document.getElementById("b-canvas");
+let rGeom = null, bRects = [];
+function drawProbe() {
+  if (document.getElementById("probe").hidden) return;
+  const g = setup(rCanvas), {ctx} = g, f = frame(g, -1.1, 1.1, [-1, 0, 1]);
+  rGeom = f;
+  const P = tests(), sel = Math.min(st.sel, st.n - 1);
+  const blue = css("--blue"), purple = css("--purple"), muted = css("--muted");
+  // product R * p_sel, shaded: its integral is the selected bar
+  if (P) {
+    const p = P[sel], pm = supn(p) || 1;
+    // shade R * p (scaled to plot units)
+    const scale = 1 / Math.max(pm, 1e-9);
+    ctx.globalAlpha = 0.28;
+    for (let k = 0; k < M - 1; k++) {
+      const y = R[k] * p[k] * scale;
+      ctx.fillStyle = y >= 0 ? css("--pos") : css("--neg");
+      const x0 = f.X(S[k]), x1 = f.X(S[k + 1]) + 0.6;
+      ctx.fillRect(x0, Math.min(f.Y(0), f.Y(y)), x1 - x0, Math.abs(f.Y(y) - f.Y(0)));
+    }
+    ctx.globalAlpha = 1;
+    // all tests faint, selected one strong
+    for (let j = 0; j < st.n; j++) {
+      const q = P[j].map(x => x / pm * 0.95);
+      curve(ctx, q, f.X, f.Y, purple, j === sel ? 2 : 0.8, j === sel ? [5, 3] : [2, 3]);
+    }
+  } else {
+    const nodes = hatNodes(st.n);
+    nodes.forEach((s, j) => {
+      ctx.strokeStyle = purple; ctx.lineWidth = j === sel ? 2 : 0.8; ctx.setLineDash(j === sel ? [] : [2, 3]);
+      ctx.beginPath(); ctx.moveTo(f.X(s), f.Y(1.1)); ctx.lineTo(f.X(s), f.Y(-1.1)); ctx.stroke(); ctx.setLineDash([]);
+    });
+  }
+  curve(ctx, R, f.X, f.Y, blue, 2.6);
+  if (!P) {
+    hatNodes(st.n).forEach((s, j) => {
+      ctx.fillStyle = j === sel ? css("--ink") : purple;
+      ctx.beginPath(); ctx.arc(f.X(s), f.Y(interpGrid(R, s)), j === sel ? 4.5 : 3.5, 0, 2 * Math.PI); ctx.fill();
+    });
+  }
+  document.getElementById("r-legend").innerHTML = P
+    ? `<span><span class="sw" style="background:${blue}"></span>residual <i>R</i></span>
+       <span><span class="sw" style="background:${purple}"></span>test functions <i>p</i><sub>i</sub> (selected one dashed)</span>
+       <span><span class="sw" style="background:${css("--pos")};opacity:.5;height:9px"></span><span class="sw" style="background:${css("--neg")};opacity:.5;height:9px;margin-left:-5px"></span>product <i>R</i>·<i>p</i><sub>${sel + 1}</sub>, whose area is bar ${sel + 1}</span>`
+    : `<span><span class="sw" style="background:${blue}"></span>residual <i>R</i></span>
+       <span><span class="sw" style="background:${purple}"></span>point mass at <i>s</i><sub>i</sub>: the test reads off <i>R</i>(<i>s</i><sub>i</sub>)</span>`;
+
+  // bars
+  const vals = testValues(R);
+  const scale = st.family === "delta" ? (supn(R) || 1) : (norm2(R) || 1);
+  const gb = setup(bCanvas), padL = 34;
+  gb.ctx.font = '11px "IBM Plex Mono", ui-monospace, monospace'; gb.ctx.fillStyle = muted; gb.ctx.textAlign = "right";
+  const mid = 6 + (gb.h - 24) / 2;
+  gb.ctx.fillText(st.family === "delta" ? "+‖R‖∞" : "+‖R‖", padL - 3, 15); gb.ctx.fillText("0", padL - 3, mid + 4);
+  gb.ctx.fillText(st.family === "delta" ? "−‖R‖∞" : "−‖R‖", padL - 3, gb.h - 20);
+  const tol = 1e-3 * Math.max(scale, 1e-9);
+  bRects = bars(gb, vals, padL + 6, gb.w - 8, scale, v => Math.abs(v) <= Math.max(tol, 1e-6) ? css("--green") : css("--structure"), {selected: sel});
+  gb.ctx.textAlign = "center";
+  vals.forEach((v, i) => gb.ctx.fillText(String(i + 1), (bRects[i][0] + bRects[i][1]) / 2, gb.h - 4));
+  document.getElementById("b-title").textContent = st.family === "delta"
+    ? "Test values R(sᵢ), on a scale of ±max|R|. Click a bar to select its test."
+    : "Test values ⟨R, pᵢ⟩ with ‖pᵢ‖ = 1, on a scale of ±‖R‖ (the most a test can return). Click a bar to select its test.";
+
+  // verdict
+  const nR = norm2(R), big = Math.max(...vals.map(Math.abs)), el = document.getElementById("verdict");
+  const fam = {delta: "point masses", hat: "hat functions", poly: "polynomials"}[st.family];
+  if (nR < 1e-6) {
+    el.className = "read zero";
+    el.innerHTML = `<i>R</i> is the zero function, so every test returns 0, whatever the tests.`;
+  } else if (big <= Math.max(1e-3 * (st.family === "delta" ? supn(R) : nR), 1e-6)) {
+    el.className = "read pass";
+    el.innerHTML = `<b>All ${st.n} tests pass, yet <i>R</i> is not zero</b> (‖<i>R</i>‖ = <span class="num">${nR.toFixed(3)}</span>).
+      The ${st.n} ${fam} only see <i>R</i> in ${st.n} directions, and this <i>R</i> has nothing in them. Raise <i>n</i> to catch it.`;
+  } else {
+    const worst = vals.map(Math.abs).indexOf(big) + 1;
+    el.className = "read";
+    el.innerHTML = `Test ${worst} returns <span class="num">${vals[worst - 1].toFixed(3)}</span> ≠ 0, so <i>R</i> is not zero.
+      Press <b>Hide <i>R</i> from these tests</b> to remove the part of <i>R</i> that the ${st.n} ${fam} can see.`;
+  }
+}
+
+/* pointer: drawing on the residual, selecting bars */
+let drawing = false, lastPt = null;
+function canvasPoint(ev, canvas) { const r = canvas.getBoundingClientRect(); return [ev.clientX - r.left, ev.clientY - r.top]; }
+function paint(ev) {
+  if (!rGeom) return;
+  const [px, py] = canvasPoint(ev, rCanvas), f = rGeom, w = rCanvas.clientWidth, h = +rCanvas.getAttribute("height");
+  const s = Math.min(1, Math.max(0, (px - f.padL) / (w - f.padL - f.padR)));
+  const y = Math.max(-1.05, Math.min(1.05, 1.1 - (py - f.padT) / (h - f.padT - f.padB) * 2.2));
+  const k1 = Math.round(s * (M - 1));
+  if (lastPt) {
+    const [k0, y0] = lastPt, lo = Math.min(k0, k1), hi = Math.max(k0, k1);
+    for (let k = lo; k <= hi; k++) R[k] = hi === lo ? y : y0 + (y - y0) * (k - k0) / (k1 - k0);
+  } else R[k1] = y;
+  lastPt = [k1, y];
+  drawProbe();
+}
+rCanvas.addEventListener("pointerdown", ev => {
+  drawing = true; lastPt = null; rCanvas.setPointerCapture(ev.pointerId);
+  st.preset = "drawn"; markPressed("#presets", "data-preset", null); paint(ev);
+});
+rCanvas.addEventListener("pointermove", ev => { if (drawing) paint(ev); });
+const endDraw = () => {
+  if (!drawing) return; drawing = false; lastPt = null;
+  // light smoothing so a hand-drawn curve has no single-sample spikes
+  const c = R.slice(); for (let k = 1; k < M - 1; k++) R[k] = (c[k - 1] + 2 * c[k] + c[k + 1]) / 4;
+  drawProbe();
+};
+rCanvas.addEventListener("pointerup", endDraw); rCanvas.addEventListener("pointercancel", endDraw);
+bCanvas.addEventListener("click", ev => {
+  const [px] = canvasPoint(ev, bCanvas), i = bRects.findIndex(([a, b]) => px >= a && px < b);
+  if (i >= 0) { st.sel = i; drawProbe(); }
+});
+
+document.getElementById("hide").addEventListener("click", () => {
+  const vis = visiblePart(R);
+  for (let k = 0; k < M; k++) R[k] -= vis[k];
+  // rescale for visibility; scaling cannot make a zero test nonzero
+  const s = supn(R); if (s > 1e-9) for (let k = 0; k < M; k++) R[k] *= 0.8 / s;
+  st.preset = "hidden"; markPressed("#presets", "data-preset", null); drawProbe();
+});
+
+/* ================================================================== tab 2 */
+const GAMMA = 0.9, SHOCKS = [0, 0.5, 1], PROBS = [0.25, 0.5, 0.25];
+const reward = s => 1 / (1 + Math.exp(-(s - 0.7) / 0.03));
+const succ = s => SHOCKS.map(u => 0.8 * Math.sqrt(s) + 0.2 * u);
+const VEXACT = (() => {
+  let v = new Float64Array(M);
+  const nxt = Array.from(S, s => succ(s));
+  for (let it = 0; it < 400; it++) {
+    const w = new Float64Array(M);
+    for (let k = 0; k < M; k++) { let e = 0; for (let u = 0; u < 3; u++) e += PROBS[u] * interpGrid(v, nxt[k][u]); w[k] = reward(S[k]) + GAMMA * e; }
+    v = w;
+  }
+  return v;
+})();
+/* R(s; θ) = r(s) + D(s)·θ with D_j(s) = γ E[φ_j(s')] − φ_j(s) */
+function Drow(kind, s, n) {
+  const own = basisAt(kind, s, n), d = new Array(n).fill(0);
+  succ(s).forEach((sp, u) => { const b = basisAt(kind, sp, n); for (let j = 0; j < n; j++) d[j] += GAMMA * PROBS[u] * b[j]; });
+  for (let j = 0; j < n; j++) d[j] -= own[j];
+  return d;
+}
+const bst = {method: "collocation", basis: "hat", n: 6};
+function colloNodes(kind, n) { return kind === "hat" ? hatNodes(n) : chebNodes(n); }
+function solveBellman() {
+  const {basis: kind, n} = bst;
+  const Phi = basisOnGrid(kind, n);
+  const Dg = Array.from({length: n}, () => new Float64Array(M));
+  const r = Float64Array.from(S, reward);
+  for (let k = 0; k < M; k++) { const d = Drow(kind, S[k], n); for (let j = 0; j < n; j++) Dg[j][k] = d[j]; }
+  const sols = {};
+  const nodes = colloNodes(kind, n);
+  sols.collocation = solveLinear(nodes.map(s => Drow(kind, s, n)), nodes.map(s => -reward(s)));
+  for (const [name, T] of [["galerkin", Phi], ["ls", Dg]]) {
+    const A = T.map(t => Dg.map(d => dot(t, d)));
+    sols[name] = solveLinear(A, T.map(t => -dot(t, r)));
+  }
+  const out = {};
+  for (const name of Object.keys(sols)) {
+    const th = sols[name], v = new Float64Array(M), Rr = new Float64Array(M);
+    for (let k = 0; k < M; k++) { let a = 0, b = r[k]; for (let j = 0; j < n; j++) { a += th[j] * Phi[j][k]; b += th[j] * Dg[j][k]; } v[k] = a; Rr[k] = b; }
+    const tests = {
+      collocation: nodes.map(s => { const d = Drow(kind, s, n); let t = reward(s); for (let j = 0; j < n; j++) t += d[j] * th[j]; return t; }),
+      galerkin: Phi.map(p => dot(Rr, p) / norm2(p)),
+      ls: Dg.map(d => dot(Rr, d) / norm2(d)),
+    };
+    let err = 0; for (let k = 0; k < M; k++) err = Math.max(err, Math.abs(v[k] - VEXACT[k]));
+    out[name] = {theta: th, v, R: Rr, tests, err, rnorm: norm2(Rr)};
+  }
+  return {out, nodes};
+}
+const vCanvas = document.getElementById("v-canvas"), resCanvas = document.getElementById("res-canvas"), tCanvas = document.getElementById("t-canvas");
+const METHOD_COLOR = {collocation: "--orange", galerkin: "--blue", ls: "--purple"};
+const METHOD_NAME = {collocation: "Collocation", galerkin: "Galerkin", ls: "Least squares"};
+function drawBellman() {
+  if (document.getElementById("bellman").hidden) return;
+  const {out, nodes} = solveBellman(), cur = out[bst.method], col = css(METHOD_COLOR[bst.method]);
+  // value
+  let lo = Infinity, hi = -Infinity;
+  for (const a of [VEXACT, cur.v]) for (const x of a) { lo = Math.min(lo, x); hi = Math.max(hi, x); }
+  lo = Math.floor(lo); hi = Math.ceil(hi);
+  const g1 = setup(vCanvas), f1 = frame(g1, lo, hi);
+  curve(g1.ctx, VEXACT, f1.X, f1.Y, css("--muted"), 4);
+  curve(g1.ctx, cur.v, f1.X, f1.Y, col, 2);
+  document.getElementById("v-legend").innerHTML =
+    `<span><span class="sw" style="background:${css("--muted")};height:4px"></span>exact <i>v</i><sub>π</sub></span>
+     <span><span class="sw" style="background:${col}"></span>${METHOD_NAME[bst.method]} <i>v</i>(<i>s</i>; θ), sup error <span class="num">${cur.err.toFixed(2)}</span></span>`;
+  // residual
+  const rs = Math.max(0.05, Math.max(...Object.values(out).map(o => supn(o.R))));
+  const g2 = setup(resCanvas), f2 = frame(g2, -rs, rs);
+  curve(g2.ctx, cur.R, f2.X, f2.Y, col, 2.2);
+  if (bst.method === "collocation") nodes.forEach(s => {
+    g2.ctx.fillStyle = col; g2.ctx.beginPath(); g2.ctx.arc(f2.X(s), f2.Y(0), 3.5, 0, 2 * Math.PI); g2.ctx.fill();
+  });
+  // three groups of bars, each on the scale of its own family
+  const g3 = setup(tCanvas), {ctx, w, h} = g3, gap = 14, gw = (w - 2 * gap) / 3;
+  const fams = [["collocation", "R(sᵢ)"], ["galerkin", "⟨R, φᵢ⟩"], ["ls", "⟨R, ∂R/∂θᵢ⟩"]];
+  fams.forEach(([fam, label], gi) => {
+    const x0 = gi * (gw + gap), x1 = x0 + gw;
+    const scale = Math.max(1e-9, ...Object.values(out).map(o => Math.max(...o.tests[fam].map(Math.abs))));
+    const own = fam === bst.method;
+    ctx.fillStyle = own ? css("--structure-soft") : "transparent";
+    if (own) ctx.fillRect(x0, 0, gw, h);
+    bars(g3, cur.tests[fam], x0 + 6, x1 - 6, scale, v => Math.abs(v) < 1e-6 * scale + 1e-9 ? css("--green") : col, {padB: 20});
+    ctx.font = '11.5px "IBM Plex Sans", system-ui, sans-serif'; ctx.textAlign = "center"; ctx.fillStyle = own ? css("--ink") : css("--muted");
+    const big = Math.max(...cur.tests[fam].map(Math.abs));
+    ctx.fillText(`${label}: max ${big < 5e-7 ? "0" : big.toFixed(3)}`, (x0 + x1) / 2, h - 5);
+  });
+  // readout
+  const t = cur.tests, mx = a => Math.max(...a.map(Math.abs));
+  const others = Object.keys(t).filter(k => k !== bst.method);
+  const nm = {collocation: "point masses", galerkin: "the basis functions", ls: "the residual derivatives"};
+  document.getElementById("b-read").innerHTML =
+    `<b>${METHOD_NAME[bst.method]}</b> makes all ${bst.n} of its own tests zero (shaded group). Tested against ${nm[others[0]]}, the same residual gives up to
+     <span class="num">${mx(t[others[0]]).toFixed(3)}</span>, and against ${nm[others[1]]} up to <span class="num">${mx(t[others[1]]).toFixed(3)}</span>.
+     ‖<i>R</i>‖ = <span class="num">${cur.rnorm.toFixed(3)}</span>.` +
+    (bst.method === "galerkin" ? ` With states weighted by the data, this is the fixed point that TD(0) and LSTD compute.` : "");
+}
+
+/* ================================================================== wiring */
+function markPressed(sel, attr, value) {
+  document.querySelectorAll(`${sel} button`).forEach(b => b.setAttribute("aria-pressed", String(b.getAttribute(attr) === value)));
+}
+document.querySelectorAll("#presets button").forEach(b => b.addEventListener("click", () => {
+  st.preset = b.dataset.preset; R = presetR(st.preset); markPressed("#presets", "data-preset", st.preset); drawProbe();
+}));
+document.querySelectorAll("#families button").forEach(b => b.addEventListener("click", () => {
+  st.family = b.dataset.family; markPressed("#families", "data-family", st.family); drawProbe();
+}));
+const nIn = document.getElementById("n");
+nIn.addEventListener("input", () => { st.n = +nIn.value; document.getElementById("n-out").textContent = st.n; st.sel = Math.min(st.sel, st.n - 1); drawProbe(); });
+document.querySelectorAll("#methods button").forEach(b => b.addEventListener("click", () => {
+  bst.method = b.dataset.method; markPressed("#methods", "data-method", bst.method); drawBellman();
+}));
+document.querySelectorAll("#bases button").forEach(b => b.addEventListener("click", () => {
+  bst.basis = b.dataset.basis; markPressed("#bases", "data-basis", bst.basis); drawBellman();
+}));
+const mIn = document.getElementById("m");
+mIn.addEventListener("input", () => { bst.n = +mIn.value; document.getElementById("m-out").textContent = bst.n; drawBellman(); });
+document.querySelectorAll(".tabs button").forEach(b => b.addEventListener("click", () => {
+  document.querySelectorAll(".tabs button").forEach(x => x.setAttribute("aria-pressed", String(x === b)));
+  document.getElementById("probe").hidden = b.dataset.tab !== "probe";
+  document.getElementById("bellman").hidden = b.dataset.tab !== "bellman";
+  try { history.replaceState(null, "", "#" + b.dataset.tab); } catch (e) {}
+  drawAll();
+}));
+
+function drawAll() { drawProbe(); drawBellman(); }
+R = presetR(st.preset);
+markPressed("#presets", "data-preset", st.preset);
+markPressed("#families", "data-family", st.family);
+markPressed("#methods", "data-method", bst.method);
+markPressed("#bases", "data-basis", bst.basis);
+if (location.hash === "#bellman") document.querySelector('.tabs button[data-tab="bellman"]').click();
+syncTheme();
+try {
+  if (window.parent !== window) new MutationObserver(syncTheme).observe(window.parent.document.documentElement, {attributes: true, attributeFilter: ["class"]});
+} catch (e) {}
+window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", syncTheme);
+window.addEventListener("resize", drawAll);
+if (document.fonts) document.fonts.ready.then(drawAll);
+window.__testFunctions = {st, bst, get R() { return R; }, solveBellman, testValues, norm2};
+})();
+</script>
+</body>
+</html>
