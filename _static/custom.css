@@ -1357,11 +1357,11 @@ iframe {
    to a 520px iframe, the probe tab below that. Heights are the tallest tab over
    each band of iframe widths, plus a small margin. */
 .test-functions-replay > div > div {
-  height: 810px;
+  height: 825px;
   padding-bottom: 0 !important;
   width: 100% !important;
 }
-@media (max-width: 767px) { .test-functions-replay > div > div { height: 830px; } }
+@media (max-width: 767px) { .test-functions-replay > div > div { height: 845px; } }
 @media (max-width: 644px) { .test-functions-replay > div > div { height: 920px; } }
 @media (max-width: 544px) { .test-functions-replay > div > div { height: 975px; } }
 @media (max-width: 454px) { .test-functions-replay > div > div { height: 975px; } }

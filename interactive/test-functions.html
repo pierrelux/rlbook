@@ -141,7 +141,7 @@
     </div>
     <div class="panel">
       <h2>The same residual, tested three ways</h2>
-      <canvas id="t-canvas" height="125" aria-label="Test values for the three families"></canvas>
+      <canvas id="t-canvas" height="140" aria-label="Test values for the three families"></canvas>
     </div>
     <p class="read" id="b-read"></p>
   </section>
@@ -245,7 +245,7 @@ function frame(g, ymin, ymax, ticks, padL = 34, padR = 8, padT = 6, padB = 18) {
   for (const t of (ticks || [ymin, 0, ymax])) ctx.fillText(fmtTick(t), padL - 5, Y(t) + 4);
   return {X, Y, padL, padR, padT, padB};
 }
-function fmtTick(t) { return Math.abs(t) < 1e-12 ? "0" : (Math.abs(t) >= 10 ? t.toFixed(0) : Math.abs(t) >= 1 ? t.toFixed(1) : t.toFixed(2)); }
+function fmtTick(t) { return Math.abs(t) < 1e-12 ? "0" : Number.isInteger(t) ? String(t) : (Math.abs(t) >= 10 ? t.toFixed(0) : Math.abs(t) >= 1 ? t.toFixed(1) : t.toFixed(2)); }
 function curve(ctx, f, X, Y, color, width, dash) {
   ctx.strokeStyle = color; ctx.lineWidth = width; ctx.setLineDash(dash || []);
   ctx.beginPath(); for (let k = 0; k < M; k++) { const x = X(S[k]), y = Y(f[k]); k ? ctx.lineTo(x, y) : ctx.moveTo(x, y); }
@@ -269,7 +269,7 @@ function bars(g, vals, x0, x1, scale, colorFn, opts = {}) {
 }
 
 /* ================================================================== tab 1 */
-const st = {preset: "bump", family: "hat", n: 5, sel: 2};
+const st = {preset: "bump", family: "hat", n: 5, sel: 2, pref: 2};
 let R = new Float64Array(M);
 function presetR(name) {
   const out = new Float64Array(M);
@@ -409,7 +409,7 @@ const endDraw = () => {
 rCanvas.addEventListener("pointerup", endDraw); rCanvas.addEventListener("pointercancel", endDraw);
 bCanvas.addEventListener("click", ev => {
   const [px] = canvasPoint(ev, bCanvas), i = bRects.findIndex(([a, b]) => px >= a && px < b);
-  if (i >= 0) { st.sel = i; drawProbe(); }
+  if (i >= 0) { st.sel = st.pref = i; drawProbe(); }
 });
 
 document.getElementById("hide").addEventListener("click", () => {
@@ -471,24 +471,24 @@ function solveBellman() {
   return {out, nodes};
 }
 const vCanvas = document.getElementById("v-canvas"), resCanvas = document.getElementById("res-canvas"), tCanvas = document.getElementById("t-canvas");
+/* largest values over n = 2..12, both bases and all three methods: R 0.51, R(s_i) 0.32, Galerkin 0.24, LS 0.25 */
+const RES_SCALE = 0.55, BAR_SCALE = {collocation: 0.55, galerkin: 0.3, ls: 0.3};
 const METHOD_COLOR = {collocation: "--orange", galerkin: "--blue", ls: "--purple"};
 const METHOD_NAME = {collocation: "Collocation", galerkin: "Galerkin", ls: "Least squares"};
 function drawBellman() {
   if (document.getElementById("bellman").hidden) return;
   const {out, nodes} = solveBellman(), cur = out[bst.method], col = css(METHOD_COLOR[bst.method]);
   // value
-  let lo = Infinity, hi = -Infinity;
-  for (const a of [VEXACT, cur.v]) for (const x of a) { lo = Math.min(lo, x); hi = Math.max(hi, x); }
-  lo = Math.floor(lo); hi = Math.ceil(hi);
-  const g1 = setup(vCanvas), f1 = frame(g1, lo, hi);
+  // fixed axes, so that moving the slider changes the curves and never the scale
+  const g1 = setup(vCanvas), f1 = frame(g1, 3, 10.5, [4, 6, 8, 10]);
   curve(g1.ctx, VEXACT, f1.X, f1.Y, css("--muted"), 4);
   curve(g1.ctx, cur.v, f1.X, f1.Y, col, 2);
   document.getElementById("v-legend").innerHTML =
     `<span><span class="sw" style="background:${css("--muted")};height:4px"></span>exact <i>v</i><sub>π</sub></span>
      <span><span class="sw" style="background:${col}"></span>${METHOD_NAME[bst.method]} <i>v</i>(<i>s</i>; θ), sup error <span class="num">${cur.err.toFixed(2)}</span></span>`;
   // residual
-  const rs = Math.max(0.05, Math.max(...Object.values(out).map(o => supn(o.R))));
-  const g2 = setup(resCanvas), f2 = frame(g2, -rs, rs);
+  const rs = RES_SCALE;
+  const g2 = setup(resCanvas), f2 = frame(g2, -rs, rs, [-0.5, 0, 0.5]);
   curve(g2.ctx, cur.R, f2.X, f2.Y, col, 2.2);
   if (bst.method === "collocation") nodes.forEach(s => {
     g2.ctx.fillStyle = col; g2.ctx.beginPath(); g2.ctx.arc(f2.X(s), f2.Y(0), 3.5, 0, 2 * Math.PI); g2.ctx.fill();
@@ -498,14 +498,15 @@ function drawBellman() {
   const fams = [["collocation", "R(sᵢ)"], ["galerkin", "⟨R, φᵢ⟩"], ["ls", "⟨R, ∂R/∂θᵢ⟩"]];
   fams.forEach(([fam, label], gi) => {
     const x0 = gi * (gw + gap), x1 = x0 + gw;
-    const scale = Math.max(1e-9, ...Object.values(out).map(o => Math.max(...o.tests[fam].map(Math.abs))));
+    const scale = BAR_SCALE[fam];
     const own = fam === bst.method;
     ctx.fillStyle = own ? css("--structure-soft") : "transparent";
     if (own) ctx.fillRect(x0, 0, gw, h);
-    bars(g3, cur.tests[fam], x0 + 6, x1 - 6, scale, v => Math.abs(v) < 1e-6 * scale + 1e-9 ? css("--green") : col, {padB: 20});
+    bars(g3, cur.tests[fam], x0 + 6, x1 - 6, scale, v => Math.abs(v) < 1e-6 * scale + 1e-9 ? css("--green") : col, {padB: 34});
     ctx.font = '11.5px "IBM Plex Sans", system-ui, sans-serif'; ctx.textAlign = "center"; ctx.fillStyle = own ? css("--ink") : css("--muted");
     const big = Math.max(...cur.tests[fam].map(Math.abs));
-    ctx.fillText(`${label}: max ${big < 5e-7 ? "0" : big.toFixed(3)}`, (x0 + x1) / 2, h - 5);
+    ctx.fillText(label, (x0 + x1) / 2, h - 19);
+    ctx.fillText(`max ${big < 5e-7 ? "0" : big.toFixed(3)}${gw > 150 ? ` (axis ±${scale})` : ""}`, (x0 + x1) / 2, h - 5);
   });
   // readout
   const t = cur.tests, mx = a => Math.max(...a.map(Math.abs));
@@ -529,7 +530,7 @@ document.querySelectorAll("#families button").forEach(b => b.addEventListener("c
   st.family = b.dataset.family; markPressed("#families", "data-family", st.family); drawProbe();
 }));
 const nIn = document.getElementById("n");
-nIn.addEventListener("input", () => { st.n = +nIn.value; document.getElementById("n-out").textContent = st.n; st.sel = Math.min(st.sel, st.n - 1); drawProbe(); });
+nIn.addEventListener("input", () => { st.n = +nIn.value; document.getElementById("n-out").textContent = st.n; st.sel = Math.min(st.pref, st.n - 1); drawProbe(); });
 document.querySelectorAll("#methods button").forEach(b => b.addEventListener("click", () => {
   bst.method = b.dataset.method; markPressed("#methods", "data-method", bst.method); drawBellman();
 }));
