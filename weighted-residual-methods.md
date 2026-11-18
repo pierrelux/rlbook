@@ -384,6 +384,18 @@ plane spanned by $\mathbf{e}_1$ and $\mathbf{e}_2$, and they say nothing
 about the component of $\mathbf{r}$ orthogonal to that plane. Passing both
 tests means that the component of $\mathbf{r}$ in the plane is zero.
 
+Each test is therefore a direction. For a unit vector $\mathbf{p}$, the inner
+product $\langle \mathbf{r}, \mathbf{p} \rangle = \|\mathbf{r}\| \cos\angle(\mathbf{r}, \mathbf{p})$
+is the signed length of the shadow that $\mathbf{r}$ casts on the line of
+$\mathbf{p}$: it is large when $\mathbf{r}$ is aligned with $\mathbf{p}$ and
+zero when the two are perpendicular. A set of tests passes exactly when
+$\mathbf{r}$ is perpendicular to every test direction, which is the same as
+being perpendicular to the subspace that they span. The tests need not be
+orthogonal to each other or of unit length; only that subspace matters. The
+first tab of {numref}`fig-test-functions` draws this picture in
+$\mathbb{R}^3$ for one, two or three test directions, including two oblique
+ones.
+
 A function of the state behaves like a vector with one coordinate for each
 state, and the sum in the inner product becomes an integral. With a weight
 $w > 0$ over the states, the weighted inner product of two functions is
@@ -394,9 +406,10 @@ $$
 
 The argument for vectors carries over: $R$ is the zero function if and only
 if $\langle R, p \rangle_w = 0$ for every **test function** $p$, and the test
-$p = R$ returns $\|R\|_w^2$. The coordinate vectors have a counterpart as
-well. A point mass at a state $s$ reads off the value $R(s)$, as
-$\mathbf{e}_i$ reads off $r_i$. A function has infinitely many directions,
+$p = R$ returns $\|R\|_w^2$. Each test function is a direction in the space of
+functions, and $\langle R, p \rangle_w$ measures how far $R$ reaches along it.
+The coordinate vectors have a counterpart as well. A point mass at a state $s$
+reads off the value $R(s)$, as $\mathbf{e}_i$ reads off $r_i$. A function has infinitely many directions,
 and no finite set of tests can check them all. Testing against $n$ chosen
 test functions $p_1, \ldots, p_n$ gives exactly the $n$ equations that this
 step needs,
@@ -411,8 +424,8 @@ free in every other direction. The residual of the solution is in general
 not the zero function. It is a function in which the $n$ tests detect
 nothing.
 
-{numref}`fig-test-functions` runs these tests on functions. In its first tab,
-each bar is the inner product of a residual with one test function, and
+The second tab of {numref}`fig-test-functions` runs these tests on functions.
+There, each bar is the inner product of a residual with one test function, and
 selecting a bar shades the product $R\,p_i$, whose area is the value of that
 bar. The button that hides the residual from the tests subtracts a function
 that returns the same test values as the residual: the orthogonal projection
@@ -429,11 +442,14 @@ one.*
 :title: Testing a residual
 :class: test-functions-replay
 
-Testing a residual with inner products. First tab: a residual $R$, taken from
-the presets or drawn with the pointer, is tested against $n$ point masses,
-hat functions or polynomials. Each bar is one test, and the shaded area under
-the product $R\,p_i$ equals the selected bar. Second tab: one
-policy-evaluation equation is solved by collocation, Galerkin and least
+Testing a residual with inner products. First tab: a vector $\mathbf{r}$ in
+$\mathbb{R}^3$ and one, two or three test directions; each bar is the length
+of the shadow of $\mathbf{r}$ on one direction, and the tests detect only the
+component of $\mathbf{r}$ in the span of their directions. Second tab: a
+residual $R$, taken from the presets or drawn with the pointer, is tested
+against $n$ point masses, hat functions or polynomials. Each bar is one test,
+and the shaded area under the product $R\,p_i$ equals the selected bar. Third
+tab: one policy-evaluation equation is solved by collocation, Galerkin and least
 squares with the same basis. Each solution makes its own $n$ tests return
 zero, and the tests of the other two methods do not.
 :::
@@ -626,7 +642,7 @@ train generative flow networks is a consistency condition of the same kind
 
 The three methods compute three different approximations from the same
 basis, because each one makes the residual vanish in different directions.
-The second tab of {numref}`fig-test-functions` shows this on a small
+The third tab of {numref}`fig-test-functions` shows this on a small
 policy-evaluation problem on $\mathcal{S} = [0, 1]$. The next state is
 $s' = 0.8\sqrt{s} + 0.2u$, where $u$ equals $0$, $1/2$ or $1$ with
 probabilities $1/4$, $1/2$ and $1/4$. The reward rises smoothly from $0$ to

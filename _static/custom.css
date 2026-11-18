@@ -1353,17 +1353,17 @@ iframe {
 @media (max-width: 454px) { .contraction-cloud-replay > div > div { height: 1205px; } }
 @media (max-width: 399px) { .contraction-cloud-replay > div > div { height: 1185px; } }
 
-/* Test-function lab (weighted residuals): the Bellman tab is the taller one down
-   to a 520px iframe, the probe tab below that. Heights are the tallest tab over
-   each band of iframe widths, plus a small margin. */
+/* Test-function lab (weighted residuals): three tabs (vectors in R^3, a residual
+   tested by functions, three solutions of one Bellman equation). Heights are the
+   tallest tab over each band of iframe widths, plus a small margin. */
 .test-functions-replay > div > div {
-  height: 825px;
+  height: 840px;
   padding-bottom: 0 !important;
   width: 100% !important;
 }
-@media (max-width: 767px) { .test-functions-replay > div > div { height: 845px; } }
-@media (max-width: 644px) { .test-functions-replay > div > div { height: 920px; } }
-@media (max-width: 544px) { .test-functions-replay > div > div { height: 975px; } }
-@media (max-width: 454px) { .test-functions-replay > div > div { height: 975px; } }
-@media (max-width: 399px) { .test-functions-replay > div > div { height: 1050px; } }
-@media (max-width: 364px) { .test-functions-replay > div > div { height: 1150px; } }
+@media (max-width: 767px) { .test-functions-replay > div > div { height: 885px; } }
+@media (max-width: 644px) { .test-functions-replay > div > div { height: 975px; } }
+@media (max-width: 544px) { .test-functions-replay > div > div { height: 1020px; } }
+@media (max-width: 454px) { .test-functions-replay > div > div { height: 1115px; } }
+@media (max-width: 399px) { .test-functions-replay > div > div { height: 1225px; } }
+@media (max-width: 364px) { .test-functions-replay > div > div { height: 1300px; } }
