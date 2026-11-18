@@ -405,6 +405,18 @@ $\mathbf{e}_2$, et ne disent rien de la composante de $\mathbf{r}$
 orthogonale à ce plan. Passer les deux tests signifie que la composante de
 $\mathbf{r}$ dans le plan est nulle.
 
+Chaque test est donc une direction. Pour un vecteur unitaire $\mathbf{p}$, le
+produit scalaire $\langle \mathbf{r}, \mathbf{p} \rangle = \|\mathbf{r}\| \cos\angle(\mathbf{r}, \mathbf{p})$
+est la longueur signée de l'ombre que $\mathbf{r}$ projette sur la droite de
+$\mathbf{p}$ : elle est grande quand $\mathbf{r}$ est aligné avec
+$\mathbf{p}$ et nulle quand les deux sont perpendiculaires. Un ensemble de
+tests est passé exactement quand $\mathbf{r}$ est perpendiculaire à chaque
+direction de test, c'est-à-dire au sous-espace qu'elles engendrent. Les tests
+n'ont pas à être orthogonaux entre eux ni de longueur un; seul ce
+sous-espace compte. Le premier onglet de la {numref}`fig-test-functions`
+dessine cette image dans $\mathbb{R}^3$ pour une, deux ou trois directions de
+test, dont deux directions obliques.
+
 Une fonction de l'état se comporte comme un vecteur qui aurait une coordonnée
 par état, et la somme du produit scalaire devient une intégrale. Avec un poids
 $w > 0$ sur les états, le produit scalaire pondéré de deux fonctions est
@@ -415,8 +427,10 @@ $$
 
 L'argument donné pour les vecteurs s'applique encore : $R$ est la fonction
 nulle si et seulement si $\langle R, p \rangle_w = 0$ pour toute
-**fonction test** $p$, et le test $p = R$ donne $\|R\|_w^2$. Les vecteurs de
-base ont eux aussi un équivalent. Une masse ponctuelle en un état $s$ lit la
+**fonction test** $p$, et le test $p = R$ donne $\|R\|_w^2$. Chaque fonction
+test est une direction dans l'espace des fonctions, et $\langle R, p \rangle_w$
+mesure jusqu'où $R$ s'étend dans cette direction. Les vecteurs de base ont eux
+aussi un équivalent. Une masse ponctuelle en un état $s$ lit la
 valeur $R(s)$, comme $\mathbf{e}_i$ lit $r_i$. Une fonction a une infinité de
 directions, et aucun ensemble fini de tests ne peut toutes les vérifier.
 Tester contre $n$ fonctions test choisies $p_1, \ldots, p_n$ donne exactement
@@ -431,8 +445,8 @@ annulent le résidu dans les $n$ directions des tests et le laissent libre dans
 toutes les autres. Le résidu de la solution n'est en général pas la fonction
 nulle. C'est une fonction dans laquelle les $n$ tests ne détectent rien.
 
-La {numref}`fig-test-functions` applique ces tests à des fonctions. Dans son
-premier onglet, chaque barre est le produit scalaire d'un résidu avec une
+Le deuxième onglet de la {numref}`fig-test-functions` applique ces tests à des
+fonctions. Chaque barre y est le produit scalaire d'un résidu avec une
 fonction test, et choisir une barre ombre le produit $R\,p_i$, dont l'aire
 est la valeur de cette barre. Le bouton qui cache le résidu aux tests retranche
 une fonction qui donne les mêmes valeurs de test que le résidu : la projection
@@ -449,11 +463,14 @@ prédisez quelles barres changent lorsque $n$ augmente de un.*
 :title: Tester un résidu
 :class: test-functions-replay
 
-Tester un résidu par des produits scalaires. Premier onglet : un résidu $R$,
-pris parmi les exemples ou dessiné au pointeur, est testé contre $n$ masses
-ponctuelles, fonctions chapeau ou polynômes. Chaque barre est un test, et
-l'aire ombrée sous le produit $R\,p_i$ est égale à la barre choisie. Second
-onglet : une même équation d'évaluation de politique est résolue par
+Tester un résidu par des produits scalaires. Premier onglet : un vecteur
+$\mathbf{r}$ de $\mathbb{R}^3$ et une, deux ou trois directions de test;
+chaque barre est la longueur de l'ombre de $\mathbf{r}$ sur une direction, et
+les tests ne détectent que la composante de $\mathbf{r}$ dans le sous-espace
+engendré par leurs directions. Deuxième onglet : un résidu $R$, pris parmi les
+exemples ou dessiné au pointeur, est testé contre $n$ masses ponctuelles,
+fonctions chapeau ou polynômes. Chaque barre est un test, et l'aire ombrée sous
+le produit $R\,p_i$ est égale à la barre choisie. Troisième onglet : une même équation d'évaluation de politique est résolue par
 collocation, par Galerkin et par moindres carrés avec la même base. Chaque
 solution annule ses propres $n$ tests, et les tests des deux autres méthodes
 ne donnent pas zéro.
@@ -656,7 +673,7 @@ condition de cohérence du même type {cite}`Malkin2022,Tiapkin2024`.
 
 Les trois méthodes calculent trois approximations différentes à partir de la
 même base, parce que chacune annule le résidu dans des directions différentes.
-Le second onglet de la {numref}`fig-test-functions` le montre sur un petit
+Le troisième onglet de la {numref}`fig-test-functions` le montre sur un petit
 problème d'évaluation de politique sur $\mathcal{S} = [0, 1]$. L'état suivant
 est $s' = 0.8\sqrt{s} + 0.2u$, où $u$ vaut $0$, $1/2$ ou $1$ avec les
 probabilités $1/4$, $1/2$ et $1/4$. La récompense passe continûment de $0$ à
