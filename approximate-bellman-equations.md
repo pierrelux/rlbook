@@ -692,7 +692,7 @@ low-order fit and switches to Newton with the accurate one.
 
 1. **The counterexample with an averager.** Replace the least-squares fit in the two-state example by state aggregation into a single group. Write $\Proj$ as a matrix, check that it is an averager, and show that fitted value iteration converges for every $\gamma < 1$. What is its fixed point?
 
-2. **A non-monotone example.** Using Lagrange interpolation with 4 equally spaced nodes on $[0, 1]$, compute the interpolation weights for the point $x = 0.1$. Show that some weights are negative.
+2. **A non-monotone example.** Using Lagrange interpolation with 4 equally spaced nodes on $[0, 1]$, compute the interpolation weights for the state $s = 0.1$. Show that some weights are negative.
 
 3. **Verifying monotonicity.** Consider piecewise linear interpolation on a 5-point grid. Write out the interpolation weights for a point between grid points 2 and 3. Verify that all weights are nonnegative and sum to one.
 

@@ -50,7 +50,7 @@ trois raisons, chacune déjà visible dans un exemple que nous avons résolu.
 La première est que le nombre d'états croît exponentiellement avec le nombre de
 variables d'état. La rivière envahie par le tamaris de {ref}`sec-tamarisk-river`
 compte un site par tronçon et trois conditions par site, de sorte qu'une rivière
-de $n$ tronçons a $3^n$ états. L'itération sur les valeurs a demandé environ
+de $D$ tronçons a $3^D$ états. L'itération sur les valeurs a demandé environ
 150 balayages quelle que soit la taille de la rivière, mais chaque balayage
 touche tous les états, et une table de transition dense pour une rivière de
 sept tronçons sans le budget de traitement occuperait 84 Go. Les rivières
@@ -122,14 +122,14 @@ Cet exemple montre ce qui tourne mal lorsqu'une fonction de valeur sur un
 continuum est stockée dans quelques nombres, et comment le choix de la
 représentation modifie les décisions que produit la fonction stockée. Un
 organisme de réglementation fixe le quota annuel d'un stock de poissons. Avant
-la saison, un relevé donne le stock $x$, mesuré comme une fraction de la
+la saison, un relevé donne le stock $s$, mesuré comme une fraction de la
 capacité de charge de l'habitat. Le régulateur choisit l'*échappement*
-$s \in [0, x]$, la part du stock laissée dans l'eau pour frayer. Le reste,
-$x - s$, est pêché et vendu à un prix unitaire. Au cours de l'année suivante, le
+$a \in [0, s]$, la part du stock laissée dans l'eau pour frayer. L'échappement
+est l'action, d'où la lettre $a$. Le reste, $s - a$, est pêché et vendu à un prix unitaire. Au cours de l'année suivante, le
 stock échappé croît jusqu'à
 
 $$
-x' = z\, f(s), \qquad f(s) = s \exp\!\Big(r \Big(1 - \frac{s}{K}\Big) \frac{s - C}{K}\Big),
+s' = z\, f(a), \qquad f(a) = a \exp\!\Big(r \Big(1 - \frac{a}{K}\Big) \frac{a - C}{K}\Big),
 $$
 
 où $z$ est un choc log-normal de moyenne un qui représente l'environnement : le
@@ -144,7 +144,7 @@ des valeurs pédagogiques, et non l'évaluation d'un stock réel. L'équation
 d'optimalité de Bellman est
 
 $$
-v^\star(x) = \max_{0 \le s \le x} \Big\{ x - s + \gamma\, \mathbb{E}_z\big[ v^\star\big(z f(s)\big) \big] \Big\}, \qquad x \in [0, 1.6].
+v^\star(s) = \max_{0 \le a \le s} \Big\{ s - a + \gamma\, \mathbb{E}_z\big[ v^\star\big(z f(a)\big) \big] \Big\}, \qquad s \in [0, 1.6].
 $$
 
 Trois choses la distinguent des processus de décision markoviens finis des
@@ -152,7 +152,7 @@ chapitres précédents. L'état est un nombre réel, de sorte que $v^\star$ est 
 fonction sur un intervalle et qu'aucune table ne la contient. L'action est
 aussi un nombre réel, de sorte que la maximisation porte sur un intervalle. Et
 l'espérance est une intégrale sur $z$, que nous calculons par une quadrature
-de Gauss-Hermite à 21 points. Le stock successeur $z f(s)$ ne tombe presque
+de Gauss-Hermite à 21 points. Le stock successeur $z f(a)$ ne tombe presque
 jamais sur un point où une valeur a été stockée, ce qui est la difficulté que
 l'[interpolation](finite-horizon-dp.md#handling-continuous-spaces-with-interpolation)
 traitait dans le chapitre sur l'horizon fini.
@@ -160,8 +160,8 @@ traitait dans le chapitre sur l'horizon fini.
 Ce problème n'a qu'une variable d'état, de sorte que nous pouvons encore nous
 offrir une solution de référence : l'itération sur les valeurs sur une grille
 de 4 001 points, avec interpolation linéaire entre eux et des échappements
-restreints à la grille. Comme la valeur de la récolte $x - s$ est linéaire en
-$s$, la maximisation sur $s \le x$ se réduit à un maximum courant le long de la
+restreints à la grille. Comme la valeur de la récolte $s - a$ est linéaire en
+$a$, la maximisation sur $a \le s$ se réduit à un maximum courant le long de la
 grille, et une mise à jour ne coûte qu'un seul passage. Diviser par deux le
 nombre de points de la grille modifie la solution de moins de $0.001$.
 
@@ -180,25 +180,25 @@ régulateur pêche jusqu'à l'échappement constant $S^\star$, la politique dont
 {cite:t}`Reed1979` a démontré l'optimalité pour cette classe de modèles. Sa
 condition $\gamma f'(S^\star) = 1$ donne $0.710$. Le petit écart vient des
 mauvaises années, qui laissent le stock sous $S^\star$, là où un poisson laissé
-pour frayer vaut plus que son prix. Entre $\hat x = 0.23$ et $S^\star$, la
-pêcherie est fermée et le stock se reconstitue. Sous $\hat x$, la politique
+pour frayer vaut plus que son prix. Entre $\hat s = 0.23$ et $S^\star$, la
+pêcherie est fermée et le stock se reconstitue. Sous $\hat s$, la politique
 épuise le stock : un stock aussi loin sous le point de bascule déclinera fort
 probablement de toute façon, et sa prise d'aujourd'hui vaut plus que sa faible
 chance de rétablissement. {cite:t}`Clark1973` a montré que maximiser la valeur
 de la récolte peut ainsi rendre l'extinction optimale. Le droit des pêches
 ajoute pour cette raison des limites de conservation, et ce modèle les omet.
 Pour les méthodes de ce chapitre, ce qui compte est la forme de $v^\star$. Elle
-est linéaire sur $[0, \hat x]$, présente un coude en $\hat x$, est multipliée
+est linéaire sur $[0, \hat s]$, présente un coude en $\hat s$, est multipliée
 par plus de dix à la traversée du point de bascule, et est régulière ailleurs.
 
 Supposons maintenant que nous ne puissions stocker que $n$ nombres. Deux choix
 sont naturels.
 
-- Un polynôme de Tchebychev, $v(x; \theta) = \sum_{j=1}^{n} \theta_j \varphi_j(x)$
-  avec $\varphi_j(x) = T_{j-1}(2x/1.6 - 1)$. La base est régulière et globale :
+- Un polynôme de Tchebychev, $v(s; \theta) = \sum_{j=1}^{n} \theta_j \varphi_j(s)$
+  avec $\varphi_j(s) = T_{j-1}(2s/1.6 - 1)$. La base est régulière et globale :
   chaque coefficient modifie la valeur pour chaque stock.
 - L'interpolation linéaire par morceaux sur $n$ nœuds uniformes,
-  $v(x;\theta) = \sum_{j=1}^{n} \theta_j \varphi_j(x)$ où les $\varphi_j$ sont
+  $v(s;\theta) = \sum_{j=1}^{n} \theta_j \varphi_j(s)$ où les $\varphi_j$ sont
   les fonctions chapeau du chapitre sur l'horizon fini. Chaque coefficient est
   la valeur en un nœud, et il ne modifie la valeur qu'entre les deux nœuds
   voisins.
@@ -207,17 +207,16 @@ Aucun des deux ne peut satisfaire l'équation de Bellman pour chaque stock.
 Notons $v_\theta = v(\cdot;\theta)$ la fonction entière. Le résidu
 
 $$
-R(x; \theta) = (\Bellman v_\theta)(x) - v(x; \theta)
+R(s; \theta) = (\Bellman v_\theta)(s) - v(s; \theta)
 $$
 
-mesure de combien elle échoue en $x$. Les deux termes dépendent de $\theta$ :
+mesure de combien elle échoue en $s$. Les deux termes dépendent de $\theta$ :
 l'opérateur est appliqué à la fonction $v_\theta$, et le résultat est évalué
-en $x$. L'état s'écrit $x$ dans cet exemple parce que $s$ désigne
-l'échappement; les sections générales qui suivent l'écrivent $s$. La collocation choisit $n$ points
-$x_1, \ldots, x_n$ et exige que le résidu s'y annule :
+en $s$. La collocation choisit $n$ points
+$s_1, \ldots, s_n$ et exige que le résidu s'y annule :
 
 $$
-R(x_i; \theta) = 0, \qquad i = 1, \ldots, n.
+R(s_i; \theta) = 0, \qquad i = 1, \ldots, n.
 $$
 
 Nous employons les nœuds de Tchebychev pour le polynôme et les nœuds
@@ -232,7 +231,7 @@ montre les deux approximations avec $n = 12$.
 
 Collocation avec $n = 12$ coefficients. (a) Les deux approximations comparées
 à la valeur exacte, avec leurs nœuds de collocation. (b) Le résidu de Bellman
-$R(x;\theta)$, qui s'annule aux nœuds. (c) L'échappement choisi par la
+$R(s;\theta)$, qui s'annule aux nœuds. (c) L'échappement choisi par la
 politique gloutonne de chaque approximation, comparé à l'échappement optimal.
 :::
 
@@ -249,7 +248,7 @@ immédiate, sous celle-ci. Entre $0.53$ et $0.67$, la politique pêche aussi des
 stocks qu'il faudrait laisser croître. L'approximation linéaire par morceaux
 est grossière entre ses nœuds, mais elle suit la falaise, et sa politique
 gloutonne perd au plus $0.064$ où que ce soit. Ce pire cas se situe près de
-$x = 0.21$, où la politique ferme la pêcherie un peu trop tôt.
+$s = 0.21$, où la politique ferme la pêcherie un peu trop tôt.
 
 L'exemple laisse trois questions ouvertes, et le reste du chapitre les traite
 dans l'ordre. La collocation a exigé un résidu nul en douze points; où
@@ -331,9 +330,9 @@ modèle linéaire peut exiger un très grand nombre de caractéristiques.
 :class: note
 
 La pêcherie a employé une base de chaque type, avec $n = 12$ : les polynômes de
-Tchebychev $\varphi_j(x) = T_{j-1}(2x/1.6 - 1)$, et les fonctions chapeau de
+Tchebychev $\varphi_j(s) = T_{j-1}(2s/1.6 - 1)$, et les fonctions chapeau de
 douze nœuds uniformes, pour lesquelles $\theta_j$ est la valeur au nœud $j$. Sa
-fonction de valeur présente un coude en $\hat x$ et une falaise au point de
+fonction de valeur présente un coude en $\hat s$ et une falaise au point de
 bascule; c'est pourquoi les deux bases se sont comportées si différemment avec
 le même $n$ : le polynôme a étalé la falaise sur tout l'intervalle, et les
 fonctions chapeau l'ont confinée aux deux nœuds qui l'encadrent.
@@ -351,7 +350,17 @@ $$ (eq:bellman-residual)
 le **résidu de Bellman**, où $v_\theta$ abrège $v(\cdot;\theta)$. Il mesure de
 combien l'approximation ne satisfait pas l'équation en $s$, et il est la
 fonction nulle exactement lorsque $v_\theta$ est un point fixe de $\Bellman$.
-Une évaluation du résidu coûte une évaluation de l'opérateur de Bellman, soit
+La [section sur Newton-Kantorovich](infinite-horizon-mdps.md#sec-newton-kantorovich-pi)
+du chapitre sur l'horizon infini a écrit l'équation de Bellman comme le
+problème de recherche de zéro $\mathrm{B}(v) = 0$ avec
+$\mathrm{B}(v) = \Bellman v - v$. Le résidu est cet opérateur appliqué à
+$v_\theta$, puis évalué en l'état $s$ :
+$R(s;\theta) = \big(\mathrm{B}(v_\theta)\big)(s)$. Ce qui change est
+l'argument : $\mathrm{B}$ prend n'importe quelle fonction, alors que $R$ ne
+prend que les $n$ coefficients qui décrivent $v_\theta$. Il faut lire
+$\Bellman v_\theta$ de la même façon, comme l'opérateur appliqué à la fonction
+$v_\theta$, qui renvoie une nouvelle fonction; ce n'est pas le produit d'une
+matrice et d'un vecteur. Une évaluation du résidu coûte une évaluation de l'opérateur de Bellman, soit
 une maximisation sur les actions et une espérance sur le successeur, avec les
 coefficients courants à l'intérieur des deux. Les coefficients interviennent
 deux fois dans $R$, directement par $v(s;\theta)$ et de nouveau par l'espérance
@@ -364,7 +373,7 @@ si $v_\theta$ est linéaire en $\theta$.
 Avec le stock comme état et l'échappement comme action, le résidu est
 
 $$
-R(x;\theta) = \max_{0 \le s \le x}\Big\{x - s + \gamma\,\mathbb{E}_z\big[v(z f(s);\theta)\big]\Big\} - v(x;\theta),
+R(s;\theta) = \max_{0 \le a \le s}\Big\{s - a + \gamma\,\mathbb{E}_z\big[v(z f(a);\theta)\big]\Big\} - v(s;\theta),
 $$
 
 et une évaluation coûte une maximisation sur l'échappement et une quadrature à
@@ -733,25 +742,39 @@ point fixe $v_\theta = \Proj\,\Bellman v_\theta$ de
 {eq}`eq:projected-bellman`, et le solveur naturel répète l'application,
 
 $$
-v_{k+1} = \Proj\, \Bellman v_k,
+v_{k+1} = \Proj\, \Bellman v_k, \qquad v_k = v(\cdot;\theta_k),
 $$ (eq:projected-vi)
 
 soit l'itération sur les valeurs avec une projection après chaque application
-de l'opérateur. En coefficients, une itération de la version par collocation
-compte deux étapes. La première évalue l'opérateur aux nœuds avec la fonction
+de l'opérateur. Les fonctions $v_k$ ne sont jamais stockées : chacune est la
+fonction décrite par ses coefficients $\theta_k$, et ce que l'itération met à
+jour est le vecteur de coefficients, de $\theta_k$ à $\theta_{k+1}$. Une
+itération de la version par collocation compte deux étapes. La première évalue l'opérateur aux nœuds avec la fonction
 courante, $t_i = (\Bellman v_k)(s_i)$ pour $i = 1, \ldots, n$. La seconde
 choisit les coefficients qui reproduisent ces $n$ cibles, ce qui est le système
 linéaire $\boldsymbol{\Phi}\theta_{k+1} = t$ avec la matrice d'interpolation
 $\Phi_{ij} = \varphi_j(s_i)$. Avec des fonctions chapeau collocalisées à leurs
 propres nœuds, la résolution est triviale, parce que $\boldsymbol\Phi$ est
 l'identité. La version de Galerkin remplace la seconde étape par la projection
-de la fonction cible, le système linéaire $M\theta_{k+1} = b_k$ avec la matrice
-de masse $M_{ij} = \langle \varphi_i, \varphi_j \rangle_w$ et
+orthogonale de la fonction cible, qui est l'ajustement par moindres carrés
+pondérés
+
+$$
+\theta_{k+1} = \arg\min_{\theta} \big\| v(\cdot;\theta) - \Bellman v_k \big\|_w^2 .
+$$
+
+Ses conditions du premier ordre sont le système linéaire $M\theta_{k+1} = b_k$
+avec la matrice de masse $M_{ij} = \langle \varphi_i, \varphi_j \rangle_w$ et
 $b_i = \langle \Bellman v_k, \varphi_i \rangle_w$. Le système est linéaire
-quel que soit l'opérateur, parce que la cible $\Bellman v_k$ est maintenue fixe
-pendant qu'on choisit $\theta_{k+1}$. C'est l'ajustement par moindres carrés
-pondérés de la base à la cible, et avec des états échantillonnés, c'est une
-régression ordinaire des mises à jour sur la base. La circularité de l'étape 3
+quel que soit l'opérateur, parce que la cible $\Bellman v_k$ est calculée à
+partir de $\theta_k$ et maintenue fixe pendant qu'on choisit $\theta_{k+1}$.
+Avec des états échantillonnés, l'ajustement est une régression ordinaire des
+mises à jour sur la base. Cet ajustement n'est pas la méthode des moindres
+carrés de l'étape 3. Les moindres carrés minimisent $\|R(\cdot;\theta)\|_w^2$
+une seule fois, avec $\theta$ des deux côtés du résidu. L'ajustement ci-dessus
+résout une nouvelle minimisation à chaque itération, avec $\theta$ seulement du
+côté de l'approximation; dans une mise en œuvre par descente de gradient, le
+gradient ne traverse pas la cible. La circularité de l'étape 3
 disparaît : les cibles viennent de l'itéré précédent. Ajuster une fonction
 paramétrique à des mises à jour de Bellman, puis recalculer les mises à jour,
 est l'algorithme que le [chapitre suivant](approximate-bellman-equations.md)
@@ -1034,14 +1057,14 @@ La collocation ne contrôle le résidu qu'aux nœuds. La norme sup du résidu su
 :label: ex-wr-three-methods
 
 Considérons l'évaluation de politique sur $\mathcal{S} = [0, 1]$ avec la
-récompense $r(x) = x$, la transition déterministe $x' = x/2$ et
+récompense $r(s) = s$, la transition déterministe $s' = s/2$ et
 $\gamma = 1/2$, de sorte que l'équation de Bellman est
-$v(x) = x + \tfrac12 v(x/2)$.
+$v(s) = s + \tfrac12 v(s/2)$.
 
-1. Vérifiez que $v(x) = \tfrac43 x$ en est solution.
-2. Approchez $v$ par $\hat v(x;\theta) = \theta_1 + \theta_2 x^2$, une base qui
-   ne peut pas représenter la solution. Écrivez le résidu $R(x;\theta)$.
-3. Faites la collocation en $x = 0$ et $x = 1$. Trouvez $\theta$.
+1. Vérifiez que $v(s) = \tfrac43 s$ en est solution.
+2. Approchez $v$ par $v(s;\theta) = \theta_1 + \theta_2 s^2$, une base qui
+   ne peut pas représenter la solution. Écrivez le résidu $R(s;\theta)$.
+3. Faites la collocation en $s = 0$ et $s = 1$. Trouvez $\theta$.
 4. Imposez les conditions de Galerkin avec le poids uniforme sur $[0, 1]$.
    Trouvez $\theta$.
 5. Comparez les deux approximations par leur plus grand résidu et leur plus
@@ -1052,11 +1075,11 @@ $v(x) = x + \tfrac12 v(x/2)$.
 :::{solution} ex-wr-three-methods
 :class: dropdown
 
-1. $\tfrac43 x = x + \tfrac12 \cdot \tfrac43 \cdot \tfrac x2 = x + \tfrac13 x$.
-2. $R(x;\theta) = x + \tfrac12(\theta_1 + \theta_2 x^2/4) - \theta_1 - \theta_2 x^2 = x - \tfrac12\theta_1 - \tfrac78\theta_2 x^2$.
+1. $\tfrac43 s = s + \tfrac12 \cdot \tfrac43 \cdot \tfrac s2 = s + \tfrac13 s$.
+2. $R(s;\theta) = s + \tfrac12(\theta_1 + \theta_2 s^2/4) - \theta_1 - \theta_2 s^2 = s - \tfrac12\theta_1 - \tfrac78\theta_2 s^2$.
 3. $R(0) = -\tfrac12\theta_1 = 0$ donne $\theta_1 = 0$, et $R(1) = 1 - \tfrac78\theta_2 = 0$ donne $\theta_2 = \tfrac87$.
-4. Les conditions $\int_0^1 R\,dx = \tfrac12 - \tfrac12\theta_1 - \tfrac{7}{24}\theta_2 = 0$ et $\int_0^1 R\,x^2\,dx = \tfrac14 - \tfrac16\theta_1 - \tfrac{7}{40}\theta_2 = 0$ donnent $\theta_1 = \tfrac38$ et $\theta_2 = \tfrac{15}{14}$.
-5. Collocation : plus grand résidu $0.25$, plus grande erreur de valeur $0.389$ (près de $x = 0.58$). Galerkin : plus grand résidu $0.1875$, plus grande erreur de valeur $0.375$ (en $x = 0$). La méthode de Galerkin est ici légèrement meilleure selon les deux mesures. Les deux sont médiocres, parce qu'une parabole ne peut pas suivre une droite passant par l'origine et les extrémités : aucun choix de conditions ne répare une base qui ne peut pas représenter la solution. Les moindres carrés donnent par hasard la réponse de Galerkin dans ce problème, parce que le résidu est linéaire en $\theta$ et que ses dérivées $\partial R/\partial\theta_i$ valent $-\tfrac12$ et $-\tfrac78 x^2$, qui engendrent le même espace que la base.
+4. Les conditions $\int_0^1 R\,ds = \tfrac12 - \tfrac12\theta_1 - \tfrac{7}{24}\theta_2 = 0$ et $\int_0^1 R\,s^2\,ds = \tfrac14 - \tfrac16\theta_1 - \tfrac{7}{40}\theta_2 = 0$ donnent $\theta_1 = \tfrac38$ et $\theta_2 = \tfrac{15}{14}$.
+5. Collocation : plus grand résidu $0.25$, plus grande erreur de valeur $0.389$ (près de $s = 0.58$). Galerkin : plus grand résidu $0.1875$, plus grande erreur de valeur $0.375$ (en $s = 0$). La méthode de Galerkin est ici légèrement meilleure selon les deux mesures. Les deux sont médiocres, parce qu'une parabole ne peut pas suivre une droite passant par l'origine et les extrémités : aucun choix de conditions ne répare une base qui ne peut pas représenter la solution. Les moindres carrés donnent par hasard la réponse de Galerkin dans ce problème, parce que le résidu est linéaire en $\theta$ et que ses dérivées $\partial R/\partial\theta_i$ valent $-\tfrac12$ et $-\tfrac78 s^2$, qui engendrent le même espace que la base.
 :::
 
 :::{exercise} Quelles itérations de collocation sont contractantes
@@ -1066,15 +1089,15 @@ Prenez la base de {ref}`ex-wr-three-methods` et les points de collocation $0$
 et $1$.
 
 1. Écrivez les fonctions cardinales $\ell_0, \ell_1$ de l'interpolation dans
-   $\text{Vect}\{1, x^2\}$ par ces points, de sorte que
-   $(\Proj g)(x) = \ell_0(x) g(0) + \ell_1(x) g(1)$.
+   $\text{Vect}\{1, s^2\}$ par ces points, de sorte que
+   $(\Proj g)(s) = \ell_0(s) g(0) + \ell_1(s) g(1)$.
 2. Montrez qu'elles sont non négatives et de somme un sur $[0, 1]$. Qu'est-ce
    que cela implique pour l'itération fonctionnelle $v_{k+1} = \Proj\Bellman v_k$
    sur ce problème, et pour tout opérateur de Bellman qui est une contraction
    en norme sup?
 3. Interpolez maintenant par le polynôme quadratique passant par $0$,
    $\tfrac12$ et $1$. Calculez la constante de Lebesgue
-   $\Lambda = \max_x \sum_j |\ell_j(x)|$ et expliquez pourquoi l'argument de la
+   $\Lambda = \max_s \sum_j |\ell_j(s)|$ et expliquez pourquoi l'argument de la
    partie 2 ne s'applique plus. C'est la constante de
    {prf:ref}`prop-interp-error-accumulation` dans le chapitre sur l'horizon
    fini.
@@ -1083,9 +1106,9 @@ et $1$.
 :::{solution} ex-wr-cardinal
 :class: dropdown
 
-1. $\ell_0(x) = 1 - x^2$ et $\ell_1(x) = x^2$.
-2. Les deux sont dans $[0, 1]$ sur $[0, 1]$ et ont pour somme un; $\Proj g$ est donc une combinaison convexe de $g(0)$ et de $g(1)$ en tout $x$, et $\|\Proj f - \Proj g\|_\infty \le \|f - g\|_\infty$. La composition $\Proj\Bellman$ est alors une $\gamma$-contraction pour toute $\gamma$-contraction $\Bellman$, et l'itération fonctionnelle converge à partir de tout point de départ. Sur ce problème, elle converge vers la solution de collocation de {ref}`ex-wr-three-methods`.
-3. Les fonctions cardinales sont $2(x - \tfrac12)(x-1)$, $-4x(x-1)$ et $2x(x-\tfrac12)$. La première et la dernière sont négatives sur certaines parties de $[0, 1]$, de sorte que $\Lambda = 1.25 > 1$. Une différence entre deux vecteurs de cibles peut être amplifiée d'un facteur allant jusqu'à $1.25$, ce qui l'emporte sur un facteur de contraction $\gamma > 0.8$; la non-expansivité, l'étape dont l'argument a besoin, n'est plus vérifiée.
+1. $\ell_0(s) = 1 - s^2$ et $\ell_1(s) = s^2$.
+2. Les deux sont dans $[0, 1]$ sur $[0, 1]$ et ont pour somme un; $\Proj g$ est donc une combinaison convexe de $g(0)$ et de $g(1)$ en tout $s$, et $\|\Proj f - \Proj g\|_\infty \le \|f - g\|_\infty$. La composition $\Proj\Bellman$ est alors une $\gamma$-contraction pour toute $\gamma$-contraction $\Bellman$, et l'itération fonctionnelle converge à partir de tout point de départ. Sur ce problème, elle converge vers la solution de collocation de {ref}`ex-wr-three-methods`.
+3. Les fonctions cardinales sont $2(s - \tfrac12)(s-1)$, $-4s(s-1)$ et $2s(s-\tfrac12)$. La première et la dernière sont négatives sur certaines parties de $[0, 1]$, de sorte que $\Lambda = 1.25 > 1$. Une différence entre deux vecteurs de cibles peut être amplifiée d'un facteur allant jusqu'à $1.25$, ce qui l'emporte sur un facteur de contraction $\gamma > 0.8$; la non-expansivité, l'étape dont l'argument a besoin, n'est plus vérifiée.
 :::
 
 :::{exercise} La méthode de Newton en cas d'égalité
@@ -1129,11 +1152,11 @@ itérations.
    nœud. `Bellman.greedy` le renvoie sur la grille fine; lisez la valeur au
    point de la grille où tombe chaque nœud.
 2. Construisez la matrice $\mathbf{P}_{\pi}\boldsymbol{\Phi}$ d'entrées
-   $\mathbb{E}_z[\varphi_j(z f(s_i))]$, en employant les nœuds de quadrature
+   $\mathbb{E}_z[\varphi_j(z f(a_i))]$, en employant les nœuds de quadrature
    `bellman.z` et les poids `bellman.w`. Pour les fonctions chapeau,
    $\boldsymbol\Phi$ est l'identité.
 3. Résolvez $(\mathbf{I} - \gamma \mathbf{P}_{\pi}\boldsymbol{\Phi})\theta = \mathbf{r}_\pi$
-   avec $\mathbf{r}_\pi$ les récoltes $x_i - s_i$ aux nœuds, et répétez.
+   avec $\mathbf{r}_\pi$ les récoltes $s_i - a_i$ aux nœuds, et répétez.
 4. Vérifiez que le résultat concorde avec le point fixe de l'itération
    fonctionnelle. Pourquoi le doit-il?
 :::
@@ -1155,10 +1178,10 @@ theta = np.zeros(basis.n)
 for k in range(30):
     escapement = bellman.greedy(basis.function(theta))
     index = np.clip(np.searchsorted(bellman.x, nodes, side="right") - 1, 0, bellman.x.size - 1)
-    s = escapement[index]                           # greedy escapement at each node
-    successors = np.clip(np.outer(growth(s), bellman.z), 0, X_MAX)
+    a = escapement[index]                           # greedy escapement at each node
+    successors = np.clip(np.outer(growth(a), bellman.z), 0, X_MAX)
     P_Phi = np.einsum("q,iqj->ij", bellman.w, hats(successors))
-    new = np.linalg.solve(np.eye(basis.n) - gamma * P_Phi, nodes - s)
+    new = np.linalg.solve(np.eye(basis.n) - gamma * P_Phi, nodes - a)
     step, theta = np.abs(new - theta).max(), new
     if step < 1e-10:
         break

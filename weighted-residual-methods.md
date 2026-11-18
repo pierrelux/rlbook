@@ -48,7 +48,7 @@ reasons, each already visible in an example we have solved.
 
 The first is that the number of states grows exponentially with the number
 of state variables. The tamarisk river of {ref}`sec-tamarisk-river` has one site per
-reach and three conditions per site, so a river of $n$ reaches has $3^n$
+reach and three conditions per site, so a river of $D$ reaches has $3^D$
 states. Value iteration needed about 150 sweeps whatever the size of the
 river, but each sweep touches every state, and a dense transition table for a
 seven-reach river without the treatment budget would take 84 GB. The rivers that
@@ -114,13 +114,14 @@ steps that lead from it to FQI and NFQCA.
 This example shows what goes wrong when a value function on a continuum is
 stored in a few numbers, and how the choice of representation changes the
 decisions that the stored function produces. A regulator sets the annual quota for a fish stock. Before the season, a survey
-gives the stock $x$, measured as a fraction of the carrying capacity of the
-habitat. The regulator chooses the *escapement* $s \in [0, x]$, the part of the
-stock left in the water to spawn. The rest, $x - s$, is caught and sold at a
+gives the stock $s$, measured as a fraction of the carrying capacity of the
+habitat. The regulator chooses the *escapement* $a \in [0, s]$, the part of the
+stock left in the water to spawn. The escapement is the action, which is why
+we write it $a$. The rest, $s - a$, is caught and sold at a
 unit price. Over the following year the escaped stock grows to
 
 $$
-x' = z\, f(s), \qquad f(s) = s \exp\!\Big(r \Big(1 - \frac{s}{K}\Big) \frac{s - C}{K}\Big),
+s' = z\, f(a), \qquad f(a) = a \exp\!\Big(r \Big(1 - \frac{a}{K}\Big) \frac{a - C}{K}\Big),
 $$
 
 where $z$ is a log-normal shock with mean one that stands for the environment:
@@ -134,14 +135,14 @@ teaching values, not the assessment of a real stock. The Bellman optimality
 equation is
 
 $$
-v^\star(x) = \max_{0 \le s \le x} \Big\{ x - s + \gamma\, \mathbb{E}_z\big[ v^\star\big(z f(s)\big) \big] \Big\}, \qquad x \in [0, 1.6].
+v^\star(s) = \max_{0 \le a \le s} \Big\{ s - a + \gamma\, \mathbb{E}_z\big[ v^\star\big(z f(a)\big) \big] \Big\}, \qquad s \in [0, 1.6].
 $$
 
 Three things separate it from the finite MDPs of the earlier chapters. The
 state is a real number, so $v^\star$ is a function on an interval and no table
 holds it. The action is a real number too, so the maximization runs over an
 interval. And the expectation is an integral over $z$, which we compute with
-21-point Gauss–Hermite quadrature. The successor stock $z f(s)$ almost never
+21-point Gauss–Hermite quadrature. The successor stock $z f(a)$ almost never
 falls on a point where a value was stored, which is the difficulty that
 [interpolation](finite-horizon-dp.md#handling-continuous-spaces-with-interpolation)
 handled in the finite-horizon chapter.
@@ -149,7 +150,7 @@ handled in the finite-horizon chapter.
 This problem has one state variable, so we can still afford a reference
 solution: value iteration on 4,001 grid points, with linear interpolation
 between them and escapements restricted to the grid. Because the harvest value
-$x - s$ is linear in $s$, the maximization over $s \le x$ reduces to a running
+$s - a$ is linear in $a$, the maximization over $a \le s$ reduces to a running
 maximum along the grid, and one backup costs a single pass. Halving the number
 of grid points changes the solution by less than $0.001$.
 
@@ -168,24 +169,24 @@ harvests down to the constant escapement $S^\star$, the policy that
 {cite:t}`Reed1979` proved optimal for this class of models. His condition
 $\gamma f'(S^\star) = 1$ gives $0.710$. The small gap comes from bad years,
 which leave the stock below $S^\star$, where a fish left to spawn is worth more
-than its price. Between $\hat x = 0.23$ and $S^\star$, the fishery is closed
-and the stock rebuilds. Below $\hat x$, the policy fishes the stock out: a
+than its price. Between $\hat s = 0.23$ and $S^\star$, the fishery is closed
+and the stock rebuilds. Below $\hat s$, the policy fishes the stock out: a
 stock this far below the tipping point will most likely decline anyway, and its
 catch today is worth more than its small chance of recovery.
 {cite:t}`Clark1973` showed that maximizing the value of the harvest can make
 extinction optimal in this way. Fisheries law adds conservation limits for that
 reason, and this model leaves them out. For the methods of this chapter, what
-matters is the shape of $v^\star$. It is linear on $[0, \hat x]$, has a kink at
-$\hat x$, rises more than tenfold across the tipping point, and is smooth
+matters is the shape of $v^\star$. It is linear on $[0, \hat s]$, has a kink at
+$\hat s$, rises more than tenfold across the tipping point, and is smooth
 elsewhere.
 
 Now suppose we may store only $n$ numbers. Two choices are natural.
 
-- A Chebyshev polynomial, $v(x; \theta) = \sum_{j=1}^{n} \theta_j \varphi_j(x)$
-  with $\varphi_j(x) = T_{j-1}(2x/1.6 - 1)$. The basis is smooth and global:
+- A Chebyshev polynomial, $v(s; \theta) = \sum_{j=1}^{n} \theta_j \varphi_j(s)$
+  with $\varphi_j(s) = T_{j-1}(2s/1.6 - 1)$. The basis is smooth and global:
   every coefficient changes the value at every stock.
 - Piecewise-linear interpolation on $n$ uniform nodes,
-  $v(x;\theta) = \sum_{j=1}^{n} \theta_j \varphi_j(x)$ with $\varphi_j$ the
+  $v(s;\theta) = \sum_{j=1}^{n} \theta_j \varphi_j(s)$ with $\varphi_j$ the
   hat functions of the finite-horizon chapter. Each coefficient is the value at
   one node, and it changes the value only between the two neighboring nodes.
 
@@ -193,17 +194,16 @@ Neither can satisfy the Bellman equation at every stock. Write
 $v_\theta = v(\cdot;\theta)$ for the whole function. The residual
 
 $$
-R(x; \theta) = (\Bellman v_\theta)(x) - v(x; \theta)
+R(s; \theta) = (\Bellman v_\theta)(s) - v(s; \theta)
 $$
 
-measures by how much it fails at $x$. Both terms depend on $\theta$: the
+measures by how much it fails at $s$. Both terms depend on $\theta$: the
 operator is applied to the function $v_\theta$, and the result is evaluated at
-$x$. The state is written $x$ in this example because $s$ is the escapement;
-the general sections below write it $s$. Collocation picks $n$ points
-$x_1, \ldots, x_n$ and asks the residual to vanish at them:
+$s$. Collocation picks $n$ points
+$s_1, \ldots, s_n$ and asks the residual to vanish at them:
 
 $$
-R(x_i; \theta) = 0, \qquad i = 1, \ldots, n.
+R(s_i; \theta) = 0, \qquad i = 1, \ldots, n.
 $$
 
 We use the Chebyshev nodes for the polynomial and the interpolation nodes for
@@ -218,7 +218,7 @@ $n = 12$.
 
 Collocation with $n = 12$ coefficients. (a) The two approximations against
 the exact value, with their collocation nodes. (b) The Bellman residual
-$R(x;\theta)$, which vanishes at the nodes. (c) The escapement chosen by the
+$R(s;\theta)$, which vanishes at the nodes. (c) The escapement chosen by the
 greedy policy of each approximation, against the optimal escapement.
 :::
 
@@ -233,7 +233,7 @@ stock at $0.31$ is worth $1.49$ under the optimal policy and $0.31$, its
 immediate catch, under this one. Between $0.53$ and $0.67$ the policy also
 harvests stocks that should be left to grow. The piecewise-linear approximation
 is coarse between its nodes, but it follows the cliff, and its greedy policy
-loses at most $0.064$ anywhere. That worst case is near $x = 0.21$, where the
+loses at most $0.064$ anywhere. That worst case is near $s = 0.21$, where the
 policy closes the fishery a little too early.
 
 The example leaves three questions open, and the rest of the chapter takes
@@ -311,9 +311,9 @@ large number of features.
 :class: note
 
 The fishery used one basis of each kind, with $n = 12$: the Chebyshev
-polynomials $\varphi_j(x) = T_{j-1}(2x/1.6 - 1)$, and the hat functions of
+polynomials $\varphi_j(s) = T_{j-1}(2s/1.6 - 1)$, and the hat functions of
 twelve uniform nodes, for which $\theta_j$ is the value at node $j$. Its value
-function has a kink at $\hat x$ and a cliff at the tipping point, which is why
+function has a kink at $\hat s$ and a cliff at the tipping point, which is why
 the two bases behaved so differently with the same $n$: the polynomial spread
 the cliff over the whole interval, and the hat functions confined it to the
 two nodes around it.
@@ -330,7 +330,16 @@ $$ (eq:bellman-residual)
 
 the **Bellman residual**, where $v_\theta$ abbreviates $v(\cdot;\theta)$. It
 measures by how much the approximation fails the equation at $s$, and it is
-the zero function exactly when $v_\theta$ is a fixed point of $\Bellman$. One
+the zero function exactly when $v_\theta$ is a fixed point of $\Bellman$. The
+[Newton–Kantorovich section](infinite-horizon-mdps.md#sec-newton-kantorovich-pi)
+of the infinite-horizon chapter wrote the Bellman equation as the root-finding
+problem $\mathrm{B}(v) = 0$ with $\mathrm{B}(v) = \Bellman v - v$. The residual
+is that operator applied to $v_\theta$ and then evaluated at the state $s$,
+$R(s;\theta) = \big(\mathrm{B}(v_\theta)\big)(s)$. What changes is the
+argument: $\mathrm{B}$ takes any function, while $R$ takes only the $n$
+coefficients that describe $v_\theta$. Read $\Bellman v_\theta$ in the same
+way, as the operator applied to the function $v_\theta$, which returns a new
+function; it is not a product of a matrix and a vector. One
 evaluation of it costs one evaluation of the Bellman operator, a maximization
 over the actions and an expectation over the successor, with the current
 coefficients inside both. The coefficients enter $R$ twice, directly through
@@ -344,7 +353,7 @@ it.
 With the stock as the state and the escapement as the action, the residual is
 
 $$
-R(x;\theta) = \max_{0 \le s \le x}\Big\{x - s + \gamma\,\mathbb{E}_z\big[v(z f(s);\theta)\big]\Big\} - v(x;\theta),
+R(s;\theta) = \max_{0 \le a \le s}\Big\{s - a + \gamma\,\mathbb{E}_z\big[v(z f(a);\theta)\big]\Big\} - v(s;\theta),
 $$
 
 and one evaluation costs a maximization over the escapement and a 21-node
@@ -700,25 +709,37 @@ $v_\theta = \Proj\,\Bellman v_\theta$ of {eq}`eq:projected-bellman`, and the
 natural solver repeats the map,
 
 $$
-v_{k+1} = \Proj\, \Bellman v_k,
+v_{k+1} = \Proj\, \Bellman v_k, \qquad v_k = v(\cdot;\theta_k),
 $$ (eq:projected-vi)
 
-value iteration with a projection after each application of the operator. In
-coefficients, one iteration of the collocation version has two steps. The
-first evaluates the operator at the nodes with the current function,
+value iteration with a projection after each application of the operator. The
+functions $v_k$ are never stored: each one is the function described by its
+coefficients $\theta_k$, and what the iteration updates is the coefficient
+vector, from $\theta_k$ to $\theta_{k+1}$. One iteration of the collocation
+version has two steps. The first evaluates the operator at the nodes with the current function,
 $t_i = (\Bellman v_k)(s_i)$ for $i = 1, \ldots, n$. The second chooses the
 coefficients that reproduce those $n$ targets, which is the linear system
 $\boldsymbol{\Phi}\theta_{k+1} = t$ with the interpolation matrix
 $\Phi_{ij} = \varphi_j(s_i)$. With hat functions collocated at their own
 nodes the solve is trivial, because $\boldsymbol\Phi$ is the identity. The
-Galerkin version replaces the second step by the projection of the target
-function, the linear system $M\theta_{k+1} = b_k$ with the mass matrix
-$M_{ij} = \langle \varphi_i, \varphi_j \rangle_w$ and
+Galerkin version replaces the second step by the orthogonal projection of the
+target function, which is the weighted least-squares fit
+
+$$
+\theta_{k+1} = \arg\min_{\theta} \big\| v(\cdot;\theta) - \Bellman v_k \big\|_w^2 .
+$$
+
+Its first-order conditions are the linear system $M\theta_{k+1} = b_k$ with
+the mass matrix $M_{ij} = \langle \varphi_i, \varphi_j \rangle_w$ and
 $b_i = \langle \Bellman v_k, \varphi_i \rangle_w$. The system is linear
-whatever the operator is, because the target $\Bellman v_k$ is held fixed
-while $\theta_{k+1}$ is chosen. It is the weighted least-squares fit of the
-basis to the target, and with sampled states it is an ordinary regression of
-the backups on the basis. The circularity of Step 3 is gone: the targets come
+whatever the operator is, because the target $\Bellman v_k$ is computed from
+$\theta_k$ and held fixed while $\theta_{k+1}$ is chosen. With sampled states,
+the fit is an ordinary regression of the backups on the basis. This fit is
+not the least-squares method of Step 3. Least squares minimizes
+$\|R(\cdot;\theta)\|_w^2$ once, with $\theta$ on both sides of the residual.
+The fit above solves a new minimization at every iteration, with $\theta$ only
+on the side of the approximation; in an implementation by gradient descent,
+the target is wrapped in a stop-gradient. The circularity of Step 3 is gone: the targets come
 from the previous iterate. Fitting a parametric function to Bellman backups,
 then recomputing the backups, is the algorithm that the
 [next chapter](approximate-bellman-equations.md) calls fitted value iteration
@@ -989,14 +1010,14 @@ Collocation controls the residual at the nodes only. The sup norm of the residua
 :::{exercise} Three methods on one equation
 :label: ex-wr-three-methods
 
-Consider policy evaluation on $\mathcal{S} = [0, 1]$ with reward $r(x) = x$,
-deterministic transition $x' = x/2$ and $\gamma = 1/2$, so that the Bellman
-equation is $v(x) = x + \tfrac12 v(x/2)$.
+Consider policy evaluation on $\mathcal{S} = [0, 1]$ with reward $r(s) = s$,
+deterministic transition $s' = s/2$ and $\gamma = 1/2$, so that the Bellman
+equation is $v(s) = s + \tfrac12 v(s/2)$.
 
-1. Check that $v(x) = \tfrac43 x$ solves it.
-2. Approximate $v$ by $\hat v(x;\theta) = \theta_1 + \theta_2 x^2$, a basis that
-   cannot represent the solution. Write the residual $R(x;\theta)$.
-3. Collocate at $x = 0$ and $x = 1$. Find $\theta$.
+1. Check that $v(s) = \tfrac43 s$ solves it.
+2. Approximate $v$ by $v(s;\theta) = \theta_1 + \theta_2 s^2$, a basis that
+   cannot represent the solution. Write the residual $R(s;\theta)$.
+3. Collocate at $s = 0$ and $s = 1$. Find $\theta$.
 4. Impose the Galerkin conditions with the uniform weight on $[0, 1]$. Find
    $\theta$.
 5. Compare the two approximations by their largest residual and their
@@ -1006,11 +1027,11 @@ equation is $v(x) = x + \tfrac12 v(x/2)$.
 :::{solution} ex-wr-three-methods
 :class: dropdown
 
-1. $\tfrac43 x = x + \tfrac12 \cdot \tfrac43 \cdot \tfrac x2 = x + \tfrac13 x$.
-2. $R(x;\theta) = x + \tfrac12(\theta_1 + \theta_2 x^2/4) - \theta_1 - \theta_2 x^2 = x - \tfrac12\theta_1 - \tfrac78\theta_2 x^2$.
+1. $\tfrac43 s = s + \tfrac12 \cdot \tfrac43 \cdot \tfrac s2 = s + \tfrac13 s$.
+2. $R(s;\theta) = s + \tfrac12(\theta_1 + \theta_2 s^2/4) - \theta_1 - \theta_2 s^2 = s - \tfrac12\theta_1 - \tfrac78\theta_2 s^2$.
 3. $R(0) = -\tfrac12\theta_1 = 0$ gives $\theta_1 = 0$, and $R(1) = 1 - \tfrac78\theta_2 = 0$ gives $\theta_2 = \tfrac87$.
-4. The conditions $\int_0^1 R\,dx = \tfrac12 - \tfrac12\theta_1 - \tfrac{7}{24}\theta_2 = 0$ and $\int_0^1 R\,x^2\,dx = \tfrac14 - \tfrac16\theta_1 - \tfrac{7}{40}\theta_2 = 0$ give $\theta_1 = \tfrac38$ and $\theta_2 = \tfrac{15}{14}$.
-5. Collocation: largest residual $0.25$, largest value error $0.389$ (near $x = 0.58$). Galerkin: largest residual $0.1875$, largest value error $0.375$ (at $x = 0$). Galerkin is slightly better by both measures here. Both are poor, because a parabola cannot follow a line through the origin and the ends: no choice of conditions repairs a basis that cannot represent the solution. Least squares happens to give the Galerkin answer in this problem, because the residual is linear in $\theta$ and its derivatives $\partial R/\partial\theta_i$ are $-\tfrac12$ and $-\tfrac78 x^2$, which span the same space as the basis.
+4. The conditions $\int_0^1 R\,ds = \tfrac12 - \tfrac12\theta_1 - \tfrac{7}{24}\theta_2 = 0$ and $\int_0^1 R\,s^2\,ds = \tfrac14 - \tfrac16\theta_1 - \tfrac{7}{40}\theta_2 = 0$ give $\theta_1 = \tfrac38$ and $\theta_2 = \tfrac{15}{14}$.
+5. Collocation: largest residual $0.25$, largest value error $0.389$ (near $s = 0.58$). Galerkin: largest residual $0.1875$, largest value error $0.375$ (at $s = 0$). Galerkin is slightly better by both measures here. Both are poor, because a parabola cannot follow a line through the origin and the ends: no choice of conditions repairs a basis that cannot represent the solution. Least squares happens to give the Galerkin answer in this problem, because the residual is linear in $\theta$ and its derivatives $\partial R/\partial\theta_i$ are $-\tfrac12$ and $-\tfrac78 s^2$, which span the same space as the basis.
 :::
 
 :::{exercise} Which collocation iterations contract
@@ -1020,13 +1041,13 @@ Take the basis of {ref}`ex-wr-three-methods` and the collocation points $0$
 and $1$.
 
 1. Write the cardinal functions $\ell_0, \ell_1$ of interpolation in
-   $\text{span}\{1, x^2\}$ through these points, so that
-   $(\Proj g)(x) = \ell_0(x) g(0) + \ell_1(x) g(1)$.
+   $\text{span}\{1, s^2\}$ through these points, so that
+   $(\Proj g)(s) = \ell_0(s) g(0) + \ell_1(s) g(1)$.
 2. Show that they are nonnegative and sum to one on $[0, 1]$. What does this
    imply for function iteration $v_{k+1} = \Proj\Bellman v_k$ on this problem,
    and for any Bellman operator that is a sup-norm contraction?
 3. Now interpolate with the quadratic through $0$, $\tfrac12$ and $1$. Compute
-   the Lebesgue constant $\Lambda = \max_x \sum_j |\ell_j(x)|$ and explain why
+   the Lebesgue constant $\Lambda = \max_s \sum_j |\ell_j(s)|$ and explain why
    the argument of part 2 no longer applies. This is the constant of
    {prf:ref}`prop-interp-error-accumulation` in the finite-horizon chapter.
 :::
@@ -1034,9 +1055,9 @@ and $1$.
 :::{solution} ex-wr-cardinal
 :class: dropdown
 
-1. $\ell_0(x) = 1 - x^2$ and $\ell_1(x) = x^2$.
-2. Both lie in $[0, 1]$ on $[0, 1]$ and sum to one, so $\Proj g$ is a convex combination of $g(0)$ and $g(1)$ at every $x$ and $\|\Proj f - \Proj g\|_\infty \le \|f - g\|_\infty$. The composition $\Proj\Bellman$ is then a $\gamma$-contraction for any $\gamma$-contraction $\Bellman$, and function iteration converges from any start. On this problem it converges to the collocation solution of {ref}`ex-wr-three-methods`.
-3. The cardinal functions are $2(x - \tfrac12)(x-1)$, $-4x(x-1)$ and $2x(x-\tfrac12)$. The first and last are negative on parts of $[0, 1]$, so $\Lambda = 1.25 > 1$. A difference between two target vectors can be amplified by up to $1.25$, which beats a contraction factor $\gamma > 0.8$; nonexpansiveness, the step the argument needs, fails.
+1. $\ell_0(s) = 1 - s^2$ and $\ell_1(s) = s^2$.
+2. Both lie in $[0, 1]$ on $[0, 1]$ and sum to one, so $\Proj g$ is a convex combination of $g(0)$ and $g(1)$ at every $s$ and $\|\Proj f - \Proj g\|_\infty \le \|f - g\|_\infty$. The composition $\Proj\Bellman$ is then a $\gamma$-contraction for any $\gamma$-contraction $\Bellman$, and function iteration converges from any start. On this problem it converges to the collocation solution of {ref}`ex-wr-three-methods`.
+3. The cardinal functions are $2(s - \tfrac12)(s-1)$, $-4s(s-1)$ and $2s(s-\tfrac12)$. The first and last are negative on parts of $[0, 1]$, so $\Lambda = 1.25 > 1$. A difference between two target vectors can be amplified by up to $1.25$, which beats a contraction factor $\gamma > 0.8$; nonexpansiveness, the step the argument needs, fails.
 :::
 
 :::{exercise} Newton's method at a tie
@@ -1077,11 +1098,11 @@ same basis, using `Bellman`, `HatBasis` and `growth` from
    `Bellman.greedy` returns it on the fine grid; read off the value at the
    grid point where each node falls.
 2. Build the matrix $\mathbf{P}_{\pi}\boldsymbol{\Phi}$ with entries
-   $\mathbb{E}_z[\varphi_j(z f(s_i))]$, using the quadrature nodes
+   $\mathbb{E}_z[\varphi_j(z f(a_i))]$, using the quadrature nodes
    `bellman.z` and weights `bellman.w`. For hat functions, $\boldsymbol\Phi$ is
    the identity.
 3. Solve $(\mathbf{I} - \gamma \mathbf{P}_{\pi}\boldsymbol{\Phi})\theta = \mathbf{r}_\pi$
-   with $\mathbf{r}_\pi$ the harvests $x_i - s_i$ at the nodes, and repeat.
+   with $\mathbf{r}_\pi$ the harvests $s_i - a_i$ at the nodes, and repeat.
 4. Check that the result agrees with the fixed point of function iteration.
    Why must it?
 :::
@@ -1103,10 +1124,10 @@ theta = np.zeros(basis.n)
 for k in range(30):
     escapement = bellman.greedy(basis.function(theta))
     index = np.clip(np.searchsorted(bellman.x, nodes, side="right") - 1, 0, bellman.x.size - 1)
-    s = escapement[index]                           # greedy escapement at each node
-    successors = np.clip(np.outer(growth(s), bellman.z), 0, X_MAX)
+    a = escapement[index]                           # greedy escapement at each node
+    successors = np.clip(np.outer(growth(a), bellman.z), 0, X_MAX)
     P_Phi = np.einsum("q,iqj->ij", bellman.w, hats(successors))
-    new = np.linalg.solve(np.eye(basis.n) - gamma * P_Phi, nodes - s)
+    new = np.linalg.solve(np.eye(basis.n) - gamma * P_Phi, nodes - a)
     step, theta = np.abs(new - theta).max(), new
     if step < 1e-10:
         break

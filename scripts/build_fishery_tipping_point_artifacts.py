@@ -54,23 +54,23 @@ def figure_problem(bellman, exact):
     ax.plot(grid, growth(grid), color=PALETTE["blue"])
     ax.axvline(C, color=PALETTE["vermilion"], lw=.8, ls=":")
     label(ax, C + .03, 1.1, "tipping\npoint $C$", PALETTE["vermilion"], va="top")
-    label(ax, .5, .8, "$f(s)$", PALETTE["blue"], ha="right")
-    label(ax, .55, .36, "$x' = s$", MUTED, ha="left", va="center")
+    label(ax, .5, .8, "$f(a)$", PALETTE["blue"], ha="right")
+    label(ax, .55, .36, "$s' = a$", MUTED, ha="left", va="center")
     ax.set_xlim(0, 1.15), ax.set_ylim(0, 1.15)
-    ax.set_xlabel("escapement $s$")
-    ax.set_ylabel(r"stock next year $x'$")
+    ax.set_xlabel("escapement $a$")
+    ax.set_ylabel(r"stock next year $s'$")
     ax.set_title("(a) Growth with an Allee effect")
 
     for ax in axes[1:]:
         ax.axvspan(0, x_hat, color=PALETTE["vermilion"], alpha=.09, lw=0)
         ax.axvspan(x_hat, s_star, color=PALETTE["green"], alpha=.09, lw=0)
         ax.set_xlim(0, X_MAX)
-        ax.set_xlabel("stock $x$ before the season")
+        ax.set_xlabel("stock $s$ before the season")
 
     ax = axes[1]
     ax.plot(x, v, color=INK)
     ax.set_ylim(0, 4.8)
-    ax.set_ylabel(r"$v^\star(x)$")
+    ax.set_ylabel(r"$v^\star(s)$")
     ax.set_title("(b) Optimal value")
     ax.annotate("cliff at the\ntipping point", xy=(.335, 1.9), xytext=(.62, .7), fontsize=8.5, color=MUTED,
                 arrowprops=dict(arrowstyle="-", color=MUTED, lw=.6, shrinkA=1, shrinkB=2))
@@ -83,7 +83,7 @@ def figure_problem(bellman, exact):
     label(ax, 1.17, .5, "harvest\ndown to $S^\star$", INK, ha="center", va="top")
     label(ax, X_MAX - .02, s_star + .06, f"$S^\\star = {s_star:.2f}$", INK, ha="right", va="bottom")
     ax.set_ylim(0, 1.5)
-    ax.set_ylabel(r"escapement $s^\star(x)$")
+    ax.set_ylabel(r"escapement $\pi^\star(s)$")
     ax.set_title("(c) Optimal policy")
     fig.tight_layout(w_pad=1.4)
     save(fig, STATIC, "problem")
@@ -104,8 +104,8 @@ def figure_collocation(bellman, exact, results):
     label(ax, .62, 1.3, "piecewise\nlinear", COLORS["linear"], va="center")
     label(ax, 1.05, 3.55, "exact", PALETTE["gray"], va="top")
     ax.set_xlim(0, X_MAX), ax.set_ylim(0, 4.8)
-    ax.set_xlabel("stock $x$")
-    ax.set_ylabel(r"$\hat v(x)$")
+    ax.set_xlabel("stock $s$")
+    ax.set_ylabel(r"$v(s;\theta)$")
     ax.set_title(f"(a) Approximations, $n = {FEATURED_N}$")
 
     ax = axes[1]
@@ -115,8 +115,8 @@ def figure_collocation(bellman, exact, results):
         ax.plot(x, bellman.apply(f) - f(x), color=COLORS[key], lw=1.0)
         ax.plot(res.basis.nodes, np.zeros(res.basis.n), "o", ms=3, color=COLORS[key], mec="none", zorder=3)
     ax.set_xlim(0, X_MAX), ax.set_ylim(-.24, .24)
-    ax.set_xlabel("stock $x$")
-    ax.set_ylabel(r"$R(x;\theta)$")
+    ax.set_xlabel("stock $s$")
+    ax.set_ylabel(r"$R(s;\theta)$")
     ax.set_title("(b) Bellman residual")
 
     ax = axes[2]
@@ -128,7 +128,7 @@ def figure_collocation(bellman, exact, results):
     ax.annotate("optimal", xy=(.47, .47), xytext=(.6, .28), fontsize=8.5, color=PALETTE["gray"],
                 arrowprops=dict(arrowstyle="-", color=PALETTE["gray"], lw=.6, shrinkA=1, shrinkB=3))
     ax.set_xlim(0, 1.0), ax.set_ylim(0, 1.0)
-    ax.set_xlabel("stock $x$")
+    ax.set_xlabel("stock $s$")
     ax.set_ylabel("greedy escapement")
     ax.set_title("(c) Greedy policies")
     fig.tight_layout(w_pad=1.4)
@@ -137,8 +137,8 @@ def figure_collocation(bellman, exact, results):
 
 def figure_sweep(rows):
     fig, axes = plt.subplots(1, 2, figsize=(TEXT_WIDTH, 2.45))
-    panels = ((axes[0], "value_error", "(a) Value error", r"$\max_x |\hat v(x) - v^\star(x)|$"),
-              (axes[1], "policy_loss", "(b) Policy loss", r"$\max_x\, (v^\star - v^{\hat\pi})(x)$"))
+    panels = ((axes[0], "value_error", "(a) Value error", r"$\max_s |v(s;\theta) - v^\star(s)|$"),
+              (axes[1], "policy_loss", "(b) Policy loss", r"$\max_s\, (v^\star - v^{\pi_\theta})(s)$"))
     for ax, metric, title, ylabel in panels:
         for key in BASES:
             ok = [r for r in rows if r["key"] == key and not r["diverged"]]
@@ -182,11 +182,11 @@ def write_results(rows, exact):
     lines.append("")
     lines.append(
         f"Collocation by function iteration with $n$ coefficients. *Value error* is "
-        r"$\max_x |\hat v(x) - v^\star(x)|$; the optimal value ranges from 0 to "
+        r"$\max_s |v(s;\theta) - v^\star(s)|$; the optimal value ranges from 0 to "
         f"{exact.v.max():.1f}. *Fishes out below* is the largest stock that the greedy policy of "
-        r"$\hat v$ harvests to zero; the optimal policy fishes out stocks below "
+        r"$v_\theta$ harvests to zero; the optimal policy fishes out stocks below "
         f"{exact.fish_out_level:.2f}, and the tipping point is at {C}. *Policy loss* is "
-        r"$\max_x (v^\star - v^{\hat\pi})(x)$, with the greedy policy $\hat\pi$ evaluated exactly. "
+        r"$\max_s (v^\star - v^{\pi_\theta})(s)$, with the greedy policy $\pi_\theta$ evaluated exactly. "
         "*Diverged*: the coefficients grew without bound.")
     (ARTIFACTS / "results.md").write_text("\n".join(lines) + "\n")
 

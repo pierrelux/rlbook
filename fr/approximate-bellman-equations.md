@@ -739,7 +739,7 @@ ensuite à la méthode de Newton avec l'ajustement précis.
 
 1. **Le contre-exemple avec un moyenneur.** Remplacez l'ajustement par moindres carrés de l'exemple à deux états par une agrégation d'états en un seul groupe. Écrivez $\Proj$ sous forme de matrice, vérifiez qu'il s'agit d'un moyenneur, et montrez que l'itération sur les valeurs ajustée converge pour tout $\gamma < 1$. Quel est son point fixe?
 
-2. **Un exemple non monotone.** À l'aide de l'interpolation de Lagrange avec 4 nœuds équidistants sur $[0, 1]$, calculez les poids d'interpolation au point $x = 0.1$. Montrez que certains poids sont négatifs.
+2. **Un exemple non monotone.** À l'aide de l'interpolation de Lagrange avec 4 nœuds équidistants sur $[0, 1]$, calculez les poids d'interpolation à l'état $s = 0.1$. Montrez que certains poids sont négatifs.
 
 3. **Vérifier la monotonie.** Considérez l'interpolation linéaire par morceaux sur une grille de 5 points. Écrivez les poids d'interpolation pour un point situé entre les points 2 et 3 de la grille. Vérifiez que tous les poids sont non négatifs et ont pour somme un.
 

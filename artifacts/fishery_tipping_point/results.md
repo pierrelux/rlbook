@@ -6,4 +6,4 @@
 | 20 | 1.04 | 0.27 | 0.357 | 0.22 | 0.20 | 0.041 |
 | 40 | 0.03 | 0.00 | 0.006 | 0.09 | 0.22 | 0.014 |
 
-Collocation by function iteration with $n$ coefficients. *Value error* is $\max_x |\hat v(x) - v^\star(x)|$; the optimal value ranges from 0 to 4.5. *Fishes out below* is the largest stock that the greedy policy of $\hat v$ harvests to zero; the optimal policy fishes out stocks below 0.23, and the tipping point is at 0.3. *Policy loss* is $\max_x (v^\star - v^{\hat\pi})(x)$, with the greedy policy $\hat\pi$ evaluated exactly. *Diverged*: the coefficients grew without bound.
+Collocation by function iteration with $n$ coefficients. *Value error* is $\max_s |v(s;\theta) - v^\star(s)|$; the optimal value ranges from 0 to 4.5. *Fishes out below* is the largest stock that the greedy policy of $v_\theta$ harvests to zero; the optimal policy fishes out stocks below 0.23, and the tipping point is at 0.3. *Policy loss* is $\max_s (v^\star - v^{\pi_\theta})(s)$, with the greedy policy $\pi_\theta$ evaluated exactly. *Diverged*: the coefficients grew without bound.
