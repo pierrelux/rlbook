@@ -1181,7 +1181,7 @@ $\mathbf{A}$ is invertible {cite}`BertsekasYu2009`.
 4. **How far off-policy?** In Baird's star, compute the eigenvalues of $\mathbf{A}$ as a function of $\gamma$ and find the discount below which none has a negative real part. Then mix the uniform weighting with the stationary distribution of the target policy, $\xi_\beta = (1-\beta)\,\text{uniform} + \beta\,\mathbf{e}_7$, and find the smallest $\beta$ for which none has a negative real part at $\gamma = 0.99$.
 ```
 
-### The Optimality Operator and the Deadly Triad
+### The Optimality Operator
 
 The weighted argument does not extend to the optimality operator
 $\Bellman v = \max_a [\mathbf{r}_a + \gamma \mathbf{P}_a v]$. The obstacle is the Jensen step. For the optimality operator we would need to
@@ -1206,6 +1206,108 @@ features converges for optimal stopping, with the pricing of high-dimensional
 financial derivatives as their application. The eight-dimensional problem of
 {ref}`sec-abe-high-dim` has this structure: the coordinates move the same way
 whether the agent stops or not.
+
+(sec-abe-control-results)=
+### What Is Known for the Optimality Operator
+
+The convergence results for control are scattered, and they are easier to
+read when sorted by the route of {ref}`sec-abe-two-norms` that they take, or
+by the route they take around it. Four groups cover most of them.
+
+The first group is the sup-norm route, and it covers control completely. The
+proof of {prf:ref}`santos-vigo-aguiar-stability` used only that $\Bellman$ is a
+$\gamma$-contraction in the sup norm, which holds with the maximum, so fitted
+value iteration and fitted Q-iteration with an averager converge for the
+optimality operator, from any data, to a fixed point within
+$(1-\gamma)^{-1}\|\Proj v^* - v^*\|_\infty$ of $v^*$, and
+{prf:ref}`prop-greedy-loss` bounds the loss of its greedy policy. This is
+Gordon's theorem, and it is a control result, not an evaluation result. Its
+online counterparts are Q-learning with soft state aggregation
+{cite}`SinghJaakkolaJordan1995` and Q-learning on interpolated action values
+{cite}`SzepesvariSmart2004`, both convergent under the same sign condition,
+and tree-based fitted Q-iteration with a frozen partition
+{cite}`ernst2005tree`. For aggregation, {cite:t}`VanRoy2006` bounds the loss of
+the greedy policy in terms of the variation of $v^*$ within each group,
+weighted by the state distribution of an optimal policy. Approximate policy
+iteration is also well behaved here. With aggregation, the approximate
+evaluation is the exact evaluation of an aggregate MDP whose states are the
+groups, so the policies are those of exact policy iteration on that MDP and do
+not oscillate, a property that {cite:t}`Bertsekas2011` uses to recommend
+aggregation over projected equations for approximate policy iteration.
+
+The second group stays with the $\xi$-norm route and the Galerkin projection,
+where the optimality operator gives no contraction, and collects what can be
+proved anyway. The negative result is that of {cite:t}`deFariasVanRoy2000`:
+$v = \Proj\Bellman v$ may have no solution, although a variant with
+exploration in the weighting always has one. The positive results are special
+cases or weaker conclusions.
+
+- **Optimal stopping** converges, as shown above {cite}`TsitsiklisVanRoy1999`.
+- **Q-learning with linear features** converges when the behavior policy is
+  close enough to the greedy policy of every parameter it visits, a condition
+  on feature covariances that {cite:t}`Melo2008` make precise. It holds
+  near on-policy learning and fails in general off-policy.
+- **SARSA(0)**, which evaluates the policy it follows and improves it at
+  every step, cannot diverge with linear features: its weights stay in a
+  bounded region, inside which they may chatter without converging
+  {cite}`Gordon2000`.
+- **Approximate policy iteration** with SARSA evaluation converges to a unique
+  solution when the improvement step produces soft policies that depend on
+  the action values in a Lipschitz way with a small enough constant
+  {cite}`PerkinsPrecup2002`. A softmax with a high enough temperature is such
+  a step, the greedy policy is not, and the continuity of the improvement is
+  what removes the oscillation.
+- **Gradient methods for control**, such as Greedy-GQ, minimize the projected
+  Bellman error of the greedy policy by stochastic gradient and converge to a
+  stationary point of that objective, not necessarily to a solution of the
+  projected equation {cite}`Maei2010`.
+- **Optimistic exploration** with a Gibbs policy guarantees that a solution of
+  the projected equation for Q-learning exists and that the iterates stay
+  bounded; convergence remains open {cite}`Meyn2023`.
+- **Target networks with a ridge penalty** give linear off-policy Q-learning
+  methods that converge under mild conditions on the behavior policy
+  {cite}`ZhangYaoWhiteson2021`, discussed below.
+
+The third group does not ask for a contraction of $\Proj\Bellman$ at all. It
+assumes that each fit is accurate, $\|v_{k+1} - \Bellman v_k\| \leq \varepsilon$,
+and bounds the result, as {prf:ref}`thm-approximate-vi` did for the sup norm.
+The weighted-norm versions of {cite:t}`Munos2007` and
+{cite:t}`MunosSzepesvari2008` cover fitted value iteration with the maximum,
+for any regressor, at the price of the concentrability coefficient. The
+assumption hides the stability question in $\varepsilon$, and it is
+reasonable when the function class is closed, or nearly closed, under the
+Bellman operator, the condition called Bellman completeness
+{cite}`ChenJiang2019`. If the class is closed, $\Bellman v_k$ is in it, the
+projection returns it unchanged, and no norm needs to be preserved: the only
+errors are statistical. The approximate policy iteration bound
+$2\gamma\varepsilon/(1-\gamma)^2$ of {ref}`sec-abe-api`
+{cite}`BertsekasTsitsiklis1996` is of the same kind, and it allows the policies
+to oscillate within that distance of optimal.
+
+The fourth group replaces the fixed-point equation by an optimization.
+The linear programming approach to approximate dynamic programming
+{cite}`deFariasVanRoy2003` restricts the linear program whose solution is
+$v^*$ to the span of the features. The restricted program always has a
+solution, no iteration can diverge, and its error is bounded by the best
+approximation of $v^*$ in a norm weighted by a Lyapunov-like function. The
+maximum enters as one linear constraint per state and action, which is why
+the approach handles control as easily as evaluation.
+
+| **Route** | **Covers the maximum?** | **Assumption** | **Conclusion** |
+|:--|:--|:--|:--|
+| Averager (sup norm) | Yes | Nonnegative fit weights | Contraction, unique fixed point, error bound |
+| Galerkin ($\xi$-norm) | Only special cases | Stopping; behavior near greedy; soft Lipschitz improvement | Convergence, boundedness, or existence only |
+| Error propagation | Yes | Each fit accurate (completeness), concentrability | Error bound, no convergence claim |
+| Linear programming | Yes | Feasible restricted program | Error bound, no iteration |
+
+The table explains what a practitioner of fitted Q-iteration can rely on.
+With trees or aggregation, Gordon's theorem applies directly. With linear
+features and a maximum, there are no general guarantees, only the special
+cases of the second group. With a neural network, the third group is the
+operative theory: the guarantee is conditional on the fits being accurate,
+and the design choices discussed next are attempts to keep them so.
+
+### The Deadly Triad
 
 {cite:t}`SuttonBarto2018` call the combination of function approximation,
 bootstrapping (targets built from the current estimate), and off-policy data
