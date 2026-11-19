@@ -50,6 +50,7 @@ After completing this chapter, you should be able to:
 - Locate the two expectations in a fitted Bellman update, inside the operator and over the states, and bound the effect of estimating either one on the fixed point
 - Replace an expectation by a sample average, state the bias and variance of the result, and explain why its rate is independent of the dimension
 - Define the action-value function and its Bellman operator, and explain what it saves at decision time
+- Derive TD(0) as a stochastic solver of the Galerkin system of the previous chapter, and explain why it is stable on-policy and can diverge off-policy
 - Derive the upward bias of a maximum over noisy estimates, and explain how decoupling selection from evaluation removes part of it
 
 **Prerequisites:** fitted value iteration and its error bound ([previous chapter](approximate-bellman-equations.md)), basic probability (expectation, variance, the central limit theorem, Jensen's inequality).
@@ -359,6 +360,194 @@ million transitions, or one transition per step, while the inner one is
 sampled once. In a domain with a cheap, resettable simulator and
 high-variance targets, averaging several successors per $(s,a)$ is a direct
 variance reduction that current practice rarely uses.
+
+(sec-mc-td)=
+## Temporal-Difference Learning
+
+The sampled fitted update of the previous section draws a batch of
+transitions, computes targets, and fits. Temporal-difference learning takes
+the opposite extreme, one transition at a time, with a gradient step in place
+of the fit. For policy evaluation with linear features
+$v(s;\theta) = \boldsymbol\varphi(s)^\top\theta$, its target is the
+Galerkin system {eq}`eq:abe-td-system` of the
+[previous chapter](approximate-bellman-equations.md#sec-abe-galerkin-system),
+$\mathbf{A}\theta = \mathbf{b}$ with
+$\mathbf{A} = \boldsymbol\Phi^\top\boldsymbol\Xi(\mathbf{I} - \gamma\mathbf{P}_\pi)\boldsymbol\Phi$
+and $\mathbf{b} = \boldsymbol\Phi^\top\boldsymbol\Xi\,\mathbf{r}_\pi$, whose
+solution is the fixed point of the projected Bellman equation
+$v = \Proj\BellmanPi v$. Both $\mathbf{A}$ and $\mathbf{b}$ are expectations
+over a state drawn from $\xi$ and a successor drawn from $\mathbf{P}_\pi$, the
+two expectations of {ref}`sec-mc-two-expectations`, so each transition gives an
+unbiased estimate of them.
+
+TD(0) draws a state $s$ from $\xi$, a successor $s'$ from $\mathbf{P}_\pi$ and
+the reward $r$, and moves the parameters along the temporal difference,
+
+$$
+\theta \leftarrow \theta + \alpha\, \boldsymbol\varphi(s)\big(r + \gamma\boldsymbol\varphi(s')^\top\theta - \boldsymbol\varphi(s)^\top\theta\big).
+$$
+
+The expected increment is $\alpha(\mathbf{b} - \mathbf{A}\theta)$, the
+residual of {eq}`eq:abe-td-system`. The theory of stochastic approximation
+{cite}`kushner2003stochastic` says that, with step sizes that decrease
+suitably, the iterates follow the ordinary differential equation
+$\dot\theta = \mathbf{b} - \mathbf{A}\theta$, which converges to the solution
+of {eq}`eq:abe-td-system` from every start exactly when every eigenvalue of
+$\mathbf{A}$ has a positive real part. Fitted policy evaluation in the same
+coordinates is
+$\theta_{k+1} = \theta_k + (\boldsymbol\Phi^\top\boldsymbol\Xi\boldsymbol\Phi)^{-1}(\mathbf{b} - \mathbf{A}\theta_k)$,
+one step of the same expected update with the step size replaced by the
+inverse of the mass matrix. The two algorithms share their fixed point and
+their matrix, and differ in how they step toward it. LSTD
+({ref}`sec-abe-lstd`) does not step at all: it estimates $\mathbf{A}$ and
+$\mathbf{b}$ from the transitions and solves the system.
+
+{prf:ref}`prop-td-positive-definite` of the previous chapter showed that
+on-policy, with $\xi$ the stationary distribution of $\mathbf{P}_\pi$,
+$\mathbf{A}$ is positive definite. Its eigenvalues then have positive real
+parts, and TD(0) converges to the solution of the projected Bellman equation
+{cite}`TsitsiklisVanRoy1997`. The same inequality makes fitted evaluation a
+contraction and the LSTD system uniquely solvable: on-policy, the three
+solvers are stable for the same reason.
+
+The analysis extends to TD($\lambda$), which bootstraps from a geometric
+mixture of multi-step returns. Its fixed point solves
+$v = \Proj\BellmanPi^{(\lambda)}v$ with the multi-step operator
+$\BellmanPi^{(\lambda)} = (1-\lambda)\sum_{k \geq 0}\lambda^k\BellmanPi^{k+1}$,
+which is a contraction in $\|\cdot\|_\xi$ with modulus
+$\alpha_\lambda = \gamma(1-\lambda)/(1-\gamma\lambda)$, and the fixed point
+satisfies
+$\|v_\lambda - v_\pi\|_\xi \leq (1 - \alpha_\lambda^2)^{-1/2}\|\Proj v_\pi - v_\pi\|_\xi$
+{cite}`BertsekasTsitsiklis1996,Bertsekas2011`. At $\lambda = 1$ the
+modulus is zero, the targets are Monte Carlo returns, and the fixed point is
+the best approximation $\Proj v_\pi$; at $\lambda = 0$ the constant is the
+$(1-\gamma^2)^{-1/2}$ of the previous chapter. Bertsekas and Yu developed this projected-equation view into a
+general method for large linear systems, with error bounds that are sharper
+than the contraction argument because they use the data to estimate how
+$\Proj$ and $\mathbf{P}_\pi$ interact {cite}`BertsekasYu2009,YuBertsekas2010,Bertsekas2011`.
+
+The two conditions, $\mathbf{A}$ with eigenvalues in the right half plane for
+TD and a spectral radius of $\gamma\Proj\mathbf{P}_\pi$ below one for fitted
+evaluation, are different conditions on the same matrices. In the two-state
+counterexample of the previous chapter they coincide. There is one feature, so $\mathbf{A}$ is the
+scalar $\xi_1(1 - 2\gamma) + 4\xi_2(1-\gamma)$, and the fitted iteration
+multiplies $\theta$ by $1 - \mathbf{A}/(\xi_1 + 4\xi_2)$, which is the factor
+$6\gamma/5$ of the previous chapter when $\xi_1 = \xi_2 = 1/2$. Both fail when
+$\mathbf{A} < 0$. With uniform weights that happens for $\gamma > 5/6$, and
+with the stationary weighting $\xi = (0, 1)$ it never happens. The code below
+runs sampled TD(0) on the example with $\gamma = 0.9$ and three weightings.
+
+```{code-cell} python
+:tags: [hide-input]
+
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path.cwd() / "code"))
+import projection_stability as ps
+
+print(f"{'weight of state 1':>18} {'fitted factor':>14} {'A':>8} {'TD theta after 400 steps':>26}")
+for xi1 in (0.5, 0.2, 0.0):
+    factor, A = ps.two_state(xi1, gamma=0.9)
+    print(f"{xi1:>18.1f} {factor:>14.3f} {A:>8.3f} {ps.two_state_td(xi1, gamma=0.9):>26.3g}")
+```
+
+TD started at $\theta = 1$. Under uniform weighting it has grown by a factor
+of about sixteen after 400 updates, and with the weight of state 1 reduced to
+$0.2$ or to the stationary value $0$ it has shrunk toward the solution
+$\theta = 0$. The sign of $\mathbf{A}$ predicts both outcomes.
+
+(sec-mc-off-policy)=
+### Off-Policy Evaluation and Its Repairs
+
+When the states are weighted by a distribution $\xi$ that is not stationary
+for $\mathbf{P}_\pi$, which is the situation of learning about one policy from
+the data of another, the Jensen step of the on-policy argument fails, and with
+it {prf:ref}`prop-td-positive-definite`. The previous chapter noted that the
+fixed point itself can then be far from $v_\pi$ {cite}`Kolter2011`. The
+solver can fail as well: TD(0) can diverge even when the projected equation
+is perfectly well posed.
+
+The classical example is Baird's star {cite}`Baird1995`, in the form given by
+{cite:t}`SuttonBarto2018`. There are seven states and eight weights: state $i
+\leq 6$ has value $2\theta_i + \theta_8$, and state 7 has value
+$\theta_7 + 2\theta_8$. The target policy moves every state to state 7, the
+behavior policy moves to a uniformly chosen state, all rewards are zero, and
+$\gamma = 0.99$. The features span all of $\mathbb{R}^7$, so $\Proj$ is the
+identity, $\Proj\BellmanPi = \BellmanPi$ is a contraction, and fitted policy
+evaluation converges in any norm. The difficulty lies entirely in the solver.
+The cell below iterates the expected updates of three methods from Sutton and
+Barto's starting point, with the states weighted uniformly as the behavior
+policy visits them, and reports the largest $|v(s;\theta)|$ along the way; the
+true value is zero.
+
+```{code-cell} python
+:tags: [hide-input]
+
+out = ps.baird_table()
+print(f"rank of the features: {out['rank of Phi']}")
+print(f"xi-norm of gamma P_pi under uniform weights: {out['xi-norm of gamma P_pi']:.2f}")
+print(f"smallest real part of an eigenvalue, TD matrix:       {out['td']['min Re eig']:.3f}")
+print(f"smallest real part of an eigenvalue, emphatic matrix: {abs(out['emphatic']['min Re eig']):.3f}")
+print(f"{'method':<10} {'max |v| at 0':>14} {'at 500':>12} {'at 2000':>12}")
+for m in ("td", "tdc", "emphatic"):
+    v0, v500, v2000 = out[m]["max |v| at 0, 500, 2000"]
+    print(f"{m:<10} {v0:>14.3g} {v500:>12.3g} {v2000:>12.3g}")
+```
+
+Under the uniform weighting, $\gamma\mathbf{P}_\pi$ has $\xi$-norm about
+$2.6$, so it expands, and the TD matrix has an eigenvalue with negative real
+part. Expected TD(0) diverges, and its values reach the thousands after 2000
+updates although every quantity in the problem is bounded. This is the first
+leg of the deadly triad, with no maximum and no neural network: linear
+features, bootstrapping, and off-policy weighting suffice.
+
+Three families of repairs keep the projected equation and change the
+solver or the weighting.
+
+1. **Importance sampling** reweights each update by the ratio of the
+   target and behavior probabilities of the action taken
+   {cite}`Precup2001`. This makes the expected update use the target
+   policy's transitions, but not the target policy's state distribution, so
+   the matrix $\mathbf{A}$ above, which already uses $\mathbf{P}_\pi$, is
+   unchanged; ratios over whole trajectories correct the distribution too, at
+   the price of a variance that can grow exponentially with the horizon.
+2. **Gradient TD** methods minimize the mean squared projected Bellman error
+   $\|\Proj(\BellmanPi v_\theta - v_\theta)\|_\xi^2$, which is zero exactly
+   when the Galerkin conditions hold, by true stochastic gradient descent with
+   a second set of weights that estimates $\Proj(\BellmanPi v_\theta - v_\theta)$
+   {cite}`Sutton2009`. The objective has the TD fixed point as its minimizer
+   for any weighting, and gradient descent on it is stable. In the cell, TDC,
+   the variant called TD with gradient correction in that paper, brings the
+   values down from 12 to about 2 within 500 updates and then stalls there:
+   its stability is bought with slow progress, a common observation with
+   these methods.
+3. **Emphatic TD** reweights the update at each state by a follow-on trace,
+   which on average replaces $\xi$ in $\mathbf{A}$ by the emphasis
+   $f = (\mathbf{I} - \gamma\mathbf{P}_\pi^\top)^{-1}\xi$
+   {cite}`SuttonMahmoodWhite2016`. The resulting matrix
+   $\boldsymbol\Phi^\top\mathbf{F}(\mathbf{I} - \gamma\mathbf{P}_\pi)\boldsymbol\Phi$
+   with $\mathbf{F} = \text{diag}(f)$ is positive definite for any
+   behavior when the features are independent, by an argument close to that
+   of {prf:ref}`prop-td-positive-definite`, and the method converges
+   {cite}`Yu2015`. Baird's features are not independent, and the matrix is
+   only semidefinite, which the zero printed in the cell reflects. In the cell, its values go to zero. The fixed point is the
+   solution of a projected equation with the emphasis weighting, not with
+   $\xi$, so it is a different approximation of $v_\pi$.
+
+LSTD avoids the stability question altogether, because it solves
+$\mathbf{A}\theta = \mathbf{b}$ directly. Off-policy, it computes the same
+fixed point as TD, with the same possible loss of accuracy, whenever
+$\mathbf{A}$ is invertible {cite}`BertsekasYu2009`.
+
+
+```{admonition} Exercises: Temporal-Difference Learning
+:class: hint dropdown
+
+1. **One feature, one condition.** In the two-state counterexample of the [previous chapter](approximate-bellman-equations.md#sec-abe-convergence), show that fitted evaluation converges exactly when expected TD(0) is stable. Then construct a two-feature example in which one is stable and the other is not. *Hint: the fitted iteration is a preconditioned TD step of size one.*
+
+2. **How far off-policy?** In Baird's star, compute the eigenvalues of $\mathbf{A}$ as a function of $\gamma$ and find the discount below which none has a negative real part. Then mix the uniform weighting with the stationary distribution of the target policy, $\xi_\beta = (1-\beta)\,\text{uniform} + \beta\,\mathbf{e}_7$, and find the smallest $\beta$ for which none has a negative real part at $\gamma = 0.99$.
+```
 
 (sec-mc-overestimation)=
 ## Maximization Bias
@@ -762,7 +951,11 @@ makes the model optional: a simulator or a log of transitions suffices, which
 is the setting of reinforcement learning. Acting on a sampled value function
 would require sampling at decision time, so the action-value function
 $q(s,a)$ stores the backup of each action instead, and fitted Q-iteration is
-fitted value iteration on $q$. The maximum over noisy estimates is biased
+fitted value iteration on $q$. Temporal-difference learning solves the Galerkin system of the previous
+chapter one transition at a time; it is stable on-policy for the same reason
+that the projected equation contracts, and off-policy it can diverge even
+when the equation is well posed, which importance sampling, gradient TD and
+emphatic TD repair in different ways. The maximum over noisy estimates is biased
 upward, and the bias compounds through the iterations; using one estimate to
 select the action and an independent one to value it removes the larger part
 of the bias, and learned, analytic or weighted corrections are the

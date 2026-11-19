@@ -937,14 +937,14 @@ Baird's counterexample {cite}`Baird1995` is the classical demonstration.
 3. **Losing the argument is not losing convergence.** Implement fitted policy evaluation for the same chain, with features $\varphi(s) = (1, s)$ and weighting $\xi'$. It still converges: compute the spectral radius of $\gamma \Proj \mathbf{P}_\pi$ and check that it equals $\gamma$ for this feature set whatever the weighting. Then keep only the feature $\varphi(s) = s$ and find a weighting concentrated on state 1 under which the spectral radius exceeds one.
 ```
 
-(sec-abe-td-stability)=
-### Temporal-Difference Learning Solves the Same Equation
+(sec-abe-galerkin-system)=
+### The Galerkin System in Coordinates
 
-Fitted policy evaluation applies $\Proj\BellmanPi$ exactly, with the model.
-TD(0) with linear features solves the same Galerkin equations from single
-transitions. In coordinates, the projected Bellman equation
-{eq}`eq:projected-bellman-pi` is $\boldsymbol\Phi^\top\boldsymbol\Xi(\mathbf{r}_\pi + \gamma\mathbf{P}_\pi\boldsymbol\Phi\theta - \boldsymbol\Phi\theta) = \mathbf{0}$,
-that is
+The projected Bellman equation {eq}`eq:projected-bellman-pi` is the Galerkin
+method of the previous chapter, with the stationary distribution as weight.
+Its $n$ conditions
+$\boldsymbol\Phi^\top\boldsymbol\Xi(\mathbf{r}_\pi + \gamma\mathbf{P}_\pi\boldsymbol\Phi\theta - \boldsymbol\Phi\theta) = \mathbf{0}$
+form the linear system
 
 $$
 \mathbf{A}\theta = \mathbf{b}, \qquad
@@ -952,33 +952,18 @@ $$
 \mathbf{b} = \boldsymbol\Phi^\top\boldsymbol\Xi\,\mathbf{r}_\pi .
 $$ (eq:abe-td-system)
 
-TD(0) draws a state $s$ from $\xi$, a successor $s'$ from $\mathbf{P}_\pi$ and
-the reward $r$, and moves the parameters along the temporal difference,
-
-$$
-\theta \leftarrow \theta + \alpha\, \boldsymbol\varphi(s)\big(r + \gamma\boldsymbol\varphi(s')^\top\theta - \boldsymbol\varphi(s)^\top\theta\big).
-$$
-
-The expected increment is $\alpha(\mathbf{b} - \mathbf{A}\theta)$, the
-residual of {eq}`eq:abe-td-system`. The theory of stochastic approximation
-{cite}`kushner2003stochastic` says that, with step sizes that decrease
-suitably, the iterates follow the ordinary differential equation
-$\dot\theta = \mathbf{b} - \mathbf{A}\theta$, which converges to the solution
-of {eq}`eq:abe-td-system` from every start exactly when every eigenvalue of
-$\mathbf{A}$ has a positive real part. Fitted policy evaluation in the same
-coordinates is
+Fitted policy evaluation solves it by function iteration,
 $\theta_{k+1} = \theta_k + (\boldsymbol\Phi^\top\boldsymbol\Xi\boldsymbol\Phi)^{-1}(\mathbf{b} - \mathbf{A}\theta_k)$,
-one step of the same expected update with the step size replaced by the
-inverse of the mass matrix. The two algorithms share their fixed point and
-their matrix, and differ in how they step toward it. LSTD
-({ref}`sec-abe-lstd`) does not step at all: it estimates $\mathbf{A}$ and
-$\mathbf{b}$ from the transitions and solves the system.
+and the LSTD method of {ref}`sec-abe-lstd` solves it directly. Temporal-difference
+learning, TD(0), solves the same system from single sampled transitions; the
+[next chapter](monte-carlo-bellman-estimation.md#sec-mc-td) treats it as one
+more case of replacing expectations by samples. Whatever the solver, the
+system has to be well posed, and on-policy the inequality that made
+$\Proj\BellmanPi$ a contraction also makes $\mathbf{A}$ positive definite.
+This is the step at the center of the convergence proof of TD by
+{cite:t}`TsitsiklisVanRoy1997`.
 
-On-policy, the inequality that made $\Proj\BellmanPi$ a contraction also makes
-$\mathbf{A}$ positive definite, which is the step at the center of the
-convergence proof of {cite:t}`TsitsiklisVanRoy1997`.
-
-```{prf:proposition} The TD matrix is positive definite on-policy
+```{prf:proposition} The Galerkin matrix is positive definite on-policy
 :label: prop-td-positive-definite
 
 If $\xi$ is a stationary distribution of $\mathbf{P}_\pi$ with $\xi(s) > 0$ for every $s$, and $\boldsymbol\Phi$ has linearly independent columns, then for every $x \neq 0$
@@ -997,58 +982,10 @@ symmetric, but each of its eigenvalues has a positive real part: if
 $\mathbf{A}u = \lambda u$ with $u \neq 0$, the real part of
 $\bar u^\top\mathbf{A}u = \lambda\|u\|^2$ is the quadratic form of the
 symmetric part of $\mathbf{A}$ at the real and imaginary parts of $u$, which is
-positive. So on-policy, TD(0) is stable, fitted policy evaluation contracts,
-and LSTD's system has a unique solution, all for the same reason.
+positive. In particular $\mathbf{A}$ is invertible, so on-policy the Galerkin
+system has exactly one solution for any independent features.
 
-The analysis extends to TD($\lambda$), which bootstraps from a geometric
-mixture of multi-step returns. Its fixed point solves
-$v = \Proj\BellmanPi^{(\lambda)}v$ with the multi-step operator
-$\BellmanPi^{(\lambda)} = (1-\lambda)\sum_{k \geq 0}\lambda^k\BellmanPi^{k+1}$,
-which is a contraction in $\|\cdot\|_\xi$ with modulus
-$\alpha_\lambda = \gamma(1-\lambda)/(1-\gamma\lambda)$, and the fixed point
-satisfies
-$\|v_\lambda - v_\pi\|_\xi \leq (1 - \alpha_\lambda^2)^{-1/2}\|\Proj v_\pi - v_\pi\|_\xi$
-{cite}`BertsekasTsitsiklis1996,Bertsekas2011`. At $\lambda = 1$ the
-modulus is zero, the targets are Monte Carlo returns, and the fixed point is
-the best approximation $\Proj v_\pi$; at $\lambda = 0$ the bound is the one
-given above. Bertsekas and Yu developed this projected-equation view into a
-general method for large linear systems, with error bounds that are sharper
-than the contraction argument because they use the data to estimate how
-$\Proj$ and $\mathbf{P}_\pi$ interact {cite}`BertsekasYu2009,YuBertsekas2010,Bertsekas2011`.
-
-The two conditions, $\mathbf{A}$ with eigenvalues in the right half plane for
-TD and a spectral radius of $\gamma\Proj\mathbf{P}_\pi$ below one for fitted
-evaluation, are different conditions on the same matrices. In the two-state
-counterexample they coincide. There is one feature, so $\mathbf{A}$ is the
-scalar $\xi_1(1 - 2\gamma) + 4\xi_2(1-\gamma)$, and the fitted iteration
-multiplies $\theta$ by $1 - \mathbf{A}/(\xi_1 + 4\xi_2)$, which is the factor
-$6\gamma/5$ computed above when $\xi_1 = \xi_2 = 1/2$. Both fail when
-$\mathbf{A} < 0$. With uniform weights that happens for $\gamma > 5/6$, and
-with the stationary weighting $\xi = (0, 1)$ it never happens. The code below
-runs sampled TD(0) on the example with $\gamma = 0.9$ and three weightings.
-
-```{code-cell} python
-:tags: [hide-input]
-
-import sys
-from pathlib import Path
-
-sys.path.insert(0, str(Path.cwd() / "code"))
-import projection_stability as ps
-
-print(f"{'weight of state 1':>18} {'fitted factor':>14} {'A':>8} {'TD theta after 400 steps':>26}")
-for xi1 in (0.5, 0.2, 0.0):
-    factor, A = ps.two_state(xi1, gamma=0.9)
-    print(f"{xi1:>18.1f} {factor:>14.3f} {A:>8.3f} {ps.two_state_td(xi1, gamma=0.9):>26.3g}")
-```
-
-TD started at $\theta = 1$. Under uniform weighting it has grown by a factor
-of about sixteen after 400 updates, and with the weight of state 1 reduced to
-$0.2$ or to the stationary value $0$ it has shrunk toward the solution
-$\theta = 0$. The sign of $\mathbf{A}$ predicts both outcomes.
-
-On a larger problem the two conditions and the two norms come apart. The next
-cell takes the policy-evaluation chain of the third tab of
+The next cell takes the policy-evaluation chain of the third tab of
 {numref}`fig-test-functions`, discretized on 201 grid points and with a
 restart to a uniform state with probability $0.2$ at each step (without it the
 chain never returns below $s = 0.64$, and its stationary distribution ignores
@@ -1061,6 +998,12 @@ and the sup-norm error of the fixed point.
 ```{code-cell} python
 :tags: [hide-input]
 
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path.cwd() / "code"))
+import projection_stability as ps
+
 rows = ps.chain_table(n=6)
 cols = ("sup |P|", "xi |P|", "min entry", "rho(gamma P L)", "min Re eig A", "sup error")
 print(f"{'projection':<34}" + "".join(f"{c:>15}" for c in cols))
@@ -1071,116 +1014,40 @@ for row in rows:
 Two rows have sup-norm operator norm one: collocation with hats and
 aggregation, the averagers, and their smallest entry is zero. Two rows have
 $\xi$-norm one: the Galerkin projections with the stationary weighting. Each
-certificate of the table above holds exactly where it should, and nowhere
+certificate of the two-norm table holds exactly where it should, and nowhere
 else: the Galerkin projections stretch the sup norm (their smallest entries
 are negative), and the averagers stretch the $\xi$-norm. The spectral radius
 is $0.9$ in every row, so on this chain the iteration converges even for the
 polynomial collocation, whose sup-norm operator norm is about $2$. The
 certificates are sufficient conditions, not necessary ones. A norm above one
 flags a risk that the spectral radius then decides, and the fishery showed
-that the same polynomial can make the iteration diverge on another problem. Every Galerkin row, including the
-one with uniform weights, has $\mathbf{A}$ with eigenvalues in the right half
-plane, so uniform weighting is harmless on this chain. The errors differ more
-than the stability does: Galerkin with hats is about three times more
-accurate than collocation with the same hats, and aggregation, the most
-stable fit, is the least accurate one.
+that the same polynomial can make the iteration diverge on another problem.
+Every Galerkin row, including the one with uniform weights, has $\mathbf{A}$
+with eigenvalues in the right half plane. The errors differ more than the
+stability does: Galerkin with hats is about three times more accurate than
+collocation with the same hats, and aggregation, the most stable fit, is the
+least accurate one.
 
-(sec-abe-off-policy)=
-### Off-Policy Evaluation and Its Repairs
+When the weighting $\xi$ is not stationary for $\mathbf{P}_\pi$, which is the
+situation of evaluating one policy from the data of another, the Jensen step
+fails, and with it the proposition. The projection is still orthogonal, but
+$\mathbf{A}$ can be singular or have eigenvalues in the left half plane, and
+the solution, when there is one, can be far from $v_\pi$:
+{cite:t}`Kolter2011` shows that its error can be arbitrarily large relative to
+$\|\Proj v_\pi - v_\pi\|_\xi$, and describes a convex set of weightings, close
+to the behavior distribution, for which a bound of the on-policy form still
+holds. What off-policy weighting does to the sample-based solvers, and how
+importance sampling, gradient TD and emphatic TD repair it, is taken up in
+the [next chapter](monte-carlo-bellman-estimation.md#sec-mc-off-policy).
 
-When the states are weighted by a distribution $\xi$ that is not stationary
-for $\mathbf{P}_\pi$, which is the situation of learning about one policy from
-the data of another, the Jensen step of the on-policy argument fails, and with
-it {prf:ref}`prop-td-positive-definite`. The projection is still orthogonal and
-the fixed point still exists when $\mathbf{A}$ is invertible, but TD(0) can
-diverge, and the fixed point can be far from $v_\pi$. {cite:t}`Kolter2011`
-shows that the error of the off-policy fixed point can be arbitrarily large
-relative to $\|\Proj v_\pi - v_\pi\|_\xi$, and describes a convex set of
-weightings, close to the behavior distribution, for which a bound of the
-on-policy form still holds.
-
-The classical example is Baird's star {cite}`Baird1995`, in the form given by
-{cite:t}`SuttonBarto2018`. There are seven states and eight weights: state $i
-\leq 6$ has value $2\theta_i + \theta_8$, and state 7 has value
-$\theta_7 + 2\theta_8$. The target policy moves every state to state 7, the
-behavior policy moves to a uniformly chosen state, all rewards are zero, and
-$\gamma = 0.99$. The features span all of $\mathbb{R}^7$, so $\Proj$ is the
-identity, $\Proj\BellmanPi = \BellmanPi$ is a contraction, and fitted policy
-evaluation converges in any norm. The difficulty lies entirely in the solver.
-The cell below iterates the expected updates of three methods from Sutton and
-Barto's starting point, with the states weighted uniformly as the behavior
-policy visits them, and reports the largest $|v(s;\theta)|$ along the way; the
-true value is zero.
-
-```{code-cell} python
-:tags: [hide-input]
-
-out = ps.baird_table()
-print(f"rank of the features: {out['rank of Phi']}")
-print(f"xi-norm of gamma P_pi under uniform weights: {out['xi-norm of gamma P_pi']:.2f}")
-print(f"smallest real part of an eigenvalue, TD matrix:       {out['td']['min Re eig']:.3f}")
-print(f"smallest real part of an eigenvalue, emphatic matrix: {abs(out['emphatic']['min Re eig']):.3f}")
-print(f"{'method':<10} {'max |v| at 0':>14} {'at 500':>12} {'at 2000':>12}")
-for m in ("td", "tdc", "emphatic"):
-    v0, v500, v2000 = out[m]["max |v| at 0, 500, 2000"]
-    print(f"{m:<10} {v0:>14.3g} {v500:>12.3g} {v2000:>12.3g}")
-```
-
-Under the uniform weighting, $\gamma\mathbf{P}_\pi$ has $\xi$-norm about
-$2.6$, so it expands, and the TD matrix has an eigenvalue with negative real
-part. Expected TD(0) diverges, and its values reach the thousands after 2000
-updates although every quantity in the problem is bounded. This is the first
-leg of the deadly triad, with no maximum and no neural network: linear
-features, bootstrapping, and off-policy weighting suffice.
-
-Three families of repairs keep the projected equation and change the
-solver or the weighting.
-
-1. **Importance sampling** reweights each update by the ratio of the
-   target and behavior probabilities of the action taken
-   {cite}`Precup2001`. This makes the expected update use the target
-   policy's transitions, but not the target policy's state distribution, so
-   the matrix $\mathbf{A}$ above, which already uses $\mathbf{P}_\pi$, is
-   unchanged; ratios over whole trajectories correct the distribution too, at
-   the price of a variance that can grow exponentially with the horizon.
-2. **Gradient TD** methods minimize the mean squared projected Bellman error
-   $\|\Proj(\BellmanPi v_\theta - v_\theta)\|_\xi^2$, which is zero exactly
-   when the Galerkin conditions hold, by true stochastic gradient descent with
-   a second set of weights that estimates $\Proj(\BellmanPi v_\theta - v_\theta)$
-   {cite}`Sutton2009`. The objective has the TD fixed point as its minimizer
-   for any weighting, and gradient descent on it is stable. In the cell, TDC,
-   the variant called TD with gradient correction in that paper, brings the
-   values down from 12 to about 2 within 500 updates and then stalls there:
-   its stability is bought with slow progress, a common observation with
-   these methods.
-3. **Emphatic TD** reweights the update at each state by a follow-on trace,
-   which on average replaces $\xi$ in $\mathbf{A}$ by the emphasis
-   $f = (\mathbf{I} - \gamma\mathbf{P}_\pi^\top)^{-1}\xi$
-   {cite}`SuttonMahmoodWhite2016`. The resulting matrix
-   $\boldsymbol\Phi^\top\mathbf{F}(\mathbf{I} - \gamma\mathbf{P}_\pi)\boldsymbol\Phi$
-   with $\mathbf{F} = \text{diag}(f)$ is positive definite for any
-   behavior when the features are independent, by an argument close to that
-   of {prf:ref}`prop-td-positive-definite`, and the method converges
-   {cite}`Yu2015`. Baird's features are not independent, and the matrix is
-   only semidefinite, which the zero printed in the cell reflects. In the cell, its values go to zero. The fixed point is the
-   solution of a projected equation with the emphasis weighting, not with
-   $\xi$, so it is a different approximation of $v_\pi$.
-
-LSTD avoids the stability question altogether, because it solves
-$\mathbf{A}\theta = \mathbf{b}$ directly. Off-policy, it computes the same
-fixed point as TD, with the same possible loss of accuracy, whenever
-$\mathbf{A}$ is invertible {cite}`BertsekasYu2009`.
-
-```{admonition} Exercises: Projections, Norms and TD
+```{admonition} Exercises: Projections and Norms
 :class: hint dropdown
 
 1. **Aggregation is an averager.** With indicator features of $n$ groups and any weighting $\xi > 0$, compute the Galerkin projection {eq}`eq:abe-oblique-projection` entry by entry and show that $(\Proj v)(s)$ is the $\xi$-weighted average of $v$ over the group of $s$. Conclude that fitted Q-iteration with aggregation converges for any sampling distribution.
 
 2. **Residual minimization as an oblique projection.** Show that the tests $\boldsymbol\Psi = (\mathbf{I} - \gamma\mathbf{P}_\pi)\boldsymbol\Phi$ turn the conditions $\boldsymbol\Psi^\top\boldsymbol\Xi(\BellmanPi\boldsymbol\Phi\theta - \boldsymbol\Phi\theta) = \mathbf{0}$ into the normal equations of $\min_\theta \|\BellmanPi\boldsymbol\Phi\theta - \boldsymbol\Phi\theta\|_\xi^2$. Is the resulting $\Proj$ of {eq}`eq:abe-oblique-projection` fixed in advance, as it is for Galerkin and collocation?
 
-3. **One feature, one condition.** In the two-state counterexample with weights $(\xi_1, \xi_2)$, show that the fitted factor equals $1 - \mathbf{A}/(\xi_1 + 4\xi_2)$, so that fitted evaluation converges exactly when expected TD(0) is stable. Then construct a two-feature example in which one is stable and the other is not. *Hint: the fitted iteration is a preconditioned TD step of size one.*
-
-4. **How far off-policy?** In Baird's star, compute the eigenvalues of $\mathbf{A}$ as a function of $\gamma$ and find the discount below which none has a negative real part. Then mix the uniform weighting with the stationary distribution of the target policy, $\xi_\beta = (1-\beta)\,\text{uniform} + \beta\,\mathbf{e}_7$, and find the smallest $\beta$ for which none has a negative real part at $\gamma = 0.99$.
+3. **One feature, one condition.** In the two-state counterexample with weights $(\xi_1, \xi_2)$, compute $\mathbf{A}$ and show that the fitted factor equals $1 - \mathbf{A}/(\xi_1 + 4\xi_2)$, so that fitted evaluation converges exactly when $\mathbf{A} > 0$.
 ```
 
 ### The Optimality Operator
