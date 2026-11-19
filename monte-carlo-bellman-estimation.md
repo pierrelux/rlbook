@@ -365,10 +365,10 @@ variance reduction that current practice rarely uses.
 ## Temporal-Difference Learning
 
 The sampled fitted update of the previous section draws a batch of
-transitions, computes targets, and fits. Temporal-difference learning takes
-the opposite extreme, one transition at a time, with a gradient step in place
-of the fit. For policy evaluation with linear features
-$v(s;\theta) = \boldsymbol\varphi(s)^\top\theta$, its target is the
+transitions, computes targets, and fits. Temporal-difference learning goes to
+the other extreme: it uses one transition at a time and takes a gradient step
+instead of a full fit. For policy evaluation with linear features
+$v(s;\theta) = \boldsymbol\varphi(s)^\top\theta$, it solves the
 Galerkin system {eq}`eq:abe-td-system` of the
 [previous chapter](approximate-bellman-equations.md#sec-abe-galerkin-system),
 $\mathbf{A}\theta = \mathbf{b}$ with
@@ -377,8 +377,8 @@ and $\mathbf{b} = \boldsymbol\Phi^\top\boldsymbol\Xi\,\mathbf{r}_\pi$, whose
 solution is the fixed point of the projected Bellman equation
 $v = \Proj\BellmanPi v$. Both $\mathbf{A}$ and $\mathbf{b}$ are expectations
 over a state drawn from $\xi$ and a successor drawn from $\mathbf{P}_\pi$, the
-two expectations of {ref}`sec-mc-two-expectations`, so each transition gives an
-unbiased estimate of them.
+two expectations of {ref}`sec-mc-two-expectations`, so each transition gives
+unbiased estimates of both.
 
 TD(0) draws a state $s$ from $\xi$, a successor $s'$ from $\mathbf{P}_\pi$ and
 the reward $r$, and moves the parameters along the temporal difference,
@@ -388,9 +388,9 @@ $$
 $$
 
 The expected increment is $\alpha(\mathbf{b} - \mathbf{A}\theta)$, the
-residual of {eq}`eq:abe-td-system`. The theory of stochastic approximation
-{cite}`kushner2003stochastic` says that, with step sizes that decrease
-suitably, the iterates follow the ordinary differential equation
+residual of {eq}`eq:abe-td-system`. By the theory of stochastic approximation
+{cite}`kushner2003stochastic`, with step sizes that decrease suitably, the
+iterates follow the ordinary differential equation
 $\dot\theta = \mathbf{b} - \mathbf{A}\theta$, which converges to the solution
 of {eq}`eq:abe-td-system` from every start exactly when every eigenvalue of
 $\mathbf{A}$ has a positive real part. Fitted policy evaluation in the same
@@ -410,26 +410,11 @@ parts, and TD(0) converges to the solution of the projected Bellman equation
 contraction and the LSTD system uniquely solvable: on-policy, the three
 solvers are stable for the same reason.
 
-The analysis extends to TD($\lambda$), which bootstraps from a geometric
-mixture of multi-step returns. Its fixed point solves
-$v = \Proj\BellmanPi^{(\lambda)}v$ with the multi-step operator
-$\BellmanPi^{(\lambda)} = (1-\lambda)\sum_{k \geq 0}\lambda^k\BellmanPi^{k+1}$,
-which is a contraction in $\|\cdot\|_\xi$ with modulus
-$\alpha_\lambda = \gamma(1-\lambda)/(1-\gamma\lambda)$, and the fixed point
-satisfies
-$\|v_\lambda - v_\pi\|_\xi \leq (1 - \alpha_\lambda^2)^{-1/2}\|\Proj v_\pi - v_\pi\|_\xi$
-{cite}`BertsekasTsitsiklis1996,Bertsekas2011`. At $\lambda = 1$ the
-modulus is zero, the targets are Monte Carlo returns, and the fixed point is
-the best approximation $\Proj v_\pi$; at $\lambda = 0$ the constant is the
-$(1-\gamma^2)^{-1/2}$ of the previous chapter. Bertsekas and Yu developed this projected-equation view into a
-general method for large linear systems, with error bounds that are sharper
-than the contraction argument because they use the data to estimate how
-$\Proj$ and $\mathbf{P}_\pi$ interact {cite}`BertsekasYu2009,YuBertsekas2010,Bertsekas2011`.
-
-The two conditions, $\mathbf{A}$ with eigenvalues in the right half plane for
-TD and a spectral radius of $\gamma\Proj\mathbf{P}_\pi$ below one for fitted
-evaluation, are different conditions on the same matrices. In the two-state
-counterexample of the previous chapter they coincide. There is one feature, so $\mathbf{A}$ is the
+Off-policy, the two solvers need different conditions on the same
+matrices: TD needs the eigenvalues of $\mathbf{A}$ in the right half plane,
+and fitted evaluation needs a spectral radius of $\gamma\Proj\mathbf{P}_\pi$
+below one. In the two-state
+counterexample of the previous chapter, the two conditions coincide. There is one feature, so $\mathbf{A}$ is the
 scalar $\xi_1(1 - 2\gamma) + 4\xi_2(1-\gamma)$, and the fitted iteration
 multiplies $\theta$ by $1 - \mathbf{A}/(\xi_1 + 4\xi_2)$, which is the factor
 $6\gamma/5$ of the previous chapter when $\xi_1 = \xi_2 = 1/2$. Both fail when
@@ -452,10 +437,27 @@ for xi1 in (0.5, 0.2, 0.0):
     print(f"{xi1:>18.1f} {factor:>14.3f} {A:>8.3f} {ps.two_state_td(xi1, gamma=0.9):>26.3g}")
 ```
 
-TD started at $\theta = 1$. Under uniform weighting it has grown by a factor
-of about sixteen after 400 updates, and with the weight of state 1 reduced to
-$0.2$ or to the stationary value $0$ it has shrunk toward the solution
-$\theta = 0$. The sign of $\mathbf{A}$ predicts both outcomes.
+TD starts at $\theta = 1$. Under uniform weighting, $\theta$ has grown by a
+factor of about sixteen after 400 updates. When the weight of state 1 is
+reduced to $0.2$, or to its stationary value $0$, $\theta$ shrinks toward the
+solution $\theta = 0$. The sign of $\mathbf{A}$ predicts both outcomes.
+
+
+The analysis extends to TD($\lambda$), which bootstraps from a geometric
+mixture of multi-step returns. Its fixed point solves
+$v = \Proj\BellmanPi^{(\lambda)}v$ with the multi-step operator
+$\BellmanPi^{(\lambda)} = (1-\lambda)\sum_{k \geq 0}\lambda^k\BellmanPi^{k+1}$,
+which is a contraction in $\|\cdot\|_\xi$ with modulus
+$\alpha_\lambda = \gamma(1-\lambda)/(1-\gamma\lambda)$, and the fixed point
+satisfies
+$\|v_\lambda - v_\pi\|_\xi \leq (1 - \alpha_\lambda^2)^{-1/2}\|\Proj v_\pi - v_\pi\|_\xi$
+{cite}`BertsekasTsitsiklis1996,Bertsekas2011`. At $\lambda = 1$ the
+modulus is zero, the targets are Monte Carlo returns, and the fixed point is
+the best approximation $\Proj v_\pi$; at $\lambda = 0$ the constant is the
+$(1-\gamma^2)^{-1/2}$ of the previous chapter. Bertsekas and Yu developed the
+projected-equation view into a general method for large linear systems, with error bounds that are sharper
+than the contraction argument because they use the data to estimate how
+$\Proj$ and $\mathbf{P}_\pi$ interact {cite}`BertsekasYu2009,YuBertsekas2010,Bertsekas2011`.
 
 (sec-mc-off-policy)=
 ### Off-Policy Evaluation and Its Repairs
@@ -497,31 +499,31 @@ for m in ("td", "tdc", "emphatic"):
 
 Under the uniform weighting, $\gamma\mathbf{P}_\pi$ has $\xi$-norm about
 $2.6$, so it expands, and the TD matrix has an eigenvalue with negative real
-part. Expected TD(0) diverges, and its values reach the thousands after 2000
-updates although every quantity in the problem is bounded. This is the first
-leg of the deadly triad, with no maximum and no neural network: linear
-features, bootstrapping, and off-policy weighting suffice.
+part. Expected TD(0) diverges: its values reach the thousands after 2000
+updates, although every quantity in the problem is bounded. This is the
+deadly triad without a maximum and without a neural network. Linear features,
+bootstrapping and off-policy weighting are enough.
 
 Three families of repairs keep the projected equation and change the
 solver or the weighting.
 
 1. **Importance sampling** reweights each update by the ratio of the
    target and behavior probabilities of the action taken
-   {cite}`Precup2001`. This makes the expected update use the target
-   policy's transitions, but not the target policy's state distribution, so
-   the matrix $\mathbf{A}$ above, which already uses $\mathbf{P}_\pi$, is
-   unchanged; ratios over whole trajectories correct the distribution too, at
-   the price of a variance that can grow exponentially with the horizon.
+   {cite}`Precup2001`. The expected update then uses the transitions of the
+   target policy, but still the state distribution of the behavior policy.
+   The matrix $\mathbf{A}$ above already uses $\mathbf{P}_\pi$, so this
+   correction leaves it unchanged. Ratios over whole trajectories correct the
+   state distribution too, at the price of a variance that can grow
+   exponentially with the horizon.
 2. **Gradient TD** methods minimize the mean squared projected Bellman error
    $\|\Proj(\BellmanPi v_\theta - v_\theta)\|_\xi^2$, which is zero exactly
-   when the Galerkin conditions hold, by true stochastic gradient descent with
-   a second set of weights that estimates $\Proj(\BellmanPi v_\theta - v_\theta)$
-   {cite}`Sutton2009`. The objective has the TD fixed point as its minimizer
-   for any weighting, and gradient descent on it is stable. In the cell, TDC,
-   the variant called TD with gradient correction in that paper, brings the
-   values down from 12 to about 2 within 500 updates and then stalls there:
-   its stability is bought with slow progress, a common observation with
-   these methods.
+   when the Galerkin conditions hold. They run true stochastic gradient
+   descent, with a second set of weights that estimates
+   $\Proj(\BellmanPi v_\theta - v_\theta)$ {cite}`Sutton2009`. The objective has the TD fixed point as its minimizer
+   for any weighting, and gradient descent on it is stable. In the cell, TDC
+   (TD with gradient correction, from the same paper) brings the values down
+   from 12 to about 2 within 500 updates and then stalls. Its stability comes
+   with slow progress, which is a common observation with these methods.
 3. **Emphatic TD** reweights the update at each state by a follow-on trace,
    which on average replaces $\xi$ in $\mathbf{A}$ by the emphasis
    $f = (\mathbf{I} - \gamma\mathbf{P}_\pi^\top)^{-1}\xi$
@@ -530,12 +532,13 @@ solver or the weighting.
    with $\mathbf{F} = \text{diag}(f)$ is positive definite for any
    behavior when the features are independent, by an argument close to that
    of {prf:ref}`prop-td-positive-definite`, and the method converges
-   {cite}`Yu2015`. Baird's features are not independent, and the matrix is
-   only semidefinite, which the zero printed in the cell reflects. In the cell, its values go to zero. The fixed point is the
-   solution of a projected equation with the emphasis weighting, not with
-   $\xi$, so it is a different approximation of $v_\pi$.
+   {cite}`Yu2015`. In the cell, its values go to zero. Baird's features are
+   not independent, so the matrix is only semidefinite, which is why the
+   cell prints a zero eigenvalue. The fixed point of emphatic TD solves a
+   projected equation weighted by the emphasis instead of $\xi$, so it is a
+   different approximation of $v_\pi$.
 
-LSTD avoids the stability question altogether, because it solves
+LSTD avoids the stability question, because it solves
 $\mathbf{A}\theta = \mathbf{b}$ directly. Off-policy, it computes the same
 fixed point as TD, with the same possible loss of accuracy, whenever
 $\mathbf{A}$ is invertible {cite}`BertsekasYu2009`.
