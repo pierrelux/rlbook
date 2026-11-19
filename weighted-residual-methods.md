@@ -521,17 +521,89 @@ the basis itself, where one cardinal function equals one and the others
 vanish, so that the interpolation matrix is the identity and the coefficients
 are the values at the nodes.
 
-Write $\Proj$ for interpolation through the collocation points, the map that
-sends a function $g$ to the element of the span with $(\Proj g)(s_i) = g(s_i)$
-at every node. The collocation conditions say that $v_\theta$ and
-$\Bellman v_\theta$ agree at the nodes, that is,
+The collocation conditions can be rewritten as a fixed-point equation for the
+function $v_\theta$, and the derivation takes three steps. Write
+$\boldsymbol\varphi(s) = (\varphi_1(s), \ldots, \varphi_n(s))^\top$ for the
+vector of basis functions at $s$, so that
+$v(s;\theta) = \boldsymbol\varphi(s)^\top\theta$, and for any function $g$ of
+the state write $g(\mathbf{s}) = (g(s_1), \ldots, g(s_n))^\top$ for the vector
+of its values at the collocation points. The rows of the interpolation matrix
+$\boldsymbol\Phi$ are the vectors $\boldsymbol\varphi(s_i)^\top$, so the
+values of the approximation at the nodes are
+$v_\theta(\mathbf{s}) = \boldsymbol\Phi\theta$. Assume that
+$\boldsymbol\Phi$ is invertible, which holds for a polynomial basis with
+distinct nodes and for hat functions collocated at their own nodes.
+
+The first step writes the $n$ conditions as one vector equation. The
+condition at $s_i$ is
+$(\Bellman v_\theta)(s_i) = v_\theta(s_i) = \boldsymbol\varphi(s_i)^\top\theta$,
+and stacking the $n$ of them gives
+
+$$
+\boldsymbol\Phi\,\theta = (\Bellman v_\theta)(\mathbf{s}),
+\qquad\text{that is,}\qquad
+\theta = \boldsymbol\Phi^{-1}(\Bellman v_\theta)(\mathbf{s}) .
+$$ (eq:collocation-coefficients)
+
+This is already a fixed-point equation, in the coefficients: $\theta$ appears
+on the right through $v_\theta$.
+
+The second step gives a name to the map on the right. The interpolant of a
+function $g$ through the nodes is the element of the span that has the same
+values as $g$ at the nodes. Its coefficients $c$ solve
+$\boldsymbol\Phi c = g(\mathbf{s})$, so
+
+$$
+(\Proj g)(s) = \boldsymbol\varphi(s)^\top \boldsymbol\Phi^{-1} g(\mathbf{s}) .
+$$ (eq:interpolation-projection)
+
+Three properties of this map are used below. It is linear in $g$, because $g$
+enters only through the vector $g(\mathbf{s})$. It reproduces $g$ at the
+nodes, since
+$(\Proj g)(\mathbf{s}) = \boldsymbol\Phi\boldsymbol\Phi^{-1}g(\mathbf{s}) = g(\mathbf{s})$.
+And it leaves the elements of the span unchanged: if
+$g(s) = \boldsymbol\varphi(s)^\top c$, then $g(\mathbf{s}) = \boldsymbol\Phi c$
+and $\Proj g = g$. Applying $\Proj$ twice therefore gives the same result as
+applying it once, $\Proj(\Proj g) = \Proj g$. A linear map with this property
+is a **projection**: it sends every function into the span and leaves the
+span fixed.
+
+The third step multiplies {eq}`eq:collocation-coefficients` on the left by
+$\boldsymbol\varphi(s)^\top$. For every state $s$,
+
+$$
+v_\theta(s) = \boldsymbol\varphi(s)^\top\theta
+= \boldsymbol\varphi(s)^\top\boldsymbol\Phi^{-1}(\Bellman v_\theta)(\mathbf{s})
+= (\Proj\,\Bellman v_\theta)(s),
+$$
+
+where the last equality is {eq}`eq:interpolation-projection` with
+$g = \Bellman v_\theta$. As an equation between functions,
 
 $$
 v_\theta = \Proj\, \Bellman v_\theta .
 $$ (eq:projected-bellman)
 
-The approximate solution is a fixed point of the Bellman operator followed by
+The steps also run backward. If $v_\theta = \Proj\,\Bellman v_\theta$, then
+evaluating both sides at the nodes and using that $\Proj g$ reproduces $g$
+there gives $v_\theta(s_i) = (\Bellman v_\theta)(s_i)$ for every $i$, which
+are the collocation conditions. The collocation solutions are therefore
+exactly the fixed points of $\Proj\Bellman$: the Bellman operator followed by
 a projection, which is the form that Step 4 exploits.
+
+The derivation used two assumptions. The family is linear in $\theta$, so
+that its values at the nodes are $\boldsymbol\Phi\theta$ and the interpolant
+of any function is again a member of the family. And $\boldsymbol\Phi$ is
+invertible. Nothing was assumed about $\Bellman$ beyond the fact that it
+returns a function that can be evaluated at the nodes. The operator may
+contain a maximum and be nonlinear in $v$; the projection $\Proj$ is linear
+whatever $\Bellman$ is, and the nonlinearity stays inside $\Bellman$. With a
+nodal basis, $\boldsymbol\Phi$ is the identity and
+{eq}`eq:interpolation-projection` becomes
+$(\Proj g)(s) = \sum_{j=1}^n \varphi_j(s)\, g(s_j)$, a combination of the
+values at the nodes weighted by the cardinal functions. The
+[next chapter](approximate-bellman-equations.md#sec-abe-convergence) uses
+this form to decide when $\Proj\Bellman$ is a contraction.
 
 Read the right-hand side as a composition of maps on functions, not as a
 product of matrices. $\Bellman v_\theta$ is the operator applied to the
@@ -569,18 +641,91 @@ $$
 \Big\langle R, \sum_{i=1}^n c_i \varphi_i \Big\rangle_w = \sum_{i=1}^n c_i \langle R, \varphi_i \rangle_w = 0 \quad \text{for every } c \in \mathbb{R}^n,
 $$
 
-which is the defining property of an orthogonal projection: the component of
-$\Bellman v_\theta$ that lies in $\mathcal{V}$ is $v_\theta$ itself. The
+so that $\Bellman v_\theta - v_\theta$ is orthogonal to $\mathcal{V}$. The
 vector example at the start of this step has the same structure. To
 approximate a vector of $\mathbb{R}^3$ by a vector in the plane spanned by
 $\mathbf{e}_1$ and $\mathbf{e}_2$, one keeps $(v_1, v_2, 0)$, and the error
 $(0, 0, v_3)$ is orthogonal to the plane, so the tests $\mathbf{e}_1$ and
-$\mathbf{e}_2$ detect nothing in it.
-With $\Proj$ now the $w$-orthogonal projection onto $\mathcal{V}$, the
-Galerkin conditions read again $v_\theta = \Proj\,\Bellman v_\theta$, the
-projected Bellman equation {eq}`eq:projected-bellman` with a different
-$\Proj$. Orthogonality here is with respect to the weighted inner product
-$\langle \cdot, \cdot \rangle_w$. When $w$ is not uniform, the same map seen
+$\mathbf{e}_2$ detect nothing in it. Keeping $(v_1, v_2, 0)$ is the
+orthogonal projection onto the plane, and the Galerkin conditions say that
+$v_\theta$ is the orthogonal projection of $\Bellman v_\theta$ onto
+$\mathcal{V}$.
+
+The same three steps as for collocation make this precise. Collect the
+inner products among the basis functions in the **mass matrix**
+$\mathbf{M}$, with entries $M_{ij} = \langle \varphi_i, \varphi_j \rangle_w$,
+and for a function $g$ write $\mathbf{b}(g)$ for the vector of its inner
+products with the basis, $b_i(g) = \langle g, \varphi_i \rangle_w$. Assume
+that the basis functions are linearly independent under $w$: no combination
+$\boldsymbol\varphi^\top c$ with $c \neq 0$ has zero $w$-norm. Since
+$c^\top \mathbf{M} c = \|\boldsymbol\varphi^\top c\|_w^2$, this says that
+$\mathbf{M}$ is positive definite, hence invertible.
+
+The first step writes the conditions as one vector equation. Since
+$v_\theta = \sum_j \theta_j \varphi_j$, the inner product of $v_\theta$ with
+$\varphi_i$ is $\sum_j M_{ij}\theta_j = (\mathbf{M}\theta)_i$. Condition $i$,
+$\langle \Bellman v_\theta - v_\theta, \varphi_i \rangle_w = 0$, therefore
+reads $b_i(\Bellman v_\theta) = (\mathbf{M}\theta)_i$, and stacking the $n$
+conditions gives
+
+$$
+\mathbf{M}\,\theta = \mathbf{b}(\Bellman v_\theta),
+\qquad\text{that is,}\qquad
+\theta = \mathbf{M}^{-1}\mathbf{b}(\Bellman v_\theta),
+$$ (eq:galerkin-coefficients)
+
+a fixed-point equation in the coefficients, as for collocation, with
+$\mathbf{M}$ in place of $\boldsymbol\Phi$ and inner products in place of
+values at the nodes.
+
+The second step identifies the map on the right. The $w$-orthogonal
+projection of a function $g$ onto $\mathcal{V}$ is the element of
+$\mathcal{V}$ closest to $g$ in the norm $\|\cdot\|_w$, the function
+$\boldsymbol\varphi^\top c$ whose coefficients minimize
+$\|\boldsymbol\varphi^\top c - g\|_w^2$. Expanding the square,
+
+$$
+\|\boldsymbol\varphi^\top c - g\|_w^2
+= c^\top \mathbf{M} c - 2\, c^\top \mathbf{b}(g) + \|g\|_w^2 ,
+$$
+
+a quadratic function of $c$ whose Hessian $2\mathbf{M}$ is positive definite.
+Its unique minimizer is the zero of the gradient
+$2\mathbf{M}c - 2\mathbf{b}(g)$, which is $c = \mathbf{M}^{-1}\mathbf{b}(g)$, so
+
+$$
+(\Proj g)(s) = \boldsymbol\varphi(s)^\top \mathbf{M}^{-1}\mathbf{b}(g) .
+$$ (eq:galerkin-projection)
+
+This map has the properties of the interpolation operator. It is linear in
+$g$, because $\mathbf{b}$ is. It leaves the elements of $\mathcal{V}$
+unchanged: if $g = \boldsymbol\varphi^\top c$, then
+$\mathbf{b}(g) = \mathbf{M}c$ and $\Proj g = g$, so $\Proj(\Proj g) = \Proj g$.
+In place of reproducing $g$ at the nodes, it leaves an error that is
+orthogonal to every basis function,
+$\langle g - \Proj g, \varphi_i \rangle_w = b_i(g) - (\mathbf{M}\mathbf{M}^{-1}\mathbf{b}(g))_i = 0$.
+That is the $\mathbb{R}^3$ picture: the part of $g$ that the projection
+discards is invisible to the tests.
+
+The third step multiplies {eq}`eq:galerkin-coefficients` on the left by
+$\boldsymbol\varphi(s)^\top$:
+
+$$
+v_\theta(s) = \boldsymbol\varphi(s)^\top\theta
+= \boldsymbol\varphi(s)^\top\mathbf{M}^{-1}\mathbf{b}(\Bellman v_\theta)
+= (\Proj\,\Bellman v_\theta)(s)
+$$
+
+for every $s$, which is $v_\theta = \Proj\,\Bellman v_\theta$, the projected
+Bellman equation {eq}`eq:projected-bellman` with $\Proj$ now the
+$w$-orthogonal projection onto $\mathcal{V}$. Conversely, if
+$v_\theta = \Proj\,\Bellman v_\theta$, the residual
+$\Bellman v_\theta - v_\theta = \Bellman v_\theta - \Proj\,\Bellman v_\theta$
+is orthogonal to every $\varphi_i$ by the last property, which is the set of
+Galerkin conditions. As for collocation, the derivation needs the family to be
+linear in $\theta$ and $\mathbf{M}$ to be invertible, and it allows
+$\Bellman$ to be nonlinear. Orthogonality here is with respect to the weighted
+inner product $\langle \cdot, \cdot \rangle_w$. When $w$ is not uniform, the same map seen
 in the unweighted Euclidean geometry is an oblique projection; it is
 orthogonal only after rescaling each state by $\sqrt{w(s)}$. In reinforcement
 learning $w$ is the distribution of the states in the data, and the
@@ -597,6 +742,120 @@ equations of a least-squares regression: $v_\theta$ is the least-squares fit
 of the basis to the backups $(\Bellman v_\theta)(s_m)$ at the sampled states.
 The targets of that regression depend on its own solution, and Step 4 breaks
 the circularity.
+
+(sec-wr-one-formula)=
+#### One Formula for Any Fixed Tests
+
+Collocation and Galerkin are two instances of one construction. For test
+functions $p_1, \ldots, p_n$ fixed in advance, form the $n \times n$ matrix
+$\mathbf{A}$ with entries $A_{ij} = \langle \varphi_j, p_i \rangle_w$ and the
+vector $\mathbf{b}_p(g)$ with entries $\langle g, p_i \rangle_w$. The
+conditions {eq}`eq:weighted-residual-conditions` read
+$\mathbf{A}\theta = \mathbf{b}_p(\Bellman v_\theta)$, and when $\mathbf{A}$ is
+invertible the map
+$(\Proj g)(s) = \boldsymbol\varphi(s)^\top\mathbf{A}^{-1}\mathbf{b}_p(g)$ is a
+projection onto $\mathcal{V}$ whose error $g - \Proj g$ passes all $n$ tests.
+The argument of the two previous subsections goes through unchanged and gives
+$v_\theta = \Proj\,\Bellman v_\theta$. Collocation has point masses as tests,
+so $\mathbf{A} = \boldsymbol\Phi$ and $\mathbf{b}_p(g) = g(\mathbf{s})$.
+Galerkin has the basis functions as tests, so $\mathbf{A} = \mathbf{M}$ and
+$\mathbf{b}_p = \mathbf{b}$. When the tests differ from the basis, the error
+of $\Proj$ is orthogonal to the tests and not to $\mathcal{V}$, and $\Proj$
+is an **oblique projection**: it moves $g$ onto $\mathcal{V}$ along the
+directions that the tests cannot see. The interpolation operator is of this
+kind.
+
+On a finite state space with $m$ states, these maps are matrices. Stack the
+rows $\boldsymbol\varphi(s)^\top$ for all $m$ states into an $m \times n$
+matrix $\boldsymbol\Phi_{\mathcal{S}}$, let $\mathbf{W} = \operatorname{diag}(w)$,
+so that $\langle f, g \rangle_w = f^\top \mathbf{W} g$, and let $\mathbf{E}$
+be the $n \times m$ matrix whose row $i$ selects the state $s_i$, so that
+$g(\mathbf{s}) = \mathbf{E}g$ and $\boldsymbol\Phi = \mathbf{E}\boldsymbol\Phi_{\mathcal{S}}$.
+Put the values of the $n$ tests at the $m$ states in the columns of an
+$m \times n$ matrix $\boldsymbol\Psi$. Then
+$\mathbf{A} = \boldsymbol\Psi^\top\mathbf{W}\boldsymbol\Phi_{\mathcal{S}}$,
+$\mathbf{b}_p(g) = \boldsymbol\Psi^\top\mathbf{W}g$, and the projection is the
+matrix
+
+$$
+\Proj = \boldsymbol\Phi_{\mathcal{S}}\,(\boldsymbol\Psi^\top\mathbf{W}\boldsymbol\Phi_{\mathcal{S}})^{-1}\,\boldsymbol\Psi^\top\mathbf{W} .
+$$ (eq:oblique-projection)
+
+It is idempotent, $\Proj^2 = \Proj$, because
+$(\boldsymbol\Psi^\top\mathbf{W}\boldsymbol\Phi_{\mathcal{S}})^{-1}\boldsymbol\Psi^\top\mathbf{W}\boldsymbol\Phi_{\mathcal{S}}$
+is the identity. A point mass at $s_i$ is the test whose weighted inner
+product with $g$ returns $g(s_i)$, so for collocation
+$\boldsymbol\Psi^\top\mathbf{W} = \mathbf{E}$; for Galerkin,
+$\boldsymbol\Psi = \boldsymbol\Phi_{\mathcal{S}}$. The two projections are
+
+$$
+\Proj_{\text{col}} = \boldsymbol\Phi_{\mathcal{S}}\,(\mathbf{E}\boldsymbol\Phi_{\mathcal{S}})^{-1}\,\mathbf{E},
+\qquad
+\Proj_{\text{gal}} = \boldsymbol\Phi_{\mathcal{S}}\,(\boldsymbol\Phi_{\mathcal{S}}^\top\mathbf{W}\boldsymbol\Phi_{\mathcal{S}})^{-1}\,\boldsymbol\Phi_{\mathcal{S}}^\top\mathbf{W} .
+$$ The Galerkin matrix is the one that the
+[next chapter](approximate-bellman-equations.md#sec-abe-convergence) uses,
+where $\boldsymbol\Phi_{\mathcal{S}}$ is written $\boldsymbol\Phi$ and
+$\mathbf{W}$ is written $\boldsymbol\Xi$.
+
+The code below checks the derivations on the policy-evaluation problem of
+{numref}`fig-test-functions`, with six hat functions and with six Legendre
+polynomials collocated at the Chebyshev nodes. It solves the collocation and
+the Galerkin conditions directly, builds the two projections from
+{eq}`eq:interpolation-projection` and {eq}`eq:galerkin-projection`, and
+measures how far each solution is from being a fixed point of each
+projected operator.
+
+```{code-cell} python
+:tags: [hide-input]
+
+import sys
+from pathlib import Path
+
+import numpy as np
+
+sys.path.insert(0, str(Path.cwd() / "code"))
+from test_functions_demo import GAMMA, GRID, PROBS, QW, basis, reward, solve, successors
+
+def backup(phi, n, theta, s):
+    # (L_pi v_theta)(s) = r(s) + gamma E[v_theta(s')]
+    return reward(s) + GAMMA * (phi(successors(s), n) @ theta) @ PROBS
+
+for kind in ("hat", "legendre"):
+    n = 6
+    phi, nodes = basis(kind, n)
+    Phi = phi(nodes, n)                       # interpolation matrix, Phi_ij = phi_j(s_i)
+    F = phi(GRID, n)                          # basis on a fine grid
+    M = F.T @ (QW[:, None] * F)               # mass matrix, uniform weight
+
+    def P_col(g):                             # coefficients of the interpolant
+        return np.linalg.solve(Phi, g(nodes))
+
+    def P_gal(g):                             # coefficients of the w-orthogonal projection
+        return np.linalg.solve(M, F.T @ (QW * g(GRID)))
+
+    print(f"{kind} basis, n = {n}: sup over states of |v_theta - P L v_theta|")
+    print(f"{'solution':<13}{'P = interpolation':>20}{'P = orthogonal':>17}")
+    for method in ("collocation", "galerkin"):
+        theta = solve(kind, n, method)
+        Lv = lambda s: backup(phi, n, theta, s)
+        gaps = [np.max(np.abs(F @ theta - F @ P(Lv))) for P in (P_col, P_gal)]
+        print(f"{method:<13}{gaps[0]:>20.1e}{gaps[1]:>17.1e}")
+
+    # P leaves the span fixed, and the Galerkin error is orthogonal to the basis
+    c = np.random.default_rng(0).normal(size=n)
+    g = lambda s: phi(s, n) @ c
+    Lv = lambda s: backup(phi, n, solve(kind, n, "galerkin"), s)
+    err = Lv(GRID) - F @ P_gal(Lv)
+    print(f"  span fixed: {np.max(np.abs(P_col(g) - c)):.1e} (interpolation), "
+          f"{np.max(np.abs(P_gal(g) - c)):.1e} (orthogonal)")
+    print(f"  max |<g - P g, phi_i>_w| for the orthogonal projection: "
+          f"{np.max(np.abs(F.T @ (QW * err))):.1e}\n")
+```
+
+Each solution is a fixed point of its own projected operator, to rounding
+error, and is not a fixed point of the other one. The two methods solve the
+same kind of equation, $v_\theta = \Proj\,\Bellman v_\theta$, with two
+different projections, and that is the only difference between them.
 
 #### Least Squares: the Smallest Residual
 
@@ -618,8 +877,10 @@ contain the derivative of the Bellman operator with respect to the
 coefficients, which Galerkin and collocation never need. Computing it means
 differentiating through the maximum, which Step 4 does with the envelope
 theorem. The solution also differs from the Galerkin solution, because the
-residual is made orthogonal to a different set of functions, and it is not a
-projected Bellman equation. The [next chapter](approximate-bellman-equations.md)
+residual is made orthogonal to a different set of functions. It is not a
+projected Bellman equation with a projection fixed in advance: the tests
+$\partial R/\partial\theta_i$ contain the derivative of $\Bellman$, so they
+change with the operator and, through the maximum, with $\theta$. The [next chapter](approximate-bellman-equations.md)
 returns to the difference between fitting a backup and minimizing the
 residual, which separates the algorithms used in practice from this one.
 
