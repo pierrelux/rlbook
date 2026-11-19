@@ -368,7 +368,7 @@ The sampled fitted update of the previous section draws a batch of
 transitions, computes targets, and fits. Temporal-difference learning goes to
 the other extreme: it uses one transition at a time and takes a gradient step
 instead of a full fit. For policy evaluation with linear features
-$v(s;\theta) = \boldsymbol\varphi(s)^\top\theta$, it solves the
+$v(s;\theta) = \boldsymbol\phi(s)^\top\theta$, it solves the
 Galerkin system {eq}`eq:abe-td-system` of the
 [previous chapter](approximate-bellman-equations.md#sec-abe-galerkin-system),
 $\mathbf{A}\theta = \mathbf{b}$ with
@@ -384,7 +384,7 @@ TD(0) draws a state $s$ from $\xi$, a successor $s'$ from $\mathbf{P}_\pi$ and
 the reward $r$, and moves the parameters along the temporal difference,
 
 $$
-\theta \leftarrow \theta + \alpha\, \boldsymbol\varphi(s)\big(r + \gamma\boldsymbol\varphi(s')^\top\theta - \boldsymbol\varphi(s)^\top\theta\big).
+\theta \leftarrow \theta + \alpha\, \boldsymbol\phi(s)\big(r + \gamma\boldsymbol\phi(s')^\top\theta - \boldsymbol\phi(s)^\top\theta\big).
 $$
 
 The expected increment is $\alpha(\mathbf{b} - \mathbf{A}\theta)$, the

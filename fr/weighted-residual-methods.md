@@ -194,11 +194,11 @@ par plus de dix à la traversée du point de bascule, et est régulière ailleur
 Supposons maintenant que nous ne puissions stocker que $n$ nombres. Deux choix
 sont naturels.
 
-- Un polynôme de Tchebychev, $v(s; \theta) = \sum_{j=1}^{n} \theta_j \varphi_j(s)$
-  avec $\varphi_j(s) = T_{j-1}(2s/1.6 - 1)$. La base est régulière et globale :
+- Un polynôme de Tchebychev, $v(s; \theta) = \sum_{j=1}^{n} \theta_j \phi_j(s)$
+  avec $\phi_j(s) = T_{j-1}(2s/1.6 - 1)$. La base est régulière et globale :
   chaque coefficient modifie la valeur pour chaque stock.
 - L'interpolation linéaire par morceaux sur $n$ nœuds uniformes,
-  $v(s;\theta) = \sum_{j=1}^{n} \theta_j \varphi_j(s)$ où les $\varphi_j$ sont
+  $v(s;\theta) = \sum_{j=1}^{n} \theta_j \phi_j(s)$ où les $\phi_j$ sont
   les fonctions chapeau du chapitre sur l'horizon fini. Chaque coefficient est
   la valeur en un nœud, et il ne modifie la valeur qu'entre les deux nœuds
   voisins.
@@ -298,7 +298,7 @@ ci-dessous s'y applique. La linéarité compte pour la résolution. Lorsque la
 famille est une combinaison linéaire de $n$ fonctions de base,
 
 $$
-v(s;\theta) = \sum_{j=1}^n \theta_j \varphi_j(s),
+v(s;\theta) = \sum_{j=1}^n \theta_j \phi_j(s),
 $$
 
 chaque condition se réduit à de l'algèbre linéaire et peut être écrite
@@ -330,7 +330,7 @@ modèle linéaire peut exiger un très grand nombre de caractéristiques.
 :class: note
 
 La pêcherie a employé une base de chaque type, avec $n = 12$ : les polynômes de
-Tchebychev $\varphi_j(s) = T_{j-1}(2s/1.6 - 1)$, et les fonctions chapeau de
+Tchebychev $\phi_j(s) = T_{j-1}(2s/1.6 - 1)$, et les fonctions chapeau de
 douze nœuds uniformes, pour lesquelles $\theta_j$ est la valeur au nœud $j$. Sa
 fonction de valeur présente un coude en $\hat s$ et une falaise au point de
 bascule; c'est pourquoi les deux bases se sont comportées si différemment avec
@@ -484,7 +484,7 @@ les méthodes en usage.
 | **Méthode** | **Fonctions test** $p_i$ | **Conditions** ($n$ équations) |
 |:-----------|:--------------------------|:-------------------------------|
 | Collocation | Masses ponctuelles en des états choisis $s_1, \ldots, s_n$ | $R(s_i; \theta) = 0$ |
-| Galerkin | Les fonctions de base $\varphi_i$ | $\langle R(\cdot;\theta), \varphi_i \rangle_w = 0$ |
+| Galerkin | Les fonctions de base $\phi_i$ | $\langle R(\cdot;\theta), \phi_i \rangle_w = 0$ |
 | Moindres carrés | Les dérivées $\partial R / \partial \theta_i$ du résidu | $\langle R(\cdot;\theta), \partial R/\partial\theta_i \rangle_w = 0$ |
 
 #### Collocation : un résidu nul en des états choisis
@@ -536,7 +536,7 @@ polynôme de degré $n - 1$, le choix habituel est l'ensemble des zéros du
 $n$-ième polynôme de Tchebychev, les **nœuds de Tchebychev**, et la
 combinaison s'appelle **collocation orthogonale**. Ces mêmes nœuds servent de
 nœuds à la quadrature de Gauss-Tchebychev, la matrice d'interpolation
-$\Phi_{ij} = \varphi_j(s_i)$ construite sur eux est bien conditionnée, et le
+$\Phi_{ij} = \phi_j(s_i)$ construite sur eux est bien conditionnée, et le
 polynôme qui passe par eux est à un petit facteur près de la meilleure
 approximation polynomiale d'une fonction régulière, de sorte qu'un résidu qui
 s'y annule reste petit entre eux. Des nœuds équidistants n'ont aucune de ces
@@ -586,13 +586,13 @@ partie que les masses ponctuelles ne peuvent pas détecter.
 #### Galerkin : un résidu orthogonal à la base
 
 La méthode de Galerkin prend les fonctions de base elles-mêmes comme fonctions
-test, $\langle R(\cdot;\theta), \varphi_i \rangle_w = 0$ pour
+test, $\langle R(\cdot;\theta), \phi_i \rangle_w = 0$ pour
 $i = 1, \ldots, n$. Par linéarité, le résidu est alors orthogonal à toute
 fonction de l'espace d'approximation
-$\mathcal{V} = \text{Vect}\{\varphi_1, \ldots, \varphi_n\}$,
+$\mathcal{V} = \text{Vect}\{\phi_1, \ldots, \phi_n\}$,
 
 $$
-\Big\langle R, \sum_{i=1}^n c_i \varphi_i \Big\rangle_w = \sum_{i=1}^n c_i \langle R, \varphi_i \rangle_w = 0 \quad \text{pour tout } c \in \mathbb{R}^n,
+\Big\langle R, \sum_{i=1}^n c_i \phi_i \Big\rangle_w = \sum_{i=1}^n c_i \langle R, \phi_i \rangle_w = 0 \quad \text{pour tout } c \in \mathbb{R}^n,
 $$
 
 ce qui est la propriété qui définit une projection orthogonale : la composante
@@ -639,7 +639,7 @@ de Bellman, il s'agit de la **minimisation du résidu de Bellman**. Ses
 fonctions test,
 
 $$
-\frac{\partial R(s;\theta)}{\partial \theta_i} = \frac{\partial (\Bellman v_\theta)(s)}{\partial \theta_i} - \varphi_i(s),
+\frac{\partial R(s;\theta)}{\partial \theta_i} = \frac{\partial (\Bellman v_\theta)(s)}{\partial \theta_i} - \phi_i(s),
 $$
 
 contiennent la dérivée de l'opérateur de Bellman par rapport aux
@@ -770,7 +770,7 @@ itération de la version par collocation compte deux étapes. La première éval
 courante, $t_i = (\Bellman v_k)(s_i)$ pour $i = 1, \ldots, n$. La seconde
 choisit les coefficients qui reproduisent ces $n$ cibles, ce qui est le système
 linéaire $\boldsymbol{\Phi}\theta_{k+1} = t$ avec la matrice d'interpolation
-$\Phi_{ij} = \varphi_j(s_i)$. Avec des fonctions chapeau collocalisées à leurs
+$\Phi_{ij} = \phi_j(s_i)$. Avec des fonctions chapeau collocalisées à leurs
 propres nœuds, la résolution est triviale, parce que $\boldsymbol\Phi$ est
 l'identité. La version de Galerkin remplace la seconde étape par la projection
 orthogonale de la fonction cible, qui est l'ajustement par moindres carrés
@@ -781,8 +781,8 @@ $$
 $$
 
 Ses conditions du premier ordre sont le système linéaire $M\theta_{k+1} = b_k$
-avec la matrice de masse $M_{ij} = \langle \varphi_i, \varphi_j \rangle_w$ et
-$b_i = \langle \Bellman v_k, \varphi_i \rangle_w$. Le système est linéaire
+avec la matrice de masse $M_{ij} = \langle \phi_i, \phi_j \rangle_w$ et
+$b_i = \langle \Bellman v_k, \phi_i \rangle_w$. Le système est linéaire
 quel que soit l'opérateur, parce que la cible $\Bellman v_k$ est calculée à
 partir de $\theta_k$ et maintenue fixe pendant qu'on choisit $\theta_{k+1}$.
 Avec des états échantillonnés, l'ajustement est une régression ordinaire des
@@ -872,7 +872,7 @@ $G_i(\theta) = v(s_i;\theta) - (\Bellman v_\theta)(s_i)$, et les entrées de la
 jacobienne sont
 
 $$
-\frac{\partial G_i}{\partial \theta_j} = \varphi_j(s_i) - \frac{\partial (\Bellman v_\theta)(s_i)}{\partial \theta_j}.
+\frac{\partial G_i}{\partial \theta_j} = \phi_j(s_i) - \frac{\partial (\Bellman v_\theta)(s_i)}{\partial \theta_j}.
 $$
 
 Le premier terme est une fonction de base en un nœud. Le second est la dérivée
@@ -911,10 +911,10 @@ et le second terme s'annule parce que $\nabla_a g = 0$ en un maximiseur intérie
 Pour l'opérateur de Bellman,
 $(\Bellman v_\theta)(s) = \max_a \{ r(s,a) + \gamma\, \mathbb{E}[v(s';\theta) \mid s, a] \}$,
 l'objectif est linéaire en $\theta$ avec les coefficients
-$\gamma\,\mathbb{E}[\varphi_j(s') \mid s, a]$, de sorte que
+$\gamma\,\mathbb{E}[\phi_j(s') \mid s, a]$, de sorte que
 
 $$
-\frac{\partial (\Bellman v_\theta)(s)}{\partial \theta_j} = \gamma\, \mathbb{E}\big[\varphi_j(s') \mid s, a^*(s;\theta)\big],
+\frac{\partial (\Bellman v_\theta)(s)}{\partial \theta_j} = \gamma\, \mathbb{E}\big[\phi_j(s') \mid s, a^*(s;\theta)\big],
 $$ (eq:envelope-bellman)
 
 où $a^*(s;\theta)$ est l'action gloutonne en $s$ pour les coefficients
@@ -928,7 +928,7 @@ Substituer {eq}`eq:envelope-bellman` dans le pas de Newton lui donne une forme
 familière. Soit $\pi_k$ la politique gloutonne pour $v_{\theta_k}$, soit
 $\mathbf{r}_{\pi_k}$ le vecteur de ses récompenses aux nœuds, et soit
 $\mathbf{P}_{\pi_k}\boldsymbol{\Phi}$ la matrice d'entrées
-$\mathbb{E}[\varphi_j(s') \mid s_i, \pi_k(s_i)]$. Alors
+$\mathbb{E}[\phi_j(s') \mid s_i, \pi_k(s_i)]$. Alors
 $J_G = \boldsymbol{\Phi} - \gamma \mathbf{P}_{\pi_k}\boldsymbol{\Phi}$ et
 $G(\theta_k) = \boldsymbol\Phi\theta_k - \mathbf{r}_{\pi_k} - \gamma \mathbf{P}_{\pi_k}\boldsymbol\Phi\theta_k$,
 et la mise à jour de Newton $J_G \theta_{k+1} = J_G\theta_k - G(\theta_k)$
@@ -1037,13 +1037,13 @@ produit les figures.
 :::{exercise} Condition d'orthogonalité
 :label: ex-projection-check-1
 
-Dans une méthode de Galerkin à fonctions de base $\varphi_i$, à quelles fonctions le résidu de Bellman doit-il être orthogonal, et qu'est-ce que cela dit de $\Proj\,\Bellman v_\theta$?
+Dans une méthode de Galerkin à fonctions de base $\phi_i$, à quelles fonctions le résidu de Bellman doit-il être orthogonal, et qu'est-ce que cela dit de $\Proj\,\Bellman v_\theta$?
 :::
 
 :::{solution} ex-projection-check-1
 :class: dropdown
 
-Aux fonctions de base elles-mêmes : $\langle \Bellman v_\theta - v_\theta, \varphi_i\rangle_w = 0$ pour tout $i$. Le résidu est alors orthogonal à tout l'espace engendré, de sorte que la projection $w$-orthogonale de $\Bellman v_\theta$ sur cet espace est $v_\theta$ lui-même.
+Aux fonctions de base elles-mêmes : $\langle \Bellman v_\theta - v_\theta, \phi_i\rangle_w = 0$ pour tout $i$. Le résidu est alors orthogonal à tout l'espace engendré, de sorte que la projection $w$-orthogonale de $\Bellman v_\theta$ sur cet espace est $v_\theta$ lui-même.
 :::
 
 :::{exercise} Collocation ou moindres carrés
@@ -1169,7 +1169,7 @@ itérations.
    nœud. `Bellman.greedy` le renvoie sur la grille fine; lisez la valeur au
    point de la grille où tombe chaque nœud.
 2. Construisez la matrice $\mathbf{P}_{\pi}\boldsymbol{\Phi}$ d'entrées
-   $\mathbb{E}_z[\varphi_j(z f(a_i))]$, en employant les nœuds de quadrature
+   $\mathbb{E}_z[\phi_j(z f(a_i))]$, en employant les nœuds de quadrature
    `bellman.z` et les poids `bellman.w`. Pour les fonctions chapeau,
    $\boldsymbol\Phi$ est l'identité.
 3. Résolvez $(\mathbf{I} - \gamma \mathbf{P}_{\pi}\boldsymbol{\Phi})\theta = \mathbf{r}_\pi$

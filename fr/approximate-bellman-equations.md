@@ -761,7 +761,7 @@ Cette observation est un théorème pour l'évaluation de politique
 avec des caractéristiques linéaires. Prenons un espace d'états fini
 $\mathcal{S} = \{s_1,\ldots,s_m\}$, une matrice de caractéristiques
 $\boldsymbol{\Phi} \in \mathbb{R}^{m\times n}$ de lignes
-$\boldsymbol\varphi(s)^\top$, et une distribution $\xi$ sur les états avec
+$\boldsymbol\phi(s)^\top$, et une distribution $\xi$ sur les états avec
 $\boldsymbol{\Xi} = \text{diag}(\xi)$. Le produit scalaire, la norme et la
 projection par moindres carrés sur l'espace engendré par les caractéristiques,
 pondérés par $\xi$, sont
@@ -849,7 +849,7 @@ contre-exemple de Baird {cite}`Baird1995` en est la démonstration classique.
 
 2. **La non-expansivité échoue hors politique.** Pour la chaîne à 3 états de {ref}`sec-abe-lstd` et la pondération $\xi' = (0.9, 0.05, 0.05)$, trouvez un vecteur $z$ tel que $\|\mathbf{P}_\pi z\|_{\xi'} > \|z\|_{\xi'}$.
 
-3. **Perdre l'argument n'est pas perdre la convergence.** Implémentez l'évaluation de politique ajustée pour la même chaîne, avec les caractéristiques $\varphi(s) = (1, s)$ et la pondération $\xi'$. Elle converge encore : calculez le rayon spectral de $\gamma \Proj \mathbf{P}_\pi$ et vérifiez qu'il est égal à $\gamma$ pour cet ensemble de caractéristiques, quelle que soit la pondération. Ne gardez ensuite que la caractéristique $\varphi(s) = s$ et trouvez une pondération concentrée sur l'état 1 pour laquelle le rayon spectral dépasse un.
+3. **Perdre l'argument n'est pas perdre la convergence.** Implémentez l'évaluation de politique ajustée pour la même chaîne, avec les caractéristiques $\phi(s) = (1, s)$ et la pondération $\xi'$. Elle converge encore : calculez le rayon spectral de $\gamma \Proj \mathbf{P}_\pi$ et vérifiez qu'il est égal à $\gamma$ pour cet ensemble de caractéristiques, quelle que soit la pondération. Ne gardez ensuite que la caractéristique $\phi(s) = s$ et trouvez une pondération concentrée sur l'état 1 pour laquelle le rayon spectral dépasse un.
 ```
 
 ### L'opérateur d'optimalité et la triade mortelle
@@ -931,13 +931,13 @@ elle-même est d'usage courant en économie numérique {cite}`ndp`.
 L'algorithme pratique ne forme jamais
 explicitement $\boldsymbol\Phi$ sur tous les états ni $\mathbf{P}_\pi$. Il
 accumule
-$\mathbf{A} = \mathbb{E}_{s \sim \xi}[\boldsymbol{\varphi}(s)(\boldsymbol{\varphi}(s) - \gamma \boldsymbol{\varphi}(s'))^\top]$
-et $\mathbf{b} = \mathbb{E}_{s \sim \xi}[\boldsymbol{\varphi}(s) r]$ à partir
+$\mathbf{A} = \mathbb{E}_{s \sim \xi}[\boldsymbol{\phi}(s)(\boldsymbol{\phi}(s) - \gamma \boldsymbol{\phi}(s'))^\top]$
+et $\mathbf{b} = \mathbb{E}_{s \sim \xi}[\boldsymbol{\phi}(s) r]$ à partir
 de transitions échantillonnées $(s, r, s')$, ce qui est possible parce que le
 système est linéaire en l'inconnue. Sur une chaîne à 3 états sous une
 politique fixe, avec
 $\mathbf{P}_\pi = \begin{pmatrix} 0.7 & 0.2 & 0.1 \\ 0.3 & 0.4 & 0.3 \\ 0.1 & 0.3 & 0.6 \end{pmatrix}$,
-$\mathbf{r}_\pi = (1, 2, 0)$, les caractéristiques $\varphi(s) = (1, s)$ et des
+$\mathbf{r}_\pi = (1, 2, 0)$, les caractéristiques $\phi(s) = (1, s)$ et des
 poids uniformes :
 
 ```{code-cell} python

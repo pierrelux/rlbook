@@ -182,11 +182,11 @@ elsewhere.
 
 Now suppose we may store only $n$ numbers. Two choices are natural.
 
-- A Chebyshev polynomial, $v(s; \theta) = \sum_{j=1}^{n} \theta_j \varphi_j(s)$
-  with $\varphi_j(s) = T_{j-1}(2s/1.6 - 1)$. The basis is smooth and global:
+- A Chebyshev polynomial, $v(s; \theta) = \sum_{j=1}^{n} \theta_j \phi_j(s)$
+  with $\phi_j(s) = T_{j-1}(2s/1.6 - 1)$. The basis is smooth and global:
   every coefficient changes the value at every stock.
 - Piecewise-linear interpolation on $n$ uniform nodes,
-  $v(s;\theta) = \sum_{j=1}^{n} \theta_j \varphi_j(s)$ with $\varphi_j$ the
+  $v(s;\theta) = \sum_{j=1}^{n} \theta_j \phi_j(s)$ with $\phi_j$ the
   hat functions of the finite-horizon chapter. Each coefficient is the value at
   one node, and it changes the value only between the two neighboring nodes.
 
@@ -282,7 +282,7 @@ matters for solving. When the family is a linear combination of $n$ basis
 functions,
 
 $$
-v(s;\theta) = \sum_{j=1}^n \theta_j \varphi_j(s),
+v(s;\theta) = \sum_{j=1}^n \theta_j \phi_j(s),
 $$
 
 each condition reduces to linear algebra and can be written out, so this
@@ -311,7 +311,7 @@ large number of features.
 :class: note
 
 The fishery used one basis of each kind, with $n = 12$: the Chebyshev
-polynomials $\varphi_j(s) = T_{j-1}(2s/1.6 - 1)$, and the hat functions of
+polynomials $\phi_j(s) = T_{j-1}(2s/1.6 - 1)$, and the hat functions of
 twelve uniform nodes, for which $\theta_j$ is the value at node $j$. Its value
 function has a kink at $\hat s$ and a cliff at the tipping point, which is why
 the two bases behaved so differently with the same $n$: the polynomial spread
@@ -462,7 +462,7 @@ every method in use.
 | **Method** | **Test functions** $p_i$ | **Conditions** ($n$ equations) |
 |:-----------|:--------------------------|:-------------------------------|
 | Collocation | Point masses at chosen states $s_1, \ldots, s_n$ | $R(s_i; \theta) = 0$ |
-| Galerkin | The basis functions $\varphi_i$ | $\langle R(\cdot;\theta), \varphi_i \rangle_w = 0$ |
+| Galerkin | The basis functions $\phi_i$ | $\langle R(\cdot;\theta), \phi_i \rangle_w = 0$ |
 | Least squares | The derivatives $\partial R / \partial \theta_i$ of the residual | $\langle R(\cdot;\theta), \partial R/\partial\theta_i \rangle_w = 0$ |
 
 #### Collocation: a Zero Residual at Chosen States
@@ -512,7 +512,7 @@ $n - 1$, the standard choice is the zeros of the $n$-th Chebyshev
 polynomial, the **Chebyshev nodes**, and the combination is called
 **orthogonal collocation**. The same nodes serve as the nodes of
 Gauss–Chebyshev quadrature, the interpolation matrix
-$\Phi_{ij} = \varphi_j(s_i)$ built on them is well conditioned, and the
+$\Phi_{ij} = \phi_j(s_i)$ built on them is well conditioned, and the
 polynomial through them is within a small factor of the best polynomial
 approximation of a smooth function, so a residual that vanishes at them stays
 small between them. Equally spaced nodes have none of these properties once
@@ -561,12 +561,12 @@ cannot detect.
 #### Galerkin: a Residual Orthogonal to the Basis
 
 Galerkin takes the basis functions themselves as test functions,
-$\langle R(\cdot;\theta), \varphi_i \rangle_w = 0$ for $i = 1, \ldots, n$.
+$\langle R(\cdot;\theta), \phi_i \rangle_w = 0$ for $i = 1, \ldots, n$.
 By linearity the residual is then orthogonal to every function in the
-approximation space $\mathcal{V} = \text{span}\{\varphi_1, \ldots, \varphi_n\}$,
+approximation space $\mathcal{V} = \text{span}\{\phi_1, \ldots, \phi_n\}$,
 
 $$
-\Big\langle R, \sum_{i=1}^n c_i \varphi_i \Big\rangle_w = \sum_{i=1}^n c_i \langle R, \varphi_i \rangle_w = 0 \quad \text{for every } c \in \mathbb{R}^n,
+\Big\langle R, \sum_{i=1}^n c_i \phi_i \Big\rangle_w = \sum_{i=1}^n c_i \langle R, \phi_i \rangle_w = 0 \quad \text{for every } c \in \mathbb{R}^n,
 $$
 
 which is the defining property of an orthogonal projection: the component of
@@ -611,7 +611,7 @@ test functions $p_i = \partial R / \partial \theta_i$. For the Bellman
 residual this is **Bellman residual minimization**. Its test functions,
 
 $$
-\frac{\partial R(s;\theta)}{\partial \theta_i} = \frac{\partial (\Bellman v_\theta)(s)}{\partial \theta_i} - \varphi_i(s),
+\frac{\partial R(s;\theta)}{\partial \theta_i} = \frac{\partial (\Bellman v_\theta)(s)}{\partial \theta_i} - \phi_i(s),
 $$
 
 contain the derivative of the Bellman operator with respect to the
@@ -736,7 +736,7 @@ version has two steps. The first evaluates the operator at the nodes with the cu
 $t_i = (\Bellman v_k)(s_i)$ for $i = 1, \ldots, n$. The second chooses the
 coefficients that reproduce those $n$ targets, which is the linear system
 $\boldsymbol{\Phi}\theta_{k+1} = t$ with the interpolation matrix
-$\Phi_{ij} = \varphi_j(s_i)$. With hat functions collocated at their own
+$\Phi_{ij} = \phi_j(s_i)$. With hat functions collocated at their own
 nodes the solve is trivial, because $\boldsymbol\Phi$ is the identity. The
 Galerkin version replaces the second step by the orthogonal projection of the
 target function, which is the weighted least-squares fit
@@ -746,8 +746,8 @@ $$
 $$
 
 Its first-order conditions are the linear system $M\theta_{k+1} = b_k$ with
-the mass matrix $M_{ij} = \langle \varphi_i, \varphi_j \rangle_w$ and
-$b_i = \langle \Bellman v_k, \varphi_i \rangle_w$. The system is linear
+the mass matrix $M_{ij} = \langle \phi_i, \phi_j \rangle_w$ and
+$b_i = \langle \Bellman v_k, \phi_i \rangle_w$. The system is linear
 whatever the operator is, because the target $\Bellman v_k$ is computed from
 $\theta_k$ and held fixed while $\theta_{k+1}$ is chosen. With sampled states,
 the fit is an ordinary regression of the backups on the basis. This fit is
@@ -833,7 +833,7 @@ $G_i(\theta) = v(s_i;\theta) - (\Bellman v_\theta)(s_i)$, and the Jacobian
 entries are
 
 $$
-\frac{\partial G_i}{\partial \theta_j} = \varphi_j(s_i) - \frac{\partial (\Bellman v_\theta)(s_i)}{\partial \theta_j}.
+\frac{\partial G_i}{\partial \theta_j} = \phi_j(s_i) - \frac{\partial (\Bellman v_\theta)(s_i)}{\partial \theta_j}.
 $$
 
 The first term is a basis function at a node. The second is the derivative of
@@ -870,10 +870,10 @@ and the second term vanishes because $\nabla_a g = 0$ at an interior maximizer.
 For the Bellman operator,
 $(\Bellman v_\theta)(s) = \max_a \{ r(s,a) + \gamma\, \mathbb{E}[v(s';\theta) \mid s, a] \}$,
 the objective is linear in $\theta$ with coefficients
-$\gamma\,\mathbb{E}[\varphi_j(s') \mid s, a]$, so
+$\gamma\,\mathbb{E}[\phi_j(s') \mid s, a]$, so
 
 $$
-\frac{\partial (\Bellman v_\theta)(s)}{\partial \theta_j} = \gamma\, \mathbb{E}\big[\varphi_j(s') \mid s, a^*(s;\theta)\big],
+\frac{\partial (\Bellman v_\theta)(s)}{\partial \theta_j} = \gamma\, \mathbb{E}\big[\phi_j(s') \mid s, a^*(s;\theta)\big],
 $$ (eq:envelope-bellman)
 
 where $a^*(s;\theta)$ is the greedy action at $s$ for the current
@@ -887,7 +887,7 @@ Substituting {eq}`eq:envelope-bellman` into the Newton step gives it a
 familiar form. Let $\pi_k$ be the greedy policy for $v_{\theta_k}$, let
 $\mathbf{r}_{\pi_k}$ collect its rewards at the nodes, and let
 $\mathbf{P}_{\pi_k}\boldsymbol{\Phi}$ be the matrix with entries
-$\mathbb{E}[\varphi_j(s') \mid s_i, \pi_k(s_i)]$. Then
+$\mathbb{E}[\phi_j(s') \mid s_i, \pi_k(s_i)]$. Then
 $J_G = \boldsymbol{\Phi} - \gamma \mathbf{P}_{\pi_k}\boldsymbol{\Phi}$ and
 $G(\theta_k) = \boldsymbol\Phi\theta_k - \mathbf{r}_{\pi_k} - \gamma \mathbf{P}_{\pi_k}\boldsymbol\Phi\theta_k$,
 and the Newton update $J_G \theta_{k+1} = J_G\theta_k - G(\theta_k)$
@@ -990,13 +990,13 @@ figures.
 :::{exercise} Orthogonality condition
 :label: ex-projection-check-1
 
-In a Galerkin method with basis functions $\varphi_i$, against which functions is the Bellman residual required to be orthogonal, and what does that say about $\Proj\,\Bellman v_\theta$?
+In a Galerkin method with basis functions $\phi_i$, against which functions is the Bellman residual required to be orthogonal, and what does that say about $\Proj\,\Bellman v_\theta$?
 :::
 
 :::{solution} ex-projection-check-1
 :class: dropdown
 
-Against the basis functions themselves: $\langle \Bellman v_\theta - v_\theta, \varphi_i\rangle_w = 0$ for every $i$. The residual is then orthogonal to the whole span, so the $w$-orthogonal projection of $\Bellman v_\theta$ onto the span is $v_\theta$ itself.
+Against the basis functions themselves: $\langle \Bellman v_\theta - v_\theta, \phi_i\rangle_w = 0$ for every $i$. The residual is then orthogonal to the whole span, so the $w$-orthogonal projection of $\Bellman v_\theta$ onto the span is $v_\theta$ itself.
 :::
 
 :::{exercise} Collocation versus least squares
@@ -1114,7 +1114,7 @@ same basis, using `Bellman`, `HatBasis` and `growth` from
    `Bellman.greedy` returns it on the fine grid; read off the value at the
    grid point where each node falls.
 2. Build the matrix $\mathbf{P}_{\pi}\boldsymbol{\Phi}$ with entries
-   $\mathbb{E}_z[\varphi_j(z f(a_i))]$, using the quadrature nodes
+   $\mathbb{E}_z[\phi_j(z f(a_i))]$, using the quadrature nodes
    `bellman.z` and weights `bellman.w`. For hat functions, $\boldsymbol\Phi$ is
    the identity.
 3. Solve $(\mathbf{I} - \gamma \mathbf{P}_{\pi}\boldsymbol{\Phi})\theta = \mathbf{r}_\pi$

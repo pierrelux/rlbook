@@ -577,7 +577,7 @@ chosen by the method. Every stability result in this section is a condition
 under which $\Proj$ cannot undo the contraction of $\Bellman$. On a finite state space
 $\mathcal{S} = \{s_1, \ldots, s_m\}$, a function is a vector of
 $\mathbb{R}^m$, the features are the columns of an $m \times n$ matrix
-$\boldsymbol\Phi$ with rows $\boldsymbol\varphi(s)^\top$, and the $n$ test
+$\boldsymbol\Phi$ with rows $\boldsymbol\phi(s)^\top$, and the $n$ test
 functions of Step 3 of the [previous chapter](weighted-residual-methods.md#sec-wr-conditions)
 are the columns of an $m \times n$ matrix $\boldsymbol\Psi$. With a weighting
 $\xi$ over the states and $\boldsymbol\Xi = \text{diag}(\xi)$, the conditions
@@ -597,7 +597,7 @@ projection, the weighted least-squares fit. Collocation replaces the row
 vectors $\boldsymbol\Psi^\top\boldsymbol\Xi$ by the $n$ rows of the identity
 that select the nodes, so that $\Proj$ is interpolation through the nodes; for
 a nodal basis such as the hat functions, entry $(s, s_j)$ of $\Proj$ is the
-cardinal function $\varphi_j(s)$. Other tests give oblique
+cardinal function $\phi_j(s)$. Other tests give oblique
 projections. Bellman residual minimization, for instance, uses the tests
 $\boldsymbol\Psi = (\mathbf{I} - \gamma\mathbf{P}_\pi)\boldsymbol\Phi$,
 which depend on the operator {cite}`Scherrer2010`. The counterexample above is Galerkin with
@@ -938,7 +938,7 @@ Baird's counterexample {cite}`Baird1995` is the classical demonstration.
 
 2. **Non-expansiveness fails off-policy.** For the 3-state chain of {ref}`sec-abe-lstd` and the weighting $\xi' = (0.9, 0.05, 0.05)$, find a vector $z$ such that $\|\mathbf{P}_\pi z\|_{\xi'} > \|z\|_{\xi'}$.
 
-3. **Losing the argument is not losing convergence.** Implement fitted policy evaluation for the same chain, with features $\varphi(s) = (1, s)$ and weighting $\xi'$. It still converges: compute the spectral radius of $\gamma \Proj \mathbf{P}_\pi$ and check that it equals $\gamma$ for this feature set whatever the weighting. Then keep only the feature $\varphi(s) = s$ and find a weighting concentrated on state 1 under which the spectral radius exceeds one.
+3. **Losing the argument is not losing convergence.** Implement fitted policy evaluation for the same chain, with features $\phi(s) = (1, s)$ and weighting $\xi'$. It still converges: compute the spectral radius of $\gamma \Proj \mathbf{P}_\pi$ and check that it equals $\gamma$ for this feature set whatever the weighting. Then keep only the feature $\phi(s) = s$ and find a weighting concentrated on state 1 under which the spectral radius exceeds one.
 ```
 
 (sec-abe-galerkin-system)=
@@ -1256,12 +1256,12 @@ equations is due to Bertsekas {cite}`BertsekasTsitsiklis1996,Bertsekas2011`,
 and the Galerkin method itself is standard in computational economics
 {cite}`ndp`. The practical algorithm never
 forms $\boldsymbol\Phi$ over all states or $\mathbf{P}_\pi$ explicitly. It
-accumulates $\mathbf{A} = \mathbb{E}_{s \sim \xi}[\boldsymbol{\varphi}(s)(\boldsymbol{\varphi}(s) - \gamma \boldsymbol{\varphi}(s'))^\top]$
-and $\mathbf{b} = \mathbb{E}_{s \sim \xi}[\boldsymbol{\varphi}(s) r]$ from
+accumulates $\mathbf{A} = \mathbb{E}_{s \sim \xi}[\boldsymbol{\phi}(s)(\boldsymbol{\phi}(s) - \gamma \boldsymbol{\phi}(s'))^\top]$
+and $\mathbf{b} = \mathbb{E}_{s \sim \xi}[\boldsymbol{\phi}(s) r]$ from
 sampled transitions $(s, r, s')$, which is possible because the system is
 linear in the unknown. On a 3-state chain under a fixed policy, with
 $\mathbf{P}_\pi = \begin{pmatrix} 0.7 & 0.2 & 0.1 \\ 0.3 & 0.4 & 0.3 \\ 0.1 & 0.3 & 0.6 \end{pmatrix}$,
-$\mathbf{r}_\pi = (1, 2, 0)$, features $\varphi(s) = (1, s)$ and uniform weights:
+$\mathbf{r}_\pi = (1, 2, 0)$, features $\phi(s) = (1, s)$ and uniform weights:
 
 ```{code-cell} python
 :tags: [hide-input]
