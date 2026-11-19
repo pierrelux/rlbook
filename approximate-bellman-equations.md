@@ -773,17 +773,19 @@ the help of the targets, and freezing the tree structure after some
 iterations restores the guarantee. Linear least squares, high-order
 polynomial interpolation, and neural networks are not averagers.
 
-| **Method** | **Averager?** | **Notes** |
-|:-----------|:--------------|:----------|
-| Piecewise linear interpolation | Yes | Barycentric weights are nonnegative and sum to one |
-| Multilinear interpolation (grid) | Yes | Weights are products of one-dimensional hat functions |
-| Shape-preserving splines (Schumaker) | Yes | Designed to maintain monotonicity |
-| State aggregation, $k$-nearest neighbors | Yes | Equal weights within a group or neighborhood |
-| Kernel smoothing (nonnegative kernels) | Yes | If the weights are normalized to sum to one |
-| Regression trees and forests, fixed partition | Yes | Leaf averages; guarantee lost if splits depend on the targets |
-| High-order polynomial interpolation | No | Negative weights (Runge phenomenon) |
-| Least squares on an arbitrary basis | No | The counterexample above |
-| Neural networks | No | No sign or normalization constraint on the fit |
+| **Method** | **Averager?** | **Notes** | **Used for value functions in** |
+|:-----------|:--------------|:----------|:------------|
+| Piecewise linear interpolation | Yes | Barycentric weights are nonnegative and sum to one | {cite:t}`MunosMoore2002` |
+| Multilinear interpolation (grid) | Yes | Weights are products of one-dimensional hat functions | {cite:t}`Johnson1993` |
+| Variation-diminishing splines (Schoenberg) | Yes | B-spline weights are nonnegative and sum to one | {cite:t}`Stachurski2008` |
+| Shape-preserving splines (Schumaker, rational Hermite) | Not linear | Preserve monotonicity and concavity of the data, not covered by the averager theorem | {cite:t}`CaiJudd2012` |
+| State aggregation | Yes | Equal weights within a group | {cite:t}`TsitsiklisVanRoy1996`, {cite:t}`SinghJaakkolaJordan1995` |
+| $k$-nearest neighbors | Yes | Equal weights within a neighborhood | {cite:t}`ShahXie2018` |
+| Kernel smoothing (nonnegative kernels) | Yes | If the weights are normalized to sum to one | {cite:t}`Ormoneit2002`, {cite:t}`Rust1997` |
+| Regression trees and forests, fixed partition | Yes | Leaf averages; guarantee lost if splits depend on the targets | {cite:t}`ernst2005tree` |
+| High-order polynomial interpolation | No | Negative weights (Runge phenomenon) | {cite:t}`Bellman1963` |
+| Least squares on an arbitrary basis | No | The counterexample above | {cite:t}`SchweitzerSeidmann1985`, {cite:t}`LagoudakisParr2003` |
+| Neural networks | No | No sign or normalization constraint on the fit | {cite:t}`Tesauro1995`, {cite:t}`riedmiller2005neural` |
 
 The table puts the fits of the two chapters in their place. Collocation
 with piecewise-linear interpolation is an averager, and the folk wisdom that
