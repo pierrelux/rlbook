@@ -1,0 +1,1019 @@
+---
+jupytext:
+  text_representation:
+    extension: .md
+    format_name: myst
+    format_version: 0.13
+    jupytext_version: 1.16.3
+kernelspec:
+  display_name: Python 3
+  language: python
+  name: python3
+---
+
+# Bellman Updates from Samples
+
+The two previous chapters assumed that the Bellman operator could be
+evaluated exactly at any state. Every target $(\Bellman v_k)(s_i)$ contains
+an expectation over the successor state,
+
+$$
+(\Bellman v)(s) = \max_{a \in \mathcal{A}_s} \left\{r(s,a) + \gamma \int v(s')\,p(ds'|s,a)\right\},
+$$
+
+and the fishery computed it with a 21-node quadrature rule, while the
+eight-dimensional stopping problem already replaced it by an average over 32
+random draws. This chapter asks what that replacement costs, and what it
+makes possible. When the transition density is unavailable, because the model
+is a simulator or a log of recorded transitions, sampling is the only way to
+evaluate the operator, and the sample average is the estimator. Its error is
+random rather than systematic, its rate does not depend on the dimension of
+the state, and it adds to the per-iteration error that the
+[previous chapter](approximate-bellman-equations.md) bounded. Replacing
+exact expectations by samples is what turns the approximate dynamic
+programming of the previous chapters into what the operations research
+community calls simulation-based dynamic programming and the machine learning
+community calls reinforcement learning.
+
+Two consequences of sampling organize the chapter. Acting on a value function
+$v$ requires the expectation for every action at every decision, so with
+samples it requires simulation at decision time; storing the value of each
+action instead, the **action-value function** $q(s,a)$, moves that work into
+training. And the maximum over noisy estimates is biased upward, even though
+each estimate is unbiased, so the targets of every sampled Bellman update
+overestimate, and the chapter ends with the ways to correct it.
+
+::::{admonition} Learning Goals
+:class: note
+
+After completing this chapter, you should be able to:
+- Locate the two expectations in a fitted Bellman update, inside the operator and over the states, and bound the effect of estimating either one on the fixed point
+- Replace an expectation by a sample average, state the bias and variance of the result, and explain why its rate is independent of the dimension
+- Define the action-value function and its Bellman operator, and explain what it saves at decision time
+- Derive TD(0) as a stochastic solver of the Galerkin system of the previous chapter, and explain why it is stable on-policy and can diverge off-policy
+- Derive the upward bias of a maximum over noisy estimates, and explain how decoupling selection from evaluation removes part of it
+
+**Prerequisites:** fitted value iteration and its error bound ([previous chapter](approximate-bellman-equations.md)), basic probability (expectation, variance, the central limit theorem, Jensen's inequality).
+::::
+
+(sec-mc-two-expectations)=
+## Two Expectations in Every Fitted Update
+
+Integrals appear in two places in a fitted Bellman update. The first is inside the operator: the transition
+expectation $\int v(s')\,p(ds'|s,a)$ that every target contains. The second
+is over the states: Galerkin and least-squares conditions integrate the
+residual against test functions, and a regression averages the fitting error
+over the states where targets were computed. Collocation has only the first
+integral, which is one reason it was the simplest case.
+
+Write $\BellmanQuad$ for the Bellman operator with the transition
+expectation replaced by a numerical rule, deterministic or random, and let
+fitted value iteration run with it, $v_{k+1} = \Proj\,\BellmanQuad v_k$. The
+error after one iteration splits into three pieces by the triangle
+inequality. With $v^\star = \Bellman v^\star$,
+
+$$
+\begin{aligned}
+\|v^\star - v_{k+1}\| &= \|v^\star - \Proj \BellmanQuad v_k\| \\
+&\le \underbrace{\|v^\star - \Proj \Bellman v^\star\|}_{\text{best approximation}} + \underbrace{\|\Proj \Bellman v^\star - \Proj \Bellman v_k\|}_{\text{contraction of the current error}} + \underbrace{\|\Proj \Bellman v_k - \Proj \BellmanQuad v_k\|}_{\text{integration error}} .
+\end{aligned}
+$$
+
+The first term is the best the basis can do, the second shrinks with the
+iterations when $\Proj\Bellman$ is a contraction, and the third is the error
+of the integration rule, which does not shrink as the iterations proceed. In
+the language of {prf:ref}`thm-approximate-vi`, the integration error is one
+more contribution to the per-iteration error $\varepsilon$, and it is
+amplified by the same $1/(1-\gamma)$. This is why the accuracy of the
+integration rule should match the accuracy of the basis. A degree-10
+Chebyshev basis represents a smooth value function to about $10^{-8}$, but
+with a rectangle rule for the expectation the integration error, of order
+$h^2$, dominates the sum, and the basis is wasted.
+
+For low-dimensional problems with a smooth, explicit transition density,
+deterministic quadrature is the right tool, and the rule is chosen to match
+the basis: Gauss–Chebyshev nodes with Chebyshev polynomials, Gauss–Legendre
+with Legendre, Gauss–Hermite with Hermite polynomials and Gaussian shocks,
+midpoint or trapezoidal rules with piecewise-constant or piecewise-linear
+elements. With orthogonal collocation the nodes of the basis double as the
+nodes of the quadrature, and the expectations of the basis functions at the
+successors of each node can be precomputed once into a matrix, so that each
+iteration costs a matrix product and a maximization. The fishery used
+Gauss–Hermite quadrature over its log-normal shock in this way. The same
+pairing principle governed continuous-time trajectory optimization, where the
+cost integral and the dynamics were discretized on the same nodes.
+
+Deterministic quadrature needs three things: a state of low dimension, a
+density that can be evaluated at the nodes, and a cheap model. The problems
+this part of the book is heading for have none of them. The state of the
+eight-dimensional stopping problem needs $N^8$ quadrature nodes for a product
+rule with $N$ nodes per axis. A simulator provides draws of $s'$ and no
+density. And a logged transition provides exactly one draw, which cannot be
+chosen. Monte Carlo integration handles all three.
+
+## Monte Carlo Integration
+
+Monte Carlo integration approximates an expectation by the average of
+independent draws. For $J = \mathbb{E}[f(X)]$ with $X \sim p$, draw
+$X^{(1)}, \ldots, X^{(N)} \sim p$ and form
+
+$$
+\hat{J}_N = \frac{1}{N}\sum_{n=1}^N f\big(X^{(n)}\big).
+$$
+
+Two properties of this estimator carry the whole chapter. It is unbiased,
+$\mathbb{E}[\hat{J}_N] = J$, by linearity of expectation. And its variance is
+$\sigma^2/N$ with $\sigma^2 = \mathrm{Var}[f(X)]$, by independence of the
+draws, so by the central limit theorem
+
+$$
+\sqrt{N}\,(\hat{J}_N - J) \Longrightarrow \mathcal{N}(0,\sigma^2),
+$$
+
+and the error decays as $N^{-1/2}$. The rate is slow next to high-order
+quadrature in one dimension, and it is the same in every dimension: Monte
+Carlo pays in variance, never in an exponential number of nodes. It is also a
+quadrature rule, with random nodes and equal weights $1/N$. Importance
+sampling changes the distribution of the nodes and compensates with unequal
+weights, and the view of Monte Carlo as randomized quadrature covers it too.
+
+The cell below checks both properties on a Gaussian with mean $2$ and
+standard deviation $3$, with 4,000 repetitions for each sample size. Before
+looking at the figure, predict what multiplying $N$ by four does to the root
+mean squared error.
+
+```{code-cell} python
+:tags: [hide-input]
+:label: fig-mc-rate
+:caption: The sample mean of $N$ draws from a Gaussian with mean 2 and standard deviation 3, over 4,000 repetitions for each $N$. (a) The average estimate stays at the true mean whatever $N$: the estimator is unbiased. (b) Its root mean squared error (dots) follows $\sigma/\sqrt{N}$ (line), a slope of $-1/2$ in log-log axes, so four times as many draws halve the error.
+
+import sys
+from pathlib import Path
+
+import matplotlib.pyplot as plt
+import numpy as np
+
+code_directory = Path.cwd() / "code"
+if str(code_directory) not in sys.path:
+    sys.path.insert(0, str(code_directory))
+from book_figure_theme import INK, MUTED, PALETTE, figure_style, show
+
+rng = np.random.default_rng(2026)
+true_mean, sigma, trials = 2.0, 3.0, 4000
+sample_sizes = 2 ** np.arange(0, 11)
+means, rmse = [], []
+for n in sample_sizes:
+    estimates = rng.normal(true_mean, sigma, size=(trials, n)).mean(axis=1)
+    means.append(estimates.mean())
+    rmse.append(np.sqrt(np.mean((estimates - true_mean) ** 2)))
+
+with figure_style():
+    fig, (ax, bx) = plt.subplots(1, 2, figsize=(7.0, 2.4))
+    ax.axhline(true_mean, color=MUTED, lw=.8, ls="--")
+    ax.plot(sample_sizes, means, "o-", color=PALETTE["blue"], ms=3.5, lw=1)
+    ax.text(1.2, true_mean + .045, "true mean", color=MUTED, fontsize=8.5)
+    ax.set_xscale("log", base=2)
+    ax.set_xticks([1, 4, 16, 64, 256, 1024], ["1", "4", "16", "64", "256", "1024"])
+    ax.set_ylim(true_mean - .15, true_mean + .15)
+    ax.set_xlabel("draws $N$")
+    ax.set_ylabel("average estimate")
+    ax.set_title("(a) No bias at any $N$")
+
+    bx.plot(sample_sizes, sigma / np.sqrt(sample_sizes), color=INK, lw=1)
+    bx.plot(sample_sizes, rmse, "o", color=PALETTE["blue"], ms=3.5)
+    bx.text(40, 1.0, r"$\sigma/\sqrt{N}$", color=INK, fontsize=9)
+    bx.set_xscale("log", base=2)
+    bx.set_yscale("log")
+    bx.set_xticks([1, 4, 16, 64, 256, 1024], ["1", "4", "16", "64", "256", "1024"])
+    bx.set_xlabel("draws $N$")
+    bx.set_ylabel("root mean squared error")
+    bx.set_title(r"(b) Error falls as $N^{-1/2}$")
+    fig.tight_layout(w_pad=2)
+show(fig)
+```
+
+### The Sampled Bellman Operator
+
+For a fixed value function $v$ and a state-action pair $(s,a)$, the
+transition part of the Bellman operator is the expectation
+$\mathbb{E}[v(S') \mid S = s, A = a]$. If next states
+$S'^{(1)}, \ldots, S'^{(N)}$ can be drawn from $p(\cdot \mid s,a)$, by calling
+a simulator or by acting in the real system, the sample average estimates it.
+When the reward is random as well, the draws are pairs
+$(r^{(n)}, S'^{(n)})$, and the one-step return is estimated by
+
+$$
+\widehat{G}_N(s,a) = \frac{1}{N}\sum_{n=1}^N \Big[r^{(n)} + \gamma\, v\big(S'^{(n)}\big)\Big],
+$$
+
+which is unbiased for $\mathbb{E}[r + \gamma v(S') \mid s, a]$ as long as
+$v$ is fixed. Substituting it into the operator gives the **Monte Carlo
+Bellman operator**
+
+$$
+(\widehat{\Bellman}_N v)(s) = \max_{a \in \mathcal{A}_s} \widehat{G}_N(s,a).
+$$
+
+Nothing about approximation or projection has entered yet. For a fixed $v$,
+Monte Carlo provides unbiased, noisy evaluations of $(\Bellman v)(s)$ at any
+state, from draws alone. The maximum over the noisy estimates, however, is
+not unbiased, and the last section of the chapter is about that.
+
+### Sampling the States
+
+The second expectation, over the states, is estimated the same way. Galerkin
+and least-squares conditions have the form
+$\int R(s;\theta)\, p_i(s)\, \xi(ds) = 0$ for a distribution $\xi$ over
+states, and the weighted norm of the residual is $\int R(s;\theta)^2\,\xi(ds)$.
+The weight $w$ of the previous chapters could be any positive function; for
+sampling it must be a probability distribution that can be drawn from, which
+is $\xi$ after normalization, or any other distribution with importance
+weights $w/\xi$. If states $S^{(1)}, \ldots, S^{(M)}$ are drawn from $\xi$,
+each condition becomes a sample average,
+
+$$
+\int R(s;\theta)\, p_i(s)\, \xi(ds) \approx \frac{1}{M}\sum_{m=1}^M R\big(S^{(m)};\theta\big)\, p_i\big(S^{(m)}\big),
+$$
+
+and the least-squares objective becomes the empirical risk
+$\frac{1}{M}\sum_m R(S^{(m)};\theta)^2$. This is the regression of the
+previous chapter: targets at sampled states, and a fit that minimizes the
+average error over them. In reinforcement learning $\xi$ is rarely chosen; it
+is the distribution of the states that the data happen to contain, which the
+previous chapter showed to matter for convergence and the
+[next chapter](fitted-q-iteration.md) shows to matter for coverage.
+
+With both expectations sampled, the fitted update is
+
+$$
+v_{k+1} = \Proj_M\, \widehat{\Bellman}_N\, v_k,
+$$
+
+a fit at $M$ sampled states of targets that each average $N$ sampled
+successors. It needs no transition density and no state distribution in
+closed form, only the ability to draw from them. In the typical
+reinforcement-learning setting $N = 1$: each recorded transition
+$(s_i, a_i, r_i, s'_i)$ supplies one successor, and the target
+$r_i + \gamma v(s'_i)$ has the full variance of a single draw. The variance
+is then reduced by the fit, which pools information across neighboring
+states, and by the number of transitions rather than by averaging at a fixed
+$(s,a)$. The section after next returns to this choice.
+
+(sec-mc-q-functions)=
+## Action Values
+
+The greedy policy of a value function $v$ is
+
+$$
+\pi(s) = \arg\max_{a \in \mathcal{A}_s} \Big\{ r(s,a) + \gamma \int v(s')\,p(ds'|s,a) \Big\},
+$$
+
+one transition expectation per action at every decision. With a model and a
+quadrature rule this is a computation; with a simulator it is a Monte Carlo
+estimate per action, repeated each time the state is visited; with a log it
+is impossible, because no new successors can be drawn at decision time. The
+expectation can instead be computed once, during training, and stored. The
+**action-value function** of $v$,
+
+$$
+q(s,a) = r(s,a) + \gamma \int v(s')\,p(ds'|s,a),
+$$
+
+caches the backup of every action, and the greedy policy becomes
+$\pi(s) = \arg\max_{a} q(s,a)$, a maximization over stored values with no
+integral and no model. The optimal action-value function $q^\star$ satisfies
+its own Bellman equation, obtained by substituting $v^\star(s') = \max_{a'}
+q^\star(s',a')$:
+
+$$
+q^\star(s,a) = r(s,a) + \gamma \int p(ds'|s,a)\, \max_{a' \in \mathcal{A}_{s'}} q^\star(s',a').
+$$
+
+The right-hand side defines the Bellman operator on action-value functions,
+$(\Bellman q)(s,a) = r(s,a) + \gamma\,\mathbb{E}[\max_{a'} q(s',a') \mid s,a]$,
+and it is a $\gamma$-contraction in the sup norm by the same argument as for
+$v$: the maximum over $a'$ does not increase sup-norm distances, and the
+expectation does not either. Everything in the previous chapter transfers.
+Fitted value iteration on $q$ is **fitted Q-iteration**, its error bounds
+hold with $(s,a)$ in place of $s$, averagers remain safe, and the function
+class now takes the action as an input or has one output per action. What
+changes is the cost accounting: the expectations are evaluated during the
+iterations, at the state-action pairs where targets are computed, and acting
+afterwards is cheap.
+
+```{prf:algorithm} Fitted Q-Iteration with a Model
+:label: simadp-parametric-q-value-iteration
+
+**Input** Given an MDP $(S, A, P, R, \gamma)$, base points $\mathcal{B} \subset S$, function approximator class $q(s,a; \boldsymbol{\theta})$, maximum iterations $N$, tolerance $\varepsilon > 0$, initial parameters $\boldsymbol{\theta}_0$
+
+**Output** Parameters $\boldsymbol{\theta}$ for Q-function approximation
+
+1. Initialize $\boldsymbol{\theta}_0$ (e.g., random initialization)
+2. $n \leftarrow 0$
+3. **repeat**
+    1. $\mathcal{D} \leftarrow \emptyset$
+    2. For each $(s,a) \in \mathcal{B} \times A$:
+        1. $y_{s,a} \leftarrow r(s,a) + \gamma \int p(ds'|s,a)\max_{a' \in A} q(s',a'; \boldsymbol{\theta}_n)$
+        2. $\mathcal{D} \leftarrow \mathcal{D} \cup \{((s,a), y_{s,a})\}$
+    3. $\boldsymbol{\theta}_{n+1} \leftarrow \texttt{fit}(\mathcal{D}, \boldsymbol{\theta}_{\text{init}}=\boldsymbol{\theta}_0, K=\infty)$
+    4. $\delta \leftarrow \frac{1}{|\mathcal{D}||A|}\sum_{(s,a) \in \mathcal{D} \times A} (q(s,a; \boldsymbol{\theta}_{n+1}) - q(s,a; \boldsymbol{\theta}_n))^2$
+    5. $n \leftarrow n + 1$
+4. **until** ($\delta < \varepsilon$ or $n \geq N$)
+5. **return** $\boldsymbol{\theta}_n$
+```
+
+The expectation in the target can be computed by quadrature when the model
+allows it, or estimated by $N$ draws of the successor from $p(\cdot|s,a)$,
+averaging $\max_{a'} q(s'_i, a')$ over them. The fitting step is the one of
+the previous chapter, with its initialization $\boldsymbol\theta_{\text{init}}$
+and its optimization budget $K$ written out because the
+[next chapter](fitted-q-iteration.md) varies both.
+
+### The Single-Sample Paradigm
+
+Most reinforcement learning algorithms do not draw $N$ successors per
+state-action pair. They work with a data set of **transition tuples**
+$\mathcal{D} = \{(s_i, a_i, r_i, s'_i)\}_{i=1}^M$, each recording the one
+successor that was observed when $a_i$ was executed in $s_i$, and the target
+of a tuple is $y_i = r_i + \gamma \max_{a'} q(s'_i, a')$, with $N = 1$.
+
+This design has two origins. In some settings it is a constraint. A robot
+that executes an action observes one outcome and cannot rewind to the same
+state to sample another; the same holds for a clinical trial, a
+manufacturing process, or any interaction that costs something. Many settings
+in which reinforcement learning is applied have no such constraint. Game
+emulators save and restore states, physics simulators reset to any
+configuration, and software environments are cloned for free. The second
+origin is historical. Reinforcement learning grew out of models of animal
+learning, in which an organism experiences one consequence per action and
+learns from a stream of experience, and temporal-difference learning,
+Q-learning and the actor-critic methods were designed for that stream.
+
+The convention persisted where the constraint did not, and it shaped the
+algorithms. They store and manipulate tuples rather than state-action pairs
+with several successors. They reduce variance through the function
+approximator, which pools targets from nearby states, and through the number
+of transitions, rather than by averaging at a fixed $(s,a)$. And they treat
+the two expectations asymmetrically: the outer one, over states, is sampled
+with whatever budget is convenient, a whole data set, a replay buffer of a
+million transitions, or one transition per step, while the inner one is
+sampled once. In a domain with a cheap, resettable simulator and
+high-variance targets, averaging several successors per $(s,a)$ is a direct
+variance reduction that current practice rarely uses.
+
+(sec-mc-td)=
+## Temporal-Difference Learning
+
+The sampled fitted update of the previous section draws a batch of
+transitions, computes targets, and fits. Temporal-difference learning takes
+the opposite extreme, one transition at a time, with a gradient step in place
+of the fit. For policy evaluation with linear features
+$v(s;\theta) = \boldsymbol\phi(s)^\top\theta$, its target is the
+Galerkin system {eq}`eq:abe-td-system` of the
+[previous chapter](approximate-bellman-equations.md#sec-abe-galerkin-system),
+$\mathbf{A}\theta = \mathbf{b}$ with
+$\mathbf{A} = \boldsymbol\Phi^\top\boldsymbol\Xi(\mathbf{I} - \gamma\mathbf{P}_\pi)\boldsymbol\Phi$
+and $\mathbf{b} = \boldsymbol\Phi^\top\boldsymbol\Xi\,\mathbf{r}_\pi$, whose
+solution is the fixed point of the projected Bellman equation
+$v = \Proj\BellmanPi v$. Both $\mathbf{A}$ and $\mathbf{b}$ are expectations
+over a state drawn from $\xi$ and a successor drawn from $\mathbf{P}_\pi$, the
+two expectations of {ref}`sec-mc-two-expectations`, so each transition gives an
+unbiased estimate of them.
+
+TD(0) draws a state $s$ from $\xi$, a successor $s'$ from $\mathbf{P}_\pi$ and
+the reward $r$, and moves the parameters along the temporal difference,
+
+$$
+\theta \leftarrow \theta + \alpha\, \boldsymbol\phi(s)\big(r + \gamma\boldsymbol\phi(s')^\top\theta - \boldsymbol\phi(s)^\top\theta\big).
+$$
+
+The expected increment is $\alpha(\mathbf{b} - \mathbf{A}\theta)$, the
+residual of {eq}`eq:abe-td-system`. The theory of stochastic approximation
+{cite}`kushner2003stochastic` says that, with step sizes that decrease
+suitably, the iterates follow the ordinary differential equation
+$\dot\theta = \mathbf{b} - \mathbf{A}\theta$, which converges to the solution
+of {eq}`eq:abe-td-system` from every start exactly when every eigenvalue of
+$\mathbf{A}$ has a positive real part. Fitted policy evaluation in the same
+coordinates is
+$\theta_{k+1} = \theta_k + (\boldsymbol\Phi^\top\boldsymbol\Xi\boldsymbol\Phi)^{-1}(\mathbf{b} - \mathbf{A}\theta_k)$,
+one step of the same expected update with the step size replaced by the
+inverse of the mass matrix. The two algorithms share their fixed point and
+their matrix, and differ in how they step toward it. LSTD
+({ref}`sec-abe-lstd`) does not step at all: it estimates $\mathbf{A}$ and
+$\mathbf{b}$ from the transitions and solves the system.
+
+{prf:ref}`prop-td-positive-definite` of the previous chapter showed that
+on-policy, with $\xi$ the stationary distribution of $\mathbf{P}_\pi$,
+$\mathbf{A}$ is positive definite. Its eigenvalues then have positive real
+parts, and TD(0) converges to the solution of the projected Bellman equation
+{cite}`TsitsiklisVanRoy1997`. The same inequality makes fitted evaluation a
+contraction and the LSTD system uniquely solvable: on-policy, the three
+solvers are stable for the same reason.
+
+The analysis extends to TD($\lambda$), which bootstraps from a geometric
+mixture of multi-step returns. Its fixed point solves
+$v = \Proj\BellmanPi^{(\lambda)}v$ with the multi-step operator
+$\BellmanPi^{(\lambda)} = (1-\lambda)\sum_{k \geq 0}\lambda^k\BellmanPi^{k+1}$,
+which is a contraction in $\|\cdot\|_\xi$ with modulus
+$\alpha_\lambda = \gamma(1-\lambda)/(1-\gamma\lambda)$, and the fixed point
+satisfies
+$\|v_\lambda - v_\pi\|_\xi \leq (1 - \alpha_\lambda^2)^{-1/2}\|\Proj v_\pi - v_\pi\|_\xi$
+{cite}`BertsekasTsitsiklis1996,Bertsekas2011`. At $\lambda = 1$ the
+modulus is zero, the targets are Monte Carlo returns, and the fixed point is
+the best approximation $\Proj v_\pi$; at $\lambda = 0$ the constant is the
+$(1-\gamma^2)^{-1/2}$ of the previous chapter. Bertsekas and Yu developed this projected-equation view into a
+general method for large linear systems, with error bounds that are sharper
+than the contraction argument because they use the data to estimate how
+$\Proj$ and $\mathbf{P}_\pi$ interact {cite}`BertsekasYu2009,YuBertsekas2010,Bertsekas2011`.
+
+The two conditions, $\mathbf{A}$ with eigenvalues in the right half plane for
+TD and a spectral radius of $\gamma\Proj\mathbf{P}_\pi$ below one for fitted
+evaluation, are different conditions on the same matrices. In the two-state
+counterexample of the previous chapter they coincide. There is one feature, so $\mathbf{A}$ is the
+scalar $\xi_1(1 - 2\gamma) + 4\xi_2(1-\gamma)$, and the fitted iteration
+multiplies $\theta$ by $1 - \mathbf{A}/(\xi_1 + 4\xi_2)$, which is the factor
+$6\gamma/5$ of the previous chapter when $\xi_1 = \xi_2 = 1/2$. Both fail when
+$\mathbf{A} < 0$. With uniform weights that happens for $\gamma > 5/6$, and
+with the stationary weighting $\xi = (0, 1)$ it never happens. The code below
+runs sampled TD(0) on the example with $\gamma = 0.9$ and three weightings.
+
+```{code-cell} python
+:tags: [hide-input]
+
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path.cwd() / "code"))
+import projection_stability as ps
+
+print(f"{'weight of state 1':>18} {'fitted factor':>14} {'A':>8} {'TD theta after 400 steps':>26}")
+for xi1 in (0.5, 0.2, 0.0):
+    factor, A = ps.two_state(xi1, gamma=0.9)
+    print(f"{xi1:>18.1f} {factor:>14.3f} {A:>8.3f} {ps.two_state_td(xi1, gamma=0.9):>26.3g}")
+```
+
+TD started at $\theta = 1$. Under uniform weighting it has grown by a factor
+of about sixteen after 400 updates, and with the weight of state 1 reduced to
+$0.2$ or to the stationary value $0$ it has shrunk toward the solution
+$\theta = 0$. The sign of $\mathbf{A}$ predicts both outcomes.
+
+(sec-mc-off-policy)=
+### Off-Policy Evaluation and Its Repairs
+
+When the states are weighted by a distribution $\xi$ that is not stationary
+for $\mathbf{P}_\pi$, which is the situation of learning about one policy from
+the data of another, the Jensen step of the on-policy argument fails, and with
+it {prf:ref}`prop-td-positive-definite`. The previous chapter noted that the
+fixed point itself can then be far from $v_\pi$ {cite}`Kolter2011`. The
+solver can fail as well: TD(0) can diverge even when the projected equation
+is perfectly well posed.
+
+The classical example is Baird's star {cite}`Baird1995`, in the form given by
+{cite:t}`SuttonBarto2018`. There are seven states and eight weights: state $i
+\leq 6$ has value $2\theta_i + \theta_8$, and state 7 has value
+$\theta_7 + 2\theta_8$. The target policy moves every state to state 7, the
+behavior policy moves to a uniformly chosen state, all rewards are zero, and
+$\gamma = 0.99$. The features span all of $\mathbb{R}^7$, so $\Proj$ is the
+identity, $\Proj\BellmanPi = \BellmanPi$ is a contraction, and fitted policy
+evaluation converges in any norm. The difficulty lies entirely in the solver.
+The cell below iterates the expected updates of three methods from Sutton and
+Barto's starting point, with the states weighted uniformly as the behavior
+policy visits them, and reports the largest $|v(s;\theta)|$ along the way; the
+true value is zero.
+
+```{code-cell} python
+:tags: [hide-input]
+
+out = ps.baird_table()
+print(f"rank of the features: {out['rank of Phi']}")
+print(f"xi-norm of gamma P_pi under uniform weights: {out['xi-norm of gamma P_pi']:.2f}")
+print(f"smallest real part of an eigenvalue, TD matrix:       {out['td']['min Re eig']:.3f}")
+print(f"smallest real part of an eigenvalue, emphatic matrix: {abs(out['emphatic']['min Re eig']):.3f}")
+print(f"{'method':<10} {'max |v| at 0':>14} {'at 500':>12} {'at 2000':>12}")
+for m in ("td", "tdc", "emphatic"):
+    v0, v500, v2000 = out[m]["max |v| at 0, 500, 2000"]
+    print(f"{m:<10} {v0:>14.3g} {v500:>12.3g} {v2000:>12.3g}")
+```
+
+Under the uniform weighting, $\gamma\mathbf{P}_\pi$ has $\xi$-norm about
+$2.6$, so it expands, and the TD matrix has an eigenvalue with negative real
+part. Expected TD(0) diverges, and its values reach the thousands after 2000
+updates although every quantity in the problem is bounded. This is the first
+leg of the deadly triad, with no maximum and no neural network: linear
+features, bootstrapping, and off-policy weighting suffice.
+
+Three families of repairs keep the projected equation and change the
+solver or the weighting.
+
+1. **Importance sampling** reweights each update by the ratio of the
+   target and behavior probabilities of the action taken
+   {cite}`Precup2001`. This makes the expected update use the target
+   policy's transitions, but not the target policy's state distribution, so
+   the matrix $\mathbf{A}$ above, which already uses $\mathbf{P}_\pi$, is
+   unchanged; ratios over whole trajectories correct the distribution too, at
+   the price of a variance that can grow exponentially with the horizon.
+2. **Gradient TD** methods minimize the mean squared projected Bellman error
+   $\|\Proj(\BellmanPi v_\theta - v_\theta)\|_\xi^2$, which is zero exactly
+   when the Galerkin conditions hold, by true stochastic gradient descent with
+   a second set of weights that estimates $\Proj(\BellmanPi v_\theta - v_\theta)$
+   {cite}`Sutton2009`. The objective has the TD fixed point as its minimizer
+   for any weighting, and gradient descent on it is stable. In the cell, TDC,
+   the variant called TD with gradient correction in that paper, brings the
+   values down from 12 to about 2 within 500 updates and then stalls there:
+   its stability is bought with slow progress, a common observation with
+   these methods.
+3. **Emphatic TD** reweights the update at each state by a follow-on trace,
+   which on average replaces $\xi$ in $\mathbf{A}$ by the emphasis
+   $f = (\mathbf{I} - \gamma\mathbf{P}_\pi^\top)^{-1}\xi$
+   {cite}`SuttonMahmoodWhite2016`. The resulting matrix
+   $\boldsymbol\Phi^\top\mathbf{F}(\mathbf{I} - \gamma\mathbf{P}_\pi)\boldsymbol\Phi$
+   with $\mathbf{F} = \text{diag}(f)$ is positive definite for any
+   behavior when the features are independent, by an argument close to that
+   of {prf:ref}`prop-td-positive-definite`, and the method converges
+   {cite}`Yu2015`. Baird's features are not independent, and the matrix is
+   only semidefinite, which the zero printed in the cell reflects. In the cell, its values go to zero. The fixed point is the
+   solution of a projected equation with the emphasis weighting, not with
+   $\xi$, so it is a different approximation of $v_\pi$.
+
+LSTD avoids the stability question altogether, because it solves
+$\mathbf{A}\theta = \mathbf{b}$ directly. Off-policy, it computes the same
+fixed point as TD, with the same possible loss of accuracy, whenever
+$\mathbf{A}$ is invertible {cite}`BertsekasYu2009`.
+
+
+(sec-mc-deadly-triad)=
+### The Deadly Triad, and What Is Known with the Maximum
+
+{cite:t}`SuttonBarto2018` call the combination of function approximation,
+bootstrapping (targets built from the current estimate) and off-policy data
+the **deadly triad**: any two are manageable, all three can diverge. Baird's
+star has all three, without a maximum. Q-learning adds the maximum, and with
+it a target policy that changes with the parameters. What is known for
+sampled updates with the maximum follows the two routes of the
+[previous chapter](approximate-bellman-equations.md#sec-abe-two-norms).
+
+On the sup-norm route, the averager argument survives sampling. Q-learning
+with soft state aggregation {cite}`SinghJaakkolaJordan1995` and Q-learning on
+action values interpolated from a finite set of states
+{cite}`SzepesvariSmart2004` converge, under the same sign condition on the
+weights as in the deterministic case.
+
+On the weighted route, the results are special cases or weaker conclusions.
+
+- **Q-learning with linear features** converges when the behavior policy is
+  close enough to the greedy policy of every parameter it visits, a condition
+  on feature covariances that {cite:t}`Melo2008` make precise. It holds
+  near on-policy learning and fails in general off-policy.
+- **SARSA(0)**, which evaluates the policy it follows and improves it at
+  every step, cannot diverge with linear features: its weights stay in a
+  bounded region, inside which they may chatter without converging
+  {cite}`Gordon2000`.
+- **Approximate policy iteration** with SARSA evaluation converges to a unique
+  solution when the improvement step produces soft policies that are
+  Lipschitz functions of the action values, with a small enough constant
+  {cite}`PerkinsPrecup2002`. A softmax with a high enough temperature
+  satisfies this condition and the greedy policy does not.
+- **Gradient methods for control**, such as Greedy-GQ, minimize the projected
+  Bellman error of the greedy policy by stochastic gradient and converge to a
+  stationary point of that objective, not necessarily to a solution of the
+  projected equation {cite}`Maei2010`.
+- **Optimistic exploration** with a Gibbs policy guarantees that a solution of
+  the projected equation for Q-learning exists and that the iterates stay
+  bounded; convergence remains open {cite}`Meyn2023`.
+
+Error bounds for fitted iterations on sampled data add a statistical error to
+the bounds of the [previous chapter](approximate-bellman-equations.md#sec-abe-error),
+as in the finite-sample analysis of fitted value iteration by
+{cite:t}`MunosSzepesvari2008`. They need the function class to be closed, or
+nearly closed, under the Bellman operator, a condition called Bellman
+completeness {cite}`ChenJiang2019`. The design choices that keep neural
+fitted Q-iteration stable in practice, target networks among them, are the
+subject of the [chapter on logged and online data](fitted-q-iteration.md).
+
+```{admonition} Exercises: Temporal-Difference Learning
+:class: hint dropdown
+
+1. **One feature, one condition.** In the two-state counterexample of the [previous chapter](approximate-bellman-equations.md#sec-abe-convergence), show that fitted evaluation converges exactly when expected TD(0) is stable. Then construct a two-feature example in which one is stable and the other is not. *Hint: the fitted iteration is a preconditioned TD step of size one.*
+
+2. **How far off-policy?** In Baird's star, compute the eigenvalues of $\mathbf{A}$ as a function of $\gamma$ and find the discount below which none has a negative real part. Then mix the uniform weighting with the stationary distribution of the target policy, $\xi_\beta = (1-\beta)\,\text{uniform} + \beta\,\mathbf{e}_7$, and find the smallest $\beta$ for which none has a negative real part at $\gamma = 0.99$.
+```
+
+(sec-mc-overestimation)=
+## Maximization Bias
+
+Each estimate $\widehat{G}_N(s,a)$ is unbiased, and the maximum over them is
+not. Fix a state $s$ and a value function $v$, and write the true continuation
+value and its estimate as
+
+$$
+\mu(s,a) = \int v(s')\,p(ds' \mid s,a), \qquad \hat{\mu}_N(s,a) = \frac{1}{N}\sum_{i=1}^N v(s'_i), \quad s'_i \sim p(\cdot|s,a),
+$$
+
+so that $(\widehat{\Bellman}_N v)(s) = \max_a \{r(s,a) + \gamma \hat{\mu}_N(s,a)\}$.
+Let $a^\star$ be the action that maximizes the true backup. The maximum of a
+collection is at least as large as any of its members, so
+
+$$
+\mathbb{E}\big[\max_a \{r(s,a) + \gamma \hat{\mu}_N(s,a)\}\big] \ge \mathbb{E}\big[r(s,a^\star) + \gamma \hat{\mu}_N(s,a^\star)\big] = r(s,a^\star) + \gamma \mu(s,a^\star) = (\Bellman v)(s).
+$$
+
+The inequality is strict whenever more than one action has a nonzero
+variance: the maximization picks whichever action received a positive noise,
+and that inflated estimate becomes the target. This is Jensen's inequality
+for the maximum, $\mathbb{E}[\max_a Y_a] \ge \max_a \mathbb{E}[Y_a]$, since
+the maximum is convex. The same inequality is the reason that deterministic
+policies are optimal in MDPs ({prf:ref}`stoch-policy-reduction`), where it
+says that randomizing over actions cannot beat the best one; here it says
+that maximizing over noisy estimates cannot be unbiased.
+
+The bias does not average out with more draws of the same estimate, and it
+compounds. Monte Carlo value iteration $v_{k+1} = \widehat{\Bellman}_N v_k$
+builds its targets at iteration $k+1$ from a $v_k$ that is already biased
+upward, so $\mathbb{E}[v_k] \ge \mathbb{E}[v_{k-1}] \ge \cdots \ge v^\star$,
+and the inflated values feed back into the next maximization. The cell below
+holds every true action value at zero, draws five noisy samples per action,
+and measures the bias of the maximum as the number of actions grows, next to
+the estimator of the next subsection.
+
+```{code-cell} python
+:tags: [hide-input]
+:label: fig-mc-max-bias
+:caption: Bias of two estimators of $\max_a \mu_a$ when every true action value $\mu_a$ is zero and each is estimated from five standard Gaussian draws, over 6,000 repetitions. The maximum of the estimates (vermilion) is biased upward, and more so with more actions. Selecting the action with one set of draws and evaluating it with an independent set (blue) removes the bias in this case, where all actions are equally good. Two standard errors of each estimate are smaller than the dots.
+
+rng = np.random.default_rng(2026)
+replications, samples_per_action = 6000, 5
+action_counts = [2, 4, 8, 16, 32]
+bias = {"maximum": [], "double": []}
+se = {"maximum": [], "double": []}
+for actions in action_counts:
+    selection = rng.normal(size=(replications, actions, samples_per_action)).mean(axis=2)
+    evaluation = rng.normal(size=(replications, actions, samples_per_action)).mean(axis=2)
+    chosen = selection.argmax(axis=1)
+    for name, values in (("maximum", selection.max(axis=1)),
+                         ("double", evaluation[np.arange(replications), chosen])):
+        bias[name].append(values.mean())
+        se[name].append(values.std(ddof=1) / np.sqrt(replications))
+
+with figure_style():
+    fig, ax = plt.subplots(figsize=(4.6, 2.7))
+    ax.axhline(0, color=MUTED, lw=.8)
+    for name, color in (("maximum", PALETTE["vermilion"]), ("double", PALETTE["blue"])):
+        ax.errorbar(action_counts, bias[name], yerr=2 * np.array(se[name]), fmt="o-", color=color,
+                    ms=3.5, lw=1, capsize=0, elinewidth=1)
+    ax.text(32, bias["maximum"][-1] - .06, "maximum of the\nestimates", color=PALETTE["vermilion"],
+            fontsize=8.5, ha="right", va="top")
+    ax.text(32, .06, "select with one estimate,\nevaluate with the other", color=PALETTE["blue"],
+            fontsize=8.5, ha="right", va="bottom")
+    ax.set_xscale("log", base=2)
+    ax.set_xticks(action_counts, [str(a) for a in action_counts])
+    ax.set_xlabel("number of actions")
+    ax.set_ylabel("bias")
+show(fig)
+```
+
+### Decoupling Selection from Evaluation
+
+The bias comes from using one noisy estimate for two jobs. Decompose the
+estimate into its mean and its noise, $\hat{\mu}_N(s,a) = \mu(s,a) + \varepsilon_a$
+with $\mathbb{E}[\varepsilon_a] = 0$. The standard target is
+
+$$
+Y = r(s,\hat a) + \gamma \mu(s,\hat a) + \gamma \varepsilon_{\hat a}, \qquad \hat a = \arg\max_a \{r(s,a) + \gamma \mu(s,a) + \gamma \varepsilon_a\},
+$$
+
+and the same $\varepsilon_{\hat a}$ that made $\hat a$ win is added to its
+value. Double Q-learning {cite}`van2016deep` breaks this coupling with two
+independent estimates of every action, $\hat{\mu}^{(1)}_N(s,a) = \mu(s,a) +
+\varepsilon^{(1)}_a$ and $\hat{\mu}^{(2)}_N(s,a) = \mu(s,a) + \varepsilon^{(2)}_a$,
+with $\varepsilon^{(1)}$ and $\varepsilon^{(2)}$ independent. The first
+selects and the second evaluates:
+
+$$
+\hat a = \arg\max_{a} \big\{r(s,a) + \gamma \hat{\mu}^{(1)}_N(s,a)\big\}, \qquad Y = r(s,\hat a) + \gamma \hat{\mu}^{(2)}_N(s,\hat a).
+$$
+
+The selected action $\hat a$ is random, a function of $\varepsilon^{(1)}$
+alone. Conditioning on it,
+
+$$
+\mathbb{E}[Y] = \mathbb{E}_{\varepsilon^{(1)}}\Big[\mathbb{E}_{\varepsilon^{(2)}}\big[r(s,\hat a) + \gamma \mu(s,\hat a) + \gamma \varepsilon^{(2)}_{\hat a} \mid \hat a\big]\Big] = \mathbb{E}_{\varepsilon^{(1)}}\big[r(s,\hat a) + \gamma \mu(s,\hat a)\big],
+$$
+
+because $\varepsilon^{(2)}$ is independent of $\hat a$, so that
+$\mathbb{E}[\varepsilon^{(2)}_{\hat a} \mid \hat a] = \mathbb{E}[\varepsilon^{(2)}_{\hat a}] = 0$.
+The evaluation noise contributes nothing on average. What remains is the
+**selection bias**: $\hat a$ is more often an action whose $\varepsilon^{(1)}$
+was positive than one whose true value is highest, so
+$\mathbb{E}[\mu(s,\hat a)] \le \max_a \mu(s,a)$, and the double estimator is
+biased downward. In {numref}`fig-mc-max-bias` the maximum estimator grows
+more optimistic as the number of actions grows, while the double estimator
+has no bias: every action has the same true value there, so selecting the
+wrong one costs nothing and the selection bias is zero. When the true values
+differ, the double estimator is biased downward instead, by much less than
+the maximum is biased upward. Removing the **evaluation bias**, the reuse of
+the winning noise, removes most of the overestimation.
+
+```{prf:remark} Two Q-functions instead of two sets of draws
+:class: dropdown
+
+The argument assumes two independent sets of draws from $p(\cdot|s,a)$ for every state-action pair, which a log never provides and a simulator provides only by resetting. The practical implementation keeps two Q-functions instead, trained on different data or updated at different times, for instance an online network and a slowly updated copy of it. Their errors are then less correlated than the errors of a single network used twice, which gives part of the independence that the argument needs. This is Double DQN, in the [next chapter](fitted-q-iteration.md) ({ref}`sec-fqi-double-dqn`).
+```
+
+The algorithm below writes the principle out with Monte Carlo targets. Two
+Q-functions alternate roles: at line 9 the first selects the action and at
+line 12 the second evaluates it, and lines 10 and 13 do the same with the
+roles exchanged. The mechanism is the same whether the Q-functions are tables
+or fitted functions, and with single-sample data ($N = 1$) the two
+Q-functions are trained on different subsets or at different frequencies to
+approximate the independence.
+
+```{prf:algorithm} Double Q Value Iteration with Monte Carlo
+:label: double-q-value-iteration
+
+**Input:** MDP, state sample $\mathcal{S}$, Monte Carlo sample size $N$, maximum iterations $K$
+
+**Output:** Two Q-functions $q^{(1)}$, $q^{(2)}$
+
+1. Initialize $q^{(1)}_0(s,a)$ and $q^{(2)}_0(s,a)$ for all $s,a$
+2. $k \leftarrow 0$
+3. **repeat**
+4. $\quad$ **for** each $s \in \mathcal{S}$ **do**
+5. $\quad\quad$ **for** each $a \in \mathcal{A}(s)$ **do**
+6. $\quad\quad\quad$ Draw $N$ next states: $s'_1, \ldots, s'_N \sim p(\cdot \mid s,a)$
+7. $\quad\quad\quad$ **// Compute targets using decoupled selection-evaluation**
+8. $\quad\quad\quad$ **for** $i = 1, \ldots, N$ **do**
+9. $\quad\quad\quad\quad$ $a^{(1)}_i \leftarrow \arg\max_{a'} q^{(1)}_k(s'_i, a')$
+10. $\quad\quad\quad\quad$ $a^{(2)}_i \leftarrow \arg\max_{a'} q^{(2)}_k(s'_i, a')$
+11. $\quad\quad\quad$ **end for**
+12. $\quad\quad\quad$ $q^{(1)}_{k+1}(s,a) \leftarrow r(s,a) + \frac{\gamma}{N}\sum_{i=1}^N q^{(2)}_k(s'_i, a^{(1)}_i)$
+13. $\quad\quad\quad$ $q^{(2)}_{k+1}(s,a) \leftarrow r(s,a) + \frac{\gamma}{N}\sum_{i=1}^N q^{(1)}_k(s'_i, a^{(2)}_i)$
+14. $\quad\quad$ **end for**
+15. $\quad$ **end for**
+16. $\quad$ $k \leftarrow k+1$
+17. **until** convergence or $k \geq K$
+18. **return** $q^{(1)}_k$, $q^{(2)}_k$
+```
+
+### Other Corrections
+
+Three other approaches keep a single estimate and correct the maximum
+itself. They differ in how much they assume about the noise.
+
+The correction can be learned. {cite:t}`Keane1994` treated the bias
+$\delta(s) = \mathbb{E}[(\widehat{\Bellman}_N v)(s)] - (\Bellman v)(s) \ge 0$
+as a quantity to estimate and subtract. It cannot be computed directly, but
+it depends on observable features of the state: the number of actions, the
+sample size, and the spread of the action values, since the bias is large
+when several actions are close and small when one dominates. At a small set
+of states, they ran both a high-fidelity evaluation of the backup, with many
+draws, and the $N$-draw estimate used by the iteration, and regressed the gap
+on those features; during value iteration the predicted bias is subtracted
+from the raw maximum. The template, simulate on a subset and interpolate
+everywhere, is common in econometric dynamic programming. It has seen little
+use in reinforcement learning, because the high-fidelity evaluations are
+expensive and a misspecified regression feeds its own error back into the
+values.
+
+The correction can be derived, under a distributional assumption.
+{cite:t}`lee2013bias,lee2019biascorrected` assumed Gaussian noise of
+standard deviation $\sigma$ on the estimates of $M$ actions, in which case
+the expected maximum of the noises follows from extreme value theory,
+
+$$
+\mathbb{E}\Big[\max_{a} \varepsilon_a\Big] \approx \sigma \left(\frac{C_{\mathrm{E}}}{b_M} + b_M\right), \qquad b_M = \sqrt{2\log M - \log\log M - \log 4\pi},
+$$
+
+with $C_{\mathrm{E}} \approx 0.5772$ the Euler–Mascheroni constant, and the
+target is corrected by subtracting this amount with $\sigma$ estimated from
+repeated rewards at the same $(s,a)$. The formula is exact for a
+single-state problem whose only noise is in the rewards, and it is a
+first-order correction otherwise; with heavier tails than Gaussian it
+undercorrects. It replaces the regression of the learned correction by a
+closed form, at the price of the Gaussian assumption.
+
+The maximum can be replaced. {cite:t}`deramo2016estimating` weight each
+action by the probability that it is the best one under a Gaussian model of
+the estimates,
+$w_a = \mathbb{P}\big(a \in \arg\max_{a'} \hat{\mu}_{a'}\big)$, and use
+$\sum_a w_a \hat{\mu}_a$ in place of $\max_a \hat{\mu}_a$. The weighted
+estimator sits between the optimism of the maximum and the pessimism of the
+double estimator, and adapts to the gaps between actions: when one action
+dominates its weight is near one and the estimator is the maximum, and when
+several are close their estimates are averaged. It needs a variance estimate
+per action and one integral per action, which limits it to small action sets.
+The smooth Bellman operator of the [regularized chapter](regularized-dp.md)
+also replaces the hard maximum by an average, with weights set by a
+temperature rather than by estimated uncertainty. A last option changes
+neither the target nor the operator but the loss of the fit, so that
+overestimates are penalized more than underestimates; the
+[next chapter](fitted-q-iteration.md) takes it up with Gumbel regression.
+
+## Exercises
+
+The exercises move from single estimators to their effect inside the
+iteration. The first ones are short checks; {ref}`ex-mc-compounding` is a
+short simulation.
+
+:::{exercise} Sign before simulation
+:label: ex-montecarlo-check-2
+
+Several actions have equal true values and independent noisy estimates. What sign do you expect for the bias of their maximum?
+:::
+
+:::{solution} ex-montecarlo-check-2
+:class: dropdown
+
+Positive. Maximization preferentially selects estimates with favorable noise, so the expected maximum exceeds the common true value.
+:::
+
+:::{exercise} Double estimation
+:label: ex-montecarlo-check-3
+
+Which dependence is broken when one estimate selects the maximizing action and an independent estimate evaluates it, and which bias remains?
+:::
+
+:::{solution} ex-montecarlo-check-3
+:class: dropdown
+
+The evaluation noise is made independent of the lucky noise that caused the selection, which removes the reuse of the same positive error for both jobs. The selection bias remains: the chosen action is still more often one whose first estimate was lucky, so the double estimator is biased slightly downward.
+:::
+
+:::{exercise} Sample sizes
+:label: ex-mc-sample-size
+
+A simulator returns successor values with standard deviation $\sigma = 3$.
+
+1. How many draws give a root mean squared error of $0.01$ for one
+   expectation?
+2. A fitted iteration needs one such expectation for each of 2,000 states and
+   4 actions. How many simulator calls does one iteration cost, and how would
+   the cost change if the state had twice as many coordinates?
+3. By {prf:ref}`thm-approximate-vi`, what does an integration error of $0.01$
+   per iteration contribute to the final value error with $\gamma = 0.95$?
+:::
+
+:::{solution} ex-mc-sample-size
+:class: dropdown
+
+1. $\sigma/\sqrt N = 0.01$ gives $N = (3/0.01)^2 = 90{,}000$.
+2. $2{,}000 \times 4 \times 90{,}000 = 7.2 \times 10^8$ calls per iteration. The Monte Carlo rate does not depend on the dimension, so the count does not change unless $\sigma$ does; a product quadrature rule would need $N^D$ nodes instead.
+3. At most $0.01/(1 - 0.95) = 0.2$, added to the error of the fit.
+:::
+
+:::{exercise} The bias of a maximum
+:label: ex-mc-max-two
+
+Two actions have the same true value $0$, and each is estimated by the mean
+of five draws of standard deviation $1$.
+
+1. Show that the expected maximum of the two estimates is
+   $\sigma_{\text{mean}}/\sqrt\pi$, where $\sigma_{\text{mean}} = 1/\sqrt5$ is
+   the standard deviation of each mean, and evaluate it. Hint: the maximum of
+   two numbers is their average plus half their absolute difference.
+2. Compare with the first point of {numref}`fig-mc-max-bias`.
+3. How does the bias change with $N$, the number of draws per action?
+:::
+
+:::{solution} ex-mc-max-two
+:class: dropdown
+
+1. $\max(X_1, X_2) = \tfrac12(X_1 + X_2) + \tfrac12|X_1 - X_2|$. The first term has mean $0$. The difference is Gaussian with standard deviation $\sqrt2\,\sigma_{\text{mean}}$, and $\mathbb{E}|Z| = \sqrt{2/\pi}$ for a standard Gaussian, so the expectation is $\tfrac12\sqrt2\,\sigma_{\text{mean}}\sqrt{2/\pi} = \sigma_{\text{mean}}/\sqrt\pi = 1/\sqrt{5\pi} \approx 0.252$.
+2. The figure shows $0.25$ at two actions.
+3. It scales with $\sigma_{\text{mean}} = 1/\sqrt N$: four times as many draws halve it. It never vanishes for finite $N$.
+:::
+
+:::{exercise} When the double estimator does worse
+:label: ex-mc-double-worse
+
+Two actions have true values $\mu_1 = 0$ and $\mu_2 = -1$, and each estimate
+has Gaussian noise of standard deviation $1$.
+
+1. For the maximum estimator, use
+   $\mathbb{E}[\max(X_1, X_2)] = \mu_1\Phi(\delta/\vartheta) + \mu_2\Phi(-\delta/\vartheta) + \vartheta\,\phi(\delta/\vartheta)$
+   with $\delta = \mu_1 - \mu_2$ and $\vartheta = \sqrt2$, where $\Phi$ and
+   $\phi$ are the standard Gaussian distribution and density, to compute its
+   bias.
+2. For the double estimator, the selected action is wrong with probability
+   $\Phi(-\delta/\vartheta)$. Compute its bias.
+3. Which estimator is closer to the truth here? Relate the answer to the two
+   sources of bias in {ref}`sec-mc-overestimation`, and to the case of equal
+   values in {numref}`fig-mc-max-bias`.
+:::
+
+:::{solution} ex-mc-double-worse
+:class: dropdown
+
+1. $\Phi(-1/\sqrt2) = 0.240$ and $\phi(1/\sqrt2) = 0.311$, so the expected maximum is $-0.240 + \sqrt2 \times 0.311 = 0.200$, a bias of $+0.20$.
+2. The double estimator is unbiased for the value of the action it selects, so its expectation is $-1 \times 0.240 = -0.240$, a bias of $-0.24$. A simulation with $2 \times 10^6$ draws gives $0.200$ and $-0.238$.
+3. The maximum estimator is closer here, by a little. With equal values the selection costs nothing and the double estimator is unbiased; with a gap of the size of the noise, selection bias dominates, and it is negative. Removing evaluation bias does not remove selection bias, which is why the double estimator is pessimistic rather than unbiased in general.
+:::
+
+:::{exercise} Bias that compounds
+:label: ex-mc-compounding
+
+Consider one state and $M$ actions, each with reward $0$ observed through
+Gaussian noise of standard deviation $1$, and $\gamma = 0.9$. Monte Carlo
+value iteration sets $v_{k+1} = \max_a \hat r_a + \gamma v_k$, where each
+$\hat r_a$ is a fresh mean of $N$ draws.
+
+1. Show that $\mathbb{E}[v_k] \to b/(1-\gamma)$, where $b$ is the expected
+   maximum of $M$ independent means, while the true value is $0$.
+2. Simulate it for $M = 4$ and $N = 5$, and compare with
+   $b \approx 0.46$ read from {numref}`fig-mc-max-bias`.
+3. Replace the maximum by the double estimator, with two independent sets of
+   draws, and simulate again.
+:::
+
+:::{solution} ex-mc-compounding
+:class: dropdown
+
+1. Taking expectations, $\mathbb{E}[v_{k+1}] = b + \gamma\,\mathbb{E}[v_k]$, a contraction with fixed point $b/(1-\gamma)$.
+2. With $b \approx 0.460$ the limit is $4.6$, ten times the per-step bias. A simulation such as
+
+```python
+import numpy as np
+rng = np.random.default_rng(0)
+M, N, gamma, runs, iterations = 4, 5, 0.9, 20000, 200
+v = np.zeros(runs)
+for _ in range(iterations):
+    v = rng.normal(size=(runs, M, N)).mean(axis=2).max(axis=1) + gamma * v
+print(v.mean())
+```
+
+prints a value close to $4.6$.
+3. Selecting with one set of means and evaluating with the other gives an expectation of $0$ at each step, so $\mathbb{E}[v_k] \to 0$: with equal true values the double estimator removes the compounding entirely.
+:::
+
+:::{exercise} Q-functions from the Bellman operator on values
+:label: ex-mc-q-contraction
+
+1. Show that $(\Bellman q)(s,a) = r(s,a) + \gamma\,\mathbb{E}[\max_{a'} q(s',a') \mid s,a]$
+   is a $\gamma$-contraction in the sup norm. Use the inequality
+   $|\max_a f(a) - \max_a g(a)| \le \max_a |f(a) - g(a)|$, which the
+   infinite-horizon chapter used for the operator on values.
+2. Given $q^\star$, write the optimal policy and $v^\star$. Which of the two
+   needs the transition model?
+3. Fitted value iteration and fitted Q-iteration both converge with an
+   averager. Which one needs more targets per iteration, and which one is
+   cheaper to act with?
+:::
+
+:::{solution} ex-mc-q-contraction
+:class: dropdown
+
+1. For each $(s,a)$, $|(\Bellman q)(s,a) - (\Bellman q')(s,a)| \le \gamma\,\mathbb{E}\big[|\max_{a'} q(s',a') - \max_{a'} q'(s',a')|\big] \le \gamma\|q - q'\|_\infty$.
+2. $\pi^\star(s) \in \arg\max_a q^\star(s,a)$ and $v^\star(s) = \max_a q^\star(s,a)$. Neither needs the model, which is the point of storing $q$.
+3. Fitted Q-iteration computes targets for every state-action pair, $|\mathcal{A}|$ times as many as fitted value iteration with a model, but acting with it is a maximization over stored values, with no expectation to estimate.
+:::
+
+:::{exercise} Many successors or many transitions
+:label: ex-mc-budget
+
+A resettable simulator can return several successors of the same state and
+action. With a fixed budget of simulator calls per iteration, compare two
+uses on the eight-dimensional stopping problem of the previous chapter: many
+states with one successor each, or a quarter as many states with four
+successors each. Measure the error of the fitted value function and of its
+greedy policy, and explain the result with the two expectations of
+{ref}`sec-mc-two-expectations`: which error does each choice reduce?
+:::
+
+:::{solution} ex-mc-budget
+:class: dropdown
+
+This exercise is open-ended. More successors per state reduce the variance of
+each target, which a regression would otherwise have to average out across
+nearby states. More states reduce the error of the fit itself and extend
+coverage. Which wins depends on the noise of the targets relative to the
+smoothness of the value: a problem with very noisy transitions and a smooth
+value favors more successors, and a problem whose value varies a lot across
+the state space favors more states.
+:::
+
+## Summary and Forward Look
+
+Fitted Bellman updates contain two expectations, inside the operator and over
+the states, and either can be estimated from samples. The sample average is
+unbiased, its error falls as $N^{-1/2}$ whatever the dimension, and it adds a
+per-iteration error that the bound of the previous chapter absorbs. Sampling
+makes the model optional: a simulator or a log of transitions suffices, which
+is the setting of reinforcement learning. Acting on a sampled value function
+would require sampling at decision time, so the action-value function
+$q(s,a)$ stores the backup of each action instead, and fitted Q-iteration is
+fitted value iteration on $q$. Temporal-difference learning solves the Galerkin system of the previous
+chapter one transition at a time; it is stable on-policy for the same reason
+that the projected equation contracts, and off-policy it can diverge even
+when the equation is well posed, which importance sampling, gradient TD and
+emphatic TD repair in different ways. The maximum over noisy estimates is biased
+upward, and the bias compounds through the iterations; using one estimate to
+select the action and an independent one to value it removes the larger part
+of the bias, and learned, analytic or weighted corrections are the
+alternatives.
+
+The algorithms of this chapter still choose the states at which targets are
+computed, and still draw as many successors as they like. [Learning from logged
+and online data](fitted-q-iteration.md) take the data as given: a fixed log of
+transitions with one successor each, or a buffer that fills as the agent
+acts, and a fit that is warm-started and stopped early. The remaining design
+choices of the practical algorithms are choices about that data and that
+fit.

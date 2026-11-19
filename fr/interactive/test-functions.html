@@ -1,0 +1,795 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Testing a residual</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap">
+<style>
+  :root {
+    --ink:#1b2430; --muted:#5c6874; --rule:#d2d9d7; --soft:#eaeeec; --raised:#ffffff;
+    --structure:#2f6f8f; --structure-soft:#e2edf1;
+    --blue:#0072b2; --orange:#d55e00; --green:#009e73; --purple:#b5578f; --gold:#b8860b;
+    --pos:#009e73; --neg:#d55e00;
+    color-scheme:light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ink:#edf1f1; --muted:#a8b2b9; --rule:#34434d; --soft:#0d141a; --raised:#1b2430;
+      --structure:#7fb3cf; --structure-soft:#1f3540;
+      --blue:#56b4e9; --orange:#e69f00; --green:#5fd0a8; --purple:#e19ac4; --gold:#e0b64a;
+      --pos:#5fd0a8; --neg:#f08a5d;
+      color-scheme:dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --ink:#edf1f1; --muted:#a8b2b9; --rule:#34434d; --soft:#0d141a; --raised:#1b2430;
+    --structure:#7fb3cf; --structure-soft:#1f3540;
+    --blue:#56b4e9; --orange:#e69f00; --green:#5fd0a8; --purple:#e19ac4; --gold:#e0b64a;
+    --pos:#5fd0a8; --neg:#f08a5d;
+    color-scheme:dark;
+  }
+  * { box-sizing:border-box; }
+  [hidden] { display:none !important; }
+  html, body { margin:0; background:transparent; }
+  body { color:var(--ink); font:14.5px/1.45 "IBM Plex Sans", system-ui, -apple-system, sans-serif; }
+  main { max-width:900px; margin:auto; padding:12px 14px 14px; }
+  .tabs { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px; border-bottom:1px solid var(--rule); padding-bottom:9px; }
+  button { font:inherit; font-size:13.5px; color:var(--ink); background:transparent; border:1px solid var(--rule);
+           border-radius:5px; padding:5px 10px; min-height:34px; cursor:pointer; }
+  button:hover { border-color:var(--structure); }
+  button[aria-pressed=true] { background:var(--structure-soft); border-color:var(--structure); font-weight:600; }
+  button:focus-visible, input:focus-visible { outline:3px solid var(--gold); outline-offset:2px; }
+  .tabs button { font-weight:600; }
+  .lead { margin:0 0 9px; color:var(--ink); }
+  .lead i, .read i { font-family:"Newsreader", Georgia, serif; font-size:1.06em; }
+  .row { display:flex; flex-wrap:wrap; gap:8px 14px; align-items:center; margin:0 0 8px; }
+  .lab { font-size:12px; color:var(--muted); margin-right:2px; }
+  .group { display:inline-flex; flex-wrap:wrap; align-items:center; }
+  .group button { border-radius:0; margin-left:-1px; }
+  .group button:first-of-type { border-radius:5px 0 0 5px; margin-left:0; }
+  .group button:last-of-type { border-radius:0 5px 5px 0; }
+  .slider { display:flex; align-items:center; gap:8px; font-size:13px; color:var(--muted); }
+  .slider input { width:150px; accent-color:var(--structure); }
+  output { color:var(--ink); font:500 13px "IBM Plex Mono", ui-monospace, monospace; min-width:1.6em; display:inline-block; }
+  label.check { display:inline-flex; gap:6px; align-items:center; font-size:13px; color:var(--muted); cursor:pointer; }
+  .panel { border:1px solid var(--rule); border-radius:6px; padding:6px 8px 4px; margin-bottom:8px; }
+  .panel h2 { font-size:12px; font-weight:600; color:var(--muted); margin:0 0 2px; letter-spacing:.2px; }
+  canvas { display:block; width:100%; touch-action:none; }
+  #r-canvas { cursor:crosshair; }
+  .legend { display:flex; flex-wrap:wrap; gap:2px 14px; font-size:12px; color:var(--muted); margin:2px 2px 0; }
+  .sw { display:inline-block; width:14px; height:3px; vertical-align:middle; margin-right:5px; border-radius:2px; }
+  .read { margin:2px 0 0; padding:7px 10px; border-left:3px solid var(--structure); min-height:44px; font-size:14px; }
+  .read.pass { border-left-color:var(--gold); }
+  .read.zero { border-left-color:var(--green); }
+  .read b { font-weight:600; }
+  .num { font-family:"IBM Plex Mono", ui-monospace, monospace; font-size:13px; }
+  #vectors .slider input { width:115px; }
+  @media (max-width:560px) { .slider input, #vectors .slider input { width:96px; } }
+</style>
+</head>
+<body>
+<main>
+  <div class="tabs" role="group" aria-label="View">
+    <button data-tab="vectors" aria-pressed="true">1 · Tests as directions</button>
+    <button data-tab="probe" aria-pressed="false">2 · Is this function zero?</button>
+    <button data-tab="bellman" aria-pressed="false">3 · Three solutions of one Bellman equation</button>
+  </div>
+
+  <!-- ============================================================ tab 0: vectors -->
+  <section id="vectors">
+    <p class="lead">A test is a direction <i>p</i>. The inner product ⟨<b>r</b>, <i>p</i>⟩ = ‖<b>r</b>‖ cos ∠(<b>r</b>, <i>p</i>)
+      measures how far <b>r</b> reaches along <i>p</i>, the length of its shadow on that line. Drag the picture to turn it.</p>
+    <div class="row">
+      <span class="lab">Tests</span>
+      <div class="group" id="vsets">
+        <button data-vset="one">One: <i>e</i><sub>1</sub></button>
+        <button data-vset="two">Two: <i>e</i><sub>1</sub>, <i>e</i><sub>2</sub></button>
+        <button data-vset="oblique">Two oblique</button>
+        <button data-vset="three">Three: <i>e</i><sub>1</sub>, <i>e</i><sub>2</sub>, <i>e</i><sub>3</sub></button>
+      </div>
+    </div>
+    <div class="row">
+      <span class="lab"><b>r</b> =</span>
+      <div class="slider"><label for="r1"><i>r</i><sub>1</sub></label><input id="r1" type="range" min="-4" max="4" step="0.1" value="2"><output id="r1-out">2.0</output></div>
+      <div class="slider"><label for="r2"><i>r</i><sub>2</sub></label><input id="r2" type="range" min="-4" max="4" step="0.1" value="1.5"><output id="r2-out">1.5</output></div>
+      <div class="slider"><label for="r3"><i>r</i><sub>3</sub></label><input id="r3" type="range" min="-4" max="4" step="0.1" value="3"><output id="r3-out">3.0</output></div>
+    </div>
+    <div class="row">
+      <button id="vpass">Make every test pass</button>
+      <button id="vreset">New <b>r</b></button>
+      <label class="check"><input id="vsplit" type="checkbox" checked> Split <b>r</b> into what the tests see and what they miss</label>
+    </div>
+    <div class="panel">
+      <h2>The vector <b>r</b>, the test directions and the shadow of <b>r</b> on each</h2>
+      <canvas id="v3-canvas" height="290" aria-label="Three-dimensional view of r and the test directions"></canvas>
+      <div class="legend" id="v3-legend"></div>
+    </div>
+    <div class="panel">
+      <h2>Test values ⟨<b>r</b>, <i>p</i><sub>i</sub>⟩ with ‖<i>p</i><sub>i</sub>‖ = 1, on a scale of ±‖<b>r</b>‖</h2>
+      <canvas id="vb-canvas" height="112" aria-label="Test values as bars"></canvas>
+    </div>
+    <p class="read" id="v-read"></p>
+  </section>
+
+  <!-- ============================================================ tab 1 -->
+  <section id="probe" hidden>
+    <p class="lead">A function <i>R</i> is zero if and only if ⟨<i>R</i>, <i>p</i>⟩ = 0 for every test function <i>p</i>.
+      Each bar below is one test. Drag on the top plot to draw your own <i>R</i>.</p>
+    <div class="row">
+      <span class="lab">Residual</span>
+      <div class="group" id="presets">
+        <button data-preset="bump">Two bumps</button>
+        <button data-preset="wiggle">Fast wiggle</button>
+        <button data-preset="zero">Zero</button>
+      </div>
+      <button id="hide">Hide <i>R</i> from these tests</button>
+    </div>
+    <div class="row">
+      <span class="lab">Tests</span>
+      <div class="group" id="families">
+        <button data-family="delta">Point masses (collocation)</button>
+        <button data-family="hat">Hat functions (Galerkin)</button>
+        <button data-family="poly">Polynomials (Galerkin)</button>
+      </div>
+      <div class="slider"><label for="n">Number of tests <i>n</i></label>
+        <input id="n" type="range" min="1" max="12" step="1" value="5"><output id="n-out">5</output></div>
+    </div>
+    <div class="panel">
+      <h2 id="r-title">The residual R(s) and the selected test function</h2>
+      <canvas id="r-canvas" height="210" aria-label="Residual and test functions"></canvas>
+      <div class="legend" id="r-legend"></div>
+    </div>
+    <div class="panel">
+      <h2 id="b-title">Test values</h2>
+      <canvas id="b-canvas" height="120" aria-label="Test values as bars"></canvas>
+    </div>
+    <p class="read" id="verdict"></p>
+  </section>
+
+  <!-- ============================================================ tab 2 -->
+  <section id="bellman" hidden>
+    <p class="lead">Policy evaluation on <i>s</i> ∈ [0, 1]: <i>s</i>′ = 0.8√<i>s</i> + 0.2<i>u</i>, <i>u</i> ∈ {0, ½, 1},
+      reward a smoothed step at 0.7, γ = 0.9. Each method makes the residual vanish against its own <i>n</i> tests, and only those.</p>
+    <div class="row">
+      <span class="lab">Solve by</span>
+      <div class="group" id="methods">
+        <button data-method="collocation">Collocation</button>
+        <button data-method="galerkin">Galerkin</button>
+        <button data-method="ls">Least squares</button>
+      </div>
+    </div>
+    <div class="row">
+      <span class="lab">Basis</span>
+      <div class="group" id="bases">
+        <button data-basis="hat">Hat functions</button>
+        <button data-basis="poly">Polynomials</button>
+      </div>
+      <div class="slider"><label for="m">Coefficients <i>n</i></label>
+        <input id="m" type="range" min="2" max="12" step="1" value="6"><output id="m-out">6</output></div>
+    </div>
+    <div class="panel">
+      <h2>Value function</h2>
+      <canvas id="v-canvas" height="130" aria-label="Exact and approximate value function"></canvas>
+      <div class="legend" id="v-legend"></div>
+    </div>
+    <div class="panel">
+      <h2>Bellman residual R(s; θ) = (L v<sub>θ</sub>)(s) − v(s; θ)</h2>
+      <canvas id="res-canvas" height="120" aria-label="Bellman residual"></canvas>
+    </div>
+    <div class="panel">
+      <h2>The same residual, tested three ways</h2>
+      <canvas id="t-canvas" height="140" aria-label="Test values for the three families"></canvas>
+    </div>
+    <p class="read" id="b-read"></p>
+  </section>
+</main>
+
+<script>
+(() => {
+"use strict";
+
+/* ------------------------------------------------------------------ theme */
+const root = document.documentElement;
+function syncTheme() {
+  let dark = null;
+  try {
+    if (window.parent && window.parent !== window) {
+      dark = window.parent.document.documentElement.classList.contains("dark");
+    }
+  } catch (e) { dark = null; }
+  if (dark === null) root.removeAttribute("data-theme");
+  else root.setAttribute("data-theme", dark ? "dark" : "light");
+  drawAll();
+}
+const css = name => getComputedStyle(root).getPropertyValue(name).trim();
+
+/* ------------------------------------------------------------------ numerics */
+const M = 401;                                   // grid on [0, 1]
+const S = Float64Array.from({length: M}, (_, k) => k / (M - 1));
+const QW = new Float64Array(M).fill(1 / (M - 1)); QW[0] *= 0.5; QW[M - 1] *= 0.5;
+const dot = (a, b) => { let t = 0; for (let k = 0; k < M; k++) t += QW[k] * a[k] * b[k]; return t; };
+const norm2 = a => Math.sqrt(dot(a, a));
+const supn = a => a.reduce((m, x) => Math.max(m, Math.abs(x)), 0);
+
+function hatNodes(n) { return n === 1 ? [0.5] : Array.from({length: n}, (_, i) => i / (n - 1)); }
+function chebNodes(n) {
+  return Array.from({length: n}, (_, i) => 0.5 - 0.5 * Math.cos((2 * (i + 1) - 1) * Math.PI / (2 * n))).sort((a, b) => a - b);
+}
+function hat(s, n, j) {
+  if (n === 1) return 1;
+  const h = 1 / (n - 1);
+  return Math.max(0, 1 - Math.abs(s - j * h) / h);
+}
+function legendreAll(s, n) {                    // shifted Legendre P_0..P_{n-1} at s
+  const x = 2 * s - 1, out = new Array(n);
+  out[0] = 1; if (n > 1) out[1] = x;
+  for (let k = 2; k < n; k++) out[k] = ((2 * k - 1) * x * out[k - 1] - (k - 1) * out[k - 2]) / k;
+  return out;
+}
+function basisAt(kind, s, n) {
+  if (kind === "hat") return Array.from({length: n}, (_, j) => hat(s, n, j));
+  return legendreAll(s, n);
+}
+function basisOnGrid(kind, n) {                 // n arrays of length M
+  const out = Array.from({length: n}, () => new Float64Array(M));
+  for (let k = 0; k < M; k++) { const b = basisAt(kind, S[k], n); for (let j = 0; j < n; j++) out[j][k] = b[j]; }
+  return out;
+}
+function solveLinear(A, b) {                    // Gaussian elimination, partial pivoting
+  const n = b.length, a = A.map((r, i) => [...r, b[i]]);
+  for (let c = 0; c < n; c++) {
+    let p = c; for (let r = c + 1; r < n; r++) if (Math.abs(a[r][c]) > Math.abs(a[p][c])) p = r;
+    [a[c], a[p]] = [a[p], a[c]];
+    for (let r = c + 1; r < n; r++) { const f = a[r][c] / a[c][c]; for (let k = c; k <= n; k++) a[r][k] -= f * a[c][k]; }
+  }
+  const x = new Array(n).fill(0);
+  for (let r = n - 1; r >= 0; r--) { let t = a[r][n]; for (let k = r + 1; k < n; k++) t -= a[r][k] * x[k]; x[r] = t / a[r][r]; }
+  return x;
+}
+function interpGrid(arr, s) {
+  const u = Math.min(Math.max(s, 0), 1) * (M - 1), k = Math.min(Math.floor(u), M - 2), t = u - k;
+  return arr[k] * (1 - t) + arr[k + 1] * t;
+}
+/* orthogonal projection onto span(P) in the uniform L2 inner product */
+function project(R, P) {
+  const n = P.length;
+  const G = P.map(a => P.map(b => dot(a, b)));
+  const c = solveLinear(G, P.map(a => dot(a, R)));
+  const out = new Float64Array(M);
+  for (let j = 0; j < n; j++) for (let k = 0; k < M; k++) out[k] += c[j] * P[j][k];
+  return out;
+}
+
+/* ------------------------------------------------------------------ canvas helpers */
+function setup(canvas) {
+  // the drawing height is kept in data-h: setting canvas.height rewrites the height attribute,
+  // so reading the attribute back would grow the canvas by the pixel ratio on every redraw
+  if (!canvas.dataset.h) canvas.dataset.h = canvas.getAttribute("height");
+  const dpr = window.devicePixelRatio || 1, w = canvas.clientWidth, h = +canvas.dataset.h;
+  if (canvas.width !== Math.round(w * dpr) || canvas.height !== Math.round(h * dpr)) {
+    canvas.width = Math.round(w * dpr); canvas.height = Math.round(h * dpr); canvas.style.height = h + "px";
+  }
+  const ctx = canvas.getContext("2d"); ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, w, h);
+  return {ctx, w, h};
+}
+function frame(g, ymin, ymax, ticks, padL = 34, padR = 8, padT = 6, padB = 18) {
+  const {ctx, w, h} = g;
+  const X = s => padL + s * (w - padL - padR);
+  const Y = y => padT + (ymax - y) / (ymax - ymin) * (h - padT - padB);
+  ctx.font = '11px "IBM Plex Mono", ui-monospace, monospace'; ctx.fillStyle = css("--muted");
+  ctx.strokeStyle = css("--rule"); ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(padL, Y(0)); ctx.lineTo(w - padR, Y(0)); ctx.stroke();
+  ctx.textAlign = "center";
+  for (const t of [0, 0.5, 1]) ctx.fillText(t === 0.5 ? "s" : String(t), X(t), h - 4);
+  ctx.textAlign = "right";
+  for (const t of (ticks || [ymin, 0, ymax])) ctx.fillText(fmtTick(t), padL - 5, Y(t) + 4);
+  return {X, Y, padL, padR, padT, padB};
+}
+function fmtTick(t) { return Math.abs(t) < 1e-12 ? "0" : Number.isInteger(t) ? String(t) : (Math.abs(t) >= 10 ? t.toFixed(0) : Math.abs(t) >= 1 ? t.toFixed(1) : t.toFixed(2)); }
+function curve(ctx, f, X, Y, color, width, dash) {
+  ctx.strokeStyle = color; ctx.lineWidth = width; ctx.setLineDash(dash || []);
+  ctx.beginPath(); for (let k = 0; k < M; k++) { const x = X(S[k]), y = Y(f[k]); k ? ctx.lineTo(x, y) : ctx.moveTo(x, y); }
+  ctx.stroke(); ctx.setLineDash([]);
+}
+function bars(g, vals, x0, x1, scale, colorFn, opts = {}) {
+  const {ctx, h} = g, padT = 6, padB = opts.padB ?? 18, mid = padT + (h - padT - padB) / 2, half = (h - padT - padB) / 2;
+  const n = vals.length, slot = (x1 - x0) / n, bw = Math.max(3, Math.min(26, slot * 0.62));
+  ctx.strokeStyle = css("--rule"); ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(x0, mid); ctx.lineTo(x1, mid); ctx.stroke();
+  const rects = [];
+  vals.forEach((v, i) => {
+    const cx = x0 + slot * (i + 0.5), hh = Math.max(-1, Math.min(1, v / scale)) * half;
+    ctx.fillStyle = colorFn(v, i);
+    const top = hh >= 0 ? mid - hh : mid, ht = Math.max(1.5, Math.abs(hh));
+    ctx.fillRect(cx - bw / 2, Math.abs(hh) < 0.75 ? mid - 0.75 : top, bw, Math.abs(hh) < 0.75 ? 1.5 : ht);
+    if (opts.selected === i) { ctx.strokeStyle = css("--ink"); ctx.lineWidth = 1.5; ctx.strokeRect(cx - bw / 2 - 2.5, padT, bw + 5, h - padT - padB); }
+    rects.push([cx - slot / 2, cx + slot / 2]);
+  });
+  return rects;
+}
+
+/* ================================================================== tab 1 */
+const st = {preset: "bump", family: "hat", n: 5, sel: 2, pref: 2};
+let R = new Float64Array(M);
+function presetR(name) {
+  const out = new Float64Array(M);
+  for (let k = 0; k < M; k++) {
+    const s = S[k];
+    if (name === "bump") out[k] = 0.85 * Math.exp(-(((s - 0.3) / 0.11) ** 2)) - 0.6 * Math.exp(-(((s - 0.72) / 0.08) ** 2));
+    else if (name === "wiggle") out[k] = 0.7 * Math.sin(9 * Math.PI * s) * Math.exp(-(((s - 0.5) / 0.35) ** 2));
+  }
+  return out;
+}
+function tests() {                                // test functions on the grid (null for point masses)
+  if (st.family === "delta") return null;
+  return basisOnGrid(st.family, st.n);
+}
+function testValues(Rf) {
+  if (st.family === "delta") return hatNodes(st.n).map(s => interpGrid(Rf, s));
+  return tests().map(p => dot(Rf, p) / norm2(p));
+}
+/* the part of R that the tests see: hat interpolant at the nodes for point masses, projection otherwise */
+function visiblePart(Rf) {
+  if (st.family === "delta") {
+    const nodes = hatNodes(st.n), vals = nodes.map(s => interpGrid(Rf, s)), out = new Float64Array(M);
+    for (let k = 0; k < M; k++) { let t = 0; for (let j = 0; j < st.n; j++) t += vals[j] * hat(S[k], st.n, j); out[k] = t; }
+    return out;
+  }
+  return project(Rf, tests());
+}
+
+const rCanvas = document.getElementById("r-canvas"), bCanvas = document.getElementById("b-canvas");
+let rGeom = null, bRects = [];
+function drawProbe() {
+  if (document.getElementById("probe").hidden) return;
+  const g = setup(rCanvas), {ctx} = g, f = frame(g, -1.1, 1.1, [-1, 0, 1]);
+  rGeom = f;
+  const P = tests(), sel = Math.min(st.sel, st.n - 1);
+  const blue = css("--blue"), purple = css("--purple"), muted = css("--muted");
+  // product R * p_sel, shaded: its integral is the selected bar
+  if (P) {
+    const p = P[sel], pm = supn(p) || 1;
+    // shade R * p (scaled to plot units)
+    const scale = 1 / Math.max(pm, 1e-9);
+    ctx.globalAlpha = 0.28;
+    for (let k = 0; k < M - 1; k++) {
+      const y = R[k] * p[k] * scale;
+      ctx.fillStyle = y >= 0 ? css("--pos") : css("--neg");
+      const x0 = f.X(S[k]), x1 = f.X(S[k + 1]) + 0.6;
+      ctx.fillRect(x0, Math.min(f.Y(0), f.Y(y)), x1 - x0, Math.abs(f.Y(y) - f.Y(0)));
+    }
+    ctx.globalAlpha = 1;
+    // all tests faint, selected one strong
+    for (let j = 0; j < st.n; j++) {
+      const q = P[j].map(x => x / pm * 0.95);
+      curve(ctx, q, f.X, f.Y, purple, j === sel ? 2 : 0.8, j === sel ? [5, 3] : [2, 3]);
+    }
+  } else {
+    const nodes = hatNodes(st.n);
+    nodes.forEach((s, j) => {
+      ctx.strokeStyle = purple; ctx.lineWidth = j === sel ? 2 : 0.8; ctx.setLineDash(j === sel ? [] : [2, 3]);
+      ctx.beginPath(); ctx.moveTo(f.X(s), f.Y(1.1)); ctx.lineTo(f.X(s), f.Y(-1.1)); ctx.stroke(); ctx.setLineDash([]);
+    });
+  }
+  curve(ctx, R, f.X, f.Y, blue, 2.6);
+  if (!P) {
+    hatNodes(st.n).forEach((s, j) => {
+      ctx.fillStyle = j === sel ? css("--ink") : purple;
+      ctx.beginPath(); ctx.arc(f.X(s), f.Y(interpGrid(R, s)), j === sel ? 4.5 : 3.5, 0, 2 * Math.PI); ctx.fill();
+    });
+  }
+  document.getElementById("r-legend").innerHTML = P
+    ? `<span><span class="sw" style="background:${blue}"></span>residual <i>R</i></span>
+       <span><span class="sw" style="background:${purple}"></span>test functions <i>p</i><sub>i</sub> (selected one dashed)</span>
+       <span><span class="sw" style="background:${css("--pos")};opacity:.5;height:9px"></span><span class="sw" style="background:${css("--neg")};opacity:.5;height:9px;margin-left:-5px"></span>product <i>R</i>·<i>p</i><sub>${sel + 1}</sub>, whose area is bar ${sel + 1}</span>`
+    : `<span><span class="sw" style="background:${blue}"></span>residual <i>R</i></span>
+       <span><span class="sw" style="background:${purple}"></span>point mass at <i>s</i><sub>i</sub>: the test reads off <i>R</i>(<i>s</i><sub>i</sub>)</span>`;
+
+  // bars
+  const vals = testValues(R);
+  const scale = st.family === "delta" ? (supn(R) || 1) : (norm2(R) || 1);
+  const gb = setup(bCanvas), padL = 34;
+  gb.ctx.font = '11px "IBM Plex Mono", ui-monospace, monospace'; gb.ctx.fillStyle = muted; gb.ctx.textAlign = "right";
+  const mid = 6 + (gb.h - 24) / 2;
+  gb.ctx.fillText(st.family === "delta" ? "+‖R‖∞" : "+‖R‖", padL - 3, 15); gb.ctx.fillText("0", padL - 3, mid + 4);
+  gb.ctx.fillText(st.family === "delta" ? "−‖R‖∞" : "−‖R‖", padL - 3, gb.h - 20);
+  const tol = 1e-3 * Math.max(scale, 1e-9);
+  bRects = bars(gb, vals, padL + 6, gb.w - 8, scale, v => Math.abs(v) <= Math.max(tol, 1e-6) ? css("--green") : css("--structure"), {selected: sel});
+  gb.ctx.textAlign = "center";
+  vals.forEach((v, i) => gb.ctx.fillText(String(i + 1), (bRects[i][0] + bRects[i][1]) / 2, gb.h - 4));
+  document.getElementById("b-title").textContent = st.family === "delta"
+    ? "Test values R(sᵢ), on a scale of ±max|R|. Click a bar to select its test."
+    : "Test values ⟨R, pᵢ⟩ with ‖pᵢ‖ = 1, on a scale of ±‖R‖ (the most a test can return). Click a bar to select its test.";
+
+  // verdict
+  const nR = norm2(R), big = Math.max(...vals.map(Math.abs)), el = document.getElementById("verdict");
+  const fam = {delta: "point masses", hat: "hat functions", poly: "polynomials"}[st.family];
+  if (nR < 1e-6) {
+    el.className = "read zero";
+    el.innerHTML = `<i>R</i> is the zero function, so every test returns 0, whatever the tests.`;
+  } else if (big <= Math.max(1e-3 * (st.family === "delta" ? supn(R) : nR), 1e-6)) {
+    el.className = "read pass";
+    el.innerHTML = `<b>All ${st.n} tests pass, yet <i>R</i> is not zero</b> (‖<i>R</i>‖ = <span class="num">${nR.toFixed(3)}</span>).
+      The ${st.n} ${fam} only see <i>R</i> in ${st.n} directions, and this <i>R</i> has nothing in them. Raise <i>n</i> to catch it.`;
+  } else {
+    const worst = vals.map(Math.abs).indexOf(big) + 1;
+    el.className = "read";
+    el.innerHTML = `Test ${worst} returns <span class="num">${vals[worst - 1].toFixed(3)}</span> ≠ 0, so <i>R</i> is not zero.
+      Press <b>Hide <i>R</i> from these tests</b> to remove the part of <i>R</i> that the ${st.n} ${fam} can see.`;
+  }
+}
+
+/* pointer: drawing on the residual, selecting bars */
+let drawing = false, lastPt = null;
+function canvasPoint(ev, canvas) { const r = canvas.getBoundingClientRect(); return [ev.clientX - r.left, ev.clientY - r.top]; }
+function paint(ev) {
+  if (!rGeom) return;
+  const [px, py] = canvasPoint(ev, rCanvas), f = rGeom, w = rCanvas.clientWidth, h = +rCanvas.dataset.h;
+  const s = Math.min(1, Math.max(0, (px - f.padL) / (w - f.padL - f.padR)));
+  const y = Math.max(-1.05, Math.min(1.05, 1.1 - (py - f.padT) / (h - f.padT - f.padB) * 2.2));
+  const k1 = Math.round(s * (M - 1));
+  if (lastPt) {
+    const [k0, y0] = lastPt, lo = Math.min(k0, k1), hi = Math.max(k0, k1);
+    for (let k = lo; k <= hi; k++) R[k] = hi === lo ? y : y0 + (y - y0) * (k - k0) / (k1 - k0);
+  } else R[k1] = y;
+  lastPt = [k1, y];
+  drawProbe();
+}
+rCanvas.addEventListener("pointerdown", ev => {
+  drawing = true; lastPt = null; rCanvas.setPointerCapture(ev.pointerId);
+  st.preset = "drawn"; markPressed("#presets", "data-preset", null); paint(ev);
+});
+rCanvas.addEventListener("pointermove", ev => { if (drawing) paint(ev); });
+const endDraw = () => {
+  if (!drawing) return; drawing = false; lastPt = null;
+  // light smoothing so a hand-drawn curve has no single-sample spikes
+  const c = R.slice(); for (let k = 1; k < M - 1; k++) R[k] = (c[k - 1] + 2 * c[k] + c[k + 1]) / 4;
+  drawProbe();
+};
+rCanvas.addEventListener("pointerup", endDraw); rCanvas.addEventListener("pointercancel", endDraw);
+bCanvas.addEventListener("click", ev => {
+  const [px] = canvasPoint(ev, bCanvas), i = bRects.findIndex(([a, b]) => px >= a && px < b);
+  if (i >= 0) { st.sel = st.pref = i; drawProbe(); }
+});
+
+document.getElementById("hide").addEventListener("click", () => {
+  const vis = visiblePart(R);
+  for (let k = 0; k < M; k++) R[k] -= vis[k];
+  // rescale for visibility; scaling cannot make a zero test nonzero
+  const s = supn(R); if (s > 1e-9) for (let k = 0; k < M; k++) R[k] *= 0.8 / s;
+  st.preset = "hidden"; markPressed("#presets", "data-preset", null); drawProbe();
+});
+
+/* ================================================================== tab 2 */
+const GAMMA = 0.9, SHOCKS = [0, 0.5, 1], PROBS = [0.25, 0.5, 0.25];
+const reward = s => 1 / (1 + Math.exp(-(s - 0.7) / 0.03));
+const succ = s => SHOCKS.map(u => 0.8 * Math.sqrt(s) + 0.2 * u);
+const VEXACT = (() => {
+  let v = new Float64Array(M);
+  const nxt = Array.from(S, s => succ(s));
+  for (let it = 0; it < 400; it++) {
+    const w = new Float64Array(M);
+    for (let k = 0; k < M; k++) { let e = 0; for (let u = 0; u < 3; u++) e += PROBS[u] * interpGrid(v, nxt[k][u]); w[k] = reward(S[k]) + GAMMA * e; }
+    v = w;
+  }
+  return v;
+})();
+/* R(s; θ) = r(s) + D(s)·θ with D_j(s) = γ E[φ_j(s')] − φ_j(s) */
+function Drow(kind, s, n) {
+  const own = basisAt(kind, s, n), d = new Array(n).fill(0);
+  succ(s).forEach((sp, u) => { const b = basisAt(kind, sp, n); for (let j = 0; j < n; j++) d[j] += GAMMA * PROBS[u] * b[j]; });
+  for (let j = 0; j < n; j++) d[j] -= own[j];
+  return d;
+}
+const bst = {method: "collocation", basis: "hat", n: 6};
+function colloNodes(kind, n) { return kind === "hat" ? hatNodes(n) : chebNodes(n); }
+function solveBellman() {
+  const {basis: kind, n} = bst;
+  const Phi = basisOnGrid(kind, n);
+  const Dg = Array.from({length: n}, () => new Float64Array(M));
+  const r = Float64Array.from(S, reward);
+  for (let k = 0; k < M; k++) { const d = Drow(kind, S[k], n); for (let j = 0; j < n; j++) Dg[j][k] = d[j]; }
+  const sols = {};
+  const nodes = colloNodes(kind, n);
+  sols.collocation = solveLinear(nodes.map(s => Drow(kind, s, n)), nodes.map(s => -reward(s)));
+  for (const [name, T] of [["galerkin", Phi], ["ls", Dg]]) {
+    const A = T.map(t => Dg.map(d => dot(t, d)));
+    sols[name] = solveLinear(A, T.map(t => -dot(t, r)));
+  }
+  const out = {};
+  for (const name of Object.keys(sols)) {
+    const th = sols[name], v = new Float64Array(M), Rr = new Float64Array(M);
+    for (let k = 0; k < M; k++) { let a = 0, b = r[k]; for (let j = 0; j < n; j++) { a += th[j] * Phi[j][k]; b += th[j] * Dg[j][k]; } v[k] = a; Rr[k] = b; }
+    const tests = {
+      collocation: nodes.map(s => { const d = Drow(kind, s, n); let t = reward(s); for (let j = 0; j < n; j++) t += d[j] * th[j]; return t; }),
+      galerkin: Phi.map(p => dot(Rr, p) / norm2(p)),
+      ls: Dg.map(d => dot(Rr, d) / norm2(d)),
+    };
+    let err = 0; for (let k = 0; k < M; k++) err = Math.max(err, Math.abs(v[k] - VEXACT[k]));
+    out[name] = {theta: th, v, R: Rr, tests, err, rnorm: norm2(Rr)};
+  }
+  return {out, nodes};
+}
+const vCanvas = document.getElementById("v-canvas"), resCanvas = document.getElementById("res-canvas"), tCanvas = document.getElementById("t-canvas");
+/* largest values over n = 2..12, both bases and all three methods: R 0.51, R(s_i) 0.32, Galerkin 0.24, LS 0.25 */
+const RES_SCALE = 0.55, BAR_SCALE = {collocation: 0.55, galerkin: 0.3, ls: 0.3};
+const METHOD_COLOR = {collocation: "--orange", galerkin: "--blue", ls: "--purple"};
+const METHOD_NAME = {collocation: "Collocation", galerkin: "Galerkin", ls: "Least squares"};
+function drawBellman() {
+  if (document.getElementById("bellman").hidden) return;
+  const {out, nodes} = solveBellman(), cur = out[bst.method], col = css(METHOD_COLOR[bst.method]);
+  // value
+  // fixed axes, so that moving the slider changes the curves and never the scale
+  const g1 = setup(vCanvas), f1 = frame(g1, 3, 10.5, [4, 6, 8, 10]);
+  curve(g1.ctx, VEXACT, f1.X, f1.Y, css("--muted"), 4);
+  curve(g1.ctx, cur.v, f1.X, f1.Y, col, 2);
+  document.getElementById("v-legend").innerHTML =
+    `<span><span class="sw" style="background:${css("--muted")};height:4px"></span>exact <i>v</i><sub>π</sub></span>
+     <span><span class="sw" style="background:${col}"></span>${METHOD_NAME[bst.method]} <i>v</i>(<i>s</i>; θ), sup error <span class="num">${cur.err.toFixed(2)}</span></span>`;
+  // residual
+  const rs = RES_SCALE;
+  const g2 = setup(resCanvas), f2 = frame(g2, -rs, rs, [-0.5, 0, 0.5]);
+  curve(g2.ctx, cur.R, f2.X, f2.Y, col, 2.2);
+  if (bst.method === "collocation") nodes.forEach(s => {
+    g2.ctx.fillStyle = col; g2.ctx.beginPath(); g2.ctx.arc(f2.X(s), f2.Y(0), 3.5, 0, 2 * Math.PI); g2.ctx.fill();
+  });
+  // three groups of bars, each on the scale of its own family
+  const g3 = setup(tCanvas), {ctx, w, h} = g3, gap = 14, gw = (w - 2 * gap) / 3;
+  const fams = [["collocation", "R(sᵢ)"], ["galerkin", "⟨R, φᵢ⟩"], ["ls", "⟨R, ∂R/∂θᵢ⟩"]];
+  fams.forEach(([fam, label], gi) => {
+    const x0 = gi * (gw + gap), x1 = x0 + gw;
+    const scale = BAR_SCALE[fam];
+    const own = fam === bst.method;
+    ctx.fillStyle = own ? css("--structure-soft") : "transparent";
+    if (own) ctx.fillRect(x0, 0, gw, h);
+    bars(g3, cur.tests[fam], x0 + 6, x1 - 6, scale, v => Math.abs(v) < 1e-6 * scale + 1e-9 ? css("--green") : col, {padB: 34});
+    ctx.font = '11.5px "IBM Plex Sans", system-ui, sans-serif'; ctx.textAlign = "center"; ctx.fillStyle = own ? css("--ink") : css("--muted");
+    const big = Math.max(...cur.tests[fam].map(Math.abs));
+    ctx.fillText(label, (x0 + x1) / 2, h - 19);
+    ctx.fillText(`max ${big < 5e-7 ? "0" : big.toFixed(3)}${gw > 150 ? ` (axis ±${scale})` : ""}`, (x0 + x1) / 2, h - 5);
+  });
+  // readout
+  const t = cur.tests, mx = a => Math.max(...a.map(Math.abs));
+  const others = Object.keys(t).filter(k => k !== bst.method);
+  const nm = {collocation: "point masses", galerkin: "the basis functions", ls: "the residual derivatives"};
+  document.getElementById("b-read").innerHTML =
+    `<b>${METHOD_NAME[bst.method]}</b> makes all ${bst.n} of its own tests zero (shaded group). Tested against ${nm[others[0]]}, the same residual gives up to
+     <span class="num">${mx(t[others[0]]).toFixed(3)}</span>, and against ${nm[others[1]]} up to <span class="num">${mx(t[others[1]]).toFixed(3)}</span>.
+     ‖<i>R</i>‖ = <span class="num">${cur.rnorm.toFixed(3)}</span>.` +
+    (bst.method === "galerkin" ? ` With states weighted by the data, this is the fixed point that TD(0) and LSTD compute.` : "");
+}
+
+/* ================================================================== tab 0: vectors in R^3 */
+const vst = {set: "two", r: [2, 1.5, 3], yaw: -0.62, pitch: 0.42, anim: null};
+const unit = a => { const n = Math.hypot(...a); return a.map(x => x / n); };
+const dot3 = (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+const VSETS = {
+  one: [[1, 0, 0]],
+  two: [[1, 0, 0], [0, 1, 0]],
+  oblique: [unit([1, 0.25, 0.15]), unit([0.2, 0.75, 0.6])],
+  three: [[1, 0, 0], [0, 1, 0], [0, 0, 1]],
+};
+const VNAMES = {one: ["e₁"], two: ["e₁", "e₂"], oblique: ["p₁", "p₂"], three: ["e₁", "e₂", "e₃"]};
+/* component of r in the span of the tests (Gram–Schmidt on the tests) */
+function seenPart(r, P) {
+  const Q = [];
+  for (const p of P) {
+    let q = p.slice();
+    for (const b of Q) { const c = dot3(q, b); q = q.map((x, i) => x - c * b[i]); }
+    const n = Math.hypot(...q); if (n > 1e-9) Q.push(q.map(x => x / n));
+  }
+  const out = [0, 0, 0];
+  for (const b of Q) { const c = dot3(r, b); for (let i = 0; i < 3; i++) out[i] += c * b[i]; }
+  return out;
+}
+const v3Canvas = document.getElementById("v3-canvas"), vbCanvas = document.getElementById("vb-canvas");
+function project3(g) {
+  const cy = Math.cos(vst.yaw), sy = Math.sin(vst.yaw), cp = Math.cos(vst.pitch), sp = Math.sin(vst.pitch);
+  const scale = Math.min(g.w, g.h * 1.6) / 12.5, ox = g.w / 2, oy = g.h * 0.53;
+  return v => {
+    const x1 = cy * v[0] - sy * v[1], y1 = sy * v[0] + cy * v[1], z1 = v[2];
+    const y2 = cp * y1 - sp * z1, z2 = sp * y1 + cp * z1;   // y2: depth, z2: up
+    return [ox + scale * x1, oy - scale * z2, y2];
+  };
+}
+function arrow(ctx, P, a, b, color, width, dash, head = 9) {
+  const [x0, y0] = P(a), [x1, y1] = P(b);
+  ctx.strokeStyle = color; ctx.fillStyle = color; ctx.lineWidth = width; ctx.setLineDash(dash || []);
+  ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1, y1); ctx.stroke(); ctx.setLineDash([]);
+  const L = Math.hypot(x1 - x0, y1 - y0); if (L < 4 || !head) return;
+  const ux = (x1 - x0) / L, uy = (y1 - y0) / L, h = Math.min(head, L * 0.45);
+  ctx.beginPath(); ctx.moveTo(x1, y1);
+  ctx.lineTo(x1 - h * ux + h * 0.45 * uy, y1 - h * uy - h * 0.45 * ux);
+  ctx.lineTo(x1 - h * ux - h * 0.45 * uy, y1 - h * uy + h * 0.45 * ux); ctx.closePath(); ctx.fill();
+}
+function line3(ctx, P, a, b, color, width, dash) { arrow(ctx, P, a, b, color, width, dash, 0); }
+function text3(ctx, P, v, s, color, dx = 6, dy = -6) {
+  const [x, y] = P(v); ctx.fillStyle = color; ctx.fillText(s, x + dx, y + dy);
+}
+function drawVectors() {
+  if (document.getElementById("vectors").hidden) return;
+  const g = setup(v3Canvas), {ctx} = g, P = project3(g);
+  const tests = VSETS[vst.set], names = VNAMES[vst.set], r = vst.r;
+  const muted = css("--muted"), rule = css("--rule"), blue = css("--blue"), purple = css("--purple"),
+        green = css("--green"), gold = css("--gold"), ink = css("--ink");
+  ctx.font = '12px "IBM Plex Sans", system-ui, sans-serif';
+  // coordinate axes
+  [[1, 0, 0], [0, 1, 0], [0, 0, 1]].forEach((e, i) => {
+    line3(ctx, P, e.map(x => -4.2 * x), e.map(x => 4.2 * x), rule, 1);
+    text3(ctx, P, e.map(x => 4.35 * x), ["1", "2", "3"][i], muted, 2, 4);
+  });
+  // span of the tests: a line, a plane, or everything
+  if (tests.length === 1) {
+    line3(ctx, P, tests[0].map(x => -4.6 * x), tests[0].map(x => 4.6 * x), purple, 1.2, [6, 4]);
+  } else if (tests.length === 2) {
+    const [a, b0] = tests, c = dot3(b0, a), bq = unit(b0.map((x, i) => x - c * a[i]));
+    ctx.globalAlpha = 0.10; ctx.fillStyle = purple; ctx.beginPath();
+    for (let k = 0; k <= 48; k++) {
+      const th = 2 * Math.PI * k / 48, v = a.map((x, i) => 4.0 * (Math.cos(th) * x + Math.sin(th) * bq[i]));
+      const [x, y] = P(v); k ? ctx.lineTo(x, y) : ctx.moveTo(x, y);
+    }
+    ctx.fill(); ctx.globalAlpha = 1;
+    ctx.strokeStyle = purple; ctx.globalAlpha = 0.35; ctx.lineWidth = 1; ctx.stroke(); ctx.globalAlpha = 1;
+  }
+  // shadows of r on each test direction
+  tests.forEach((p, i) => {
+    const c = dot3(r, p), foot = p.map(x => c * x);
+    line3(ctx, P, r, foot, muted, 1, [3, 3]);
+    ctx.globalAlpha = 0.55; line3(ctx, P, [0, 0, 0], foot, purple, 6); ctx.globalAlpha = 1;
+  });
+  // test directions (unit vectors drawn at length 2.5)
+  tests.forEach((p, i) => {
+    arrow(ctx, P, [0, 0, 0], p.map(x => 2.5 * x), purple, 2);
+    ctx.font = 'italic 13px "Newsreader", Georgia, serif';
+    text3(ctx, P, p.map(x => 2.5 * x), names[i], purple, 4, -4);
+  });
+  // r, and its split
+  const seen = seenPart(r, tests), unseen = r.map((x, i) => x - seen[i]);
+  const split = document.getElementById("vsplit").checked;
+  if (split && Math.hypot(...seen) > 0.05 && Math.hypot(...unseen) > 0.05) {
+    arrow(ctx, P, [0, 0, 0], seen, green, 2.2, [6, 3]);
+    arrow(ctx, P, seen, r, gold, 2.2, [6, 3]);
+  }
+  if (Math.hypot(...r) > 0.02) arrow(ctx, P, [0, 0, 0], r, blue, 3.2, null, 12);
+  ctx.font = 'bold 13px "IBM Plex Sans", system-ui, sans-serif';
+  text3(ctx, P, r, "r", blue, 7, -7);
+  // origin dot
+  const [ox, oy] = P([0, 0, 0]); ctx.fillStyle = ink; ctx.beginPath(); ctx.arc(ox, oy, 2.5, 0, 2 * Math.PI); ctx.fill();
+
+  document.getElementById("v3-legend").innerHTML =
+    `<span><span class="sw" style="background:${blue}"></span><b>r</b></span>
+     <span><span class="sw" style="background:${purple}"></span>test directions and the ${tests.length === 1 ? "line" : tests.length === 2 ? "plane" : "space"} they span</span>
+     <span><span class="sw" style="background:${purple};opacity:.55;height:6px"></span>shadow of <b>r</b> on each test</span>` +
+    (split ? `<span><span class="sw" style="background:${green}"></span>part the tests see</span>
+     <span><span class="sw" style="background:${gold}"></span>part they miss</span>` : "");
+
+  // bars
+  const vals = tests.map(p => dot3(r, p)), nr = Math.hypot(...r) || 1;
+  const gb = setup(vbCanvas), padL = 40;
+  gb.ctx.font = '11px "IBM Plex Mono", ui-monospace, monospace'; gb.ctx.fillStyle = muted; gb.ctx.textAlign = "right";
+  gb.ctx.fillText("+‖r‖", padL - 4, 15); gb.ctx.fillText("0", padL - 4, 6 + (gb.h - 40) / 2 + 4); gb.ctx.fillText("−‖r‖", padL - 4, gb.h - 36);
+  const rects = bars(gb, vals, padL + 6, gb.w - 8, nr, v => Math.abs(v) < 1e-6 ? css("--green") : css("--purple"), {padB: 34});
+  gb.ctx.textAlign = "center"; gb.ctx.fillStyle = muted;
+  vals.forEach((v, i) => {
+    const ang = Math.hypot(...r) < 1e-9 ? null : Math.acos(Math.max(-1, Math.min(1, v / nr))) * 180 / Math.PI;
+    const cx = (rects[i][0] + rects[i][1]) / 2;
+    gb.ctx.fillText(`${names[i]}: ${v.toFixed(2)}`, cx, gb.h - 19);
+    if (ang !== null) gb.ctx.fillText(`angle ${ang.toFixed(0)}°`, cx, gb.h - 5);
+  });
+
+  // verdict
+  const el = document.getElementById("v-read"), nUn = Math.hypot(...unseen), nR = Math.hypot(...r);
+  const big = Math.max(...vals.map(Math.abs));
+  if (nR < 1e-6) {
+    el.className = "read zero";
+    el.innerHTML = `<b>r</b> = 0, so it has no length along any direction and every test returns 0.`;
+  } else if (big < 1e-6) {
+    el.className = "read pass";
+    el.innerHTML = `<b>All ${tests.length} tests return 0, yet <b>r</b> is not zero</b> (‖<b>r</b>‖ = <span class="num">${nR.toFixed(2)}</span>).
+      It is perpendicular to every test direction, so it casts no shadow on them. Only a test with a component along <b>r</b> can detect it.`;
+  } else if (tests.length === 3) {
+    el.className = "read";
+    el.innerHTML = `Three independent directions span all of ℝ³, so the only vector with zero shadow on all three is <b>r</b> = 0.
+      Press <b>Make every test pass</b> to see <b>r</b> shrink to the origin.`;
+  } else {
+    el.className = "read";
+    el.innerHTML = `The tests see the green part of <b>r</b>, its component in the ${tests.length === 1 ? "line" : "plane"} they span, and miss the gold part
+      (length <span class="num">${nUn.toFixed(2)}</span>). <b>Make every test pass</b> removes the green part and leaves the gold one.`;
+  }
+}
+function setR(r) {
+  // keep the exact vector (a rounded one would no longer pass the tests); round only for display
+  vst.r = r.map(x => (Math.abs(x) < 1e-12 ? 0 : x));
+  ["r1", "r2", "r3"].forEach((id, i) => {
+    document.getElementById(id).value = vst.r[i]; document.getElementById(id + "-out").textContent = (Math.abs(vst.r[i]) < 0.05 ? 0 : vst.r[i]).toFixed(1);
+  });
+  drawVectors();
+}
+["r1", "r2", "r3"].forEach((id, i) => document.getElementById(id).addEventListener("input", e => {
+  const r = vst.r.slice(); r[i] = +e.target.value; setR(r);
+}));
+document.querySelectorAll("#vsets button").forEach(b => b.addEventListener("click", () => {
+  vst.set = b.dataset.vset; markPressed("#vsets", "data-vset", vst.set); drawVectors();
+}));
+document.getElementById("vsplit").addEventListener("change", drawVectors);
+document.getElementById("vreset").addEventListener("click", () => {
+  const r = [0, 0, 0].map(() => Math.round((Math.random() * 7 - 3.5) * 10) / 10);
+  if (Math.hypot(...r) < 1) r[2] = 3;
+  setR(r);
+});
+document.getElementById("vpass").addEventListener("click", () => {
+  const start = vst.r.slice(), seen = seenPart(start, VSETS[vst.set]), target = start.map((x, i) => x - seen[i]);
+  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (reduce) { vst.r = target; setR(target); return; }
+  const t0 = performance.now(), dur = 700;
+  cancelAnimationFrame(vst.anim);
+  const step = now => {
+    const u = Math.min(1, (now - t0) / dur), e = u * u * (3 - 2 * u);
+    vst.r = start.map((x, i) => x + (target[i] - x) * e);
+    if (u < 1) { drawVectors(); vst.anim = requestAnimationFrame(step); } else setR(target);
+  };
+  vst.anim = requestAnimationFrame(step);
+});
+/* drag to turn the view */
+let vdrag = null;
+v3Canvas.style.cursor = "grab";
+v3Canvas.addEventListener("pointerdown", ev => { vdrag = [ev.clientX, ev.clientY, vst.yaw, vst.pitch]; v3Canvas.setPointerCapture(ev.pointerId); v3Canvas.style.cursor = "grabbing"; });
+v3Canvas.addEventListener("pointermove", ev => {
+  if (!vdrag) return;
+  vst.yaw = vdrag[2] + (ev.clientX - vdrag[0]) * 0.01;
+  vst.pitch = Math.max(-1.3, Math.min(1.3, vdrag[3] + (ev.clientY - vdrag[1]) * 0.01));
+  drawVectors();
+});
+const vEnd = () => { vdrag = null; v3Canvas.style.cursor = "grab"; };
+v3Canvas.addEventListener("pointerup", vEnd); v3Canvas.addEventListener("pointercancel", vEnd);
+
+/* ================================================================== wiring */
+function markPressed(sel, attr, value) {
+  document.querySelectorAll(`${sel} button`).forEach(b => b.setAttribute("aria-pressed", String(b.getAttribute(attr) === value)));
+}
+document.querySelectorAll("#presets button").forEach(b => b.addEventListener("click", () => {
+  st.preset = b.dataset.preset; R = presetR(st.preset); markPressed("#presets", "data-preset", st.preset); drawProbe();
+}));
+document.querySelectorAll("#families button").forEach(b => b.addEventListener("click", () => {
+  st.family = b.dataset.family; markPressed("#families", "data-family", st.family); drawProbe();
+}));
+const nIn = document.getElementById("n");
+nIn.addEventListener("input", () => { st.n = +nIn.value; document.getElementById("n-out").textContent = st.n; st.sel = Math.min(st.pref, st.n - 1); drawProbe(); });
+document.querySelectorAll("#methods button").forEach(b => b.addEventListener("click", () => {
+  bst.method = b.dataset.method; markPressed("#methods", "data-method", bst.method); drawBellman();
+}));
+document.querySelectorAll("#bases button").forEach(b => b.addEventListener("click", () => {
+  bst.basis = b.dataset.basis; markPressed("#bases", "data-basis", bst.basis); drawBellman();
+}));
+const mIn = document.getElementById("m");
+mIn.addEventListener("input", () => { bst.n = +mIn.value; document.getElementById("m-out").textContent = bst.n; drawBellman(); });
+document.querySelectorAll(".tabs button").forEach(b => b.addEventListener("click", () => {
+  document.querySelectorAll(".tabs button").forEach(x => x.setAttribute("aria-pressed", String(x === b)));
+  document.getElementById("vectors").hidden = b.dataset.tab !== "vectors";
+  document.getElementById("probe").hidden = b.dataset.tab !== "probe";
+  document.getElementById("bellman").hidden = b.dataset.tab !== "bellman";
+  try { history.replaceState(null, "", "#" + b.dataset.tab); } catch (e) {}
+  drawAll();
+}));
+
+function drawAll() { drawVectors(); drawProbe(); drawBellman(); }
+R = presetR(st.preset);
+markPressed("#presets", "data-preset", st.preset);
+markPressed("#families", "data-family", st.family);
+markPressed("#methods", "data-method", bst.method);
+markPressed("#bases", "data-basis", bst.basis);
+markPressed("#vsets", "data-vset", vst.set);
+if (["#probe", "#bellman"].includes(location.hash)) document.querySelector(`.tabs button[data-tab="${location.hash.slice(1)}"]`).click();
+syncTheme();
+try {
+  if (window.parent !== window) new MutationObserver(syncTheme).observe(window.parent.document.documentElement, {attributes: true, attributeFilter: ["class"]});
+} catch (e) {}
+window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", syncTheme);
+window.addEventListener("resize", drawAll);
+if (document.fonts) document.fonts.ready.then(drawAll);
+window.__testFunctions = {vst, seenPart, VSETS, st, bst, get R() { return R; }, solveBellman, testValues, norm2};
+})();
+</script>
+</body>
+</html>

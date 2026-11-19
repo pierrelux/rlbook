@@ -759,10 +759,10 @@ pi = q.argmax(axis=0)                     # line 4</code></pre>
 <article class="q" id="q31" data-type="mcq" data-core="1" data-min="2" data-block="H">
   <div class="q-head"><span class="q-num">Q31</span><span class="tag core">core</span><span class="tag min">2 min</span></div>
   <div class="stem">
-    <p>With \(v(s;\theta) = \sum_{j=1}^n \theta_j\varphi_j(s)\), the Bellman residual \(R(s;\theta) = (\mathsf{L}v_\theta)(s) - v(s;\theta)\) cannot be set to zero at every state, so we impose \(n\) conditions \(\langle R(\cdot;\theta), p_i\rangle_w = 0\). Which pairing of test functions \(p_i\) and method is correct?</p>
+    <p>With \(v(s;\theta) = \sum_{j=1}^n \theta_j\phi_j(s)\), the Bellman residual \(R(s;\theta) = (\mathsf{L}v_\theta)(s) - v(s;\theta)\) cannot be set to zero at every state, so we impose \(n\) conditions \(\langle R(\cdot;\theta), p_i\rangle_w = 0\). Which pairing of test functions \(p_i\) and method is correct?</p>
   </div>
   <ol class="opts">
-    <li data-correct><span class="letter">a</span><span>Point masses at chosen states: collocation (\(R(s_i;\theta) = 0\)). The basis functions \(\varphi_i\): Galerkin. The derivatives \(\partial R/\partial\theta_i\): least squares on the residual</span></li>
+    <li data-correct><span class="letter">a</span><span>Point masses at chosen states: collocation (\(R(s_i;\theta) = 0\)). The basis functions \(\phi_i\): Galerkin. The derivatives \(\partial R/\partial\theta_i\): least squares on the residual</span></li>
     <li><span class="letter">b</span><span>The basis functions: collocation. Point masses: Galerkin</span></li>
     <li><span class="letter">c</span><span>The derivatives \(\partial R/\partial\theta_i\): Galerkin, because it is a projection</span></li>
     <li><span class="letter">d</span><span>All three choices give the same \(\theta\)</span></li>
@@ -800,7 +800,7 @@ pi = q.argmax(axis=0)                     # line 4</code></pre>
   </div>
   <ol class="opts">
     <li><span class="letter">a</span><span>\(\min_\theta \|\mathsf{L}_\pi v_\theta - v_\theta\|^2_w\), the Bellman residual minimizer</span></li>
-    <li data-correct><span class="letter">b</span><span>The Galerkin conditions \(\langle \mathsf{L}_\pi v_\theta - v_\theta, \varphi_i\rangle_w = 0\), that is \(v_\theta = \mathsf{P}\mathsf{L}_\pi v_\theta\), the fixed point of the projected policy-evaluation operator with \(w\) the on-policy distribution</span></li>
+    <li data-correct><span class="letter">b</span><span>The Galerkin conditions \(\langle \mathsf{L}_\pi v_\theta - v_\theta, \phi_i\rangle_w = 0\), that is \(v_\theta = \mathsf{P}\mathsf{L}_\pi v_\theta\), the fixed point of the projected policy-evaluation operator with \(w\) the on-policy distribution</span></li>
     <li><span class="letter">c</span><span>\(\min_\theta \|v_\theta - v^\pi\|_w\), the best approximation of \(v^\pi\) in the span</span></li>
     <li><span class="letter">d</span><span>\(\theta = 0\)</span></li>
   </ol>

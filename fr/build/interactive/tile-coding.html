@@ -1,0 +1,710 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Tile coding</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap">
+<style>
+  :root {
+    --ink:#1b2430; --muted:#5c6874; --rule:#d2d9d7; --soft:#eaeeec; --raised:#ffffff;
+    --structure:#2f6f8f; --structure-soft:#e2edf1;
+    --blue:#0072b2; --orange:#d55e00; --green:#009e73; --purple:#b5578f; --gold:#b8860b;
+    --heat:47,111,143;
+    color-scheme:light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ink:#edf1f1; --muted:#a8b2b9; --rule:#34434d; --soft:#0d141a; --raised:#1b2430;
+      --structure:#7fb3cf; --structure-soft:#1f3540;
+      --blue:#56b4e9; --orange:#e69f00; --green:#5fd0a8; --purple:#e19ac4; --gold:#e0b64a;
+      --heat:127,179,207;
+      color-scheme:dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --ink:#edf1f1; --muted:#a8b2b9; --rule:#34434d; --soft:#0d141a; --raised:#1b2430;
+    --structure:#7fb3cf; --structure-soft:#1f3540;
+    --blue:#56b4e9; --orange:#e69f00; --green:#5fd0a8; --purple:#e19ac4; --gold:#e0b64a;
+    --heat:127,179,207;
+    color-scheme:dark;
+  }
+  * { box-sizing:border-box; }
+  [hidden] { display:none !important; }
+  html, body { margin:0; background:transparent; }
+  body { color:var(--ink); font:14.5px/1.45 "IBM Plex Sans", system-ui, -apple-system, sans-serif; }
+  main { max-width:900px; margin:auto; padding:12px 14px 14px; }
+  .tabs { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px; border-bottom:1px solid var(--rule); padding-bottom:9px; }
+  button { font:inherit; font-size:13.5px; color:var(--ink); background:transparent; border:1px solid var(--rule);
+           border-radius:5px; padding:5px 10px; min-height:34px; cursor:pointer; }
+  button:hover { border-color:var(--structure); }
+  button[aria-pressed=true] { background:var(--structure-soft); border-color:var(--structure); font-weight:600; }
+  button:focus-visible, input:focus-visible { outline:3px solid var(--gold); outline-offset:2px; }
+  .tabs button { font-weight:600; }
+  .lead { margin:0 0 9px; }
+  .row { display:flex; flex-wrap:wrap; gap:8px 14px; align-items:center; margin:0 0 8px; }
+  .lab { font-size:12px; color:var(--muted); margin-right:2px; }
+  .group { display:inline-flex; flex-wrap:wrap; align-items:center; }
+  .group button { border-radius:0; margin-left:-1px; }
+  .group button:first-of-type { border-radius:5px 0 0 5px; margin-left:0; }
+  .group button:last-of-type { border-radius:0 5px 5px 0; }
+  .slider { display:flex; align-items:center; gap:8px; font-size:13px; color:var(--muted); }
+  .slider input { width:130px; accent-color:var(--structure); }
+  output { color:var(--ink); font:500 13px "IBM Plex Mono", ui-monospace, monospace; min-width:1.6em; display:inline-block; }
+  .panel { border:1px solid var(--rule); border-radius:6px; padding:6px 8px 4px; margin-bottom:8px; }
+  .panel h2 { font-size:12px; font-weight:600; color:var(--muted); margin:0 0 2px; letter-spacing:.2px; }
+  canvas { display:block; width:100%; touch-action:none; }
+  .drag { cursor:ew-resize; }
+  .drag2 { cursor:crosshair; }
+  .legend { display:flex; flex-wrap:wrap; gap:2px 14px; font-size:12px; color:var(--muted); margin:2px 2px 0; }
+  .sw { display:inline-block; width:14px; height:3px; vertical-align:middle; margin-right:5px; border-radius:2px; }
+  .sw.box { height:10px; width:10px; border-radius:2px; }
+  .read { margin:2px 0 0; padding:7px 10px; border-left:3px solid var(--structure); min-height:44px; font-size:14px; }
+  .read b { font-weight:600; }
+  .num { font-family:"IBM Plex Mono", ui-monospace, monospace; font-size:13px; }
+  .phi { display:flex; flex-wrap:wrap; gap:4px 10px; align-items:center; margin:4px 0 2px;
+         font:500 12px "IBM Plex Mono", ui-monospace, monospace; }
+  .phi .grp { display:inline-flex; align-items:center; gap:2px; }
+  .phi .grp > span:first-child { color:var(--muted); margin-right:4px; font:400 11.5px "IBM Plex Sans", system-ui, sans-serif; }
+  .phi b { display:inline-flex; width:17px; height:20px; align-items:center; justify-content:center;
+           border:1px solid var(--rule); border-radius:3px; color:var(--muted); font-weight:500; }
+  .phi b.on { background:var(--orange); border-color:var(--orange); color:#fff; font-weight:600; }
+  .phi-v { margin:4px 0 2px; font-size:13px; color:var(--muted); }
+  .phi-v .num { color:var(--ink); }
+  .two { display:grid; grid-template-columns:minmax(0, 360px) minmax(0, 1fr); gap:10px; align-items:start; }
+  .stats { font-size:13px; color:var(--muted); margin:4px 0 0; padding:0; list-style:none; }
+  .stats li { margin:0 0 5px; }
+  .stats b { color:var(--ink); font-weight:600; }
+  @media (max-width:620px) { .two { grid-template-columns:1fr; } .slider input { width:100px; } }
+</style>
+</head>
+<body>
+<main>
+  <div class="tabs" role="group" aria-label="View">
+    <button data-tab="kernel" aria-pressed="true">1 · Tilings and the shared-tile kernel</button>
+    <button data-tab="learn" aria-pressed="false">2 · Learning from samples</button>
+    <button data-tab="plane" aria-pressed="false">3 · Two dimensions and hashing</button>
+  </div>
+
+  <!-- ============================================================ tab 1 -->
+  <section id="kernel">
+    <p class="lead">Each row is one tiling of [0, 1] into tiles of width <i>h</i>. A state <i>s</i> turns on one tile per row,
+      and two states are similar in proportion to the number of tiles they share. Drag <i>s</i>, or press play.</p>
+    <div class="row">
+      <div class="slider"><label for="k-m">Tilings <i>K</i></label>
+        <input id="k-m" type="range" min="1" max="16" step="1" value="4"><output id="k-m-out">4</output></div>
+      <span class="lab">Offsets</span>
+      <div class="group" id="k-offsets">
+        <button data-off="even">Evenly spaced, <i>h</i>/<i>K</i> apart</button>
+        <button data-off="random">Random</button>
+      </div>
+      <button id="k-play">▶ Sweep <i>s</i></button>
+    </div>
+    <div class="panel">
+      <h2>The <i>K</i> tilings, the tiles that contain <i>s</i>, and the fine cells where all tilings agree</h2>
+      <canvas id="k-tiles" class="drag" height="180" aria-label="Stacked tilings with the active tiles highlighted"></canvas>
+    </div>
+    <div class="panel">
+      <h2>Feature vector ϕ(<i>s</i>): one binary entry per tile, grouped by tiling, with exactly <i>K</i> ones</h2>
+      <div class="phi" id="k-phi" aria-live="polite"></div>
+      <p class="phi-v" id="k-phi-v"></p>
+    </div>
+    <div class="panel">
+      <h2 id="k-title">Shared-tile kernel κ(s, s′) = (tiles shared by s and s′) / K</h2>
+      <canvas id="k-kernel" class="drag" height="150" aria-label="Shared-tile kernel as a function of s prime"></canvas>
+      <div class="legend" id="k-legend"></div>
+    </div>
+    <p class="read" id="k-read"></p>
+  </section>
+
+  <!-- ============================================================ tab 2 -->
+  <section id="learn" hidden>
+    <p class="lead">Noisy samples <i>y</i> = <i>v</i>(<i>s</i>) + noise arrive one at a time, and each learner moves its weights by
+      <i>w</i> ← <i>w</i> + (α/<i>K</i>) φ(<i>s</i>)(<i>y</i> − φ(<i>s</i>)<sup>⊤</sup><i>w</i>), α = 0.1. The shaded bump is the change made by the last sample.</p>
+    <div class="row">
+      <button id="l-play">▶ Play</button>
+      <button id="l-step">One sample</button>
+      <button id="l-reset">Reset</button>
+      <span class="lab">Speed</span>
+      <div class="group" id="l-speed">
+        <button data-speed="1">1×</button>
+        <button data-speed="10">10×</button>
+        <button data-speed="100">100×</button>
+      </div>
+      <div class="slider"><label for="l-m">Tilings <i>K</i></label>
+        <input id="l-m" type="range" min="2" max="16" step="1" value="8"><output id="l-m-out">8</output></div>
+    </div>
+    <div class="panel">
+      <h2>Three learners fed the same samples</h2>
+      <canvas id="l-fits" height="420" aria-label="Fitted functions of three learners"></canvas>
+      <div class="legend" id="l-legend"></div>
+    </div>
+    <div class="panel">
+      <h2>Root-mean-square error against the number of samples</h2>
+      <canvas id="l-err" height="130" aria-label="Error curves"></canvas>
+    </div>
+    <p class="read" id="l-read"></p>
+  </section>
+
+  <!-- ============================================================ tab 3 -->
+  <section id="plane" hidden>
+    <p class="lead">In two dimensions each tiling is a grid of <i>h</i> × <i>h</i> squares. The shading is the shared-tile kernel
+      κ(<i>s</i>, ·) around the point <i>s</i>. Drag the point, or press play.</p>
+    <div class="row">
+      <div class="slider"><label for="p-m">Tilings <i>K</i></label>
+        <input id="p-m" type="range" min="1" max="16" step="1" value="8"><output id="p-m-out">8</output></div>
+      <span class="lab">Offsets</span>
+      <div class="group" id="p-offsets">
+        <button data-off="diag">Diagonal (1, 1)</button>
+        <button data-off="asym">Asymmetric (1, 3)</button>
+        <button data-off="random">Random</button>
+      </div>
+      <button id="p-play">▶ Play</button>
+    </div>
+    <div class="row">
+      <span class="lab">Hash table</span>
+      <div class="group" id="p-hash">
+        <button data-hash="0">No hashing</button>
+        <button data-hash="256">256 weights</button>
+        <button data-hash="64">64 weights</button>
+        <button data-hash="16">16 weights</button>
+      </div>
+      <button id="p-rehash">New hash function</button>
+    </div>
+    <div class="two">
+      <div class="panel">
+        <h2>κ(s, s′) over the unit square</h2>
+        <canvas id="p-canvas" class="drag2" height="340" aria-label="Kernel heat map in two dimensions"></canvas>
+        <div class="legend" id="p-legend"></div>
+      </div>
+      <div>
+        <ul class="stats" id="p-stats"></ul>
+        <p class="read" id="p-read"></p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script>
+(() => {
+"use strict";
+
+/* ------------------------------------------------------------------ theme */
+const root = document.documentElement;
+function syncTheme() {
+  let dark = null;
+  try {
+    if (window.parent && window.parent !== window) {
+      dark = window.parent.document.documentElement.classList.contains("dark");
+    }
+  } catch (e) { dark = null; }
+  if (dark === null) root.removeAttribute("data-theme");
+  else root.setAttribute("data-theme", dark ? "dark" : "light");
+  drawAll();
+}
+const css = name => getComputedStyle(root).getPropertyValue(name).trim();
+const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+/* ------------------------------------------------------------------ helpers */
+function setup(canvas, hOverride) {
+  // drawing height kept in data-h: setting canvas.height rewrites the attribute
+  if (!canvas.dataset.h) canvas.dataset.h = canvas.getAttribute("height");
+  const dpr = window.devicePixelRatio || 1, w = canvas.clientWidth;
+  const h = hOverride || +canvas.dataset.h;
+  if (canvas.width !== Math.round(w * dpr) || canvas.height !== Math.round(h * dpr)) {
+    canvas.width = Math.round(w * dpr); canvas.height = Math.round(h * dpr); canvas.style.height = h + "px";
+  }
+  const ctx = canvas.getContext("2d"); ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, w, h);
+  return {ctx, w, h};
+}
+function mulberry32(a) {
+  return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a);
+    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
+}
+function gauss(rng) { const u = Math.max(rng(), 1e-12), v = rng(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); }
+function markPressed(sel, attr, val) {
+  document.querySelectorAll(`${sel} button`).forEach(b => b.setAttribute("aria-pressed", String(b.getAttribute(attr) === String(val))));
+}
+const MONO = '11px "IBM Plex Mono", ui-monospace, monospace';
+function clamp(x, a, b) { return Math.min(b, Math.max(a, x)); }
+
+/* tile index of s for a tiling with offset o and width h (1D) */
+const cell = (s, o, h) => Math.floor((s + o) / h);
+const K_ = n => String(n);
+
+/* ================================================================== tab 1: kernel */
+const kst = {m: 4, h: 0.25, s: 0.43, off: "even", offsets: [], playing: false, draws: 0, mean: null, rng: mulberry32(7)};
+const KN = 400;                                      // grid of s' for the kernel plot
+const KS = Float64Array.from({length: KN}, (_, i) => (i + 0.5) / KN);
+const sIndex = s => Math.min(KN - 1, Math.max(0, Math.floor(s * KN)));
+function evenOffsets(m, h) { return Array.from({length: m}, (_, k) => k * h / m); }
+function randomOffsets(m, h, rng) { return Array.from({length: m}, () => rng() * h); }
+function setKOffsets() {
+  kst.offsets = kst.off === "even" ? evenOffsets(kst.m, kst.h) : randomOffsets(kst.m, kst.h, kst.rng);
+  kst.draws = 0; kst.mean = null;
+}
+function kernelRow(s, offsets, h) {
+  const m = offsets.length, out = new Float64Array(KN);
+  const own = offsets.map(o => cell(s, o, h));
+  for (let i = 0; i < KN; i++) { let c = 0; for (let k = 0; k < m; k++) if (cell(KS[i], offsets[k], h) === own[k]) c++; out[i] = c / m; }
+  return out;
+}
+const hatK = (d, h) => Math.max(0, 1 - Math.abs(d) / h);
+
+function drawKernelTab() {
+  const tiles = document.getElementById("k-tiles"), kern = document.getElementById("k-kernel");
+  if (!tiles.clientWidth) return;
+  const {m, h, s, offsets} = kst;
+  /* --- tilings */
+  const g = setup(tiles), ctx = g.ctx, padL = 34, padR = 8, padT = 4, fineH = 22, axisH = 16;
+  const X = x => padL + x * (g.w - padL - padR);
+  const rowsH = g.h - padT - fineH - axisH, rowH = rowsH / m, gap = Math.min(3, rowH * 0.18);
+  const structure = css("--structure"), soft = css("--structure-soft"), rule = css("--rule"), orange = css("--orange");
+  ctx.font = MONO;
+  for (let k = 0; k < m; k++) {
+    const o = offsets[k], y0 = padT + k * rowH, own = cell(s, o, h);
+    ctx.save(); ctx.beginPath(); ctx.rect(X(0), y0, X(1) - X(0), rowH); ctx.clip();
+    for (let j = 0; j <= Math.ceil((1 + o) / h); j++) {
+      const a = j * h - o, b = a + h, active = j === own;
+      ctx.fillStyle = active ? orange : (j % 2 ? soft : "transparent");
+      ctx.globalAlpha = active ? 0.85 : 1;
+      ctx.fillRect(X(a) + 0.5, y0 + gap / 2, X(b) - X(a) - 1, rowH - gap);
+      ctx.globalAlpha = 1;
+      ctx.strokeStyle = rule; ctx.lineWidth = 1;
+      ctx.strokeRect(X(a) + 0.5, y0 + gap / 2, X(b) - X(a) - 1, rowH - gap);
+    }
+    ctx.restore();
+    if (m <= 8 || k === 0 || k === m - 1) {
+      ctx.fillStyle = css("--muted"); ctx.textAlign = "right";
+      ctx.fillText(String(k + 1), padL - 6, y0 + rowH / 2 + 4);
+    }
+  }
+  /* fine cells: union of all tile edges */
+  const yF = padT + rowsH + 4, edges = [0, 1];
+  for (const o of offsets) for (let j = 0; j <= Math.ceil((1 + o) / h); j++) { const e = j * h - o; if (e > 0 && e < 1) edges.push(e); }
+  edges.sort((a, b) => a - b);
+  for (let i = 0; i + 1 < edges.length; i++) {
+    const a = edges[i], b = edges[i + 1];
+    const inside = s >= a && s < b;
+    ctx.fillStyle = inside ? orange : (i % 2 ? soft : "transparent");
+    ctx.fillRect(X(a), yF, X(b) - X(a), fineH - 8);
+    ctx.strokeStyle = rule; ctx.strokeRect(X(a) + 0.5, yF + 0.5, X(b) - X(a), fineH - 8);
+  }
+  ctx.fillStyle = css("--muted"); ctx.textAlign = "right"; ctx.fillText("fine", padL - 6, yF + 11);
+  ctx.textAlign = "center";
+  for (const t of [0, 0.5, 1]) ctx.fillText(t === 0.5 ? "s" : String(t), X(t), g.h - 3);
+  /* s marker */
+  ctx.strokeStyle = css("--ink"); ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(X(s), padT); ctx.lineTo(X(s), yF + fineH - 8); ctx.stroke();
+  ctx.fillStyle = css("--ink"); ctx.beginPath(); ctx.arc(X(s), padT + 2, 4, 0, 2 * Math.PI); ctx.fill();
+
+  /* --- feature vector */
+  const groups = [], terms = [];
+  offsets.forEach((o, kk) => {
+    const n = Math.floor((1 + o - 1e-9) / h) + 1, on = cell(s, o, h);
+    let cells = "";
+    for (let j = 0; j < n; j++) cells += `<b class="${j === on ? "on" : ""}">${j === on ? 1 : 0}</b>`;
+    groups.push(`<span class="grp"><span>tiling ${kk + 1}</span>${cells}</span>`);
+    terms.push(`θ<sub>${kk + 1},${on + 1}</sub>`);
+  });
+  document.getElementById("k-phi").innerHTML = groups.join("");
+  const nW = offsets.reduce((t, o) => t + Math.floor((1 + o - 1e-9) / h) + 1, 0);
+  document.getElementById("k-phi-v").innerHTML =
+    `<i>s</i> = <span class="num">${s.toFixed(3)}</span>: ϕ(<i>s</i>) has ${nW} entries and ${K_(offsets.length)} ones, so ` +
+    `<i>v</i>(<i>s</i>; θ) = ϕ(<i>s</i>)<sup>⊤</sup>θ = <span class="num">${terms.join(" + ")}</span>`;
+
+  /* --- kernel */
+  const k = kernelRow(s, offsets, h);
+  const g2 = setup(kern), c2 = g2.ctx, pT = 8, pB = 18;
+  const Y = y => pT + (1.05 - y) * (g2.h - pT - pB) / 1.1;
+  const X2 = x => padL + x * (g2.w - padL - padR);
+  c2.font = MONO; c2.fillStyle = css("--muted"); c2.strokeStyle = rule; c2.lineWidth = 1;
+  c2.beginPath(); c2.moveTo(X2(0), Y(0)); c2.lineTo(X2(1), Y(0)); c2.stroke();
+  c2.setLineDash([2, 3]); c2.beginPath(); c2.moveTo(X2(0), Y(1)); c2.lineTo(X2(1), Y(1)); c2.stroke(); c2.setLineDash([]);
+  c2.textAlign = "right"; c2.fillText("1", padL - 6, Y(1) + 4); c2.fillText("0", padL - 6, Y(0) + 4);
+  c2.textAlign = "center"; for (const t of [0, 0.5, 1]) c2.fillText(t === 0.5 ? "s′" : String(t), X2(t), g2.h - 3);
+  // staircase, filled
+  c2.fillStyle = structure; c2.globalAlpha = 0.22;
+  c2.beginPath(); c2.moveTo(X2(0), Y(0));
+  for (let i = 0; i < KN; i++) { c2.lineTo(X2(i / KN), Y(k[i])); c2.lineTo(X2((i + 1) / KN), Y(k[i])); }
+  c2.lineTo(X2(1), Y(0)); c2.closePath(); c2.fill(); c2.globalAlpha = 1;
+  c2.strokeStyle = structure; c2.lineWidth = 2;
+  c2.beginPath(); for (let i = 0; i < KN; i++) { const a = X2(i / KN), b = X2((i + 1) / KN); i ? c2.lineTo(a, Y(k[i])) : c2.moveTo(a, Y(k[i])); c2.lineTo(b, Y(k[i])); } c2.stroke();
+  // running mean of random draws
+  if (kst.mean && kst.draws > 1) {
+    c2.strokeStyle = css("--green"); c2.lineWidth = 2.2;
+    const i0 = sIndex(s); let first = true; c2.beginPath();
+    for (let i = 0; i < KN; i++) { const d = i - i0 + KN; if (!kst.cnt[d]) continue;
+      const y = Y(kst.mean[d] / kst.cnt[d]); first ? c2.moveTo(X2(KS[i]), y) : c2.lineTo(X2(KS[i]), y); first = false; }
+    c2.stroke();
+  }
+  // hat
+  c2.strokeStyle = orange; c2.lineWidth = 1.8; c2.setLineDash([6, 4]);
+  c2.beginPath(); for (let i = 0; i < KN; i++) { const y = Y(hatK(KS[i] - s, h)); i ? c2.lineTo(X2(KS[i]), y) : c2.moveTo(X2(KS[i]), y); } c2.stroke(); c2.setLineDash([]);
+  c2.strokeStyle = css("--ink"); c2.lineWidth = 1.5;
+  c2.beginPath(); c2.moveTo(X2(s), Y(0)); c2.lineTo(X2(s), Y(1.05)); c2.stroke();
+
+  /* legend and reading */
+  const leg = [
+    `<span><span class="sw" style="background:${structure}"></span>κ(s, s′) for these offsets</span>`,
+    `<span><span class="sw" style="background:${orange}"></span>hat (1 − |s − s′|/h)₊, the linear B-spline</span>`];
+  if (kst.off === "random") leg.push(`<span><span class="sw" style="background:${css("--green")}"></span>mean over ${kst.draws} random draws</span>`);
+  document.getElementById("k-legend").innerHTML = leg.join("");
+  const fine = edges.length - 1;
+  let maxDev = 0; for (let i = 0; i < KN; i++) maxDev = Math.max(maxDev, Math.abs(k[i] - hatK(KS[i] - s, h)));
+  let txt;
+  if (kst.off === "even") {
+    txt = m === 1
+      ? `One tiling is state aggregation: κ(s, s′) is 1 inside the tile of <i>s</i> and 0 outside, a box. Add tilings and watch the box turn into a staircase.`
+      : `${m} tilings cut [0, 1] into <b>${fine}</b> fine cells of width <i>h</i>/<i>K</i> using <b>${offsets.reduce((t, o) => t + Math.floor((1 + o - 1e-9) / kst.h) + 1, 0)}</b> weights. ` +
+        `Between <i>s</i> and <i>s</i>′ every tile edge belongs to a different tiling, so they share <i>K</i> minus the number of edges between them: ` +
+        `a staircase within <span class="num">${maxDev.toFixed(3)}</span> of the hat (1/<i>K</i> = <span class="num">${(1 / m).toFixed(3)}</span>).`;
+  } else {
+    txt = kst.draws > 1
+      ? `For one draw the staircase is irregular. Averaged over <b>${kst.draws}</b> draws, the probability that no edge falls between <i>s</i> and <i>s</i>′ is (1 − |s − s′|/h)₊: the hat again, as in the random binning features of Rahimi and Recht.`
+      : `Random offsets give an irregular staircase. Press play: <i>s</i> sweeps, the offsets are redrawn at every step, and the green curve averages the kernels.`;
+  }
+  document.getElementById("k-read").innerHTML = txt;
+  document.getElementById("k-play").innerHTML = (kst.playing ? "❚❚ Pause" : "▶ ") + (kst.playing ? "" : (kst.off === "even" ? "Sweep <i>s</i>" : "Sweep <i>s</i>, redraw offsets"));
+}
+
+function stepKernel(t) {
+  kst.s = 0.5 + 0.42 * Math.sin(t / 2600);       // s sweeps in both modes
+  if (kst.off === "random") {
+    // new random offsets at every step; the running mean is kept as a function of
+    // the displacement s' - s, so it keeps converging to the hat while s moves
+    kst.offsets = randomOffsets(kst.m, kst.h, kst.rng);
+    if (!kst.mean) { kst.mean = new Float64Array(2 * KN + 1); kst.cnt = new Float64Array(2 * KN + 1); kst.draws = 0; }
+    const k = kernelRow(kst.s, kst.offsets, kst.h), i0 = sIndex(kst.s);
+    for (let i = 0; i < KN; i++) { kst.mean[i - i0 + KN] += k[i]; kst.cnt[i - i0 + KN]++; }
+    kst.draws++;
+  }
+}
+
+/* ================================================================== tab 2: learning */
+const LH = 0.2, LALPHA = 0.1, LSIGMA = 0.3, LN = 400;
+const vstar = s => Math.sin(2 * Math.PI * s) + 0.8 * (s > 0.6 ? 1 : 0);
+const LG = Float64Array.from({length: LN}, (_, i) => (i + 0.5) / LN);
+const lst = {m: 8, speed: 10, playing: false, t: 0, rng: mulberry32(11), learners: [], err: [], last: null, lastGrid: null};
+function makeLearner(name, m, h, color) {
+  const offsets = evenOffsets(m, h), per = Math.ceil(1 / h) + 2;
+  return {name, m, h, offsets, per, w: new Float64Array(m * per), color, bump: null};
+}
+function lIndices(L, s) { return L.offsets.map((o, k) => k * L.per + cell(s, o, L.h)); }
+function lValue(L, s) { let v = 0; for (const i of lIndices(L, s)) v += L.w[i]; return v; }
+function lCurve(L) { return Float64Array.from(LG, s => lValue(L, s)); }
+function resetLearn() {
+  const m = lst.m;
+  lst.learners = [
+    makeLearner(`One coarse tiling, width h = ${LH}`, 1, LH, css("--blue")),
+    makeLearner(`One fine tiling, width h/K = ${+(LH / m).toFixed(4)}`, 1, LH / m, css("--purple")),
+    makeLearner(`${m} tilings of width h = ${LH}`, m, LH, css("--orange")),
+  ];
+  lst.t = 0; lst.err = [[], [], []]; lst.last = null; lst.rng = mulberry32(11);
+  recordErr();
+}
+function rmse(L) { let e = 0; for (let i = 0; i < LN; i++) { const d = lValue(L, LG[i]) - vstar(LG[i]); e += d * d; } return Math.sqrt(e / LN); }
+function recordErr() { lst.learners.forEach((L, j) => lst.err[j].push([lst.t, rmse(L)])); }
+function learnSample(keepBump) {
+  const s = lst.rng(), y = vstar(s) + LSIGMA * gauss(lst.rng);
+  for (const L of lst.learners) {
+    const before = keepBump ? lCurve(L) : null;
+    const idx = lIndices(L, s); let v = 0; for (const i of idx) v += L.w[i];
+    const step = LALPHA / L.m * (y - v);
+    for (const i of idx) L.w[i] += step;
+    if (keepBump) { const after = lCurve(L); L.bump = after.map((a, i) => a - before[i]); }
+  }
+  lst.t++; lst.last = [s, y];
+  const t = lst.t;
+  if (t <= 20 || (t <= 200 && t % 5 === 0) || (t <= 2000 && t % 25 === 0) || t % 200 === 0) recordErr();
+}
+function drawLearnTab() {
+  const cv = document.getElementById("l-fits"); if (!cv.clientWidth) return;
+  const g = setup(cv), ctx = g.ctx, padL = 34, padR = 8, n = 3, gapY = 8, axisH = 16;
+  const panelH = (g.h - axisH - gapY * (n - 1)) / n;
+  const X = x => padL + x * (g.w - padL - padR);
+  const ymin = -1.15, ymax = 1.9;
+  ctx.font = MONO;
+  lst.learners.forEach((L, j) => {
+    const top = j * (panelH + gapY), Y = y => top + 16 + (ymax - y) / (ymax - ymin) * (panelH - 18);
+    ctx.strokeStyle = css("--rule"); ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(X(0), Y(0)); ctx.lineTo(X(1), Y(0)); ctx.stroke();
+    ctx.fillStyle = css("--muted"); ctx.textAlign = "left"; ctx.fillText(L.name, X(0) + 2, top + 10);
+    ctx.textAlign = "right"; ctx.fillText("0", padL - 6, Y(0) + 4);
+    // last update bump
+    if (L.bump && lst.last) {
+      const sc = 1;   // drawn at true scale, around zero
+      ctx.fillStyle = L.color; ctx.globalAlpha = 0.4;
+      ctx.beginPath(); ctx.moveTo(X(0), Y(0));
+      for (let i = 0; i < LN; i++) { ctx.lineTo(X(i / LN), Y(sc * L.bump[i] * 8)); ctx.lineTo(X((i + 1) / LN), Y(sc * L.bump[i] * 8)); }
+      ctx.lineTo(X(1), Y(0)); ctx.closePath(); ctx.fill(); ctx.globalAlpha = 1;
+    }
+    // target
+    ctx.strokeStyle = css("--muted"); ctx.lineWidth = 1.4; ctx.setLineDash([5, 4]);
+    ctx.beginPath(); for (let i = 0; i < LN; i++) { const y = Y(vstar(LG[i])); i ? ctx.lineTo(X(LG[i]), y) : ctx.moveTo(X(LG[i]), y); } ctx.stroke(); ctx.setLineDash([]);
+    // fit (piecewise constant)
+    const f = lCurve(L);
+    ctx.strokeStyle = L.color; ctx.lineWidth = 2.2;
+    ctx.beginPath(); for (let i = 0; i < LN; i++) { const a = X(i / LN), b = X((i + 1) / LN); i ? ctx.lineTo(a, Y(f[i])) : ctx.moveTo(a, Y(f[i])); ctx.lineTo(b, Y(f[i])); } ctx.stroke();
+    if (lst.last) {
+      ctx.fillStyle = css("--ink"); ctx.beginPath(); ctx.arc(X(lst.last[0]), Y(clamp(lst.last[1], ymin, ymax)), 3.5, 0, 2 * Math.PI); ctx.fill();
+    }
+  });
+  ctx.fillStyle = css("--muted"); ctx.textAlign = "center";
+  for (const t of [0, 0.5, 1]) ctx.fillText(t === 0.5 ? "s" : String(t), X(t), g.h - 3);
+  document.getElementById("l-legend").innerHTML =
+    `<span><span class="sw" style="background:${css("--muted")}"></span>target v(s), dashed</span>` +
+    `<span><span class="sw" style="background:${css("--ink")};width:7px;height:7px;border-radius:50%"></span>last sample</span>` +
+    `<span><span class="sw box" style="background:${css("--muted")};opacity:.5"></span>shaded: change made by the last sample, magnified 8×</span>`;
+
+  /* error curves, log-x */
+  const ce = document.getElementById("l-err"), g2 = setup(ce), c2 = g2.ctx, pT = 6, pB = 18;
+  const tmax = Math.max(10, lst.t), lx = t => Math.log10(1 + t), Lmax = Math.log10(1 + Math.max(1000, tmax));
+  const X2 = t => padL + lx(t) / Lmax * (g2.w - padL - padR - 70);
+  const emax = 0.8, Y2 = e => pT + (emax - Math.min(e, emax)) / emax * (g2.h - pT - pB);
+  c2.font = MONO; c2.fillStyle = css("--muted"); c2.strokeStyle = css("--rule"); c2.lineWidth = 1;
+  c2.beginPath(); c2.moveTo(padL, Y2(0)); c2.lineTo(g2.w - padR - 70, Y2(0)); c2.stroke();
+  c2.textAlign = "right"; for (const e of [0, 0.4, 0.8]) c2.fillText(e.toFixed(1), padL - 6, Y2(e) + 4);
+  c2.textAlign = "center";
+  for (let p = 0; Math.pow(10, p) <= Math.pow(10, Lmax); p++) { const t = Math.pow(10, p); c2.fillText(t >= 1000 ? `${t / 1000}k` : String(t), X2(t), g2.h - 3); }
+  const labels = [];
+  lst.learners.forEach((L, j) => {
+    const pts = lst.err[j]; if (!pts.length) return;
+    c2.strokeStyle = L.color; c2.lineWidth = 2;
+    c2.beginPath(); pts.forEach(([t, e], i) => i ? c2.lineTo(X2(t), Y2(e)) : c2.moveTo(X2(t), Y2(e))); c2.stroke();
+    const el = rmse(L);
+    labels.push({y: Y2(el) + 4, text: el.toFixed(3), color: L.color});
+  });
+  labels.sort((a, b) => a.y - b.y);
+  for (let i = 1; i < labels.length; i++) labels[i].y = Math.max(labels[i].y, labels[i - 1].y + 13);
+  const lx0 = g2.w - padR - 64;
+  labels.forEach(l => { c2.fillStyle = l.color; c2.textAlign = "left"; c2.fillText(l.text, lx0, l.y); });
+  c2.fillStyle = css("--muted"); c2.textAlign = "right"; c2.fillText("samples", g2.w - padR, g2.h - 3);
+
+  const e = lst.learners.map(L => rmse(L));
+  let txt = `After <b>${lst.t}</b> samples the errors are ` +
+    `<span class="num">${e[0].toFixed(3)}</span> (coarse), <span class="num">${e[1].toFixed(3)}</span> (fine) and <span class="num">${e[2].toFixed(3)}</span> (tile coding). `;
+  if (lst.t < 50) txt += `Early on each sample moves the coarse grid and the tilings over a width <i>h</i>, the hat-shaped bump, while the fine grid learns one narrow cell at a time.`;
+  else if (lst.t < 1500) txt += `Tile coding generalizes like the coarse grid, so it falls as fast at first, and it can represent the fine cells, so it keeps falling where the coarse grid stalls at its approximation error.`;
+  else txt += `The coarse grid has stopped at its approximation error. The fine grid catches up eventually, since tile coding in one dimension spans exactly the functions that are constant on the fine cells; the difference was the speed of learning.`;
+  document.getElementById("l-read").innerHTML = txt;
+  document.getElementById("l-play").textContent = lst.playing ? "❚❚ Pause" : "▶ Play";
+}
+function stepLearn() {
+  const k = lst.speed;
+  for (let i = 0; i < k; i++) learnSample(i === k - 1);
+  if (lst.t >= 20000) lst.playing = false;
+}
+
+/* ================================================================== tab 3: plane */
+const PH = 0.25, PN = 96;
+const pst = {m: 8, off: "diag", hash: 0, s: [0.42, 0.55], offsets: [], playing: false, rng: mulberry32(5), hashSeed: 1, buckets: null, phase: 0};
+function setPOffsets() {
+  const m = pst.m;
+  if (pst.off === "random") pst.offsets = Array.from({length: m}, () => [pst.rng() * PH, pst.rng() * PH]);
+  else { const d = pst.off === "diag" ? [1, 1] : [1, 3];
+    pst.offsets = Array.from({length: m}, (_, k) => [(k * d[0] * PH / m) % PH, (k * d[1] * PH / m) % PH]); }
+}
+const PER = Math.ceil(1 / PH) + 2;
+function pTiles(x, y) { return pst.offsets.map((o, k) => (k * PER + cell(x, o[0], PH)) * PER + cell(y, o[1], PH)); }
+function makeHash() {
+  const r = mulberry32(1000 + pst.hashSeed), n = 16 * PER * PER * PER;
+  pst.buckets = Int32Array.from({length: n}, () => Math.floor(r() * 1e9));
+}
+function pKernel(sx, sy) {
+  const m = pst.m, own = pTiles(sx, sy), out = new Float64Array(PN * PN), M = pst.hash;
+  const ownB = M ? own.map(i => pst.buckets[i] % M) : null;
+  for (let a = 0; a < PN; a++) for (let b = 0; b < PN; b++) {
+    const t = pTiles((a + 0.5) / PN, (b + 0.5) / PN); let c = 0;
+    if (!M) { for (let k = 0; k < m; k++) if (t[k] === own[k]) c++; }
+    else { for (const i of t) { const bi = pst.buckets[i] % M; for (const bj of ownB) if (bi === bj) c++; } }
+    out[a * PN + b] = c / m;
+  }
+  return out;
+}
+function drawPlaneTab() {
+  const cv = document.getElementById("p-canvas"); if (!cv.clientWidth) return;
+  const side = Math.min(cv.clientWidth, 340);
+  const g = setup(cv, side), ctx = g.ctx;
+  const pad = 6, S = Math.min(g.w, g.h) - 2 * pad, ox = (g.w - S) / 2, oy = pad;
+  const X = x => ox + x * S, Y = y => oy + (1 - y) * S;
+  const k = pKernel(pst.s[0], pst.s[1]);
+  const heat = css("--heat"), rgb = heat.split(",").map(Number);
+  const off = document.createElement("canvas"); off.width = PN; off.height = PN;
+  const oc = off.getContext("2d"), img = oc.createImageData(PN, PN);
+  for (let a = 0; a < PN; a++) for (let b = 0; b < PN; b++) {
+    const v = Math.min(1, k[a * PN + b]), p = 4 * ((PN - 1 - b) * PN + a);
+    img.data[p] = rgb[0]; img.data[p + 1] = rgb[1]; img.data[p + 2] = rgb[2];
+    img.data[p + 3] = v > 0 ? Math.round(255 * (0.1 + 0.85 * v)) : 0;
+  }
+  oc.putImageData(img, 0, 0);
+  ctx.imageSmoothingEnabled = false;
+  ctx.drawImage(off, X(0), Y(1), S, S);
+  ctx.strokeStyle = css("--rule"); ctx.lineWidth = 1; ctx.strokeRect(X(0), Y(1), S, S);
+  // active tile of each tiling
+  ctx.strokeStyle = css("--orange"); ctx.lineWidth = 1; ctx.globalAlpha = 0.7;
+  for (const o of pst.offsets) {
+    const i = cell(pst.s[0], o[0], PH), j = cell(pst.s[1], o[1], PH);
+    const x0 = i * PH - o[0], y0 = j * PH - o[1];
+    ctx.strokeRect(X(x0), Y(y0 + PH), PH * S, PH * S);
+  }
+  ctx.globalAlpha = 1;
+  ctx.fillStyle = css("--ink"); ctx.beginPath(); ctx.arc(X(pst.s[0]), Y(pst.s[1]), 4.5, 0, 2 * Math.PI); ctx.fill();
+  ctx.strokeStyle = css("--raised"); ctx.lineWidth = 1.5; ctx.stroke();
+  document.getElementById("p-legend").innerHTML =
+    `<span><span class="sw box" style="background:rgb(${heat})"></span>κ(s, s′), darker = more shared tiles</span>` +
+    `<span><span class="sw" style="background:${css("--orange")}"></span>the ${pst.m} tiles that contain s</span>`;
+
+  // stats
+  const m = pst.m;
+  let weights = 0;
+  for (const o of pst.offsets) weights += (Math.floor((1 + o[0] - 1e-9) / PH) + 1) * (Math.floor((1 + o[1] - 1e-9) / PH) + 1);
+  const distinct = a => new Set(pst.offsets.map(o => o[a].toFixed(9))).size;
+  const fineAxis = distinct(0) / PH, fineAxisY = distinct(1) / PH;
+  let far = 0, cnt = 0;
+  for (let a = 0; a < PN; a++) for (let b = 0; b < PN; b++) {
+    const dx = (a + 0.5) / PN - pst.s[0], dy = (b + 0.5) / PN - pst.s[1];
+    if (Math.max(Math.abs(dx), Math.abs(dy)) > PH) { cnt++; far += k[a * PN + b]; }
+  }
+  const stats = [
+    `<li>Tile width <b>h = ${PH}</b>, ${m} tiling${m > 1 ? "s" : ""}: <b>${weights}</b> weights (tiles that meet the square).</li>`,
+    pst.off === "random" ? `<li>Random offsets: tile edges anywhere, no regular fine grid.</li>`
+      : `<li>Fine cells of side h/K: <b>${Math.round(fineAxis * fineAxisY)}</b>. One fine grid would need that many weights.</li>`,
+    pst.hash ? `<li>Hashed into <b>${pst.hash}</b> weights: mean κ(s, s′) at distance more than h from s is <b>${(far / cnt).toFixed(3)}</b>; with no hashing it is 0.</li>`
+             : `<li>With no hashing, κ(s, s′) = 0 as soon as s′ is more than h from s in either coordinate.</li>`,
+  ];
+  document.getElementById("p-stats").innerHTML = stats.join("");
+  let txt;
+  if (pst.hash) txt = `Hashing sends the ${weights} tiles to ${pst.hash} weights. A far-away state now shares a weight with <i>s</i> whenever two of their tiles collide, so the kernel gets speckles of false similarity. With an unsigned hash these add, on average, (K² − shared)/M to the inner product.`;
+  else if (m === 1) txt = `One tiling is aggregation: the kernel is the indicator of the square that contains <i>s</i>.`;
+  else if (pst.off === "diag") txt = `With diagonal offsets every tiling moves along the line y = x, so states displaced along the diagonal share more tiles than states displaced across it: the kernel is stretched along the diagonal.`;
+  else if (pst.off === "asym") txt = `The displacement (1, 3) spreads the offsets over the square, and the kernel becomes nearly symmetric. Sutton and Barto recommend displacement vectors of odd integers for this reason.`;
+  else txt = `With offsets drawn independently in each coordinate, the expected kernel is the product of hats, (1 − |Δx|/h)₊(1 − |Δy|/h)₊, a tensor-product linear B-spline.`;
+  document.getElementById("p-read").innerHTML = txt;
+  document.getElementById("p-play").textContent = pst.playing ? "❚❚ Pause" : "▶ Play";
+}
+function stepPlane(t) {
+  pst.phase = t / 3200;
+  pst.s = [0.5 + 0.27 * Math.cos(pst.phase), 0.5 + 0.27 * Math.sin(pst.phase)];
+}
+
+/* ================================================================== wiring */
+let tab = "kernel";
+function drawAll() { drawKernelTab(); drawLearnTab(); drawPlaneTab(); }
+function drawTab() { if (tab === "kernel") drawKernelTab(); else if (tab === "learn") drawLearnTab(); else drawPlaneTab(); }
+
+document.querySelectorAll(".tabs button").forEach(b => b.addEventListener("click", () => {
+  tab = b.dataset.tab;
+  document.querySelectorAll(".tabs button").forEach(x => x.setAttribute("aria-pressed", String(x === b)));
+  document.querySelectorAll("main > section").forEach(s => { s.hidden = s.id !== tab; });
+  drawTab(); ensureLoop();
+}));
+
+/* tab 1 controls */
+const kM = document.getElementById("k-m");
+kM.addEventListener("input", () => { kst.m = +kM.value; document.getElementById("k-m-out").textContent = kM.value; setKOffsets(); drawKernelTab(); });
+document.querySelectorAll("#k-offsets button").forEach(b => b.addEventListener("click", () => {
+  kst.off = b.dataset.off; markPressed("#k-offsets", "data-off", kst.off); setKOffsets(); kst.playing = false; drawKernelTab();
+}));
+document.getElementById("k-play").addEventListener("click", () => {
+  kst.playing = !kst.playing;
+  
+  drawKernelTab(); ensureLoop();
+});
+function dragS(canvas, onX) {
+  let down = false;
+  const pos = e => { const r = canvas.getBoundingClientRect(); return (e.clientX - r.left - 34) / (r.width - 42); };
+  canvas.addEventListener("pointerdown", e => { down = true; canvas.setPointerCapture(e.pointerId); onX(pos(e), e); });
+  canvas.addEventListener("pointermove", e => { if (down) onX(pos(e), e); });
+  canvas.addEventListener("pointerup", () => { down = false; });
+}
+for (const id of ["k-tiles", "k-kernel"]) dragS(document.getElementById(id), x => {
+  kst.s = clamp(x, 0.001, 0.999);
+  if (kst.off === "even") kst.playing = false;
+  
+  drawKernelTab();
+});
+
+/* tab 2 controls */
+document.getElementById("l-play").addEventListener("click", () => { lst.playing = !lst.playing; drawLearnTab(); ensureLoop(); });
+document.getElementById("l-step").addEventListener("click", () => { lst.playing = false; learnSample(true); drawLearnTab(); });
+document.getElementById("l-reset").addEventListener("click", () => { lst.playing = false; resetLearn(); drawLearnTab(); });
+document.querySelectorAll("#l-speed button").forEach(b => b.addEventListener("click", () => {
+  lst.speed = +b.dataset.speed; markPressed("#l-speed", "data-speed", lst.speed);
+}));
+const lM = document.getElementById("l-m");
+lM.addEventListener("input", () => { lst.m = +lM.value; document.getElementById("l-m-out").textContent = lM.value; lst.playing = false; resetLearn(); drawLearnTab(); });
+
+/* tab 3 controls */
+const pM = document.getElementById("p-m");
+pM.addEventListener("input", () => { pst.m = +pM.value; document.getElementById("p-m-out").textContent = pM.value; setPOffsets(); drawPlaneTab(); });
+document.querySelectorAll("#p-offsets button").forEach(b => b.addEventListener("click", () => {
+  pst.off = b.dataset.off; markPressed("#p-offsets", "data-off", pst.off); setPOffsets(); drawPlaneTab();
+}));
+document.querySelectorAll("#p-hash button").forEach(b => b.addEventListener("click", () => {
+  pst.hash = +b.dataset.hash; markPressed("#p-hash", "data-hash", pst.hash); drawPlaneTab();
+}));
+document.getElementById("p-rehash").addEventListener("click", () => { pst.hashSeed++; makeHash(); drawPlaneTab(); });
+document.getElementById("p-play").addEventListener("click", () => { pst.playing = !pst.playing; drawPlaneTab(); ensureLoop(); });
+(() => {
+  const cv = document.getElementById("p-canvas"); let down = false;
+  const set = e => {
+    const r = cv.getBoundingClientRect(), side = Math.min(r.width, 340), S = side - 12, ox = (r.width - S) / 2;
+    pst.s = [clamp((e.clientX - r.left - ox) / S, 0.001, 0.999), clamp(1 - (e.clientY - r.top - 6) / S, 0.001, 0.999)];
+    pst.playing = false; drawPlaneTab();
+  };
+  cv.addEventListener("pointerdown", e => { down = true; cv.setPointerCapture(e.pointerId); set(e); });
+  cv.addEventListener("pointermove", e => { if (down) set(e); });
+  cv.addEventListener("pointerup", () => { down = false; });
+})();
+
+/* animation loop: runs only while the visible tab is playing */
+let looping = false, lastFrame = 0;
+function playing() { return (tab === "kernel" && kst.playing) || (tab === "learn" && lst.playing) || (tab === "plane" && pst.playing); }
+function ensureLoop() { if (!looping && playing()) { looping = true; requestAnimationFrame(loop); } }
+function loop(t) {
+  if (!playing() || document.hidden) { looping = false; drawTab(); return; }
+  if (tab === "kernel") { if (kst.off === "even" || t - lastFrame > 60) { stepKernel(t); lastFrame = t; } drawKernelTab(); }
+  else if (tab === "learn") { if (t - lastFrame > 60) { stepLearn(); lastFrame = t; drawLearnTab(); } }
+  else { stepPlane(t); drawPlaneTab(); }
+  requestAnimationFrame(loop);
+}
+document.addEventListener("visibilitychange", ensureLoop);
+
+/* init */
+setKOffsets(); setPOffsets(); makeHash(); resetLearn();
+markPressed("#k-offsets", "data-off", kst.off);
+markPressed("#l-speed", "data-speed", lst.speed);
+markPressed("#p-offsets", "data-off", pst.off);
+markPressed("#p-hash", "data-hash", pst.hash);
+/* #view=kernel|learn|plane (or ?view=) shows one panel without the tab bar, so the
+   chapter can place each panel next to the paragraph it illustrates */
+const view = new URLSearchParams(location.search).get("view") || (location.hash.match(/view=(\w+)/) || [])[1];
+const single = ["kernel", "learn", "plane"].includes(view);
+if (single) {
+  document.querySelector(".tabs").hidden = true;
+  document.querySelector(`.tabs button[data-tab="${view}"]`).click();
+} else if (["#learn", "#plane"].includes(location.hash)) document.querySelector(`.tabs button[data-tab="${location.hash.slice(1)}"]`).click();
+syncTheme();
+try {
+  if (window.parent !== window) new MutationObserver(syncTheme).observe(window.parent.document.documentElement, {attributes: true, attributeFilter: ["class"]});
+} catch (e) {}
+window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", syncTheme);
+window.addEventListener("resize", drawAll);
+if (document.fonts) document.fonts.ready.then(drawAll);
+/* start the sweep once the figure scrolls into view, unless the reader asked for less motion */
+if (!reduceMotion && "IntersectionObserver" in window) {
+  const io = new IntersectionObserver(es => {
+    if (!es.some(e => e.isIntersecting)) return;
+    if (tab === "kernel") kst.playing = true;
+    else if (tab === "plane") pst.playing = true;
+    else lst.playing = true;
+    drawTab(); ensureLoop(); io.disconnect();
+  });
+  io.observe(document.querySelector("main"));
+}
+window.__tileCoding = {kst, lst, pst, kernelRow, pKernel, rmse};
+})();
+</script>
+</body>
+</html>
