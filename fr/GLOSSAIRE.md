@@ -138,6 +138,11 @@ terme récurrent avant de l'employer dans un chapitre.
 | reparameterization trick | astuce de reparamétrisation |
 | likelihood ratio | rapport de vraisemblance |
 | control variate | variable de contrôle |
+| tile coding / tiling / tile | codage par tuiles / pavage / tuile |
+| offset (of a tiling) | décalage |
+| hashing / hash table | hachage / table de hachage |
+| random features | caractéristiques aléatoires |
+| averager | moyenneur |
 | baseline | référence |
 | advantage / GAE | avantage / estimation généralisée de l'avantage (GAE) |
 | surrogate loss | perte de substitution |

@@ -635,7 +635,7 @@ $$
 \hat{L}^{\text{CLIP}}(\boldsymbol{w}; \mathcal{D}) = \frac{1}{|\mathcal{D}|} \sum_{(s,a,A) \in \mathcal{D}} \ell^{\text{CLIP}}(\boldsymbol{w}; s, a, A)
 $$ (eq:ppo-clip)
 
-This is the same plug-in approximation used in [fitted Q-iteration](fitted-q-iteration.md): replace the unknown population distribution with the empirical distribution $\hat{P}_{\mathcal{D}}$ induced by the collected batch, then compute the sample average. The empirical surrogate $\hat{L}^{\text{CLIP}}$ is simply an expectation under $\hat{P}_{\mathcal{D}}$. No assumptions about stationarity or discounted visitation are needed. We just average over the transitions we collected.
+This is the same plug-in approximation used in [fitted Q-iteration](monte-carlo-bellman-estimation.md#sec-fqi-batch): replace the unknown population distribution with the empirical distribution $\hat{P}_{\mathcal{D}}$ induced by the collected batch, then compute the sample average. The empirical surrogate $\hat{L}^{\text{CLIP}}$ is simply an expectation under $\hat{P}_{\mathcal{D}}$. No assumptions about stationarity or discounted visitation are needed. We just average over the transitions we collected.
 
 #### Intuition for the Clipping Mechanism
 

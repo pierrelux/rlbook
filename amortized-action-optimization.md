@@ -195,13 +195,13 @@ where the expectation is over states in the dataset or replay buffer. This gradi
 How does a fitted-Q batch algorithm change when an actor supplies each
 continuous maximizing action in the Bellman target?
 
-NFQCA {cite:p}`Hafner2011` extends the NFQI template from the [previous chapter](fitted-q-iteration.md) to handle continuous action spaces by replacing the $\max_{a'} q(s',a'; \boldsymbol{\theta})$ operator in the Bellman target with a parameterized policy $\pi_{\boldsymbol{w}}(s')$. This transforms fitted Q-iteration into an actor-critic method: the critic $q(s,a; \boldsymbol{\theta})$ evaluates state-action pairs via the standard regression step, while the actor $\pi_{\boldsymbol{w}}(s)$ provides actions by directly maximizing the learned Q-function.
+NFQCA {cite:p}`Hafner2011` extends the NFQI template of the [chapter on fitted value methods](monte-carlo-bellman-estimation.md#sec-fqi-batch) to handle continuous action spaces by replacing the $\max_{a'} q(s',a'; \boldsymbol{\theta})$ operator in the Bellman target with a parameterized policy $\pi_{\boldsymbol{w}}(s')$. This transforms fitted Q-iteration into an actor-critic method: the critic $q(s,a; \boldsymbol{\theta})$ evaluates state-action pairs via the standard regression step, while the actor $\pi_{\boldsymbol{w}}(s)$ provides actions by directly maximizing the learned Q-function.
 
 The algorithm retains the two-level structure of NFQI: an outer loop performs approximate value iteration by computing Bellman targets, and an inner loop fits the Q-function to those targets. NFQCA adds a third component (policy improvement) that updates $\boldsymbol{w}$ to maximize the Q-function over states sampled from the dataset.
 
 ### From Discrete to Continuous Actions
 
-Recall from the [FQI chapter](fitted-q-iteration.md) that NFQI computes Bellman targets using the hard max:
+Recall from the [chapter on fitted value methods](monte-carlo-bellman-estimation.md#sec-fqi-batch) that NFQI computes Bellman targets using the hard max:
 
 $$
 y_{s,a} = r + \gamma \max_{a' \in \mathcal{A}} q(s',a'; \boldsymbol{\theta}_n)
@@ -258,7 +258,7 @@ This policy improvement step runs after the Q-function has been updated, using t
 - $\texttt{fit}_\pi(\mathcal{D}, \boldsymbol{w}_n, \boldsymbol{\theta}_{n+1}, K_\pi, \alpha_\pi)$ runs $K_\pi$ gradient steps maximizing $\frac{1}{|\mathcal{D}|} \sum_{(s,a,r,s') \in \mathcal{D}} q(s, \pi_{\boldsymbol{w}}(s); \boldsymbol{\theta}_{n+1})$, warm starting from $\boldsymbol{w}_n$
 ```
 
-The algorithm structure mirrors NFQI ({prf:ref}`fitted-q-iteration-batch` in the [FQI chapter](fitted-q-iteration.md)) with two extensions. First, target computation (lines 7-8) replaces the discrete max with a policy network call $\pi_{\boldsymbol{w}_n}(s')$, making the Bellman operator tractable for continuous actions. Second, after fitting the Q-function (line 11), we add a policy improvement step (line 13) that updates $\boldsymbol{w}$ to maximize the Q-function evaluated at policy-generated actions over states in the dataset.
+The algorithm structure mirrors NFQI ({prf:ref}`fitted-q-iteration-batch` in the [chapter on fitted value methods](monte-carlo-bellman-estimation.md#sec-fqi-batch)) with two extensions. First, target computation (lines 7-8) replaces the discrete max with a policy network call $\pi_{\boldsymbol{w}_n}(s')$, making the Bellman operator tractable for continuous actions. Second, after fitting the Q-function (line 11), we add a policy improvement step (line 13) that updates $\boldsymbol{w}$ to maximize the Q-function evaluated at policy-generated actions over states in the dataset.
 
 Both `fit` operations use gradient descent with warm starting, consistent with the NFQI template. The Q-function minimizes squared Bellman error using targets computed with the current policy. The policy maximizes the Q-function via gradient ascent on the composition $q(s, \pi_{\boldsymbol{w}}(s); \boldsymbol{\theta}_{n+1})$, which is differentiable end-to-end when both networks are differentiable. The gradient with respect to $\boldsymbol{w}$ is:
 
@@ -273,7 +273,7 @@ computed via the chain rule (backpropagation through the actor into the critic).
 How can the batch actor-critic construction collect new transitions and update
 both networks online?
 
-We now extend NFQCA to the online setting with evolving replay buffers, mirroring how DQN extended NFQI in the [FQI chapter](fitted-q-iteration.md). Just as DQN allowed $\mathcal{B}_t$ and $\hat{P}_{\mathcal{B}_t}$ to evolve during learning instead of using a fixed offline dataset, DDPG {cite:p}`lillicrap2015continuous` collects new transitions during training and stores them in a circular replay buffer.
+We now extend NFQCA to the online setting with evolving replay buffers, mirroring how DQN extended NFQI in the [DQN chapter](fitted-q-iteration.md). Just as DQN allowed $\mathcal{B}_t$ and $\hat{P}_{\mathcal{B}_t}$ to evolve during learning instead of using a fixed offline dataset, DDPG {cite:p}`lillicrap2015continuous` collects new transitions during training and stores them in a circular replay buffer.
 
 Like DQN, DDPG uses the flattened FQI structure with target networks. But where DQN maintains a single target network $\boldsymbol{\theta}_{\text{target}}$ for the Q-function, DDPG maintains **two** target networks: one for the critic $\boldsymbol{\theta}_{\text{target}}$ and one for the actor $\boldsymbol{w}_{\text{target}}$. Both are updated periodically (every $K$ steps) to mark outer-iteration boundaries, following the same nested-to-flattened transformation shown for DQN.
 
@@ -327,7 +327,7 @@ However, later work (including TD3, discussed below) found that simple uncorrela
 7. **return** $\boldsymbol{\theta}_t$, $\boldsymbol{w}_t$
 ```
 
-The algorithm structure parallels DQN ({prf:ref}`dqn` in the [FQI chapter](fitted-q-iteration.md)) with the continuous-action extensions from NFQCA. Lines 1-5 initialize both networks and their targets, following the same pattern as DQN but with an additional actor network. Line 3 uses the online actor with exploration noise for data collection, replacing DQN's $\varepsilon$-greedy selection. Line 7 computes targets using both target networks: the actor target $\pi_{\boldsymbol{w}_{\text{target}}}(s'_i)$ selects the next action, and the critic target $q(\cdot; \boldsymbol{\theta}_{\text{target}})$ evaluates it. This replaces the $\max_{a'}$ operator in DQN. Lines 8-9 update both networks: critic via TD error minimization, actor via policy gradient through the updated critic. Line 10 performs periodic hard updates every $K$ steps, marking outer-iteration boundaries.
+The algorithm structure parallels DQN ({prf:ref}`dqn` in the [DQN chapter](fitted-q-iteration.md)) with the continuous-action extensions from NFQCA. Lines 1-5 initialize both networks and their targets, following the same pattern as DQN but with an additional actor network. Line 3 uses the online actor with exploration noise for data collection, replacing DQN's $\varepsilon$-greedy selection. Line 7 computes targets using both target networks: the actor target $\pi_{\boldsymbol{w}_{\text{target}}}(s'_i)$ selects the next action, and the critic target $q(\cdot; \boldsymbol{\theta}_{\text{target}})$ evaluates it. This replaces the $\max_{a'}$ operator in DQN. Lines 8-9 update both networks: critic via TD error minimization, actor via policy gradient through the updated critic. Line 10 performs periodic hard updates every $K$ steps, marking outer-iteration boundaries.
 
 The policy gradient in line 9 uses the chain rule to backpropagate through the actor-critic composition:
 
@@ -346,7 +346,7 @@ DDPG inherits the overestimation bias from DQN's use of the max operator in Bell
 
 ### Twin Q-Networks and the Minimum Operator
 
-Recall from the [chapter on sampled Bellman updates](monte-carlo-bellman-estimation.md) that overestimation arises when we use the same noisy estimate both to select which action looks best and to evaluate that action. Double Q-learning breaks this coupling by maintaining two independent estimators with noise terms $\varepsilon^{(1)}_a$ and $\varepsilon^{(2)}_a$:
+Recall from the [chapter on fitted value methods](monte-carlo-bellman-estimation.md#sec-mc-overestimation) that overestimation arises when we use the same noisy estimate both to select which action looks best and to evaluate that action. Double Q-learning breaks this coupling by maintaining two independent estimators with noise terms $\varepsilon^{(1)}_a$ and $\varepsilon^{(2)}_a$:
 
 $$
 a^\star = \arg\max_{a} \left\{r(s,a) + \gamma \hat{\mu}^{(1)}_N(s,a)\right\}, \quad Y = r(s,a^\star) + \gamma \hat{\mu}^{(2)}_N(s,a^\star).
@@ -370,7 +370,7 @@ This trade-off between bias and robustness is deliberate. In actor-critic method
 
 TD3 also introduces two additional modifications beyond the clipped double Q-learning. First, target policy smoothing adds clipped noise to the target policy's actions when computing targets: $\tilde{a} = \pi_{\boldsymbol{w}_{\text{target}}}(s') + \text{clip}(\varepsilon, -c, c)$. This regularization prevents the policy from exploiting narrow peaks in the Q-function approximation error by averaging over nearby actions. Second, delayed policy updates change the actor update frequency: the actor updates every $d$ steps instead of every step. This reduces per-update error by letting the critics converge before the actor adapts to them.
 
-TD3 also replaces DDPG's hard target updates with **exponential moving average (EMA)** updates, following the smooth update scheme from {prf:ref}`nfqi-flattened-ema` in the [FQI chapter](fitted-q-iteration.md). Instead of copying $\boldsymbol{\theta}_{\text{target}} \leftarrow \boldsymbol{\theta}_t$ every $K$ steps, EMA smoothly tracks the online network: $\boldsymbol{\theta}_{\text{target}} \leftarrow \tau \boldsymbol{\theta}_t + (1-\tau)\boldsymbol{\theta}_{\text{target}}$ at every update. For small $\tau \in [0.001, 0.01]$, the target lags behind the online network by roughly $1/\tau$ steps, providing smoother learning dynamics.
+TD3 also replaces DDPG's hard target updates with **exponential moving average (EMA)** updates, following the smooth update scheme from {prf:ref}`nfqi-flattened-ema` in the [DQN chapter](fitted-q-iteration.md). Instead of copying $\boldsymbol{\theta}_{\text{target}} \leftarrow \boldsymbol{\theta}_t$ every $K$ steps, EMA smoothly tracks the online network: $\boldsymbol{\theta}_{\text{target}} \leftarrow \tau \boldsymbol{\theta}_t + (1-\tau)\boldsymbol{\theta}_{\text{target}}$ at every update. For small $\tau \in [0.001, 0.01]$, the target lags behind the online network by roughly $1/\tau$ steps, providing smoother learning dynamics.
 
 ```{prf:algorithm} Twin Delayed Deep Deterministic Policy Gradient (TD3)
 :label: td3

@@ -104,9 +104,10 @@ with the weighted-residual template of numerical analysis
 conditions can be written out and solved in closed form. Once the conditions
 are fixed, which algorithm finds $\theta$, and does the contraction that made
 value iteration converge survive the approximation? The
-[next chapter](approximate-bellman-equations.md) answers the second question
-for an arbitrary fitting rule, neural networks included, and ends with the
-steps that lead from it to FQI and NFQCA.
+[next chapter](approximate-bellman-equations.md) answers the second question,
+and the [chapter on fitted value methods](monte-carlo-bellman-estimation.md)
+extends the iteration to any regressor, neural networks included, and to
+sampled data.
 
 (sec-wr-fishery)=
 ## A Motivating Example: Harvesting a Fishery Near a Tipping Point
@@ -166,8 +167,8 @@ shading marks the three regions of the policy.
 
 The optimal policy has three regions. Above $S^\star = 0.712$, the regulator
 harvests down to the constant escapement $S^\star$, the policy that
-{cite:t}`Reed1979` proved optimal for this class of models. His condition
-$\gamma f'(S^\star) = 1$ gives $0.710$. The small gap comes from bad years,
+{cite:t}`Reed1979` proved optimal for this class of models. Reed's optimality condition,
+$\gamma f'(S^\star) = 1$, gives $S^\star = 0.710$. The small gap comes from bad years,
 which leave the stock below $S^\star$, where a fish left to spawn is worth more
 than its price. Between $\hat s = 0.23$ and $S^\star$, the fishery is closed
 and the stock rebuilds. Below $\hat s$, the policy fishes the stock out: a
@@ -182,11 +183,11 @@ elsewhere.
 
 Now suppose we may store only $n$ numbers. Two choices are natural.
 
-- A Chebyshev polynomial, $v(s; \theta) = \sum_{j=1}^{n} \theta_j \varphi_j(s)$
-  with $\varphi_j(s) = T_{j-1}(2s/1.6 - 1)$. The basis is smooth and global:
+- A Chebyshev polynomial, $v(s; \theta) = \sum_{j=1}^{n} \theta_j \phi_j(s)$
+  with $\phi_j(s) = T_{j-1}(2s/1.6 - 1)$. The basis is smooth and global:
   every coefficient changes the value at every stock.
 - Piecewise-linear interpolation on $n$ uniform nodes,
-  $v(s;\theta) = \sum_{j=1}^{n} \theta_j \varphi_j(s)$ with $\varphi_j$ the
+  $v(s;\theta) = \sum_{j=1}^{n} \theta_j \phi_j(s)$ with $\phi_j$ the
   hat functions of the finite-horizon chapter. Each coefficient is the value at
   one node, and it changes the value only between the two neighboring nodes.
 
@@ -282,12 +283,12 @@ matters for solving. When the family is a linear combination of $n$ basis
 functions,
 
 $$
-v(s;\theta) = \sum_{j=1}^n \theta_j \varphi_j(s),
+v(s;\theta) = \sum_{j=1}^n \theta_j \phi_j(s),
 $$
 
 each condition reduces to linear algebra and can be written out, so this
 chapter uses linear families to make the steps explicit. The
-[next chapter](approximate-bellman-equations.md) shows that the solver that
+[chapter on fitted value methods](monte-carlo-bellman-estimation.md#sec-abe-fvi) shows that the solver that
 carries over to neural networks needs nothing from the representation beyond
 the ability to fit it to data.
 
@@ -311,7 +312,7 @@ large number of features.
 :class: note
 
 The fishery used one basis of each kind, with $n = 12$: the Chebyshev
-polynomials $\varphi_j(s) = T_{j-1}(2s/1.6 - 1)$, and the hat functions of
+polynomials $\phi_j(s) = T_{j-1}(2s/1.6 - 1)$, and the hat functions of
 twelve uniform nodes, for which $\theta_j$ is the value at node $j$. Its value
 function has a kink at $\hat s$ and a cliff at the tipping point, which is why
 the two bases behaved so differently with the same $n$: the polynomial spread
@@ -330,7 +331,7 @@ $$ (eq:bellman-residual)
 
 the **Bellman residual**, where $v_\theta$ abbreviates $v(\cdot;\theta)$. It
 measures by how much the approximation fails the equation at $s$, and it is
-the zero function exactly when $v_\theta$ is a fixed point of $\Bellman$. The
+the zero function if and only if $v_\theta$ is a fixed point of $\Bellman$. The
 [Newton–Kantorovich section](infinite-horizon-mdps.md#sec-newton-kantorovich-pi)
 of the infinite-horizon chapter wrote the Bellman equation as the root-finding
 problem $\mathrm{B}(v) = 0$ with $\mathrm{B}(v) = \Bellman v - v$. The residual
@@ -388,7 +389,7 @@ Each test is therefore a direction. For a unit vector $\mathbf{p}$, the inner
 product $\langle \mathbf{r}, \mathbf{p} \rangle = \|\mathbf{r}\| \cos\angle(\mathbf{r}, \mathbf{p})$
 is the signed length of the shadow that $\mathbf{r}$ casts on the line of
 $\mathbf{p}$: it is large when $\mathbf{r}$ is aligned with $\mathbf{p}$ and
-zero when the two are perpendicular. A set of tests passes exactly when
+zero when the two are perpendicular. A set of tests passes if and only if
 $\mathbf{r}$ is perpendicular to every test direction, which is the same as
 being perpendicular to the subspace that they span. The tests need not be
 orthogonal to each other or of unit length; only that subspace matters. The
@@ -462,7 +463,7 @@ every method in use.
 | **Method** | **Test functions** $p_i$ | **Conditions** ($n$ equations) |
 |:-----------|:--------------------------|:-------------------------------|
 | Collocation | Point masses at chosen states $s_1, \ldots, s_n$ | $R(s_i; \theta) = 0$ |
-| Galerkin | The basis functions $\varphi_i$ | $\langle R(\cdot;\theta), \varphi_i \rangle_w = 0$ |
+| Galerkin | The basis functions $\phi_i$ | $\langle R(\cdot;\theta), \phi_i \rangle_w = 0$ |
 | Least squares | The derivatives $\partial R / \partial \theta_i$ of the residual | $\langle R(\cdot;\theta), \partial R/\partial\theta_i \rangle_w = 0$ |
 
 #### Collocation: a Zero Residual at Chosen States
@@ -499,7 +500,8 @@ masses as test functions, as the dual-pairing formulation of
 each condition costs one evaluation of the Bellman operator. The conditions
 make the residual vanish at the nodes and leave it unconstrained between
 them, as the residual of the differential equation is unconstrained between
-the collocation points of a trajectory. The name says as much. To collocate,
+the collocation points of a trajectory. The name of the method describes
+this. To collocate,
 from the Latin *collocare*, is to place together, and in the definition of
 {cite:t}`FrazerJonesSkan1937` that the
 [collocation chapter](continuous-time-collocation.md) recalled, it is "the act
@@ -512,7 +514,7 @@ $n - 1$, the standard choice is the zeros of the $n$-th Chebyshev
 polynomial, the **Chebyshev nodes**, and the combination is called
 **orthogonal collocation**. The same nodes serve as the nodes of
 Gauss–Chebyshev quadrature, the interpolation matrix
-$\Phi_{ij} = \varphi_j(s_i)$ built on them is well conditioned, and the
+$\Phi_{ij} = \phi_j(s_i)$ built on them is well conditioned, and the
 polynomial through them is within a small factor of the best polynomial
 approximation of a smooth function, so a residual that vanishes at them stays
 small between them. Equally spaced nodes have none of these properties once
@@ -521,17 +523,89 @@ the basis itself, where one cardinal function equals one and the others
 vanish, so that the interpolation matrix is the identity and the coefficients
 are the values at the nodes.
 
-Write $\Proj$ for interpolation through the collocation points, the map that
-sends a function $g$ to the element of the span with $(\Proj g)(s_i) = g(s_i)$
-at every node. The collocation conditions say that $v_\theta$ and
-$\Bellman v_\theta$ agree at the nodes, that is,
+The collocation conditions can be rewritten as a fixed-point equation for the
+function $v_\theta$, and the derivation takes three steps. Write
+$\boldsymbol\phi(s) = (\phi_1(s), \ldots, \phi_n(s))^\top$ for the
+vector of basis functions at $s$, so that
+$v(s;\theta) = \boldsymbol\phi(s)^\top\theta$, and for any function $g$ of
+the state write $g(\mathbf{s}) = (g(s_1), \ldots, g(s_n))^\top$ for the vector
+of its values at the collocation points. The rows of the interpolation matrix
+$\boldsymbol\Phi$ are the vectors $\boldsymbol\phi(s_i)^\top$, so the
+values of the approximation at the nodes are
+$v_\theta(\mathbf{s}) = \boldsymbol\Phi\theta$. Assume that
+$\boldsymbol\Phi$ is invertible, which holds for a polynomial basis with
+distinct nodes and for hat functions collocated at their own nodes.
+
+The first step writes the $n$ conditions as one vector equation. The
+condition at $s_i$ is
+$(\Bellman v_\theta)(s_i) = v_\theta(s_i) = \boldsymbol\phi(s_i)^\top\theta$,
+and stacking the $n$ of them gives
+
+$$
+\boldsymbol\Phi\,\theta = (\Bellman v_\theta)(\mathbf{s}),
+\qquad\text{that is,}\qquad
+\theta = \boldsymbol\Phi^{-1}(\Bellman v_\theta)(\mathbf{s}) .
+$$ (eq:collocation-coefficients)
+
+This is already a fixed-point equation, in the coefficients: $\theta$ appears
+on the right through $v_\theta$.
+
+The second step gives a name to the map on the right. The interpolant of a
+function $g$ through the nodes is the element of the span that has the same
+values as $g$ at the nodes. Its coefficients $c$ solve
+$\boldsymbol\Phi c = g(\mathbf{s})$, so
+
+$$
+(\Proj g)(s) = \boldsymbol\phi(s)^\top \boldsymbol\Phi^{-1} g(\mathbf{s}) .
+$$ (eq:interpolation-projection)
+
+Three properties of this map are used below. It is linear in $g$, because $g$
+enters only through the vector $g(\mathbf{s})$. It reproduces $g$ at the
+nodes, since
+$(\Proj g)(\mathbf{s}) = \boldsymbol\Phi\boldsymbol\Phi^{-1}g(\mathbf{s}) = g(\mathbf{s})$.
+And it leaves the elements of the span unchanged: if
+$g(s) = \boldsymbol\phi(s)^\top c$, then $g(\mathbf{s}) = \boldsymbol\Phi c$
+and $\Proj g = g$. Applying $\Proj$ twice therefore gives the same result as
+applying it once, $\Proj(\Proj g) = \Proj g$. A linear map with this property
+is a **projection**: it sends every function into the span and leaves the
+span fixed.
+
+The third step multiplies {eq}`eq:collocation-coefficients` on the left by
+$\boldsymbol\phi(s)^\top$. For every state $s$,
+
+$$
+v_\theta(s) = \boldsymbol\phi(s)^\top\theta
+= \boldsymbol\phi(s)^\top\boldsymbol\Phi^{-1}(\Bellman v_\theta)(\mathbf{s})
+= (\Proj\,\Bellman v_\theta)(s),
+$$
+
+where the last equality is {eq}`eq:interpolation-projection` with
+$g = \Bellman v_\theta$. As an equation between functions,
 
 $$
 v_\theta = \Proj\, \Bellman v_\theta .
 $$ (eq:projected-bellman)
 
-The approximate solution is a fixed point of the Bellman operator followed by
+The steps also run backward. If $v_\theta = \Proj\,\Bellman v_\theta$, then
+evaluating both sides at the nodes and using that $\Proj g$ reproduces $g$
+there gives $v_\theta(s_i) = (\Bellman v_\theta)(s_i)$ for every $i$, which
+are the collocation conditions. The collocation solutions are therefore
+exactly the fixed points of $\Proj\Bellman$: the Bellman operator followed by
 a projection, which is the form that Step 4 exploits.
+
+The derivation used two assumptions. The family is linear in $\theta$, so
+that its values at the nodes are $\boldsymbol\Phi\theta$ and the interpolant
+of any function is again a member of the family. And $\boldsymbol\Phi$ is
+invertible. Nothing was assumed about $\Bellman$ beyond the fact that it
+returns a function that can be evaluated at the nodes. The operator may
+contain a maximum and be nonlinear in $v$; the projection $\Proj$ is linear
+whatever $\Bellman$ is, and the nonlinearity stays inside $\Bellman$. With a
+nodal basis, $\boldsymbol\Phi$ is the identity and
+{eq}`eq:interpolation-projection` becomes
+$(\Proj g)(s) = \sum_{j=1}^n \phi_j(s)\, g(s_j)$, a combination of the
+values at the nodes weighted by the cardinal functions. The
+[next chapter](approximate-bellman-equations.md#sec-abe-convergence) uses
+this form to decide when $\Proj\Bellman$ is a contraction.
 
 Read the right-hand side as a composition of maps on functions, not as a
 product of matrices. $\Bellman v_\theta$ is the operator applied to the
@@ -561,26 +635,99 @@ cannot detect.
 #### Galerkin: a Residual Orthogonal to the Basis
 
 Galerkin takes the basis functions themselves as test functions,
-$\langle R(\cdot;\theta), \varphi_i \rangle_w = 0$ for $i = 1, \ldots, n$.
+$\langle R(\cdot;\theta), \phi_i \rangle_w = 0$ for $i = 1, \ldots, n$.
 By linearity the residual is then orthogonal to every function in the
-approximation space $\mathcal{V} = \text{span}\{\varphi_1, \ldots, \varphi_n\}$,
+approximation space $\mathcal{V} = \text{span}\{\phi_1, \ldots, \phi_n\}$,
 
 $$
-\Big\langle R, \sum_{i=1}^n c_i \varphi_i \Big\rangle_w = \sum_{i=1}^n c_i \langle R, \varphi_i \rangle_w = 0 \quad \text{for every } c \in \mathbb{R}^n,
+\Big\langle R, \sum_{i=1}^n c_i \phi_i \Big\rangle_w = \sum_{i=1}^n c_i \langle R, \phi_i \rangle_w = 0 \quad \text{for every } c \in \mathbb{R}^n,
 $$
 
-which is the defining property of an orthogonal projection: the component of
-$\Bellman v_\theta$ that lies in $\mathcal{V}$ is $v_\theta$ itself. The
+so that $\Bellman v_\theta - v_\theta$ is orthogonal to $\mathcal{V}$. The
 vector example at the start of this step has the same structure. To
 approximate a vector of $\mathbb{R}^3$ by a vector in the plane spanned by
 $\mathbf{e}_1$ and $\mathbf{e}_2$, one keeps $(v_1, v_2, 0)$, and the error
 $(0, 0, v_3)$ is orthogonal to the plane, so the tests $\mathbf{e}_1$ and
-$\mathbf{e}_2$ detect nothing in it.
-With $\Proj$ now the $w$-orthogonal projection onto $\mathcal{V}$, the
-Galerkin conditions read again $v_\theta = \Proj\,\Bellman v_\theta$, the
-projected Bellman equation {eq}`eq:projected-bellman` with a different
-$\Proj$. Orthogonality here is with respect to the weighted inner product
-$\langle \cdot, \cdot \rangle_w$. When $w$ is not uniform, the same map seen
+$\mathbf{e}_2$ detect nothing in it. Keeping $(v_1, v_2, 0)$ is the
+orthogonal projection onto the plane, and the Galerkin conditions say that
+$v_\theta$ is the orthogonal projection of $\Bellman v_\theta$ onto
+$\mathcal{V}$.
+
+The same three steps as for collocation make this precise. Collect the
+inner products among the basis functions in the **mass matrix**
+$\mathbf{M}$, with entries $M_{ij} = \langle \phi_i, \phi_j \rangle_w$,
+and for a function $g$ write $\mathbf{b}(g)$ for the vector of its inner
+products with the basis, $b_i(g) = \langle g, \phi_i \rangle_w$. Assume
+that the basis functions are linearly independent under $w$: no combination
+$\boldsymbol\phi^\top c$ with $c \neq 0$ has zero $w$-norm. Since
+$c^\top \mathbf{M} c = \|\boldsymbol\phi^\top c\|_w^2$, this says that
+$\mathbf{M}$ is positive definite, hence invertible.
+
+The first step writes the conditions as one vector equation. Since
+$v_\theta = \sum_j \theta_j \phi_j$, the inner product of $v_\theta$ with
+$\phi_i$ is $\sum_j M_{ij}\theta_j = (\mathbf{M}\theta)_i$. Condition $i$,
+$\langle \Bellman v_\theta - v_\theta, \phi_i \rangle_w = 0$, therefore
+reads $b_i(\Bellman v_\theta) = (\mathbf{M}\theta)_i$, and stacking the $n$
+conditions gives
+
+$$
+\mathbf{M}\,\theta = \mathbf{b}(\Bellman v_\theta),
+\qquad\text{that is,}\qquad
+\theta = \mathbf{M}^{-1}\mathbf{b}(\Bellman v_\theta),
+$$ (eq:galerkin-coefficients)
+
+a fixed-point equation in the coefficients, as for collocation, with
+$\mathbf{M}$ in place of $\boldsymbol\Phi$ and inner products in place of
+values at the nodes.
+
+The second step identifies the map on the right. The $w$-orthogonal
+projection of a function $g$ onto $\mathcal{V}$ is the element of
+$\mathcal{V}$ closest to $g$ in the norm $\|\cdot\|_w$, the function
+$\boldsymbol\phi^\top c$ whose coefficients minimize
+$\|\boldsymbol\phi^\top c - g\|_w^2$. Expanding the square,
+
+$$
+\|\boldsymbol\phi^\top c - g\|_w^2
+= c^\top \mathbf{M} c - 2\, c^\top \mathbf{b}(g) + \|g\|_w^2 ,
+$$
+
+a quadratic function of $c$ whose Hessian $2\mathbf{M}$ is positive definite.
+Its unique minimizer is the zero of the gradient
+$2\mathbf{M}c - 2\mathbf{b}(g)$, which is $c = \mathbf{M}^{-1}\mathbf{b}(g)$, so
+
+$$
+(\Proj g)(s) = \boldsymbol\phi(s)^\top \mathbf{M}^{-1}\mathbf{b}(g) .
+$$ (eq:galerkin-projection)
+
+This map has the properties of the interpolation operator. It is linear in
+$g$, because $\mathbf{b}$ is. It leaves the elements of $\mathcal{V}$
+unchanged: if $g = \boldsymbol\phi^\top c$, then
+$\mathbf{b}(g) = \mathbf{M}c$ and $\Proj g = g$, so $\Proj(\Proj g) = \Proj g$.
+In place of reproducing $g$ at the nodes, it leaves an error that is
+orthogonal to every basis function,
+$\langle g - \Proj g, \phi_i \rangle_w = b_i(g) - (\mathbf{M}\mathbf{M}^{-1}\mathbf{b}(g))_i = 0$.
+That is the $\mathbb{R}^3$ picture: the part of $g$ that the projection
+discards is invisible to the tests.
+
+The third step multiplies {eq}`eq:galerkin-coefficients` on the left by
+$\boldsymbol\phi(s)^\top$:
+
+$$
+v_\theta(s) = \boldsymbol\phi(s)^\top\theta
+= \boldsymbol\phi(s)^\top\mathbf{M}^{-1}\mathbf{b}(\Bellman v_\theta)
+= (\Proj\,\Bellman v_\theta)(s)
+$$
+
+for every $s$, which is $v_\theta = \Proj\,\Bellman v_\theta$, the projected
+Bellman equation {eq}`eq:projected-bellman` with $\Proj$ now the
+$w$-orthogonal projection onto $\mathcal{V}$. Conversely, if
+$v_\theta = \Proj\,\Bellman v_\theta$, the residual
+$\Bellman v_\theta - v_\theta = \Bellman v_\theta - \Proj\,\Bellman v_\theta$
+is orthogonal to every $\phi_i$ by the last property, which is the set of
+Galerkin conditions. As for collocation, the derivation needs the family to be
+linear in $\theta$ and $\mathbf{M}$ to be invertible, and it allows
+$\Bellman$ to be nonlinear. Orthogonality here is with respect to the weighted
+inner product $\langle \cdot, \cdot \rangle_w$. When $w$ is not uniform, the same map seen
 in the unweighted Euclidean geometry is an oblique projection; it is
 orthogonal only after rescaling each state by $\sqrt{w(s)}$. In reinforcement
 learning $w$ is the distribution of the states in the data, and the
@@ -598,6 +745,120 @@ of the basis to the backups $(\Bellman v_\theta)(s_m)$ at the sampled states.
 The targets of that regression depend on its own solution, and Step 4 breaks
 the circularity.
 
+(sec-wr-one-formula)=
+#### One Formula for Any Fixed Tests
+
+Collocation and Galerkin are two instances of one construction. For test
+functions $p_1, \ldots, p_n$ fixed in advance, form the $n \times n$ matrix
+$\mathbf{A}$ with entries $A_{ij} = \langle \phi_j, p_i \rangle_w$ and the
+vector $\mathbf{b}_p(g)$ with entries $\langle g, p_i \rangle_w$. The
+conditions {eq}`eq:weighted-residual-conditions` read
+$\mathbf{A}\theta = \mathbf{b}_p(\Bellman v_\theta)$, and when $\mathbf{A}$ is
+invertible the map
+$(\Proj g)(s) = \boldsymbol\phi(s)^\top\mathbf{A}^{-1}\mathbf{b}_p(g)$ is a
+projection onto $\mathcal{V}$ whose error $g - \Proj g$ passes all $n$ tests.
+The argument of the two previous subsections goes through unchanged and gives
+$v_\theta = \Proj\,\Bellman v_\theta$. Collocation has point masses as tests,
+so $\mathbf{A} = \boldsymbol\Phi$ and $\mathbf{b}_p(g) = g(\mathbf{s})$.
+Galerkin has the basis functions as tests, so $\mathbf{A} = \mathbf{M}$ and
+$\mathbf{b}_p = \mathbf{b}$. When the tests differ from the basis, the error
+of $\Proj$ is orthogonal to the tests and not to $\mathcal{V}$, and $\Proj$
+is an **oblique projection**: it moves $g$ onto $\mathcal{V}$ along the
+directions that the tests cannot see. The interpolation operator is of this
+kind.
+
+On a finite state space with $m$ states, these maps are matrices. Stack the
+rows $\boldsymbol\phi(s)^\top$ for all $m$ states into an $m \times n$
+matrix $\boldsymbol\Phi_{\mathcal{S}}$, let $\mathbf{W} = \operatorname{diag}(w)$,
+so that $\langle f, g \rangle_w = f^\top \mathbf{W} g$, and let $\mathbf{E}$
+be the $n \times m$ matrix whose row $i$ selects the state $s_i$, so that
+$g(\mathbf{s}) = \mathbf{E}g$ and $\boldsymbol\Phi = \mathbf{E}\boldsymbol\Phi_{\mathcal{S}}$.
+Put the values of the $n$ tests at the $m$ states in the columns of an
+$m \times n$ matrix $\boldsymbol\Psi$. Then
+$\mathbf{A} = \boldsymbol\Psi^\top\mathbf{W}\boldsymbol\Phi_{\mathcal{S}}$,
+$\mathbf{b}_p(g) = \boldsymbol\Psi^\top\mathbf{W}g$, and the projection is the
+matrix
+
+$$
+\Proj = \boldsymbol\Phi_{\mathcal{S}}\,(\boldsymbol\Psi^\top\mathbf{W}\boldsymbol\Phi_{\mathcal{S}})^{-1}\,\boldsymbol\Psi^\top\mathbf{W} .
+$$ (eq:oblique-projection)
+
+It is idempotent, $\Proj^2 = \Proj$, because
+$(\boldsymbol\Psi^\top\mathbf{W}\boldsymbol\Phi_{\mathcal{S}})^{-1}\boldsymbol\Psi^\top\mathbf{W}\boldsymbol\Phi_{\mathcal{S}}$
+is the identity. A point mass at $s_i$ is the test whose weighted inner
+product with $g$ returns $g(s_i)$, so for collocation
+$\boldsymbol\Psi^\top\mathbf{W} = \mathbf{E}$; for Galerkin,
+$\boldsymbol\Psi = \boldsymbol\Phi_{\mathcal{S}}$. The two projections are
+
+$$
+\Proj_{\text{col}} = \boldsymbol\Phi_{\mathcal{S}}\,(\mathbf{E}\boldsymbol\Phi_{\mathcal{S}})^{-1}\,\mathbf{E},
+\qquad
+\Proj_{\text{gal}} = \boldsymbol\Phi_{\mathcal{S}}\,(\boldsymbol\Phi_{\mathcal{S}}^\top\mathbf{W}\boldsymbol\Phi_{\mathcal{S}})^{-1}\,\boldsymbol\Phi_{\mathcal{S}}^\top\mathbf{W} .
+$$ The Galerkin matrix is the one that the
+[next chapter](approximate-bellman-equations.md#sec-abe-convergence) uses,
+where $\boldsymbol\Phi_{\mathcal{S}}$ is written $\boldsymbol\Phi$ and
+$\mathbf{W}$ is written $\boldsymbol\Xi$.
+
+The code below checks the derivations on the policy-evaluation problem of
+{numref}`fig-test-functions`, with six hat functions and with six Legendre
+polynomials collocated at the Chebyshev nodes. It solves the collocation and
+the Galerkin conditions directly, builds the two projections from
+{eq}`eq:interpolation-projection` and {eq}`eq:galerkin-projection`, and
+measures how far each solution is from being a fixed point of each
+projected operator.
+
+```{code-cell} python
+:tags: [hide-input]
+
+import sys
+from pathlib import Path
+
+import numpy as np
+
+sys.path.insert(0, str(Path.cwd() / "code"))
+from test_functions_demo import GAMMA, GRID, PROBS, QW, basis, reward, solve, successors
+
+def backup(phi, n, theta, s):
+    # (L_pi v_theta)(s) = r(s) + gamma E[v_theta(s')]
+    return reward(s) + GAMMA * (phi(successors(s), n) @ theta) @ PROBS
+
+for kind in ("hat", "legendre"):
+    n = 6
+    phi, nodes = basis(kind, n)
+    Phi = phi(nodes, n)                       # interpolation matrix, Phi_ij = phi_j(s_i)
+    F = phi(GRID, n)                          # basis on a fine grid
+    M = F.T @ (QW[:, None] * F)               # mass matrix, uniform weight
+
+    def P_col(g):                             # coefficients of the interpolant
+        return np.linalg.solve(Phi, g(nodes))
+
+    def P_gal(g):                             # coefficients of the w-orthogonal projection
+        return np.linalg.solve(M, F.T @ (QW * g(GRID)))
+
+    print(f"{kind} basis, n = {n}: sup over states of |v_theta - P L v_theta|")
+    print(f"{'solution':<13}{'P = interpolation':>20}{'P = orthogonal':>17}")
+    for method in ("collocation", "galerkin"):
+        theta = solve(kind, n, method)
+        Lv = lambda s: backup(phi, n, theta, s)
+        gaps = [np.max(np.abs(F @ theta - F @ P(Lv))) for P in (P_col, P_gal)]
+        print(f"{method:<13}{gaps[0]:>20.1e}{gaps[1]:>17.1e}")
+
+    # P leaves the span fixed, and the Galerkin error is orthogonal to the basis
+    c = np.random.default_rng(0).normal(size=n)
+    g = lambda s: phi(s, n) @ c
+    Lv = lambda s: backup(phi, n, solve(kind, n, "galerkin"), s)
+    err = Lv(GRID) - F @ P_gal(Lv)
+    print(f"  span fixed: {np.max(np.abs(P_col(g) - c)):.1e} (interpolation), "
+          f"{np.max(np.abs(P_gal(g) - c)):.1e} (orthogonal)")
+    print(f"  max |<g - P g, phi_i>_w| for the orthogonal projection: "
+          f"{np.max(np.abs(F.T @ (QW * err))):.1e}\n")
+```
+
+Each solution is a fixed point of its own projected operator, to rounding
+error, and is not a fixed point of the other one. The two methods solve the
+same kind of equation, $v_\theta = \Proj\,\Bellman v_\theta$, with two
+different projections, and that is the only difference between them.
+
 #### Least Squares: the Smallest Residual
 
 The most direct choice minimizes the weighted norm of the residual,
@@ -611,15 +872,17 @@ test functions $p_i = \partial R / \partial \theta_i$. For the Bellman
 residual this is **Bellman residual minimization**. Its test functions,
 
 $$
-\frac{\partial R(s;\theta)}{\partial \theta_i} = \frac{\partial (\Bellman v_\theta)(s)}{\partial \theta_i} - \varphi_i(s),
+\frac{\partial R(s;\theta)}{\partial \theta_i} = \frac{\partial (\Bellman v_\theta)(s)}{\partial \theta_i} - \phi_i(s),
 $$
 
 contain the derivative of the Bellman operator with respect to the
 coefficients, which Galerkin and collocation never need. Computing it means
 differentiating through the maximum, which Step 4 does with the envelope
 theorem. The solution also differs from the Galerkin solution, because the
-residual is made orthogonal to a different set of functions, and it is not a
-projected Bellman equation. The [next chapter](approximate-bellman-equations.md)
+residual is made orthogonal to a different set of functions. It is not a
+projected Bellman equation with a projection fixed in advance: the tests
+$\partial R/\partial\theta_i$ contain the derivative of $\Bellman$, so they
+change with the operator and, through the maximum, with $\theta$. The [chapter on fitted value methods](monte-carlo-bellman-estimation.md#sec-abe-fvi)
 returns to the difference between fitting a backup and minimizing the
 residual, which separates the algorithms used in practice from this one.
 
@@ -736,7 +999,7 @@ version has two steps. The first evaluates the operator at the nodes with the cu
 $t_i = (\Bellman v_k)(s_i)$ for $i = 1, \ldots, n$. The second chooses the
 coefficients that reproduce those $n$ targets, which is the linear system
 $\boldsymbol{\Phi}\theta_{k+1} = t$ with the interpolation matrix
-$\Phi_{ij} = \varphi_j(s_i)$. With hat functions collocated at their own
+$\Phi_{ij} = \phi_j(s_i)$. With hat functions collocated at their own
 nodes the solve is trivial, because $\boldsymbol\Phi$ is the identity. The
 Galerkin version replaces the second step by the orthogonal projection of the
 target function, which is the weighted least-squares fit
@@ -746,8 +1009,8 @@ $$
 $$
 
 Its first-order conditions are the linear system $M\theta_{k+1} = b_k$ with
-the mass matrix $M_{ij} = \langle \varphi_i, \varphi_j \rangle_w$ and
-$b_i = \langle \Bellman v_k, \varphi_i \rangle_w$. The system is linear
+the mass matrix $M_{ij} = \langle \phi_i, \phi_j \rangle_w$ and
+$b_i = \langle \Bellman v_k, \phi_i \rangle_w$. The system is linear
 whatever the operator is, because the target $\Bellman v_k$ is computed from
 $\theta_k$ and held fixed while $\theta_{k+1}$ is chosen. With sampled states,
 the fit is an ordinary regression of the backups on the basis. This fit is
@@ -758,32 +1021,42 @@ on the side of the approximation; in an implementation by gradient descent,
 the target is wrapped in a stop-gradient. The circularity of Step 3 is gone: the targets come
 from the previous iterate. Fitting a parametric function to Bellman backups,
 then recomputing the backups, is the algorithm that the
-[next chapter](approximate-bellman-equations.md) calls fitted value iteration
+[chapter on fitted value methods](monte-carlo-bellman-estimation.md#sec-abe-fvi) calls fitted value iteration
 and generalizes to any regressor.
 
 Whether the iteration converges is a separate question. Being a contraction
 is a property of an operator with respect to a norm: an operator that
 contracts in the sup norm need not contract in a weighted $L^2$ norm, and
 conversely. The composed operator $\Proj\Bellman$ therefore inherits the
-contraction of $\Bellman$ only if $\Proj$ does not expand distances in the
-same norm. The Bellman operator
-is a $\gamma$-contraction in the sup norm, so value iteration converges from
-any start ({prf:ref}`value-iteration-convergence`). If $\Proj$ does not
-increase sup-norm distances, then neither does the composition, and
-{eq}`eq:projected-vi` converges to the unique solution of the projected
-Bellman equation, with the error shrinking by $\gamma$ per iteration. Whether
-$\Proj$ stretches sup-norm distances depends on the sign of its weights. An
-interpolation operator with nonnegative cardinal functions returns a convex
-combination of the targets, which cannot exceed them; this is the condition
-$\Lambda = 1$ of {prf:ref}`prop-interp-error-accumulation`, and such a
-$\Proj$ cannot stretch. Polynomial interpolation through Chebyshev nodes has
-cardinal functions that dip below zero between the nodes, so it can amplify a
-difference between two target vectors, and the iteration can then diverge
-although every iteration reproduces its targets exactly. The
+contraction of $\Bellman$ when $\Proj$ is a **nonexpansion** in the same
+norm, that is, when
+
+$$
+\|\Proj u - \Proj w\| \leq \|u - w\| \quad \text{for all } u, w.
+$$
+
+The Bellman operator is a $\gamma$-contraction in the sup norm, so value
+iteration converges from any start ({prf:ref}`value-iteration-convergence`).
+If $\Proj$ is a nonexpansion in the sup norm, then
+$\|\Proj\Bellman u - \Proj\Bellman w\|_\infty \leq \|\Bellman u - \Bellman w\|_\infty \leq \gamma\|u - w\|_\infty$,
+so $\Proj\Bellman$ is a $\gamma$-contraction, and {eq}`eq:projected-vi`
+converges to the unique solution of the projected Bellman equation, with the
+sup-norm error multiplied by at most $\gamma$ per iteration. For a linear
+$\Proj$, being a sup-norm nonexpansion means that its sup-norm operator norm,
+which for interpolation is the Lebesgue constant $\Lambda$, is at most one,
+and this depends on the sign of the weights. An interpolation operator with
+nonnegative cardinal functions returns a convex combination of the targets,
+so $\Lambda = 1$, the condition of {prf:ref}`prop-interp-error-accumulation`,
+and $\Proj$ is a nonexpansion. Polynomial interpolation through Chebyshev
+nodes has cardinal functions that dip below zero between the nodes, so
+$\Lambda > 1$: for some pairs of target vectors,
+$\|\Proj u - \Proj w\|_\infty > \|u - w\|_\infty$. The composition need not
+be a contraction, and the iteration can diverge although every iteration
+reproduces its targets exactly. The
 [next chapter](approximate-bellman-equations.md) proves that the first kind
 of fit always preserves the contraction and shows what happens with the
 second. Even when it converges, function iteration is slow when $\gamma$ is
-near one: the error shrinks by $\gamma$ per iteration, so reducing it by
+near one: the error bound decreases by a factor $\gamma$ per iteration, so reducing it by
 $10^{-10}$ with $\gamma = 0.95$ takes about 450 iterations.
 
 ::::{admonition} The fishery at Step 4
@@ -804,9 +1077,9 @@ diverged.
 With the hat functions the iteration converged for every $n$, in about 410
 iterations. With the polynomial it diverged for $n = 4$ and for
 $n = 9, 10, 11$: the coefficients grew without bound, although every
-iteration reproduced its targets exactly. The backup still shrank the
-distance between two value functions by $\gamma$; the interpolation step
-stretched it, by enough to undo the contraction.
+iteration reproduced its targets exactly. The backup was still a
+$\gamma$-contraction in the sup norm, but the polynomial interpolation step is
+not a nonexpansion, and for these $n$ the composition was not a contraction.
 
 The sweep also shows how the two bases spend their accuracy. Piecewise-linear
 interpolation improves steadily as nodes are added, because each node resolves
@@ -833,7 +1106,7 @@ $G_i(\theta) = v(s_i;\theta) - (\Bellman v_\theta)(s_i)$, and the Jacobian
 entries are
 
 $$
-\frac{\partial G_i}{\partial \theta_j} = \varphi_j(s_i) - \frac{\partial (\Bellman v_\theta)(s_i)}{\partial \theta_j}.
+\frac{\partial G_i}{\partial \theta_j} = \phi_j(s_i) - \frac{\partial (\Bellman v_\theta)(s_i)}{\partial \theta_j}.
 $$
 
 The first term is a basis function at a node. The second is the derivative of
@@ -870,10 +1143,10 @@ and the second term vanishes because $\nabla_a g = 0$ at an interior maximizer.
 For the Bellman operator,
 $(\Bellman v_\theta)(s) = \max_a \{ r(s,a) + \gamma\, \mathbb{E}[v(s';\theta) \mid s, a] \}$,
 the objective is linear in $\theta$ with coefficients
-$\gamma\,\mathbb{E}[\varphi_j(s') \mid s, a]$, so
+$\gamma\,\mathbb{E}[\phi_j(s') \mid s, a]$, so
 
 $$
-\frac{\partial (\Bellman v_\theta)(s)}{\partial \theta_j} = \gamma\, \mathbb{E}\big[\varphi_j(s') \mid s, a^*(s;\theta)\big],
+\frac{\partial (\Bellman v_\theta)(s)}{\partial \theta_j} = \gamma\, \mathbb{E}\big[\phi_j(s') \mid s, a^*(s;\theta)\big],
 $$ (eq:envelope-bellman)
 
 where $a^*(s;\theta)$ is the greedy action at $s$ for the current
@@ -887,7 +1160,7 @@ Substituting {eq}`eq:envelope-bellman` into the Newton step gives it a
 familiar form. Let $\pi_k$ be the greedy policy for $v_{\theta_k}$, let
 $\mathbf{r}_{\pi_k}$ collect its rewards at the nodes, and let
 $\mathbf{P}_{\pi_k}\boldsymbol{\Phi}$ be the matrix with entries
-$\mathbb{E}[\varphi_j(s') \mid s_i, \pi_k(s_i)]$. Then
+$\mathbb{E}[\phi_j(s') \mid s_i, \pi_k(s_i)]$. Then
 $J_G = \boldsymbol{\Phi} - \gamma \mathbf{P}_{\pi_k}\boldsymbol{\Phi}$ and
 $G(\theta_k) = \boldsymbol\Phi\theta_k - \mathbf{r}_{\pi_k} - \gamma \mathbf{P}_{\pi_k}\boldsymbol\Phi\theta_k$,
 and the Newton update $J_G \theta_{k+1} = J_G\theta_k - G(\theta_k)$
@@ -921,7 +1194,7 @@ Bellman equation does not.
 | Function iteration | Linear, factor $\gamma$ | $n$ backups and one linear solve with a fixed matrix | $\Proj\,\Bellman$ to be a contraction |
 | Newton's method | Quadratic near the solution | $n$ backups, $n^2$ expectations and a fresh linear solve | A good starting point |
 
-The two are complementary. When the fit is monotone and $\gamma$ is moderate,
+The two solvers complement each other. When the fit is monotone and $\gamma$ is moderate,
 function iteration is simple and robust. When $\gamma$ is near one or the
 basis is a high-order polynomial, a hybrid works well: a few function
 iterations with a coarse, monotone approximation to reach the basin of
@@ -956,7 +1229,7 @@ controls. The value error is what the residual bounds, through
 $1/(1-\gamma)$. The policy loss is what matters, and it depends on the value
 error only through the differences between actions, which an approximation
 can get wrong while its values are accurate and right while they are not.
-The [next chapter](approximate-bellman-equations.md) bounds the policy loss
+The [chapter on fitted value methods](monte-carlo-bellman-estimation.md#sec-abe-error) bounds the policy loss
 by the value error and tests both bounds on a problem that a government
 agency solves every year.
 
@@ -974,7 +1247,7 @@ smaller residual.
 :::{include} artifacts/fishery_tipping_point/results.md
 :::
 
-The table adds the policy loss. At $n = 12$ the polynomial has a residual of
+The table also reports the policy loss of each approximation. At $n = 12$ the polynomial has a residual of
 $0.18$ against $0.21$ for the hat functions and a policy loss eighteen times
 larger, because its oscillations move the decision boundary past the tipping
 point (panel (c) of {numref}`fig-fishery-collocation`).
@@ -990,13 +1263,13 @@ figures.
 :::{exercise} Orthogonality condition
 :label: ex-projection-check-1
 
-In a Galerkin method with basis functions $\varphi_i$, against which functions is the Bellman residual required to be orthogonal, and what does that say about $\Proj\,\Bellman v_\theta$?
+In a Galerkin method with basis functions $\phi_i$, against which functions is the Bellman residual required to be orthogonal, and what does that say about $\Proj\,\Bellman v_\theta$?
 :::
 
 :::{solution} ex-projection-check-1
 :class: dropdown
 
-Against the basis functions themselves: $\langle \Bellman v_\theta - v_\theta, \varphi_i\rangle_w = 0$ for every $i$. The residual is then orthogonal to the whole span, so the $w$-orthogonal projection of $\Bellman v_\theta$ onto the span is $v_\theta$ itself.
+Against the basis functions themselves: $\langle \Bellman v_\theta - v_\theta, \phi_i\rangle_w = 0$ for every $i$. The residual is then orthogonal to the whole span, so the $w$-orthogonal projection of $\Bellman v_\theta$ onto the span is $v_\theta$ itself.
 :::
 
 :::{exercise} Collocation versus least squares
@@ -1073,7 +1346,7 @@ and $1$.
 
 1. $\ell_0(s) = 1 - s^2$ and $\ell_1(s) = s^2$.
 2. Both lie in $[0, 1]$ on $[0, 1]$ and sum to one, so $\Proj g$ is a convex combination of $g(0)$ and $g(1)$ at every $s$ and $\|\Proj f - \Proj g\|_\infty \le \|f - g\|_\infty$. The composition $\Proj\Bellman$ is then a $\gamma$-contraction for any $\gamma$-contraction $\Bellman$, and function iteration converges from any start. On this problem it converges to the collocation solution of {ref}`ex-wr-three-methods`.
-3. The cardinal functions are $2(s - \tfrac12)(s-1)$, $-4s(s-1)$ and $2s(s-\tfrac12)$. The first and last are negative on parts of $[0, 1]$, so $\Lambda = 1.25 > 1$. A difference between two target vectors can be amplified by up to $1.25$, which beats a contraction factor $\gamma > 0.8$; nonexpansiveness, the step the argument needs, fails.
+3. The cardinal functions are $2(s - \tfrac12)(s-1)$, $-4s(s-1)$ and $2s(s-\tfrac12)$. The first and last are negative on parts of $[0, 1]$, so $\Lambda = 1.25 > 1$. The sup-norm operator norm of $\Proj$ is $1.25$, so $\Proj$ is not a nonexpansion: some pair of target vectors has $\|\Proj u - \Proj w\|_\infty = 1.25\,\|u - w\|_\infty$. The bound $1.25\gamma$ on the modulus of $\Proj\Bellman$ then exceeds one for $\gamma > 0.8$, and the argument fails.
 :::
 
 :::{exercise} Newton's method at a tie
@@ -1114,7 +1387,7 @@ same basis, using `Bellman`, `HatBasis` and `growth` from
    `Bellman.greedy` returns it on the fine grid; read off the value at the
    grid point where each node falls.
 2. Build the matrix $\mathbf{P}_{\pi}\boldsymbol{\Phi}$ with entries
-   $\mathbb{E}_z[\varphi_j(z f(a_i))]$, using the quadrature nodes
+   $\mathbb{E}_z[\phi_j(z f(a_i))]$, using the quadrature nodes
    `bellman.z` and weights `bellman.w`. For hat functions, $\boldsymbol\Phi$ is
    the identity.
 3. Solve $(\mathbf{I} - \gamma \mathbf{P}_{\pi}\boldsymbol{\Phi})\theta = \mathbf{r}_\pi$
@@ -1211,13 +1484,15 @@ Jacobian a matter for the envelope theorem, and the contraction, which is
 what makes function iteration an option at all.
 
 Step 4 left two things open. Function iteration converged for one basis and
-not the other, and the explanation, that the fit must not stretch sup-norm
-distances, was asserted and not proved. Newton's method was shown to be
+not the other, and the explanation, that the fit must be a nonexpansion in
+the sup norm, was asserted and not proved. Newton's method was shown to be
 policy iteration in coefficient space for collocation, without saying how
 accurate each evaluation must be for the policies to improve. The
-[next chapter](approximate-bellman-equations.md) takes up both for an
-arbitrary fitting rule. Function iteration becomes fitted value iteration, a
-sequence of regression problems with Bellman targets that any regressor can
-solve, and the pattern behind fitted Q-iteration, NFQ and NFQCA. The chapter
-bounds its error, shows when the fit makes it diverge and which fits cannot,
-and turns Newton's method into approximate policy iteration.
+[next chapter](approximate-bellman-equations.md) takes up both. It shows
+when the fit makes function iteration diverge and which fits cannot, and
+turns Newton's method into approximate policy iteration. The
+[chapter after it](monte-carlo-bellman-estimation.md) then lets the fit be any
+regressor, which turns function iteration into fitted value iteration, a
+sequence of regression problems with Bellman targets, bounds its error when
+every fit is accurate, and replaces the exact expectations by samples, which
+leads to fitted Q-iteration.

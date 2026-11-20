@@ -33,8 +33,8 @@ After reading this chapter, you should be able to:
 ## Prerequisites
 
 The chapter assumes familiarity with expectations, probability densities, and
-multivariate differentiation. [Monte Carlo Bellman
-Estimation](monte-carlo-bellman-estimation.md) reviews sample averages and their
+multivariate differentiation. [Fitted Value
+Methods](monte-carlo-bellman-estimation.md) reviews sample averages and their
 variance.
 
 ## Derivative Estimation for Stochastic Optimization

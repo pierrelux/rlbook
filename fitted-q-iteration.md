@@ -11,28 +11,18 @@ kernelspec:
   name: python3
 ---
 
-# Learning from Logged and Online Data
+# Deep Q-Networks: Target Networks, Replay and Online Data
 
-The algorithms of the previous chapters chose the states at which targets
-were computed and drew as many successors as they liked. In practice the data
-are given. A log of transitions $(s, a, r, s')$ was recorded by whoever
-operated the system, with one successor per transition, and no new successor
-can be drawn; or a buffer fills as the agent acts, so that the data change
-while the function is being fitted. This chapter is about fitted Q-iteration
-on such data. The batch algorithms come first: the tree-based FQI of Ernst and
-neural fitted Q-iteration, run on two logs, one from the inference-serving
-scheduler of the infinite-horizon chapter and one of the collision warnings
-that ESA received for its satellites. Both show that the error of a fitted
-policy has two sources, approximation where two actions are nearly tied and
-coverage where the log never tried an action, and the second shows what to
-do when a few rare events dominate the regression. The chapter then opens
-the fitting step. Writing out the gradient steps of a neural fit and merging
-them with the outer loop turns fitted Q-iteration into DQN, with its target
-network and its online network, and letting the buffer evolve during
-learning gives DQN proper, Double DQN, and, at the limit of one transition
-per update, Q-learning. A synthesis section lays out the design space that
-these choices span, and the chapter closes with losses that model the noise
-of Bellman targets better than squared error.
+The [previous chapter](monte-carlo-bellman-estimation.md) ended with fitted
+Q-iteration on a fixed log of transitions: an outer loop that computes Bellman
+targets and an inner loop that fits a function to them, run to completion.
+This chapter opens the inner loop. Writing out the gradient steps of a neural
+fit and merging them with the outer loop turns fitted Q-iteration into DQN,
+with its target network and its online network, and letting the buffer evolve
+during learning gives DQN proper, Double DQN, and, at the limit of one
+transition per update, Q-learning. A synthesis section lays out the design
+space that these choices span, and the chapter closes with losses that model
+the noise of Bellman targets better than squared error.
 
 How do the buffer, the Bellman target, the function approximator and the
 optimization budget combine when only one observed successor is available
@@ -42,391 +32,13 @@ for each stored transition?
 :class: note
 
 After completing this chapter, you should be able to:
-- Write fitted Q-iteration on a fixed set of transitions, and say where the empirical distribution of the data replaces the model
-- Attribute the errors of a fitted policy to approximation, where actions are nearly tied, or to coverage, where the data never tried an action
-- Scale the targets of a regression so that a few rare, costly events do not dominate the fit
 - Flatten the nested loops of neural fitted Q-iteration into DQN, and explain the roles of its online and target networks
+- Explain what Double DQN changes in the target, and why Q-learning is the limit of one transition per update
 - Place an algorithm in the design space of fitted Q-iteration by its buffer, target function, fit, initialization and loss
+- Choose a regression loss for Bellman targets as a model of their noise
 
-**Prerequisites:** fitted value iteration and its error analysis ([fitted value methods](approximate-bellman-equations.md)), action-value functions, the single-sample paradigm and maximization bias ([Monte Carlo Bellman estimation](monte-carlo-bellman-estimation.md)).
+**Prerequisites:** fitted Q-iteration on a fixed set of transitions, action values, maximization bias and the error bounds of fitted value iteration ([fitted value methods](monte-carlo-bellman-estimation.md)).
 ::::
-
-(sec-fqi-batch)=
-## Learning from a Fixed Set of Transitions
-
-The Bellman operator on action values contains an expectation under the
-transition law, which we write $P$ over transitions $\tau = (s, a, r, s')$:
-
-$$
-(\Bellman q)(s,a) = r(s,a) + \gamma \int \max_{a'} q(s',a')\, P(ds' \mid s,a).
-$$
-
-A batch algorithm never sees $P$. It receives a data set
-$\mathcal{D} = \{(s_i, a_i, r_i, s'_i)\}_{i=1}^N$ and works with the
-**empirical distribution**
-
-$$
-\hat{P}_{\mathcal{D}} = \frac{1}{N} \sum_{\tau \in \mathcal{D}} \delta_\tau,
-$$
-
-where $\delta_\tau$ is a point mass at the transition $\tau$. Sampling from
-$\hat{P}_{\mathcal{D}}$ means picking a recorded transition uniformly at
-random, and the expectation of any function of a transition under $P$ is
-estimated by its average over the data set, the sample-average estimator of
-the [chapter on sampled Bellman updates](monte-carlo-bellman-estimation.md) applied to
-transitions. Fitted Q-iteration on a batch is value iteration under this
-empirical law. The target of a transition is $y_i = r_i + \gamma \max_{a'}
-q(s'_i, a')$, with the one successor that was recorded, and the fit averages
-the error of the targets over the transitions in the data set. In the
-language of statistics this is a plug-in estimate: where the algorithm needs
-the unknown $P$, it substitutes $\hat{P}_{\mathcal{D}}$.
-
-```{prf:remark} The empirical distribution as a probability measure
-:class: dropdown
-
-The empirical distribution $\hat{P}_{\mathcal{D}} = \frac{1}{N}\sum_{\tau \in \mathcal{D}} \delta_{\tau}$ is a discrete probability measure over $N$ points, whether the state and action spaces are continuous or discrete. For any measurable set $A \subseteq \mathcal{S} \times \mathcal{A} \times \mathbb{R} \times \mathcal{S}$,
-
-$$
-\hat{P}_{\mathcal{D}}(A) = \frac{1}{N}\sum_{\tau \in \mathcal{D}} \mathbb{1}[\tau \in A] = \frac{|\{\tau \in \mathcal{D} : \tau \in A\}|}{N},
-$$
-
-so it assigns probability $1/N$ to each recorded tuple and zero elsewhere. A transition that never occurred has no weight, which is the formal statement of the coverage problem that the two experiments below exhibit.
-```
-
-```{prf:algorithm} Fitted Q-Iteration on a Batch
-:label: fitted-q-iteration-batch
-
-**Input:** Dataset $\mathcal{D} = \{(s_i, a_i, r_i, s'_i)\}_{i=1}^N$, function approximator $q(s,a; \boldsymbol{\theta})$, discount factor $\gamma$, maximum iterations $n_{\max}$
-
-**Output:** Learned Q-function parameters $\boldsymbol{\theta}$
-
-1. Initialize $\boldsymbol{\theta}_0$
-2. $n \leftarrow 0$
-3. **repeat**  $\quad$ // **Outer loop: value iteration**
-4. $\quad$ **// Construct the regression data set with Bellman targets**
-5. $\quad$ $X^{(n)} \leftarrow \{(s_i, a_i) : (s_i, a_i, r_i, s'_i) \in \mathcal{D}\}$
-6. $\quad$ **for** each $(s_i, a_i, r_i, s'_i) \in \mathcal{D}$ **do**
-7. $\quad\quad$ $y_i^{(n)} \leftarrow r_i + \gamma \max_{a' \in \mathcal{A}} q(s'_i, a'; \boldsymbol{\theta}_n)$
-8. $\quad$ **end for**
-9. $\quad$ **// Inner loop: fit the Q-function to the targets**
-10. $\quad$ $\boldsymbol{\theta}_{n+1} \leftarrow \texttt{fit}(X^{(n)}, y^{(n)}, \boldsymbol{\theta}_{\text{init}}, K)$
-11. $\quad$ $n \leftarrow n+1$
-12. **until** convergence or $n \geq n_{\max}$
-13. **return** $\boldsymbol{\theta}_n$
-```
-
-The state-action pairs $X^{(n)}$ are the same at every iteration; only the
-targets change, because they are computed with the current Q-function. The
-`fit` operation in line 10 minimizes $\sum_i \ell(q(s_i, a_i; \boldsymbol{\theta}),
-y_i^{(n)})$ for a loss $\ell$, by whatever procedure the function class
-calls for, from an initialization $\boldsymbol{\theta}_{\text{init}}$ and
-with an optimization budget $K$. Supervised learning would initialize at
-random and run to convergence. The two original batch algorithms differ in
-exactly these choices.
-
-{cite:t}`ernst2005tree` instantiated the template with extremely randomized
-trees, an ensemble whose prediction is the average of the targets in a leaf.
-Each fit grows the trees from scratch, a cold start, and runs to completion,
-since tree construction has no incremental form. A tree with a fixed
-partition is an averager, so the convergence theorem of the
-[chapter on fitted value methods](approximate-bellman-equations.md) applies once
-the partitions stop changing, and trees take high-dimensional inputs without
-feature design. {cite:t}`riedmiller2005neural` replaced the ensemble by a
-neural network $q(s,a;\boldsymbol\theta)$, which interpolates smoothly across
-the state-action space, and fitted it by gradient descent (RProp, chosen for
-its insensitivity to hyperparameters) until the loss stopped decreasing. The
-network is warm-started: each fit begins from the parameters of the previous
-iteration, which is natural for a gradient method and is the first of the
-choices that the second half of this chapter turns into DQN.
-
-```{prf:remark} Goal states in neural fitted Q-iteration
-:class: dropdown
-
-For episodic tasks with goal states $S^+$ and forbidden states $S^-$, Riedmiller modified the targets:
-
-$$
-y_i^{(n)} = \begin{cases}
-c(s_i, a_i, s'_i) & \text{if } s'_i \in S^+ \text{ (goal reached)} \\
-C^- & \text{if } s'_i \in S^- \text{ (forbidden state, typically } C^- = 1\text{)} \\
-c(s_i, a_i, s'_i) + \gamma \max_{a'} q(s'_i, a'; \boldsymbol{\theta}_n) & \text{otherwise,}
-\end{cases}
-$$
-
-where $c(s, a, s')$ is the immediate cost. A goal state has no future cost and no bootstrapped term, a forbidden state carries a fixed penalty, and every other state uses the Bellman backup. The hint-to-goal heuristic adds synthetic transitions from goal states with target zero, which pins the Q-function to zero in the goal region and encodes the boundary condition explicitly.
-```
-
-### Experiment: Scheduling from Fixed Transition Data
-
-The reduced inference-scheduling MDP in [Infinite-Horizon MDPs](infinite-horizon-mdps.md#exact-scheduling-mdp-for-inference-serving)
-has an exact value-iteration solution because its transition matrix is known.
-Suppose instead that only a fixed table of transitions is retained. Each row
-contains a reduced state $(p,d)$, a scheduling action, the cost $c$, and the
-next reduced state. The generic reward-maximizing form above becomes a
-cost-minimizing form after a sign change. FQI can reuse those rows, but it
-receives no direct evidence for a state-action region that the behavior policy
-never visits. Any prediction there comes from the regressor's inductive bias.
-
-Each transition row is sampled from the finite MDP, not logged directly from
-vLLM. Its arrival model comes from the normalized Azure
-trace, while its phase rates and powers come from one NVIDIA L4 measurement run
-of Qwen/Qwen2.5-7B-Instruct served by vLLM 0.28.0. The data sets therefore
-inherit a measured hardware calibration and all of the reduced model's
-aggregation assumptions.
-
-Two sampling procedures produce matched data sets of 50,000 transitions. The
-**broad** data set draws a reduced state uniformly and then draws uniformly
-among its feasible actions. The **narrow** data set follows trajectories from
-the empty system under a decode-priority heuristic and selects a random
-feasible action with probability 0.05. Both use seed 0 and the same MDP. Their
-different state-action sampling distributions are the controlled change.
-
-Each fitted-Q sweep constructs targets
-
-$$
-y_i^{(n)}=c_i+0.99\min_{u'\in\mathcal A(s_i')}
-q_n(s_i',u')
-$$
-
-and fits a joint state-action Extra-Trees regressor. The ensemble contains 200
-trees with maximum depth 12 and minimum leaf size 2. The random seed is 0;
-successive tree fits use the deterministic seeds 0 through 49 across 50
-fitted-Q sweeps. The three scheduling actions enter as a one-hot input,
-matching the joint state-action representation in the generic batch algorithm
-above. Before each fit, rows with the same state and action are merged into one
-point whose target is their average and whose weight is their count. The
-minimum leaf size of 1 therefore counts distinct state-action pairs, not rows:
-a larger value would force every leaf to average the targets of at least two
-different pairs, which blurs the small differences between actions in the same
-state.
-
-Changing only the sampling distribution tests how coverage affects an
-otherwise identical FQI procedure. The exact dynamic-programming policy and
-both fitted policies are evaluated on the same 2,000 seeded episodes, each 300
-steps long. Return and policy disagreement measure agreement with the reduced
-MDP objective and its exact solution. Mean waiting time, dropped arrivals, and
-observed state-action coverage locate operational differences. Decode stalls
-count periods in which decode jobs were active but the policy did something
-else. In this model they are not errors: the exact policy stalls decode on
-purpose while it prefills to grow the batch.
-
-```{code-cell} python
-:tags: [remove-input]
-:label: fig-inference-scheduling-fqi
-:caption: Extra-Trees FQI on two fixed 50,000-transition data sets sampled from the same measured-L4-calibrated scheduling MDP. These are model transitions, not vLLM logs. The broad data set samples states and feasible actions uniformly; the narrow data set follows decode priority with 5 percent random actions. Each policy table covers all 49 states and marks whether the displayed action occurs in that policy's training buffer.
-
-from pathlib import Path
-import sys
-
-from IPython.display import HTML, display
-
-code_dir = Path.cwd() / "code"
-if str(code_dir) not in sys.path:
-    sys.path.insert(0, str(code_dir))
-
-from inference_replay import render_serving_replay
-
-display(HTML(render_serving_replay(
-    Path("artifacts/inference_serving/textbook_results.json"),
-    view="fqi",
-)))
-```
-
-:::{figure} _static/inference_serving/fqi.svg
-:label: fig-inference-scheduling-fqi-fallback
-:class: pdf-fallback
-:alt: Static comparison of exact value iteration with fitted Q policies learned from broad and narrow transition data.
-
-Policy tables over all 49 states. At each state, a white circle marks that the
-buffer contains visits to the action selected by the displayed policy. The
-interactive version adds playback, stepping, and scrubbing through a queue
-trajectory sampled from the reduced transition model rather than observed
-directly from vLLM.
-:::
-
-Exact dynamic programming and the two fitted-Q policies use the same 2,000
-seeded episodes of 300 steps. Coverage is computed from the feasible
-state-action pairs present in each fixed transition buffer.
-
-```{code-cell} python
-:tags: [remove-input]
-
-import pandas as pd
-
-fqi_metrics = pd.read_csv(
-    "artifacts/inference_serving/metrics_fqi.csv"
-).set_index("controller")
-fqi_metrics[
-    [
-        "mean_discounted_return",
-        "mean_queue_length",
-        "mean_waiting_time_s",
-        "mean_decode_stalls",
-        "mean_dropped_arrivals",
-        "coverage_fraction",
-        "policy_disagreement_fraction",
-    ]
-].T.rename_axis("metric").round(3)
-```
-
-{download}`Download every fitted-Q metric (CSV) <artifacts/inference_serving/metrics_fqi.csv>`
-
-The broad buffer covers every feasible state-action pair, and its fitted policy
-disagrees with the exact policy in 6 of the 49 states (12.24 percent). All six
-lie next to the switching curve, where the exact policy prefills and the fitted
-policy decodes. Each of these state-action pairs appears about 340 times in the
-buffer, so the errors do not come from missing data. In those states the exact
-action values of prefill and decode differ by at most 1.24, while the values
-themselves range from 254 to 891. A regressor that is accurate to a fraction of
-a percent can still rank two actions this close in the wrong order. The broad
-policy's mean discounted return is $-242.25$, compared with $-230.04$ for the
-exact policy, and its mean waiting time is 5.76 seconds rather than 5.24.
-
-The narrow buffer covers 41.73 percent of feasible pairs and disagrees with the
-exact policy in 19 states (38.78 percent). In 15 of those states the buffer
-contains no visit to the action that the fitted policy selects. The log follows
-decode priority, which never prefills while a request is decoding, so the
-regressor has no data on the batching decisions that the exact policy makes.
-Its choices there are extrapolations: it idles in several states with six
-requests decoding, and it prefills past the point where the exact policy
-decodes. Its mean discounted return is $-286.08$, its mean waiting time is
-11.20 seconds, and it drops 1.40 arrivals per episode against 0.20 for the
-exact policy. Return is the negative of discounted cost, so higher values are
-better.
-
-The two data sets have equal size, so the difference between their policies
-cannot be attributed to the number of transition rows. The broad buffer's
-errors come from approximation where the action gap is small; the narrow
-buffer's errors come from coverage, where the behavior policy never took the
-action in question. These are the first and the third difficulty named after
-the error bound of the [chapter on fitted value methods](approximate-bellman-equations.md#sec-abe-error):
-a fit is accurate on average, not at the states where two actions are nearly
-tied, and it is controlled only where there are data.
-
-The hardware calibration is measured, while training and evaluation remain
-inside the stated 49-state MDP. These results concern offline coverage under
-that abstraction. They are not a benchmark of vLLM scheduling or of NVIDIA L4
-hardware across deployments.
-
-:::{dropdown} Inspect the fitted-Q experiment
-```{literalinclude} code/inference_control.py
-:language: python
-:start-at: def fit_fqi
-:end-before: def _reduced_policy_trajectory
-:linenos:
-```
-{download}`Download the complete inference-control implementation <code/inference_control.py>`
-:::
-
-(sec-fqi-conjunctions)=
-### Example: Collision Avoidance Learned from Logged Warnings
-
-This example has no model, only a log. When a satellite and another object, most often a piece of debris, are
-predicted to pass close to each other, the operator receives about three
-conjunction data messages per day over the week before the time of closest
-approach. Each message gives a collision probability estimated from the latest
-tracking. The operator can plan an avoidance maneuver or wait for the next
-message. Waiting buys information, because most alarms go away as the
-tracking improves. It also makes the maneuver more expensive: closer to the
-encounter, a larger change of velocity is needed for the same miss distance,
-and there is less time to plan. ESA plans its maneuvers at least two days
-before closest approach, and its missions in low orbit react to collision
-probabilities between $10^{-5}$ and $10^{-4}$ {cite}`Uriot2022`. ESA released
-the messages of 13,154 conjunctions of its satellites for a machine-learning
-competition {cite}`Uriot2022`, and we use them as the log.
-
-We pose an optimal stopping problem on these sequences. A decision is taken at
-each message received at least two days before closest approach, and once
-more at the two-day deadline with the latest message. A maneuver $t$ days
-before closest approach costs $c(t) = (1 + 2/t)/2$, in units of a maneuver two
-days out. An event without a maneuver costs $C = 10^5$ times the collision
-probability of its last message, the best estimate available, so that a
-maneuver at the deadline breaks even at a probability of $10^{-5}$. The state
-is what the operator knows at a decision: the time $t$ to closest approach,
-the latest log-probability $\rho$, and the age of that message. The costs are
-teaching choices, and ESA's analysts look at much more than one number.
-
-Two features of the problem let fitted Q-iteration work from the log alone.
-A maneuver ends the problem at a known cost, so $q(s, \text{maneuver}) = c(t)$
-needs no learning. And waiting does not change which messages arrive: the
-released sequences contain no maneuvers, so each one shows what follows
-"wait". Fitted Q-iteration only has to learn $W(s) = q(s, \text{wait})$, by
-regression on the logged transitions $(s_i, s_i')$ with targets
-
-$$
-y_i = \begin{cases} C\, p_{\text{final}} & \text{if } s_i \text{ is the deadline,} \\
-\min\{c(t_i'),\, W_k(s_i')\} & \text{otherwise,} \end{cases}
-\qquad W_{k+1} = \operatorname{fit}\big(\{(s_i, y_i)\}\big).
-$$
-
-The minimum over the two actions is the $\max$ of the Bellman operator for
-costs. There is no expectation to compute: each logged successor is one draw
-of $s'$, the single-sample paradigm of the
-[chapter on sampled Bellman updates](monte-carlo-bellman-estimation.md). We fit extra
-trees, the averager of tree-based FQI {cite}`ernst2005tree`, on the logged
-decision epochs, and judge every policy out of sample: each event is decided
-by a policy fitted without it.
-
-:::{figure} _static/conjunction_wait_or_burn/wait_or_burn.svg
-:label: fig-conjunction-wait-or-burn
-
-Collision avoidance from ESA's conjunction messages. (a) The collision
-probability of the 742 events whose estimate crossed the break-even
-probability, about $10^{-5}$ (dashed), before the deadline. The 59 in color
-ended above it. Messages below $10^{-8}$, half of which report a probability of $10^{-30}$, leave the panel. (b) Total cost of each policy over all events, split into the
-cost of maneuvers and of expected collisions. Never maneuvering costs 2,668.
-(c) The policy learned by fitted Q-iteration on all events, at a message that
-has just arrived. Above the blue boundary it maneuvers. The dashed line is the
-break-even probability of the message taken at face value.
-:::
-
-:::{include} artifacts/conjunction_wait_or_burn/results.md
-:::
-
-Maneuvering at the first alarm is safe but wasteful: it makes 742
-maneuvers for 62 events that needed one, because 92 of every 100 alarms
-resolve ({numref}`fig-conjunction-wait-or-burn`, panel (a)). Waiting until the
-deadline and then acting on the latest message halves the cost. This rule is
-what an operator would write by hand. Fitted Q-iteration was told neither
-that waiting pays nor at what probability to act, and it comes within about 7% of
-the hand rule, 313 against 291. Its learned rule (panel (c)) waits through a
-new alarm more than three days out unless the probability is twenty to forty-five
-times the break-even value, in which case it maneuvers early, while a
-maneuver is still cheap. The bar comes down as the deadline nears, but at the
-deadline it still asks for about three times the break-even probability, a
-bet that later messages will come down, and that bet misses more of the
-events that needed a maneuver, 20 against 6 for the hand rule. Two choices
-decide whether fitted Q-iteration works here at all, and both follow from
-the error analysis of the previous chapters.
-
-1. The fit must fit the right thing. The raw target $C\, p_{\text{final}}$
-   is heavy-tailed. One event in the log ends at a probability of 2% and
-   costs about 2,070 if nothing is done, more than three times the cost of
-   all other events together. Extra trees predict the average of the targets
-   in a leaf, so this one cost is shared by every state in the leaves where
-   its epochs fall, and those states look dangerous. Fitted on all events,
-   the raw-target policy makes 342 maneuvers; fitted without that single
-   event, 141. Out of sample it makes 374 maneuvers and costs 441, half again
-   as much as the hand rule. The second version fits the ratio
-   $y_i / (C\, 10^{\rho_i})$, the cost relative to what the current message
-   alone predicts, and multiplies the fit back. The regressor then learns a
-   correction factor to the operator's own estimate. For the dangerous event
-   this factor stays between 0.7 and 7, an ordinary value, and the policy
-   makes 166 maneuvers with the event in the data and 175 without it.
-2. The fit is only as good as the data where decisions are made. Five
-   in six of the 123,882 decision epochs have probabilities below $10^{-7}$,
-   where waiting is plainly right, and we leave them out of the fit. Only
-   62 events needed a maneuver. This is the coverage problem behind the
-   concentrability coefficients of the
-   [chapter on fitted value methods](approximate-bellman-equations.md#sec-abe-error):
-   the regression error that matters is the one at the few states where the
-   two actions are close, and no amount of data elsewhere reduces it. The
-   hindsight policy, at 147, is not a target: it knows the estimate of the
-   messages that arrive after the deadline, which no policy can use.
-
-- {download}`Conjunction model and fitted Q-iteration <code/conjunction_wait_or_burn.py>`
-- {download}`Conjunction experiment builder <scripts/build_conjunction_wait_or_burn_artifacts.py>`
-- {download}`Conjunction results <artifacts/conjunction_wait_or_burn/metrics.json>`
-- {download}`Conjunction messages used (columns of the ESA training set, CC BY 4.0) <data/conjunctions/kelvins_cdm_extract.csv.gz>`
 
 (sec-fqi-flattening)=
 ## From Nested Loops to Target Networks
@@ -447,7 +59,7 @@ $\mathcal{D}_n^{\text{fit}}$ is the regression data set of the $n$-th outer
 iteration. Two loops of counted steps can be written as one, and the
 rewriting shows where the target network of DQN comes from.
 
-### Making the Nested Structure Explicit
+### Making the Nested Structure of Batch FQI Explicit
 
 Starting from {prf:ref}`fitted-q-iteration-batch`, replacing the `fit` call
 by $K$ explicit gradient steps gives the following.
@@ -538,7 +150,7 @@ presented with a target network updated every $K$ steps, it is this
 flattened fitted Q-iteration with an evolving buffer, which the next section
 adds.
 
-### Smooth Target Updates via Exponential Moving Average
+### Smooth Target Updates by Exponential Moving Average
 
 The periodic copy can be replaced by a target network that tracks the online
 network a little at every step,
@@ -579,7 +191,7 @@ standard with DDPG {cite}`lillicrap2015continuous` and is used by TD3
 ```
 
 (sec-fqi-online)=
-## DQN and Online Data
+## DQN: Fitted Q-Iteration on a Replay Buffer
 
 The flattened algorithm sampled from a fixed data set. Let the data set
 change instead: a **replay buffer** $\mathcal{B}_t$ of fixed capacity $B$
@@ -629,7 +241,7 @@ the policy that the online network defines.
 6. **return** $\boldsymbol{\theta}_t$
 ```
 
-The deadly triad of the [chapter on fitted value methods](approximate-bellman-equations.md)
+The deadly triad of the [previous chapter](monte-carlo-bellman-estimation.md#sec-mc-deadly-triad)
 is all here: a neural network, bootstrapped targets, and a buffer whose
 transitions were collected by earlier policies. The design choices are what
 keep it in check. Targets are held fixed for $K$ steps by the target network,
@@ -637,12 +249,21 @@ each fit is warm-started, and the large buffer averages the data over many
 policies, so that the distribution of the data used by each fit changes slowly even though
 the policy changes at every step.
 
+Recent analyses read these choices in the language of projected equations.
+{cite:t}`ZhangYaoWhiteson2021` show that a target network, combined with a
+ridge penalty on the parameters, gives a linear off-policy Q-learning method
+that provably converges, and {cite:t}`Fellows2023` treat the target network as
+a partially fitted iteration and identify conditions on the Jacobian of the TD
+update under which it restores stability. {cite:t}`Gallici2025` show that
+layer normalization in the value network makes TD stable without a target
+network, even off-policy.
+
 (sec-fqi-double-dqn)=
 ### Double DQN
 
 The target of DQN, $\max_{a'} q(s', a'; \boldsymbol{\theta}_{\text{target}})$,
 uses the target network twice, to select the best next action and to value
-it, and the [chapter on sampled Bellman updates](monte-carlo-bellman-estimation.md#sec-mc-overestimation)
+it, and the [previous chapter](monte-carlo-bellman-estimation.md#sec-mc-overestimation)
 showed that such a maximum is biased upward by the reuse of the winning
 noise. Double DQN {cite}`van2016deep` separates the two roles between the
 two networks that DQN already maintains: the online network selects,
@@ -685,7 +306,7 @@ one network used twice, because they were fitted to different targets at
 different times, and the reduction in overestimation that this buys is
 substantial in practice.
 
-### Q-Learning: The Limiting Case
+### Q-Learning as the Limit of One Transition per Update
 
 DQN uses a buffer of about $10^6$ transitions, a target network updated
 every $10^4$ steps and mini-batches of 32. At the opposite extreme, with a
@@ -745,7 +366,7 @@ least squares is not an averager, and the max operator keeps the on-policy
 argument from applying. With a neural network the gradient comes from
 backpropagation and there are no guarantees at all.
 
-### Convergence Analysis via the ODE Method
+### Convergence Analysis by the ODE Method
 
 Tabular Q-learning converges under diminishing step sizes and sufficient
 exploration {cite}`watkins1992qlearning,jaakkola1994convergence,tsitsiklis1994asynchronous`.
@@ -1067,9 +688,8 @@ Gaussian instead of the two-hot encoding) keeps its performance.
 
 ## Exercises
 
-The first exercises are short checks. The others follow the chapter: batch
-data first, then the loops and targets of DQN, then the design space.
-{ref}`ex-fqi-chain` is a short program.
+The first exercises are short checks. The others follow the chapter: the
+loops and targets of DQN, then the design space.
 
 :::{exercise} Two loops
 :label: ex-fqi-check-1
@@ -1083,18 +703,6 @@ What happens in the outer loop and the inner loop of fitted Q-iteration?
 The outer loop freezes the current Q-function and constructs Bellman targets. The inner loop fits a new function approximator to those targets.
 :::
 
-:::{exercise} Offline support
-:label: ex-fqi-check-2
-
-Why is a highly accurate regression fit still dangerous for actions poorly represented in an offline dataset?
-:::
-
-:::{solution} ex-fqi-check-2
-:class: dropdown
-
-The fit is unconstrained off the data support. Maximization can select extrapolated action values that are numerically large but unsupported by transitions in the dataset.
-:::
-
 :::{exercise} Frozen targets
 :label: ex-fqi-check-3
 
@@ -1105,35 +713,6 @@ What instability does a target network reduce?
 :class: dropdown
 
 It slows the movement of regression targets. Without it, each parameter update simultaneously changes the predictions and the targets being fitted, creating a rapidly moving objective.
-:::
-
-:::{exercise} Matched coverage comparison
-:label: ex-fqi-check-4
-
-The two inference-scheduling buffers contain the same number of transitions.
-Why can the buffer with fewer distinct state-action pairs still attain lower
-training error while producing a worse policy?
-:::
-
-:::{solution} ex-fqi-check-4
-:class: dropdown
-
-Repeated transitions make the empirical regression problem easier on the
-visited region, but they supply no Bellman targets for omitted actions and
-states. Greedy action selection can therefore depend on unsupported
-extrapolation even when the in-buffer fit is accurate.
-:::
-
-:::{exercise} Scaling the targets
-:label: ex-fqi-check-5
-
-In the collision-avoidance example, why did one event with a 2% collision probability change the maneuvers of the fitted policy at hundreds of other states, and what did fitting a ratio instead of the raw cost change?
-:::
-
-:::{solution} ex-fqi-check-5
-:class: dropdown
-
-Extra trees predict the average of the targets in a leaf, so a single cost three times larger than all the others combined raises the prediction of every state that shares a leaf with that event's epochs. Fitting the cost relative to the current message's own estimate turns the target into a correction factor of ordinary size, so the event no longer dominates the leaves that contain it.
 :::
 
 :::{exercise} Indices of a flattened loop
@@ -1206,40 +785,6 @@ anything, guarantees its convergence.
 5. Linear features and bootstrapping, but on-policy data, so the projected operator contracts in the $\xi$-norm ({ref}`sec-abe-convergence`).
 :::
 
-:::{exercise} Coverage on a chain
-:label: ex-fqi-chain
-
-Build a chain of ten states $0, \ldots, 9$ with two actions. Action "right"
-moves one state to the right with probability $0.9$ and stays with
-probability $0.1$; "left" moves one state to the left in the same way. The
-reward is $1$ on entering or staying in state 9, and $\gamma = 0.9$.
-
-1. Log 5,000 transitions from uniformly random states with uniformly random
-   actions, and run fitted Q-iteration with a table as the fit: each target is
-   averaged over the transitions of its state-action pair, and pairs with no
-   data keep the value $0$. Evaluate the greedy policy exactly from state $0$.
-2. Repeat with a log in which the behavior policy always moves left in states
-   5 to 8.
-3. Explain why the second policy fails in states 0 to 4, where the log has
-   data for both actions.
-:::
-
-:::{solution} ex-fqi-chain
-:class: dropdown
-
-With the broad log the greedy policy moves right everywhere and its value
-from state 0 is $3.90$, the optimal value. With the narrow log, "right" has
-no data in states 5 to 8, so its value there stays at $0$, which ties with
-"left" and loses the tie. The policy moves left in states 5 to 8, and the
-value it attains from state 0 is $0$. In states 0 to 4 both actions have data,
-but the targets of "right" are built from the values of states 1 to 5, which
-are wrong: the error in the uncovered states propagates backward through the
-bootstrapped targets. A fit that generalizes, such as trees on the state
-index, could extrapolate "right" from state 4 or 9, and that extrapolation
-would decide the result, which is the situation of the narrow
-inference-scheduling buffer.
-:::
-
 :::{exercise} Losses as noise models
 :label: ex-fqi-losses
 
@@ -1248,7 +793,7 @@ inference-scheduling buffer.
    Gumbel loss is maximum likelihood when $\varepsilon \sim \text{Gumbel}(0, \beta)$,
    whose density is $\tfrac1\beta\exp\big(-\varepsilon/\beta - e^{-\varepsilon/\beta}\big)$.
 2. Two-hot encoding writes a target as a convex combination of two bin
-   values. Which result of the chapter on fitted value methods does this make it
+   values. Which result of the chapter on convergence and error bounds does this make it
    an instance of, and which interpolation of the finite-horizon chapter does
    it reuse?
 3. The satellite example scaled its targets by the current message's
@@ -1288,19 +833,6 @@ states far from it, where any reasonable fit ranks the actions correctly.
 :::
 
 ## Summary
-
-Fitted Q-iteration on data is fitted value iteration with the model replaced
-by the empirical distribution of a buffer: targets from recorded
-transitions, one successor each, and a fit that averages its error over
-them. The two experiments located the errors of a fitted policy. In the
-scheduling log with full coverage, the policy erred only where two actions
-were nearly tied, an approximation error that more data would not remove;
-in the log that followed one heuristic, it erred where the heuristic had
-never tried the exact policy's action, a coverage error that no regressor
-can repair. On ESA's collision warnings, fitted Q-iteration learned from
-the log alone a rule within about 7% of the one an operator would write by
-hand, once its targets were scaled so that one rare event could not dominate
-the fit.
 
 Writing out the gradient steps of a neural fit and merging them with the
 outer loop produces the online and target networks of DQN: the target

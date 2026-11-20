@@ -716,6 +716,7 @@ pas des moyenneurs.
 | Splines préservant la forme (Schumaker) | Oui | Conçues pour maintenir la monotonie |
 | Agrégation d'états, $k$ plus proches voisins | Oui | Poids égaux dans un groupe ou un voisinage |
 | Lissage par noyaux (noyaux non négatifs) | Oui | Si les poids sont normalisés pour avoir une somme égale à un |
+| Codage par tuiles (CMAC) | Selon l'ajustement | La moyenne des ajustements séparés des pavages est un moyenneur; l'ajustement conjoint par moindres carrés ne l'est pas en dimension deux ou plus ({ref}`sec-abe-tile-coding`) |
 | Arbres et forêts de régression, partition fixe | Oui | Moyennes par feuille; garantie perdue si les coupures dépendent des cibles |
 | Interpolation polynomiale de degré élevé | Non | Poids négatifs (phénomène de Runge) |
 | Moindres carrés sur une base quelconque | Non | Le contre-exemple ci-dessus |
@@ -746,6 +747,350 @@ ensuite à la méthode de Newton avec l'ajustement précis.
 4. **Arbres.** Montrez qu'un arbre de régression à partition fixe est un moyenneur. Expliquez pourquoi un arbre qui choisit ses coupures d'après les cibles peut changer de partition d'une itération à l'autre, et quelle étape de la démonstration de {prf:ref}`santos-vigo-aguiar-stability` cela rompt.
 ```
 
+(sec-abe-tile-coding)=
+### Le codage par tuiles : entre agrégation et Galerkin
+
+Le codage par tuiles est la représentation linéaire grâce à laquelle
+{cite:t}`Sutton1996` a fait fonctionner les premiers algorithmes
+d'apprentissage par renforcement, et il descend du contrôleur d'articulation à
+modèle cérébelleux (CMAC) de {cite:t}`Albus1975`. Il ne reçoit pas de réponse
+simple dans la colonne « Moyenneur? » du tableau ci-dessus, et la figure
+ci-dessous montre pourquoi.
+
+Chaque rangée du panneau du haut de {numref}`fig-tile-coding-kernel` est un
+*pavage* : une grille qui découpe $[0, 1]$ en cellules de largeur $h$, appelées
+*tuiles*. Il y a $K$ pavages, et le pavage $k$ est décalé d'une quantité
+$o_k$, si bien que les rangées sont décalées les unes par rapport aux autres.
+La ligne verticale est un état $s$. Il appartient à exactement une tuile de
+chaque rangée, colorée en orange. Chaque tuile porte un poids, et la valeur en
+$s$ est la somme des $K$ poids des tuiles orange. Sous forme vectorielle, le
+vecteur de caractéristiques $\boldsymbol\phi(s)$ a une composante binaire
+par tuile, avec exactement $K$ uns, et
+$v(s; \theta) = \boldsymbol\phi(s)^\top\theta$.
+
+Par exemple, prenons $K = 2$ pavages de largeur $h = 1/2$, le second décalé de
+$h/2 = 1/4$. Le premier pavage a deux tuiles, $[0, 1/2)$ et $[1/2, 1]$, et le
+second en a trois, $[0, 1/4)$, $[1/4, 3/4)$ et $[3/4, 1]$ : il y a donc cinq
+caractéristiques, une par tuile, rangées pavage par pavage. L'état $s = 0.6$
+appartient à la deuxième tuile des deux pavages, et $s' = 0.8$ à la deuxième
+tuile du premier pavage et à la troisième du second, si bien que
+
+$$
+\boldsymbol\phi(0.6) = (0, 1 \mid 0, 1, 0)^\top, \qquad
+\boldsymbol\phi(0.8) = (0, 1 \mid 0, 0, 1)^\top,
+$$
+
+$$
+v(0.6; \theta) = \theta_{1,2} + \theta_{2,2}, \qquad
+v(0.8; \theta) = \theta_{1,2} + \theta_{2,3},
+$$
+
+où $\theta_{k,j}$ est le poids de la tuile $j$ du pavage $k$. Les deux états
+partagent une de leurs deux tuiles, et leurs valeurs partagent donc le poids
+$\theta_{1,2}$. Le panneau du milieu de la figure écrit $\boldsymbol\phi(s)$ de
+la même façon, un groupe de cases par pavage, et donne les $K$ poids dont la
+somme est $v(s; \theta)$ à mesure que $s$ se déplace.
+
+Ramenez le curseur à
+$K = 1$ et il ne reste qu'une rangée : c'est l'agrégation d'états, dont la
+projection par moindres carrés remplace chaque valeur par une moyenne pondérée
+sur son groupe et qui est donc un moyenneur pour toute pondération. Avec
+$K > 1$, les tuiles se chevauchent, et la question de savoir si l'ajustement
+est un moyenneur dépend de la manière d'ajuster les poids. Deux questions la
+tranchent, et les panneaux du haut et du bas de la figure y répondent : quelles fonctions
+les caractéristiques peuvent-elles représenter, et comment une mise à jour en
+un état modifie-t-elle la valeur en un autre?
+
+:::{iframe} ../interactive/tile-coding.html#view=kernel
+:label: fig-tile-coding-kernel
+:width: 100%
+:title: Pavages et noyau des tuiles partagées
+:class: tile-coding-kernel
+
+Figure interactive en anglais. En haut : $K$ pavages de $[0, 1]$ en tuiles de
+largeur $h = 1/4$, les tuiles qui contiennent $s$ (en orange) et les cellules
+fines où tous les pavages s'accordent. Au milieu : le vecteur de
+caractéristiques $\boldsymbol\phi(s)$, une case par tuile, groupées par pavage,
+et les $K$ poids dont la somme est $v(s; \theta)$. En bas : la proportion des tuiles que
+$s$ partage avec chaque $s'$, comparée au chapeau $(1 - |s - s'|/h)_+$. Faites
+glisser $s$ ou lancez l'animation. Avec des décalages aléatoires, l'animation
+tire les décalages encore et encore et fait la moyenne des noyaux.
+:::
+
+**Ce que le codage par tuiles représente.** Déplacez $s$ à l'intérieur d'une
+cellule de la dernière rangée du panneau du haut, notée « fine » : les tuiles
+orange ne changent pas. Deux états situés dans la même cellule fine
+appartiennent à la même tuile de chaque pavage. Ils ont donc les mêmes
+caractéristiques, et toute fonction $v(\cdot\,; \theta)$ est constante sur les
+cellules fines. Avec des décalages espacés de $h/K$, les frontières des $K$
+pavages s'intercalent et les cellules fines ont une largeur $h/K$. En une
+dimension, le code ci-dessous trouve que le rang de la matrice des
+caractéristiques est égal au nombre de cellules fines : l'espace engendré par
+les tuiles est exactement l'ensemble des fonctions constantes sur les cellules
+fines. En une dimension, $K$ pavages de largeur $h$ représentent donc les mêmes
+fonctions qu'un seul pavage de largeur $h/K$, avec à peu près le même nombre de
+poids : le texte sous la figure indique 16 cellules fines et 19 poids pour
+$K = 4$. Le gain apparaît en dimension plus grande. En dimension $d$, il y a
+environ $(K/h)^d$ cellules fines lorsque les décalages sont espacés de $h/K$
+dans chaque coordonnée, mais seulement environ $K(1/h + 1)^d$ poids : le codage
+par tuiles distingue les cellules de la grille fine avec à peu près $K^{d-1}$
+fois moins de paramètres qu'un pavage fin. En contrepartie, l'espace qu'il
+engendre devient un sous-espace strict des fonctions constantes sur les
+cellules fines. Pour $K = 4$ et $h = 1/4$ dans le plan, le code ci-dessous
+trouve 91 poids, un rang de 88 et 256 cellules fines.
+
+**Comment le codage par tuiles généralise.** Le panneau du bas répond à la
+seconde question. Sutton employait le codage par tuiles avec des mises à jour
+incrémentales de la forme
+$\theta \leftarrow \theta + \frac{\alpha}{K}\boldsymbol\phi(s)\,(y - v(s; \theta))$,
+qui déplacent chacun des $K$ poids orange de la même quantité. La valeur en
+tout autre état $s'$ change alors de
+
+$$
+v(s'; \theta_{\text{nouv}}) - v(s'; \theta) = \alpha\,\kappa(s, s')\,\big(y - v(s; \theta)\big),
+\qquad
+\kappa(s, s') = \frac{\boldsymbol\phi(s)^\top\boldsymbol\phi(s')}{K},
+$$
+
+où $\kappa(s, s')$ est la proportion des tuiles que $s$ et $s'$ partagent,
+l'escalier bleu du panneau du bas. La mise à jour en $s$ se propage à ses
+voisins en proportion de $\kappa$.
+
+Comparez l'escalier avec la courbe orange en tirets du même panneau. Cette
+courbe est la *fonction chapeau* centrée en $s$,
+
+$$
+\Big(1 - \frac{|s - s'|}{h}\Big)_+ = \max\Big(0,\; 1 - \frac{|s - s'|}{h}\Big),
+$$
+
+un triangle de hauteur un et de demi-largeur $h$ : elle vaut $1$ en $s' = s$,
+décroît linéairement avec la distance $|s - s'|$ et s'annule dès que $s'$ est
+à une largeur de tuile complète de $s$. C'est la fonction chapeau de
+l'interpolation linéaire par morceaux, centrée en $s$, avec la largeur de
+tuile pour demi-largeur.
+
+Le panneau du haut montre pourquoi l'escalier suit le chapeau. Un état $s'$
+partage avec $s$ la tuile de la rangée $k$ sauf si une frontière de cette
+rangée tombe entre eux, si bien que
+$\kappa(s, s') = 1 - (\text{nombre de rangées ayant une frontière entre } s \text{ et } s')/K$.
+Chaque rangée a une frontière tous les $h$ : lorsque $\delta = |s - s'| < h$,
+au plus une frontière de chaque rangée tombe entre les deux états, et lorsque
+$\delta \geq h$, chaque rangée en a une. Lorsque les décalages sont espacés de
+$h/K$, les frontières des $K$ rangées s'intercalent régulièrement, une tous
+les $h/K$, de sorte qu'un intervalle de longueur $\delta < h$ contient
+$K\delta/h$ frontières, arrondi vers le haut ou vers le bas. Ainsi
+$\kappa(s, s')$ vaut $1 - \delta/h$ à une marche de $1/K$ près :
+
+$$
+\Big|\,\kappa(s, s') - \Big(1 - \frac{|s - s'|}{h}\Big)_+\Big| < \frac{1}{K}.
+$$
+
+L'escalier reste donc à moins d'une marche du chapeau, et les marches
+rétrécissent quand $K$ augmente. Passez aux décalages aléatoires et lancez
+l'animation : pour chaque tirage l'escalier est irrégulier, mais une rangée à
+décalage aléatoire place une frontière entre deux états à distance $\delta$
+avec probabilité $\min(\delta/h, 1)$. La proportion moyenne de tuiles
+partagées est donc exactement le chapeau, et la moyenne courante, en vert, y
+converge.
+
+Cela répond à la question de savoir quelle sorte d'approximateur est le codage
+par tuiles. Vu comme fonction du déplacement $\delta = s' - s$, le chapeau est
+la fonction créneau de largeur $h$ convoluée avec elle-même et divisée par
+$h$, c'est-à-dire la B-spline linéaire (de degré un).
+Les deux questions de cette sous-section ont des réponses différentes. Ce que
+le codage par tuiles ajuste est constant par morceaux : chaque caractéristique
+est l'indicatrice d'une tuile, une fonction créneau, qui est une B-spline de
+degré zéro, et chaque tuile est une réunion de cellules fines, si bien que
+toute combinaison $\boldsymbol\phi(s)^\top\theta$ est constante sur chaque
+cellule fine. La façon dont il généralise est linéaire par morceaux : une mise
+à jour en $s$ modifie la valeur en $s'$ en proportion de $\kappa(s, s')$, qui
+est le chapeau à $1/K$ près, une B-spline de degré un. La littérature sur le CMAC est arrivée à la même conclusion et l'a
+généralisée : {cite:t}`LaneHandelmanGelfand1992` remplacent les champs
+récepteurs en créneau par des B-splines d'ordre plus élevé, ce qui rend la
+fonction ajustée elle-même lisse et permet d'en apprendre les dérivées, et
+{cite:t}`BrownHarris1994` traitent le CMAC et les réseaux de B-splines comme
+deux membres d'une même famille de réseaux sur treillis, linéaires en leurs
+poids. Les méthodes à noyaux ont rejoint le codage par tuiles par l'autre bout.
+Les caractéristiques aléatoires par cases de {cite:t}`RahimiRecht2007` sont un
+codage par tuiles à décalages aléatoires. Ces auteurs calculent que deux
+points tombent dans la même case avec une probabilité donnée par le chapeau,
+et que tirer aussi la largeur $h$ au hasard, avec la densité
+$h\,\ddot\kappa(h)$, transforme le noyau moyen en un noyau $\kappa(|s - s'|)$ de
+la distance, pour tout $\kappa$ de dérivée seconde non négative, et en produits
+de tels noyaux sur les coordonnées en dimension plus grande. Le noyau de Laplace
+$\exp(-|s - s'|)$, par exemple, provient d'une largeur de tuile qui suit une
+loi gamma. Comme la proportion moyenne de tuiles partagées est un noyau, un ajustement
+linéaire sur $K$ pavages aléatoires est une régression à noyau dont le noyau
+est estimé à partir de $K$ tirages : le codage par tuiles à décalages
+aléatoires est une approximation par caractéristiques aléatoires, en nombre
+fini, de la régression à noyau.
+
+**Deux dimensions et hachage.** Dans le plan, chaque pavage est une grille de
+carrés $h \times h$, et {numref}`fig-tile-coding-plane` colore
+$\kappa(s, \cdot)$ autour d'un point $s$, avec le contour des $K$ carrés qui
+contiennent $s$. Avec des décalages alignés sur la diagonale, chaque pavage se
+déplace le long de la droite $y = x$, et la zone colorée s'étire le long de
+cette droite : des états déplacés le long de la diagonale partagent plus de
+tuiles que des états déplacés en travers. Avec des décalages aléatoires
+indépendants dans chaque coordonnée, le noyau moyen est le produit des
+chapeaux unidimensionnels, une B-spline linéaire tensorielle. Le déplacement
+$(1, 3)$ approche cette forme symétrique avec des décalages régulièrement
+espacés, et c'est pourquoi {cite:t}`SuttonBarto2018` recommandent des vecteurs
+de déplacement formés des premiers entiers impairs.
+
+:::{iframe} ../interactive/tile-coding.html#view=plane
+:label: fig-tile-coding-plane
+:width: 100%
+:title: Le codage par tuiles dans le plan
+:class: tile-coding-plane
+
+Figure interactive en anglais. Le noyau des tuiles partagées
+$\kappa(s, \cdot)$ dans le plan pour $K$ pavages de carrés $h \times h$,
+$h = 1/4$, avec des décalages diagonaux, asymétriques $(1, 3)$ ou aléatoires.
+Les boutons de hachage envoient toutes les tuiles dans une table de 256, 64 ou
+16 poids, et la coloration montre alors la fausse ressemblance que les
+collisions ajoutent loin de $s$. Faites glisser le point ou lancez
+l'animation.
+:::
+
+Lorsque $K(1/h + 1)^d$ poids sont trop nombreux, les implémentations du codage
+par tuiles envoient les tuiles dans une table de $M$ poids à l'aide d'une
+fonction de hachage {cite}`SuttonBarto2018`. Choisissez « 64 weights » dans la
+figure : des taches apparaissent loin de $s$. À l'intérieur d'un pavage, le
+hachage ne fait que regrouper des tuiles : un pavage haché reste une partition
+de l'espace d'états, en groupes de cellules qui ne sont pas forcément voisines.
+D'un pavage à l'autre, deux tuiles de pavages différents peuvent partager un
+poids, et deux états éloignés partagent alors des poids par accident. Pour une
+fonction de hachage qui envoie chaque tuile dans une case uniformément et
+indépendamment, le produit scalaire moyen des caractéristiques hachées vaut le
+nombre de tuiles partagées plus $(K^2 - \text{partagées})/M$, un biais vers une
+fausse ressemblance qui croît à mesure que la table rétrécit. En apprentissage
+automatique, le hachage de caractéristiques {cite}`Weinberger2009` supprime ce
+biais en multipliant chaque caractéristique hachée par un signe aléatoire. Le
+produit scalaire devient sans biais, mais les caractéristiques ne sont plus non
+négatives.
+
+**Où se situe le codage par tuiles.** La réponse dépend de la manière
+d'ajuster les poids, et les trois manières courantes donnent trois opérateurs
+différents.
+
+1. *Ajuster chaque pavage séparément, puis faire la moyenne.* Chaque pavage
+   seul est une agrégation, dont la projection $\Proj_k$ est une matrice
+   stochastique. La moyenne $\bar\Proj = \frac{1}{K}\sum_k \Proj_k$ est une
+   combinaison convexe de matrices stochastiques, donc stochastique : c'est un
+   moyenneur, et {prf:ref}`santos-vigo-aguiar-stability` s'applique. Avec une
+   pondération uniforme et loin du bord, la ligne $s$ de $\bar\Proj$ vaut
+   $\kappa(s, \cdot) / \sum_{s'}\kappa(s, s')$ : cet ajustement est le lissage
+   par noyau du tableau, avec pour noyau l'escalier de
+   {numref}`fig-tile-coding-kernel`. Ce n'est pas une projection, puisque
+   $\bar\Proj^2 \neq \bar\Proj$. Un pavage haché reste une partition, si bien
+   que le hachage à l'intérieur de chaque pavage garde cet ajustement
+   moyenneur; un hachage signé ne le fait pas.
+2. *Ajuster tous les poids ensemble par moindres carrés.* C'est la projection
+   de Galerkin sur l'espace engendré par les tuiles. En une dimension, lorsque
+   chaque cellule fine reçoit un poids, cet espace est celui du pavage fin, et
+   la projection est l'agrégation sur les cellules fines, encore un moyenneur.
+   En deux dimensions, ce n'est plus le cas : pour $K = 4$ et $h = 1/4$, la
+   projection a des coefficients négatifs et sa norme d'opérateur en norme sup
+   dépasse $4$. Le certificat de Gordon exige des coefficients non négatifs : il est donc
+perdu, et seuls les résultats en norme $\xi$ de la sous-section suivante
+demeurent.
+3. *Ajuster les poids de façon incrémentale par différence temporelle, comme
+   Sutton.* La mise à jour par échantillons est une approximation stochastique
+   de l'ajustement conjoint, et sa limite est la solution de l'équation de
+   Bellman projetée avec la projection de Galerkin du point 2. Chaque pas
+   propage la correction avec le noyau non négatif $\kappa$, mais cela ne fait
+   pas du point fixe un moyenneur. Sur politique, le résultat de convergence
+   de {cite:t}`TsitsiklisVanRoy1997` s'applique, comme pour toutes les
+   caractéristiques linéaires.
+
+```{code-cell} python
+:tags: [hide-input]
+
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path.cwd() / "code"))
+import tile_coding as tc
+
+z = lambda x: 0.0 if abs(x) < 1e-9 else x
+
+k = tc.kernel_report_1d(m=8, h=0.25)
+print("Shared-tile kernel, K = 8, h = 0.25")
+for key, val in k.items():
+    print(f"  {key:<42}{val:8.4f}")
+
+a = tc.kernel_2d_anisotropy(m=8, h=0.25, r=0.1)
+print("\nTwo dimensions, shared fraction at distance 0.1")
+for key, (along, across) in a.items():
+    print(f"  {key:<20} along the diagonal {along:.3f}, across it {across:.3f}")
+
+print("\nProjections (K = 4, h = 0.25, uniform weighting on a grid of states)")
+print(f"  {'':<4}{'states':>7}{'weights':>8}{'rank':>6}{'fine':>6}"
+      f"{'joint min':>11}{'joint sup':>10}{'avg min':>9}{'avg sup':>9}")
+for d, n in ((1, 64), (2, 32)):
+    r = tc.projection_report(m=4, h=0.25, n=n, d=d)
+    print(f"  {d}D  {r['states']:>7}{r['weights']:>8}{r['rank']:>6}{r['fine cells']:>6}"
+          f"{z(r['joint LS: min entry']):>11.3f}{r['joint LS: sup norm']:>10.3f}"
+          f"{r['averaged: min entry']:>9.3f}{r['averaged: sup norm']:>9.3f}")
+print(f"  averaged smoother vs normalized shared-tile kernel (interior rows): "
+      f"{tc.smoother_matches_kernel():.1e}")
+
+hs = tc.hashing_report(m=8, h=0.25, M=64)
+print("\nHashing 8 tilings into M = 64 weights")
+for key, val in hs.items():
+    print(f"  {key:<42}{val:8.3f}")
+
+curves = tc.learning_curves()
+print("\nRMSE after 30 / 100 / 300 / 1000 / 3000 samples (K = 8, h = 0.2, alpha = 0.1)")
+for name, c in curves.items():
+    print(f"  {name:<36}" + "".join(f"{e:8.3f}" for e in c))
+```
+
+Le premier bloc confirme la borne de l'escalier, $0.124 < 1/K = 0.125$, et
+montre la moyenne sur des décalages aléatoires à moins de $0.006$ du chapeau
+après 4000 tirages. Dans le plan, des décalages diagonaux font partager à deux
+états les trois quarts de leurs tuiles le long de la diagonale, mais seulement
+les trois huitièmes en travers, et le déplacement $(1, 3)$ rend ces deux
+proportions égales. Dans le tableau des projections, l'ajustement conjoint par
+moindres carrés est un moyenneur en une dimension (plus petit coefficient $0$,
+norme sup $1$) mais pas en deux (plus petit coefficient $-0.054$, norme sup
+$4.44$), alors que la moyenne des ajustements par pavage est un moyenneur dans
+les deux cas et coïncide avec le noyau des tuiles partagées normalisé. Le bloc
+sur le hachage retrouve le biais de collision $(K^2 - \text{partagées})/M$ et
+montre que le signe aléatoire le supprime.
+
+Le dernier bloc explique la popularité du codage par tuiles, et
+{numref}`fig-tile-coding-learn` l'anime. Trois apprenants reçoivent les mêmes
+échantillons bruités d'une fonction qui présente un saut. Un pavage grossier
+de largeur $h$, en bleu, généralise largement et apprend vite, mais son erreur
+s'arrête à $0.26$, l'erreur de sa meilleure approximation. Un pavage fin de
+largeur $h/K$, en violet, peut bien représenter la fonction, mais chaque
+échantillon ne lui apprend qu'une cellule étroite, si bien qu'après 100
+échantillons son erreur vaut encore $0.43$. Le codage par tuiles, en orange,
+généralise comme le pavage grossier, avec une erreur de $0.18$ après 100
+échantillons, et représente comme le pavage fin, avec une erreur de $0.08$
+après 3000. Observez les bosses ombrées : chacune est la modification due au
+dernier échantillon, un large créneau pour le pavage grossier, un créneau
+étroit pour le pavage fin, et le chapeau en escalier de
+{numref}`fig-tile-coding-kernel` pour le codage par tuiles. Des pavages qui se
+chevauchent procurent une généralisation rapide à résolution fine et, en
+plusieurs dimensions, une économie de mémoire.
+
+:::{iframe} ../interactive/tile-coding.html#view=learn
+:label: fig-tile-coding-learn
+:width: 100%
+:title: Apprendre avec le codage par tuiles
+:class: tile-coding-learn
+
+Figure interactive en anglais. Un pavage grossier, un pavage fin et $K$
+pavages apprennent du même flux d'échantillons bruités de
+$v(s) = \sin(2\pi s) + 0.8\,\mathbb{1}[s > 0.6]$, avec un pas $\alpha = 0.1$.
+La bosse ombrée sous chaque ajustement est la modification due au dernier
+échantillon, agrandie huit fois. En bas : l'erreur quadratique moyenne en
+fonction du nombre d'échantillons.
+:::
+
 ### La pondération sur politique sauve l'évaluation de politique
 
 Le contre-exemple se prête à une seconde lecture. La chaîne passe de l'état 1 à
@@ -761,7 +1106,7 @@ Cette observation est un théorème pour l'évaluation de politique
 avec des caractéristiques linéaires. Prenons un espace d'états fini
 $\mathcal{S} = \{s_1,\ldots,s_m\}$, une matrice de caractéristiques
 $\boldsymbol{\Phi} \in \mathbb{R}^{m\times n}$ de lignes
-$\boldsymbol\varphi(s)^\top$, et une distribution $\xi$ sur les états avec
+$\boldsymbol\phi(s)^\top$, et une distribution $\xi$ sur les états avec
 $\boldsymbol{\Xi} = \text{diag}(\xi)$. Le produit scalaire, la norme et la
 projection par moindres carrés sur l'espace engendré par les caractéristiques,
 pondérés par $\xi$, sont
@@ -783,14 +1128,30 @@ $$
 \|\Proj \BellmanPi v - \Proj \BellmanPi w\|_\xi \leq \|\BellmanPi v - \BellmanPi w\|_\xi \leq \gamma \|v - w\|_\xi.
 $$
 
-La projection orthogonale est non expansive. Pour tout vecteur $v$,
-décomposons $v = \Proj v + (v - \Proj v)$, où $v - \Proj v$ est
-$\xi$-orthogonal à l'espace engendré par $\boldsymbol\Phi$. Par le théorème de
-Pythagore,
+On suppose partout que $\xi(s) > 0$ pour tout état, de sorte que
+$\|\cdot\|_\xi$ est une norme.
+
+La projection orthogonale est non expansive. Pour tout vecteur $v$, la
+projection $\Proj v = \boldsymbol\Phi\hat\theta$ est l'ajustement qui minimise
+$\|v - \boldsymbol\Phi\theta\|_\xi^2$ par rapport à $\theta$. Annuler le
+gradient par rapport à $\theta$ donne les équations normales
+$\boldsymbol\Phi^\top\boldsymbol\Xi(v - \boldsymbol\Phi\hat\theta) = \mathbf{0}$,
+dont la solution est la matrice de {eq}`eq:xi-projection`. Elles disent que le
+résidu $v - \Proj v$ est $\xi$-orthogonal à chaque colonne de
+$\boldsymbol\Phi$, donc à tout vecteur $\boldsymbol\Phi\theta$ de l'espace
+qu'elles engendrent, et en particulier à $\Proj v$ lui-même :
+$\langle \Proj v, v - \Proj v\rangle_\xi = \hat\theta^\top\boldsymbol\Phi^\top\boldsymbol\Xi(v - \Proj v) = 0$.
+Décomposons $v = \Proj v + (v - \Proj v)$ et développons le carré de sa norme.
+Le terme croisé est ce produit scalaire; il s'annule donc, et
 
 $$
-\|v\|_\xi^2 = \|\Proj v\|_\xi^2 + \|v - \Proj v\|_\xi^2 \geq \|\Proj v\|_\xi^2.
+\|v\|_\xi^2 = \|\Proj v\|_\xi^2 + 2\langle \Proj v, v - \Proj v\rangle_\xi + \|v - \Proj v\|_\xi^2 = \|\Proj v\|_\xi^2 + \|v - \Proj v\|_\xi^2 \geq \|\Proj v\|_\xi^2.
 $$
+
+C'est le théorème de Pythagore pour le produit scalaire pondéré par $\xi$.
+Comme $\Proj$ est linéaire, l'appliquer à $v - w$ donne
+$\|\Proj v - \Proj w\|_\xi = \|\Proj(v - w)\|_\xi \leq \|v - w\|_\xi$ :
+$\Proj$ est non expansif pour $\|\cdot\|_\xi$.
 
 Aucune condition de signe sur les entrées de $\Proj$ n'a été nécessaire.
 L'argument en norme sup échoue pour cette projection; l'argument en norme
@@ -803,18 +1164,54 @@ montrer que $\|\mathbf{P}_\pi z\|_\xi \leq \|z\|_\xi$ pour tout $z$.
 *Avant de poursuivre, essayez de le montrer vous-même. Indice : quelle
 propriété de $\xi$ la relie à $\mathbf{P}_\pi$?*
 
-La $s$-ième composante de $\mathbf{P}_\pi z$ est
-$\sum_{s'} p(s'|s,\pi(s)) z(s')$, une moyenne des valeurs $z(s')$. Comme
-$x \mapsto x^2$ est convexe, l'inégalité de Jensen donne
-$\big[\sum_{s'} p(s'|s,\pi(s)) z(s')\big]^2 \leq \sum_{s'} p(s'|s,\pi(s)) z(s')^2$.
-En pondérant par $\xi$ et en sommant sur $s$,
+Fixons un état $s$. La ligne $p(\cdot|s,\pi(s))$ de $\mathbf{P}_\pi$ est une
+distribution de probabilité sur les états suivants; la $s$-ième composante
+$(\mathbf{P}_\pi z)(s) = \sum_{s'} p(s'|s,\pi(s)) z(s')$ est donc une moyenne
+des valeurs $z(s')$, pondérée par ces probabilités. Comme $x \mapsto x^2$ est
+convexe, l'inégalité de Jensen avec les mêmes poids donne, pour chaque $s$
+séparément,
 
 $$
-\|\mathbf{P}_\pi z\|_\xi^2 \leq \sum_s \xi(s) \sum_{s'} p(s'|s,\pi(s)) z(s')^2 = \sum_{s'} z(s')^2 \sum_s \xi(s) p(s'|s,\pi(s)) = \sum_{s'} \xi(s') z(s')^2 = \|z\|_\xi^2,
+\big[(\mathbf{P}_\pi z)(s)\big]^2 = \Big[\sum_{s'} p(s'|s,\pi(s)) z(s')\Big]^2 \leq \sum_{s'} p(s'|s,\pi(s)) z(s')^2 .
 $$
 
-où l'avant-dernière étape est la stationnarité. Ainsi, $\Proj\BellmanPi$ est
-une $\gamma$-contraction pour $\|\cdot\|_\xi$, et par
+Multiplions chacune de ces inégalités par $\xi(s) \geq 0$ et additionnons-les
+sur $s$. Le membre de gauche devient $\|\mathbf{P}_\pi z\|_\xi^2$. À droite,
+intervertissons les deux sommes finies pour mettre $z(s')^2$ en facteur. La
+somme intérieure qui reste, $\sum_s \xi(s) p(s'|s,\pi(s))$, est la $s'$-ième
+composante du vecteur ligne $\xi^\top\mathbf{P}_\pi$, et la stationnarité,
+$\xi^\top\mathbf{P}_\pi = \xi^\top$, la remplace par $\xi(s')$ :
+
+$$
+\begin{aligned}
+\|\mathbf{P}_\pi z\|_\xi^2 = \sum_s \xi(s) \big[(\mathbf{P}_\pi z)(s)\big]^2
+&\leq \sum_s \xi(s) \sum_{s'} p(s'|s,\pi(s)) z(s')^2 && \text{(Jensen, état par état)} \\
+&= \sum_{s'} z(s')^2 \sum_s \xi(s) p(s'|s,\pi(s)) && \text{(interversion des sommes)} \\
+&= \sum_{s'} \xi(s') z(s')^2 && (\xi^\top\mathbf{P}_\pi = \xi^\top) \\
+&= \|z\|_\xi^2 .
+\end{aligned}
+$$
+
+La stationnarité n'intervient qu'à la troisième ligne, et c'est la seule
+propriété de $\xi$ dont l'argument a besoin. En prenant les racines carrées,
+$\|\mathbf{P}_\pi z\|_\xi \leq \|z\|_\xi$, et avec $z = v - w$,
+
+$$
+\|\BellmanPi v - \BellmanPi w\|_\xi = \gamma\|\mathbf{P}_\pi(v - w)\|_\xi \leq \gamma\|v - w\|_\xi ,
+$$
+
+donc $\BellmanPi$ est une contraction de module $\gamma$ pour $\|\cdot\|_\xi$.
+
+Les deux inégalités s'enchaînent. En appliquant la non-expansivité de $\Proj$
+aux vecteurs $\BellmanPi v$ et $\BellmanPi w$, puis la contraction de
+$\BellmanPi$,
+
+$$
+\|\Proj\BellmanPi v - \Proj\BellmanPi w\|_\xi \leq \|\BellmanPi v - \BellmanPi w\|_\xi \leq \gamma\|v - w\|_\xi .
+$$
+
+Ainsi, $\Proj\BellmanPi$ est une contraction de module $\gamma$ pour
+$\|\cdot\|_\xi$, et par
 {prf:ref}`banach-fixed-point`, l'évaluation de politique ajustée converge à
 partir de tout point de départ vers l'unique solution de l'**équation de
 Bellman projetée**
@@ -849,7 +1246,7 @@ contre-exemple de Baird {cite}`Baird1995` en est la démonstration classique.
 
 2. **La non-expansivité échoue hors politique.** Pour la chaîne à 3 états de {ref}`sec-abe-lstd` et la pondération $\xi' = (0.9, 0.05, 0.05)$, trouvez un vecteur $z$ tel que $\|\mathbf{P}_\pi z\|_{\xi'} > \|z\|_{\xi'}$.
 
-3. **Perdre l'argument n'est pas perdre la convergence.** Implémentez l'évaluation de politique ajustée pour la même chaîne, avec les caractéristiques $\varphi(s) = (1, s)$ et la pondération $\xi'$. Elle converge encore : calculez le rayon spectral de $\gamma \Proj \mathbf{P}_\pi$ et vérifiez qu'il est égal à $\gamma$ pour cet ensemble de caractéristiques, quelle que soit la pondération. Ne gardez ensuite que la caractéristique $\varphi(s) = s$ et trouvez une pondération concentrée sur l'état 1 pour laquelle le rayon spectral dépasse un.
+3. **Perdre l'argument n'est pas perdre la convergence.** Implémentez l'évaluation de politique ajustée pour la même chaîne, avec les caractéristiques $\phi(s) = (1, s)$ et la pondération $\xi'$. Elle converge encore : calculez le rayon spectral de $\gamma \Proj \mathbf{P}_\pi$ et vérifiez qu'il est égal à $\gamma$ pour cet ensemble de caractéristiques, quelle que soit la pondération. Ne gardez ensuite que la caractéristique $\phi(s) = s$ et trouvez une pondération concentrée sur l'état 1 pour laquelle le rayon spectral dépasse un.
 ```
 
 ### L'opérateur d'optimalité et la triade mortelle
@@ -876,6 +1273,21 @@ change lentement, et un grand tampon de rejeu empêche la distribution des
 données de suivre chaque changement de politique. Le
 [chapitre sur les données historiques et en ligne](fitted-q-iteration.md)
 examine ces choix un à un.
+
+(tbl-abe-what-is-known)=
+Le tableau rassemble les résultats démontrés ici ou établis dans les travaux
+cités pour l'itération de fonctions $v_{k+1} = \Proj\,\mathrm{T} v_k$, selon l'opérateur $\mathrm{T}$ et
+l'ajustement. Avec un moyenneur, la pondération des données ne joue aucun rôle.
+
+| **Opérateur** | **Moyenneur** | **Caractéristiques linéaires, pondération sur politique** | **Caractéristiques linéaires, autre pondération** |
+|:--|:--|:--|:--|
+| Évaluation $\BellmanPi$ | Contraction en norme sup, converge {cite}`Gordon1995` | Contraction en norme $\xi$, converge {cite}`TsitsiklisVanRoy1997` | Aucune garantie, peut diverger {cite}`Baird1995` |
+| Arrêt optimal | Contraction en norme sup, converge | Contraction en norme $\xi$, converge {cite}`TsitsiklisVanRoy1999` | Aucune garantie |
+| Optimalité $\Bellman$ | Contraction en norme sup, converge {cite}`Gordon1995` | Aucune garantie, l'équation projetée peut n'avoir aucune solution {cite}`deFariasVanRoy2000` | Aucune garantie |
+
+Un ajustement non linéaire, comme un réseau de neurones, n'entre dans aucune
+colonne : les seules garanties qui lui restent sont les bornes d'erreur qui
+supposent chaque ajustement précis.
 
 (sec-abe-api)=
 ## Itération sur les politiques approchée
@@ -931,13 +1343,13 @@ elle-même est d'usage courant en économie numérique {cite}`ndp`.
 L'algorithme pratique ne forme jamais
 explicitement $\boldsymbol\Phi$ sur tous les états ni $\mathbf{P}_\pi$. Il
 accumule
-$\mathbf{A} = \mathbb{E}_{s \sim \xi}[\boldsymbol{\varphi}(s)(\boldsymbol{\varphi}(s) - \gamma \boldsymbol{\varphi}(s'))^\top]$
-et $\mathbf{b} = \mathbb{E}_{s \sim \xi}[\boldsymbol{\varphi}(s) r]$ à partir
+$\mathbf{A} = \mathbb{E}_{s \sim \xi}[\boldsymbol{\phi}(s)(\boldsymbol{\phi}(s) - \gamma \boldsymbol{\phi}(s'))^\top]$
+et $\mathbf{b} = \mathbb{E}_{s \sim \xi}[\boldsymbol{\phi}(s) r]$ à partir
 de transitions échantillonnées $(s, r, s')$, ce qui est possible parce que le
 système est linéaire en l'inconnue. Sur une chaîne à 3 états sous une
 politique fixe, avec
 $\mathbf{P}_\pi = \begin{pmatrix} 0.7 & 0.2 & 0.1 \\ 0.3 & 0.4 & 0.3 \\ 0.1 & 0.3 & 0.6 \end{pmatrix}$,
-$\mathbf{r}_\pi = (1, 2, 0)$, les caractéristiques $\varphi(s) = (1, s)$ et des
+$\mathbf{r}_\pi = (1, 2, 0)$, les caractéristiques $\phi(s) = (1, s)$ et des
 poids uniformes :
 
 ```{code-cell} python
