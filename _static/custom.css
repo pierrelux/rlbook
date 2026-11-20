@@ -1367,3 +1367,40 @@ iframe {
 @media (max-width: 454px) { .test-functions-replay > div > div { height: 1115px; } }
 @media (max-width: 399px) { .test-functions-replay > div > div { height: 1225px; } }
 @media (max-width: 364px) { .test-functions-replay > div > div { height: 1300px; } }
+
+/* Tile coding (Fitted Value Methods): one panel of interactive/tile-coding.html
+   per iframe (#view=kernel|plane|learn), each placed next to the paragraph it
+   illustrates. Heights are the tallest page over each band of iframe widths,
+   plus room for the longest reading below the plots. */
+.tile-coding-kernel > div > div, .tile-coding-plane > div > div, .tile-coding-learn > div > div {
+  padding-bottom: 0 !important;
+  width: 100% !important;
+}
+.tile-coding-kernel > div > div { height: 840px; }
+.tile-coding-plane > div > div { height: 660px; }
+.tile-coding-learn > div > div { height: 910px; }
+@media (max-width: 644px) {
+  .tile-coding-kernel > div > div { height: 900px; }
+  .tile-coding-plane > div > div { height: 800px; }
+  .tile-coding-learn > div > div { height: 930px; }
+}
+@media (max-width: 544px) {
+  .tile-coding-kernel > div > div { height: 970px; }
+  .tile-coding-plane > div > div { height: 830px; }
+  .tile-coding-learn > div > div { height: 970px; }
+}
+@media (max-width: 454px) {
+  .tile-coding-kernel > div > div { height: 1115px; }
+  .tile-coding-plane > div > div { height: 995px; }
+  .tile-coding-learn > div > div { height: 1030px; }
+}
+@media (max-width: 399px) {
+  .tile-coding-kernel > div > div { height: 1140px; }
+  .tile-coding-plane > div > div { height: 1040px; }
+  .tile-coding-learn > div > div { height: 1050px; }
+}
+@media (max-width: 364px) {
+  .tile-coding-kernel > div > div { height: 1220px; }
+  .tile-coding-plane > div > div { height: 1080px; }
+  .tile-coding-learn > div > div { height: 1135px; }
+}
