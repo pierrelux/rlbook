@@ -1133,14 +1133,30 @@ $$
 \|\Proj \BellmanPi v - \Proj \BellmanPi w\|_\xi \leq \|\BellmanPi v - \BellmanPi w\|_\xi \leq \gamma \|v - w\|_\xi.
 $$
 
-La projection orthogonale est non expansive. Pour tout vecteur $v$,
-décomposons $v = \Proj v + (v - \Proj v)$, où $v - \Proj v$ est
-$\xi$-orthogonal à l'espace engendré par $\boldsymbol\Phi$. Par le théorème de
-Pythagore,
+On suppose partout que $\xi(s) > 0$ pour tout état, de sorte que
+$\|\cdot\|_\xi$ est une norme.
+
+La projection orthogonale est non expansive. Pour tout vecteur $v$, la
+projection $\Proj v = \boldsymbol\Phi\hat\theta$ est l'ajustement qui minimise
+$\|v - \boldsymbol\Phi\theta\|_\xi^2$ par rapport à $\theta$. Annuler le
+gradient par rapport à $\theta$ donne les équations normales
+$\boldsymbol\Phi^\top\boldsymbol\Xi(v - \boldsymbol\Phi\hat\theta) = \mathbf{0}$,
+dont la solution est la matrice de {eq}`eq:xi-projection`. Elles disent que le
+résidu $v - \Proj v$ est $\xi$-orthogonal à chaque colonne de
+$\boldsymbol\Phi$, donc à tout vecteur $\boldsymbol\Phi\theta$ de l'espace
+qu'elles engendrent, et en particulier à $\Proj v$ lui-même :
+$\langle \Proj v, v - \Proj v\rangle_\xi = \hat\theta^\top\boldsymbol\Phi^\top\boldsymbol\Xi(v - \Proj v) = 0$.
+Décomposons $v = \Proj v + (v - \Proj v)$ et développons le carré de sa norme.
+Le terme croisé est ce produit scalaire; il s'annule donc, et
 
 $$
-\|v\|_\xi^2 = \|\Proj v\|_\xi^2 + \|v - \Proj v\|_\xi^2 \geq \|\Proj v\|_\xi^2.
+\|v\|_\xi^2 = \|\Proj v\|_\xi^2 + 2\langle \Proj v, v - \Proj v\rangle_\xi + \|v - \Proj v\|_\xi^2 = \|\Proj v\|_\xi^2 + \|v - \Proj v\|_\xi^2 \geq \|\Proj v\|_\xi^2.
 $$
+
+C'est le théorème de Pythagore pour le produit scalaire pondéré par $\xi$.
+Comme $\Proj$ est linéaire, l'appliquer à $v - w$ donne
+$\|\Proj v - \Proj w\|_\xi = \|\Proj(v - w)\|_\xi \leq \|v - w\|_\xi$ :
+$\Proj$ est non expansif pour $\|\cdot\|_\xi$.
 
 Aucune condition de signe sur les entrées de $\Proj$ n'a été nécessaire.
 L'argument en norme sup échoue pour cette projection; l'argument en norme
@@ -1153,18 +1169,54 @@ montrer que $\|\mathbf{P}_\pi z\|_\xi \leq \|z\|_\xi$ pour tout $z$.
 *Avant de poursuivre, essayez de le montrer vous-même. Indice : quelle
 propriété de $\xi$ la relie à $\mathbf{P}_\pi$?*
 
-La $s$-ième composante de $\mathbf{P}_\pi z$ est
-$\sum_{s'} p(s'|s,\pi(s)) z(s')$, une moyenne des valeurs $z(s')$. Comme
-$x \mapsto x^2$ est convexe, l'inégalité de Jensen donne
-$\big[\sum_{s'} p(s'|s,\pi(s)) z(s')\big]^2 \leq \sum_{s'} p(s'|s,\pi(s)) z(s')^2$.
-En pondérant par $\xi$ et en sommant sur $s$,
+Fixons un état $s$. La ligne $p(\cdot|s,\pi(s))$ de $\mathbf{P}_\pi$ est une
+distribution de probabilité sur les états suivants; la $s$-ième composante
+$(\mathbf{P}_\pi z)(s) = \sum_{s'} p(s'|s,\pi(s)) z(s')$ est donc une moyenne
+des valeurs $z(s')$, pondérée par ces probabilités. Comme $x \mapsto x^2$ est
+convexe, l'inégalité de Jensen avec les mêmes poids donne, pour chaque $s$
+séparément,
 
 $$
-\|\mathbf{P}_\pi z\|_\xi^2 \leq \sum_s \xi(s) \sum_{s'} p(s'|s,\pi(s)) z(s')^2 = \sum_{s'} z(s')^2 \sum_s \xi(s) p(s'|s,\pi(s)) = \sum_{s'} \xi(s') z(s')^2 = \|z\|_\xi^2,
+\big[(\mathbf{P}_\pi z)(s)\big]^2 = \Big[\sum_{s'} p(s'|s,\pi(s)) z(s')\Big]^2 \leq \sum_{s'} p(s'|s,\pi(s)) z(s')^2 .
 $$
 
-où l'avant-dernière étape est la stationnarité. Ainsi, $\Proj\BellmanPi$ est
-une $\gamma$-contraction pour $\|\cdot\|_\xi$, et par
+Multiplions chacune de ces inégalités par $\xi(s) \geq 0$ et additionnons-les
+sur $s$. Le membre de gauche devient $\|\mathbf{P}_\pi z\|_\xi^2$. À droite,
+intervertissons les deux sommes finies pour mettre $z(s')^2$ en facteur. La
+somme intérieure qui reste, $\sum_s \xi(s) p(s'|s,\pi(s))$, est la $s'$-ième
+composante du vecteur ligne $\xi^\top\mathbf{P}_\pi$, et la stationnarité,
+$\xi^\top\mathbf{P}_\pi = \xi^\top$, la remplace par $\xi(s')$ :
+
+$$
+\begin{aligned}
+\|\mathbf{P}_\pi z\|_\xi^2 = \sum_s \xi(s) \big[(\mathbf{P}_\pi z)(s)\big]^2
+&\leq \sum_s \xi(s) \sum_{s'} p(s'|s,\pi(s)) z(s')^2 && \text{(Jensen, état par état)} \\
+&= \sum_{s'} z(s')^2 \sum_s \xi(s) p(s'|s,\pi(s)) && \text{(interversion des sommes)} \\
+&= \sum_{s'} \xi(s') z(s')^2 && (\xi^\top\mathbf{P}_\pi = \xi^\top) \\
+&= \|z\|_\xi^2 .
+\end{aligned}
+$$
+
+La stationnarité n'intervient qu'à la troisième ligne, et c'est la seule
+propriété de $\xi$ dont l'argument a besoin. En prenant les racines carrées,
+$\|\mathbf{P}_\pi z\|_\xi \leq \|z\|_\xi$, et avec $z = v - w$,
+
+$$
+\|\BellmanPi v - \BellmanPi w\|_\xi = \gamma\|\mathbf{P}_\pi(v - w)\|_\xi \leq \gamma\|v - w\|_\xi ,
+$$
+
+donc $\BellmanPi$ est une contraction de module $\gamma$ pour $\|\cdot\|_\xi$.
+
+Les deux inégalités s'enchaînent. En appliquant la non-expansivité de $\Proj$
+aux vecteurs $\BellmanPi v$ et $\BellmanPi w$, puis la contraction de
+$\BellmanPi$,
+
+$$
+\|\Proj\BellmanPi v - \Proj\BellmanPi w\|_\xi \leq \|\BellmanPi v - \BellmanPi w\|_\xi \leq \gamma\|v - w\|_\xi .
+$$
+
+Ainsi, $\Proj\BellmanPi$ est une contraction de module $\gamma$ pour
+$\|\cdot\|_\xi$, et par
 {prf:ref}`banach-fixed-point`, l'évaluation de politique ajustée converge à
 partir de tout point de départ vers l'unique solution de l'**équation de
 Bellman projetée**
@@ -1226,6 +1278,21 @@ change lentement, et un grand tampon de rejeu empêche la distribution des
 données de suivre chaque changement de politique. Le
 [chapitre sur les données historiques et en ligne](fitted-q-iteration.md)
 examine ces choix un à un.
+
+(tbl-abe-what-is-known)=
+Le tableau rassemble les résultats démontrés ici ou établis dans les travaux
+cités pour l'itération de fonctions $v_{k+1} = \Proj\,\mathrm{T} v_k$, selon l'opérateur $\mathrm{T}$ et
+l'ajustement. Avec un moyenneur, la pondération des données ne joue aucun rôle.
+
+| **Opérateur** | **Moyenneur** | **Caractéristiques linéaires, pondération sur politique** | **Caractéristiques linéaires, autre pondération** |
+|:--|:--|:--|:--|
+| Évaluation $\BellmanPi$ | Contraction en norme sup, converge {cite}`Gordon1995` | Contraction en norme $\xi$, converge {cite}`TsitsiklisVanRoy1997` | Aucune garantie, peut diverger {cite}`Baird1995` |
+| Arrêt optimal | Contraction en norme sup, converge | Contraction en norme $\xi$, converge {cite}`TsitsiklisVanRoy1999` | Aucune garantie |
+| Optimalité $\Bellman$ | Contraction en norme sup, converge {cite}`Gordon1995` | Aucune garantie, l'équation projetée peut n'avoir aucune solution {cite}`deFariasVanRoy2000` | Aucune garantie |
+
+Un ajustement non linéaire, comme un réseau de neurones, n'entre dans aucune
+colonne : les seules garanties qui lui restent sont les bornes d'erreur qui
+supposent chaque ajustement précis.
 
 (sec-abe-api)=
 ## Itération sur les politiques approchée

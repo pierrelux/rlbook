@@ -5,8 +5,141 @@
   "fr": "Automne 2026"
  },
  "folder_url": "https://drive.google.com/drive/folders/1iwN-j6IJP9l8EOkXrcxy4DpWRNcTixr8",
- "updated": "2026-11-16",
+ "updated": "2026-11-20",
  "lectures": [
+  {
+   "date": "2026-11-19",
+   "week": 11,
+   "title": {
+    "en": "Recap of weighted residual methods and the projected Bellman equation; Gordon's averagers, non-expansions and the 1/(1-gamma) error bound; tile coding; TD as stochastic approximation and the on-policy weighted projection; fitted value methods; midterm scope",
+    "fr": "Rappel des méthodes de résidus pondérés et de l'équation de Bellman projetée ; les moyenneurs de Gordon, les non-expansions et la borne d'erreur en 1/(1-gamma) ; le pavage (tile coding) ; TD comme approximation stochastique et la projection pondérée sur la politique courante ; méthodes de valeur ajustée ; matière de l'intra"
+   },
+   "chapters": [
+    {
+     "slug": "weighted-residual-methods",
+     "title": "Parametric Value Functions"
+    },
+    {
+     "slug": "approximate-bellman-equations",
+     "title": "Convergence and Error Bounds for Approximate Value Iteration"
+    },
+    {
+     "slug": "monte-carlo-bellman-estimation",
+     "title": "Fitted Value Methods"
+    }
+   ],
+   "drive": "https://drive.google.com/file/d/1i9C2Fs16SsFMlU8JZhgeFKGae8Yf9_1K/view",
+   "duration_ms": 6296123,
+   "thumb": "2026-11-19.jpg",
+   "paragraphs": 112,
+   "cleaned": true,
+   "tldr": [
+    {
+     "notion": {
+      "en": "Three weighted residual methods as choices of test functions",
+      "fr": "Trois méthodes de résidus pondérés comme choix de fonctions test"
+     },
+     "p": 3,
+     "exam": true
+    },
+    {
+     "notion": {
+      "en": "The projected Bellman equation",
+      "fr": "L'équation de Bellman projetée"
+     },
+     "p": 13,
+     "exam": true
+    },
+    {
+     "notion": {
+      "en": "Value iteration with regression is not minimizing a Bellman loss",
+      "fr": "L'itération de valeur avec régression ne minimise pas une perte de Bellman"
+     },
+     "p": 21,
+     "exam": true
+    },
+    {
+     "notion": {
+      "en": "Non-expansion plus contraction gives a contraction",
+      "fr": "Non-expansion et contraction donnent une contraction"
+     },
+     "p": 27,
+     "exam": true
+    },
+    {
+     "notion": {
+      "en": "Divergence in the fishery collocation experiment",
+      "fr": "Divergence dans l'expérience de collocation sur la pêcherie"
+     },
+     "p": 29,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Gordon's averagers",
+      "fr": "Les moyenneurs de Gordon"
+     },
+     "p": 42,
+     "exam": true
+    },
+    {
+     "notion": {
+      "en": "Averagers are sup-norm non-expansions",
+      "fr": "Les moyenneurs sont des non-expansions en norme sup"
+     },
+     "p": 47,
+     "exam": true
+    },
+    {
+     "notion": {
+      "en": "Error bound for fitted value iteration with an averager",
+      "fr": "Borne d'erreur de l'itération de valeur ajustée avec un moyenneur"
+     },
+     "p": 49,
+     "exam": true
+    },
+    {
+     "notion": {
+      "en": "Which approximators are averagers",
+      "fr": "Quels approximateurs sont des moyenneurs"
+     },
+     "p": 61,
+     "exam": true
+    },
+    {
+     "notion": {
+      "en": "Tile coding",
+      "fr": "Le pavage (tile coding)"
+     },
+     "p": 68,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "TD converges to the Galerkin fixed point",
+      "fr": "TD converge vers le point fixe de Galerkin"
+     },
+     "p": 79,
+     "exam": true
+    },
+    {
+     "notion": {
+      "en": "Weighted projection and the on-policy condition",
+      "fr": "Projection pondérée et condition de politique courante"
+     },
+     "p": 90,
+     "exam": true
+    },
+    {
+     "notion": {
+      "en": "Fitted value methods",
+      "fr": "Méthodes de valeur ajustée"
+     },
+     "p": 107,
+     "exam": true
+    }
+   ]
+  },
   {
    "date": "2026-11-16",
    "week": 11,
@@ -24,8 +157,8 @@
      "title": "Parametric Value Functions"
     },
     {
-     "slug": "fitted-q-iteration",
-     "title": "Learning from Logged and Online Data"
+     "slug": "monte-carlo-bellman-estimation",
+     "title": "Fitted Value Methods"
     }
    ],
    "drive": "https://drive.google.com/file/d/1cm1CXG5Za2WRuMmvz54DgIfUdAMOytUw/view",
