@@ -218,6 +218,18 @@
         "fitted-q-iteration"
       ],
       "redact": []
+    },
+    "2026-11-19": {
+      "title": {
+        "en": "Recap of weighted residual methods and the projected Bellman equation; Gordon's averagers, non-expansions and the 1/(1-gamma) error bound; tile coding; TD as stochastic approximation and the on-policy weighted projection; fitted value methods; midterm scope",
+        "fr": "Rappel des méthodes de résidus pondérés et de l'équation de Bellman projetée ; les moyenneurs de Gordon, les non-expansions et la borne d'erreur en 1/(1-gamma) ; le pavage (tile coding) ; TD comme approximation stochastique et la projection pondérée sur la politique courante ; méthodes de valeur ajustée ; matière de l'intra"
+      },
+      "chapters": [
+        "weighted-residual-methods",
+        "approximate-bellman-equations",
+        "monte-carlo-bellman-estimation"
+      ],
+      "redact": []
     }
   },
   "corrections": {
