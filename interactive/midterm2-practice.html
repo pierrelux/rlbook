@@ -114,14 +114,14 @@ button.primary { background: var(--structure); color: #fff; border-color: var(--
 .expl, .sol { margin-top: .9rem; padding: .8rem .95rem; border-left: 3px solid var(--structure); background: var(--structure-soft); border-radius: 0 var(--radius) var(--radius) 0; font-size: .95rem; }
 .expl p:first-child, .sol p:first-child { margin-top: 0; }
 .expl p:last-child, .sol p:last-child { margin-bottom: 0; }
-.sol .pt { font-weight: 600; color: var(--structure); margin: 1.1rem 0 .35rem; }
-.sol .pt:first-child { margin-top: 0; }
-.sol .res { font-weight: 600; }
-.sol table { border-collapse: collapse; margin: .5rem 0 .7rem; font-size: .95em; display: block; overflow-x: auto; }
-.sol th, .sol td { padding: .3rem .65rem; border-bottom: 1px solid var(--rule); text-align: left; white-space: nowrap; }
-.sol th { font-weight: 600; }
-.sol ul, .sol ol { margin: .3rem 0 .5rem; padding-left: 1.3rem; }
-.sol li { margin: .2rem 0; }
+.sol .pt, .expl .pt { font-weight: 600; color: var(--structure); margin: 1.1rem 0 .35rem; }
+.sol .pt:first-child, .expl .pt:first-child { margin-top: 0; }
+.sol .res, .expl .res { font-weight: 600; }
+.sol table, .expl table { border-collapse: collapse; margin: .5rem 0 .7rem; font-size: .95em; display: block; overflow-x: auto; }
+.sol th, .expl th, .sol td, .expl td { padding: .3rem .65rem; border-bottom: 1px solid var(--rule); text-align: left; white-space: nowrap; }
+.sol th, .expl th { font-weight: 600; }
+.sol ul, .expl ul, .sol ol, .expl ol { margin: .3rem 0 .5rem; padding-left: 1.3rem; }
+.sol li, .expl li { margin: .2rem 0; }
 .rehearses { margin-top: .75rem; font-size: .8rem; color: var(--ink-muted); }
 .rehearses b { font-weight: 500; color: var(--ink); }
 code { font-family: var(--font-mono); font-size: .9em; background: var(--bg-sunken); padding: .05em .3em; border-radius: 3px; }
@@ -189,7 +189,16 @@ body.presenter .deck { display: flex; }
   </ol>
   <div class="actions"><span class="verdict"></span></div>
   <div class="expl" hidden>
-    <p>Two arrays come out: the values (the min) and the policy (the argmin), indexed by stage and state. That is feedback: what to do in every state at every stage, not one plan from one \(\mathbf{x}_1\). With a horizon fixed in advance, the cost-to-go from state \(\mathbf{x}\) depends on how many stages remain, so do not drop the stage index. In the finite-horizon case the procedure is called backward induction; the name value iteration is reserved for successive approximation on a fixed-point equation. Backward induction gives the global optimum when each one-step problem is solved exactly.</p>
+    <p class="pt">Answer: (b)</p>
+    <p>Backward induction starts at the last stage and works back to the first. At each stage \(t\) and for <em>every</em> state \(\mathbf{x}\) of the grid, it solves the one-step problem</p>
+    \[ J_t^\star(\mathbf{x}) = \min_{\mathbf{u}} \big\{ c_t(\mathbf{x}, \mathbf{u}) + J_{t+1}^\star(\mathbf{f}_t(\mathbf{x}, \mathbf{u})) \big\}. \]
+    <p>It stores two things: the minimum value \(J_t^\star(\mathbf{x})\) and the minimizer \(\pi_t^\star(\mathbf{x})\). So the output is two arrays indexed by stage and state: a value table and a feedback policy. Both depend on \(t\), because with a fixed horizon the cost from \(\mathbf{x}\) depends on how many stages remain.</p>
+    <p class="pt">Why not the others</p>
+    <ul>
+      <li><b>(a)</b> A single control sequence for one initial state is what trajectory optimization returns. Backward induction answers for every state; to get the sequence from \(\mathbf{x}_1\), you roll the policy forward.</li>
+      <li><b>(c)</b> A single stationary value function, found by value iteration, belongs to the infinite-horizon discounted problem. Here the values change with \(t\), and the recursion ends after \(T\) steps.</li>
+      <li><b>(d)</b> There is no initial guess. If each one-step minimization is solved exactly, the result is the global optimum.</li>
+    </ul>
   </div>
   <p class="rehearses"><b>Rehearses:</b> what object dynamic programming computes, and why it is stage-dependent.</p>
 </article>
@@ -208,7 +217,8 @@ body.presenter .deck { display: flex; }
   <div class="actions"><button type="button" class="reveal">Show solution</button></div>
   <div class="sol" hidden>
     <p class="pt">(a) Last decision, \(t = 2\)</p>
-    <p>Terminal cost: \(J_3^\star(x) = x\), so \(J_3^\star = (0, 1, 2)\). Each entry below is stage cost plus cost-to-go:</p>
+    <p>Backward induction starts from the end. After the last decision only the terminal cost remains: \(J_3^\star(x) = x\), so \(J_3^\star = (0, 1, 2)\).</p>
+    <p>At \(t = 2\), for each state we try every allowed move and add two things: what the move costs now, \(2x + 2|u|\), and the terminal cost of the state it lands in, \(J_3^\star(x + u)\). We keep the cheapest.</p>
     \[ J_2^\star(x) = \min_u \big\{ 2x + 2|u| + J_3^\star(x + u) \big\} \]
     <table>
       <tr><th>\(x\)</th><th>stay (\(u = 0\))</th><th>down (\(u = -1\))</th><th>up (\(u = +1\))</th><th>best</th><th>\(J_2^\star(x)\)</th></tr>
@@ -219,7 +229,7 @@ body.presenter .deck { display: flex; }
     <p class="res">\(J_2^\star = (0, 3, 6)\), \(\pi_2^\star = (0, 0, 0)\).</p>
 
     <p class="pt">(b) First decision, \(t = 1\)</p>
-    <p>Same computation with \(J_2^\star = (0, 3, 6)\) as the cost-to-go:</p>
+    <p>Same recipe one stage earlier, but now the future is worth \(J_2^\star = (0, 3, 6)\) instead of the terminal cost. For example, from \(x = 1\), moving down costs \(2 \cdot 1 + 2 \cdot 1 = 4\) now and lands in \(x = 0\), whose cost-to-go is \(J_2^\star(0) = 0\): total 4. Staying costs \(2\) now and lands in \(x = 1\), worth \(J_2^\star(1) = 3\): total 5. Down wins.</p>
     <table>
       <tr><th>\(x\)</th><th>stay</th><th>down</th><th>up</th><th>best</th><th>\(J_1^\star(x)\)</th></tr>
       <tr><td>0</td><td>\(0 + 0 = 0\)</td><td>not allowed</td><td>\(0 + 2 + 3 = 5\)</td><td>stay</td><td>0</td></tr>
@@ -260,7 +270,23 @@ body.presenter .deck { display: flex; }
   </ol>
   <div class="actions"><span class="verdict"></span></div>
   <div class="expl" hidden>
-    <p>Step 1 (cut) gives a lower bound for every sequence: replacing its tail by the optimal tail from the same successor cannot increase the cost. Step 2 (paste) compares first steps, each followed by its optimal tail, and the argmin attains the bound. Option (b) pairs a first step with a tail that starts from a different state. "The proof constructs a solution, so backward induction plays two roles: it is both a proof and an algorithm." No gradients and no constrained solver are involved.</p>
+    <p class="pt">Answer: (c)</p>
+    <p>The argument has two steps.</p>
+    <p><b>Cut (lower bound).</b> Take any sequence from \(\mathbf{x}\). Keep its first step and replace its tail by the optimal tail from the same next state. That cannot cost more. Here the sequence costs \(2 + 9 = 11\), and the replacement costs \(2 + 7 = 9\). So every sequence costs at least "its first step plus the optimal tail from where that step lands".</p>
+    <p><b>Paste (attain the bound).</b> Now compare the three first steps, each followed by its own optimal tail:</p>
+    <table>
+      <tr><th>first step</th><th>cost of step</th><th>optimal tail after it</th><th>total</th></tr>
+      <tr><td>1</td><td>2</td><td>7</td><td>\(2 + 7 = 9\)</td></tr>
+      <tr><td>2</td><td>3</td><td>4</td><td>\(3 + 4 = 7\)</td></tr>
+      <tr><td>3</td><td>1</td><td>8</td><td>\(1 + 8 = 9\)</td></tr>
+    </table>
+    <p>The best is 7, so \(J_t^\star(\mathbf{x}) = 7\), and the chain \(11 \ge 9 \ge 7\) shows no sequence does better. This is exactly the backward induction step, which is why the proof is also the algorithm.</p>
+    <p class="pt">Why not the others</p>
+    <ul>
+      <li><b>(a)</b> 9 is the improved version of one particular sequence, not the best over all first steps.</li>
+      <li><b>(b)</b> It glues the cheapest first step (cost 1, step 3) to the cheapest tail (cost 4), but that tail starts from the state reached by step 2. The two pieces do not connect.</li>
+      <li><b>(d)</b> The argument only compares costs. No gradients are used.</li>
+    </ul>
   </div>
   <p class="rehearses"><b>Rehearses:</b> the two inequalities of the cut-and-paste proof.</p>
 </article>
@@ -278,7 +304,17 @@ body.presenter .deck { display: flex; }
   </ol>
   <div class="actions"><span class="verdict"></span></div>
   <div class="expl" hidden>
-    <p>A grid with \(N\) levels per coordinate has \(N^n\) nodes: Bellman's curse of dimensionality. It is the price of asking for an answer everywhere. Trajectory optimization keeps a cost polynomial in the dimension (about \(T(n+m)\) unknowns) by giving up the global, closed-loop answer. Linear interpolation or splines do not remove the exponential count of nodes. Function approximation and Monte Carlo integration are the two levers the rest of the course pulls.</p>
+    <p class="pt">Answer: (b)</p>
+    <p>Count the grid. Each of the 4 storages takes 100 levels, and the grid is every combination of levels:</p>
+    \[ 100 \times 100 \times 100 \times 100 = 100^4 = 10^8 \text{ states per stage}. \]
+    <p>Over 52 stages that is \(52 \times 10^8 \approx 5 \times 10^9\) values, and each one requires a minimization over the releases. This is the curse of dimensionality: the count is exponential in the dimension \(n\).</p>
+    <p>A transcription for one initial state has, at each of the 52 stages, 4 states and 4 releases as unknowns: about \(52 \times 8 \approx 400\) unknowns. That is polynomial in \(n\), but it answers for one starting point only, while the table gives a policy for every state.</p>
+    <p class="pt">Why not the others</p>
+    <ul>
+      <li><b>(a)</b> \(52 \times 400\) adds the dimensions instead of multiplying the levels. The grid needs every combination of levels.</li>
+      <li><b>(c)</b> \(4^{100}\) swaps base and exponent: it is levels to the power of dimension, \(100^4\).</li>
+      <li><b>(d)</b> Both discretize time, but the table also covers the whole state space, which the transcription does not.</li>
+    </ul>
   </div>
   <p class="rehearses"><b>Rehearses:</b> counting the cost of a grid and placing DP against trajectory optimization.</p>
 </article>
@@ -296,7 +332,19 @@ body.presenter .deck { display: flex; }
   </ol>
   <div class="actions"><span class="verdict"></span></div>
   <div class="expl" hidden>
-    <p>With \(\lambda = (1033.7 - 1030)/10 = 0.37\), \(\hat J_{t+1} = (1 - \lambda)\, v_{t+1,i} + \lambda\, v_{t+1,i+1}\): the closer node gets the larger weight. The nodal representation \(\hat J_t(\mathbf{x}) = \sum_i v_{t,i}\,\ell_i(\mathbf{x})\) with \(\ell_i(\mathbf{x}^{(j)}) = \delta_{ij}\) is the same idea as in collocation, with the nodes placed in the state space instead of on the time axis. Nonnegative weights keep \(\hat J\) within the range of the stored values; a spline can overshoot near a jump, such as the switch of a bang-bang release table, but it is more accurate on smooth functions.</p>
+    <p class="pt">Answer: (a)</p>
+    <p><b>Rounding</b> takes the nearest node. 1033.7 is 3.7 from 1030 and 6.3 from 1040, so it uses \(v_{t+1}(1030) = 50\).</p>
+    <p><b>Linear interpolation</b> measures how far we are along the interval:</p>
+    \[ \lambda = \frac{1033.7 - 1030}{10} = 0.37. \]
+    <p>The weight on the far node is \(\lambda\) and the weight on the near node is \(1 - \lambda\):</p>
+    \[ \hat J_{t+1} = (1 - 0.37)\cdot 50 + 0.37 \cdot 60 = 31.5 + 22.2 = 53.7. \]
+    <p>The closer node (1030) gets the larger weight, 0.63. Both rules use nonnegative weights summing to one, so the result always lies between the stored values. A cubic spline can have negative weights and overshoot.</p>
+    <p class="pt">Why not the others</p>
+    <ul>
+      <li><b>(b)</b> 1040 is not the nearest node, and 55 is the midpoint, which ignores where 1033.7 sits.</li>
+      <li><b>(c)</b> It puts the larger weight on the far node: the weights are swapped.</li>
+      <li><b>(d)</b> The point of storing a table is that no new simulation is needed: we only combine stored numbers.</li>
+    </ul>
   </div>
   <p class="rehearses"><b>Rehearses:</b> evaluating the interpolated Bellman recursion at an off-grid successor.</p>
 </article>
@@ -314,7 +362,15 @@ body.presenter .deck { display: flex; }
   </ol>
   <div class="actions"><span class="verdict"></span></div>
   <div class="expl" hidden>
-    <p>"If you want to deploy a policy, what matters is the ordering encoded in the argmin." Every candidate gets the same 40 added, so the comparison between candidates is the same. This is why learning methods aim for a value function that preserves the ordering over actions rather than the exact values. An economist who reads \(J\) as a monetary value does care about the 40.</p>
+    <p class="pt">Answer: (b)</p>
+    <p>The decision rule picks the action that minimizes \(c_t(\mathbf{x}, \mathbf{u}) + \hat J_{t+1}(\mathbf{f}_t(\mathbf{x}, \mathbf{u}))\). Replacing \(\hat J_{t+1}\) by \(J^\star_{t+1} + 40\) adds 40 to <em>every</em> candidate. For example, if two actions scored 12 and 15, they now score 52 and 55. The ranking is the same, so the argmin is the same.</p>
+    <p>The lesson: for acting, what matters is the ordering the value function induces over actions, not its exact level. (Someone who reads \(J\) as a monetary value still cares about the 40.)</p>
+    <p class="pt">Why not the others</p>
+    <ul>
+      <li><b>(a)</b> A shift that is the same for all actions cannot favor any of them.</li>
+      <li><b>(c)</b> Nothing random was introduced: the same comparison gives the same answer.</li>
+      <li><b>(d)</b> The values change by 40, but the decision is an argmin and does not move.</li>
+    </ul>
   </div>
   <p class="rehearses"><b>Rehearses:</b> what part of a value function the policy actually uses.</p>
 </article>
@@ -385,7 +441,15 @@ body.presenter .deck { display: flex; }
   </ol>
   <div class="actions"><span class="verdict"></span></div>
   <div class="expl" hidden>
-    <p>"The discrete-time Riccati equation is the Bellman equation, that is, backward induction, specialized to linear quadratic systems." It starts at \(P_T = Q_T\) and runs backward. The minimization in \(\mathbf{u}\) needs \(R_t + B_t^\top P_{t+1} B_t\) positive definite, which \(R_t \succ 0\) guarantees; \(Q_t \succeq 0\) is enough. The gains are computed offline, during the backward pass, and do not depend on the state: the feedback is linear. In code, solve the linear system rather than forming the inverse.</p>
+    <p class="pt">Answer: (a)</p>
+    <p>Start backward induction from a quadratic terminal cost \(\tfrac12\mathbf{x}^\top Q_T\mathbf{x}\). At each stage, the one-step problem is a quadratic in \(\mathbf{u}\) (quadratic cost plus quadratic cost-to-go of a linear next state). Setting its gradient to zero gives a control that is linear in the state, \(\mathbf{u}_t^\star = -K_t\mathbf{x}_t\). Substituting back gives again a quadratic, \(\tfrac12\mathbf{x}^\top P_t\mathbf{x}\). So one matrix \(P_t\) per stage replaces the whole table. That backward update of \(P_t\) is the Riccati recursion.</p>
+    <p>The minimization is well posed when \(R_t + B_t^\top P_{t+1}B_t\) is positive definite, which \(R_t \succ 0\) guarantees.</p>
+    <p class="pt">Why not the others</p>
+    <ul>
+      <li><b>(b)</b> The recursion starts at the end, \(P_T = Q_T\), and runs backward, like all backward induction.</li>
+      <li><b>(c)</b> It is the other way around: \(Q_t \succeq 0\) is enough, but with \(R_t = 0\) the matrix \(B_t^\top P_{t+1}B_t\) can be singular, and then the minimizer in \(\mathbf{u}\) need not be unique.</li>
+      <li><b>(d)</b> \(K_t\) is computed offline from \(A, B, Q, R, P_{t+1}\) only. The state enters linearly, through \(-K_t\mathbf{x}_t\).</li>
+    </ul>
   </div>
   <p class="rehearses"><b>Rehearses:</b> the assumptions and the output of the Riccati recursion.</p>
 </article>
@@ -403,7 +467,15 @@ body.presenter .deck { display: flex; }
   </ol>
   <div class="actions"><span class="verdict"></span></div>
   <div class="expl" hidden>
-    <p>Each iLQR iteration linearizes the dynamics and quadratizes the cost around the current plan, solves the local LQR problem by a Riccati backward pass, then simulates forward with a line search. The gains are a by-product of that backward pass, and they give feedback for free near the plan. MPC re-solves an optimization from each measured state; iLQR can be used inside MPC, but the tracking controller above is not MPC. DDP has the same structure and keeps the second-order terms of the dynamics that iLQR drops.</p>
+    <p class="pt">Answer: (b)</p>
+    <p>Each iLQR iteration linearizes the dynamics and approximates the cost by a quadratic around the current plan, then solves that local LQR problem with a Riccati backward pass. The backward pass produces gains \(K_t\) as a by-product. During execution, \(\mathbf{u}_t = \bar{\mathbf{u}}_t - K_t(\mathbf{x}_t - \bar{\mathbf{x}}_t)\) corrects the deviation from the plan with a fixed, precomputed gain per stage: a time-varying linear feedback, with no optimization at run time.</p>
+    <p>It works only where the linearization is accurate, in a tube around the nominal trajectory. Large noise pushes the boat out of that tube, and the correction can fail.</p>
+    <p class="pt">Why not the others</p>
+    <ul>
+      <li><b>(a)</b> MPC re-solves an optimization from each measured state. Here nothing is re-solved; the gains were computed once.</li>
+      <li><b>(c)</b> The gains come from a local, linearized model, so they are only locally valid, not globally optimal.</li>
+      <li><b>(d)</b> The gains are exactly what makes the controller useful after optimization: they give feedback for free.</li>
+    </ul>
   </div>
   <p class="rehearses"><b>Rehearses:</b> what iLQR returns and where its feedback is valid.</p>
 </article>
@@ -429,7 +501,7 @@ body.presenter .deck { display: flex; }
   <div class="actions"><button type="button" class="reveal">Show solution</button></div>
   <div class="sol" hidden>
     <p class="pt">(a) Last decision, \(t = 2\)</p>
-    <p>No future, so each action is worth its reward:</p>
+    <p>At the last decision there is no future (terminal reward 0), so each action is worth only its immediate reward. Pick the larger one.</p>
     <table>
       <tr><th>state</th><th>run</th><th>repair</th><th>best</th><th>\(v_2^\star\)</th></tr>
       <tr><td>G</td><td>10</td><td>\(-1\)</td><td>run</td><td>10</td></tr>
@@ -437,7 +509,7 @@ body.presenter .deck { display: flex; }
     </table>
 
     <p class="pt">(b) First decision, \(t = 1\)</p>
-    <p>Each action is worth reward \(+\) expected \(v_2^\star\) of the next state:</p>
+    <p>Now each action is worth its reward plus the <em>expected</em> value of where it leads at \(t = 2\), using \(v_2^\star = (10, 4)\). For "run in G", the next state is G with probability 0.7 (worth 10) and W with probability 0.3 (worth 4), so the future is worth \(0.7 \cdot 10 + 0.3 \cdot 4 = 8.2\), and the total is \(10 + 8.2 = 18.2\). Repair always leads to G, worth 10.</p>
     <table>
       <tr><th>state</th><th>run</th><th>repair</th><th>best</th><th>\(v_1^\star\)</th></tr>
       <tr><td>G</td><td>\(10 + (0.7 \cdot 10 + 0.3 \cdot 4) = 18.2\)</td><td>\(-1 + 10 = 9\)</td><td>run</td><td>18.2</td></tr>
@@ -472,7 +544,19 @@ body.presenter .deck { display: flex; }
   </ol>
   <div class="actions"><span class="verdict"></span></div>
   <div class="expl" hidden>
-    <p>Two facts make it work. State sufficiency: with Markovian dynamics and rewards, the optimal return from a history depends on it only through the current state (backward induction on the history-based equations). And randomizing never beats the best action when maximizing an expectation. The history grows exponentially with \(t\), so restricting to MD rules is what makes the computation possible. Stationarity is a separate question: in the finite-horizon case the rules depend on \(t\).</p>
+    <p class="pt">Answer: (b)</p>
+    <p>Markov deterministic policies are a special case of history-dependent randomized ones, so \(\Pi^{MD} \subset \Pi^{HR}\). The surprising part is that nothing is lost by restricting to MD. Two facts give this:</p>
+    <ol>
+      <li><b>State sufficiency.</b> With Markov dynamics and rewards, the best you can do from a given history depends only on the current state. Remembering the past does not help.</li>
+      <li><b>No gain from randomizing.</b> When maximizing an expectation, a mixture of actions is worth at most the best action: \(\sum_a q(a)w(a) \le \max_a w(a)\).</li>
+    </ol>
+    <p>The optimal MD policy still has one decision rule per stage, because the number of remaining stages matters.</p>
+    <p class="pt">Why not the others</p>
+    <ul>
+      <li><b>(a)</b> More information can only help if it predicts the future, and the current state already summarizes everything relevant.</li>
+      <li><b>(c)</b> The MD part is right, but with a finite horizon the optimal rule depends on \(t\) (see Q2 and Q10), so it is not stationary in general.</li>
+      <li><b>(d)</b> Random transitions do not call for random actions: by fact 2, a deterministic choice is always at least as good.</li>
+    </ul>
   </div>
   <p class="rehearses"><b>Rehearses:</b> the policy classes and the reduction to Markov deterministic rules.</p>
 </article>
@@ -490,7 +574,18 @@ body.presenter .deck { display: flex; }
   </ol>
   <div class="actions"><span class="verdict"></span></div>
   <div class="expl" hidden>
-    <p>Optimality presupposes an ordering, and for MDPs it is \(v^{\pi} \ge v^{\pi'}\) in every state. That is a partial order, so two policies can be incomparable; the remarkable fact is that an optimal policy dominates all others simultaneously. Each entry is itself an expectation: taking the mean of the return is a modeling choice that makes the decision maker risk-neutral. Risk-sensitive criteria such as CVaR look at the tail of the return distribution instead.</p>
+    <p class="pt">Answer: (c)</p>
+    <p>MDPs compare policies state by state: \(\pi\) is at least as good as \(\pi'\) if \(v^\pi(s) \ge v^{\pi'}(s)\) in <em>every</em> state. Check:</p>
+    <ul>
+      <li>state 1: \(3 &lt; 4\), so \(\pi_B\) is better there;</li>
+      <li>state 2: \(5 &gt; 4\), so \(\pi_A\) is better there.</li>
+    </ul>
+    <p>Neither dominates, so they are not comparable: this order is partial. The remarkable fact of MDP theory is that an optimal policy exists that is at least as good as every other policy in every state at once, so it beats both.</p>
+    <p class="pt">Why not the others</p>
+    <ul>
+      <li><b>(a)</b> and <b>(d)</b> Summing over states is a different criterion (it amounts to a uniform initial distribution). It is not the order used to define optimality.</li>
+      <li><b>(b)</b> Comparing worst cases is also a different criterion. Nothing in the question asks for it.</li>
+    </ul>
   </div>
   <p class="rehearses"><b>Rehearses:</b> the componentwise ordering of policies and the expectation as a modeling choice.</p>
 </article>
@@ -508,7 +603,16 @@ body.presenter .deck { display: flex; }
   </ol>
   <div class="actions"><span class="verdict"></span></div>
   <div class="expl" hidden>
-    <p>A quadrature rule with \(K\) points per dimension needs \(K^6\) points, the curse of dimensionality again, now on the noise. Monte Carlo integration is unbiased for a fixed \(J_{t+1}\), and its variance is \(\mathrm{Var}/M\) independently of the dimension. The same idea underlies empirical risk minimization in supervised learning. Function approximation and Monte Carlo integration are the two ingredients the course combines from here on.</p>
+    <p class="pt">Answer: (a)</p>
+    <p>The Monte Carlo estimate is</p>
+    \[ \frac1M \sum_{i=1}^M J_{t+1}\big(\mathbf{f}_t(\mathbf{x}, \mathbf{u}, \mathbf{w}_i)\big), \qquad \mathbf{w}_i \text{ simulated}. \]
+    <p>To compute it you only need to draw inflows, not to write down their density. It is unbiased, and its variance is \(\mathrm{Var}/M\), so its standard error is proportional to \(1/\sqrt{M}\). The dimension of \(\mathbf{w}\) (here 6) does not appear in that rate.</p>
+    <p class="pt">Why not the others</p>
+    <ul>
+      <li><b>(b)</b> This confuses Monte Carlo with quadrature. A tensor-product rule with \(K\) points per dimension needs \(K^6\) points: that is where dimension hurts.</li>
+      <li><b>(c)</b> The average of i.i.d. draws is unbiased for any \(M\). The number of grid states plays no role.</li>
+      <li><b>(d)</b> The appeal of Monte Carlo is precisely that a simulator suffices.</li>
+    </ul>
   </div>
   <p class="rehearses"><b>Rehearses:</b> why sampling replaces quadrature in the stochastic Bellman backup.</p>
 </article>
@@ -528,7 +632,16 @@ body.presenter .deck { display: flex; }
   </ol>
   <div class="actions"><span class="verdict"></span></div>
   <div class="expl" hidden>
-    <p>Geometric series: \(\sum_{t \ge 1}\gamma^{t-1} \cdot 2 = 2/(1-\gamma)\). The discount is a continuation probability: at each step the process survives with probability \(\gamma\), so the horizon is geometric with mean \(1/(1-\gamma) = 20\). The equivalence (swap the sums) uses the geometric distribution specifically; another distribution with the same mean gives a different criterion.</p>
+    <p class="pt">Answer: (a)</p>
+    <p><b>The bound.</b> Each reward is at most 2 in absolute value, so the discounted sum is at most a geometric series:</p>
+    \[ |v^\pi(s)| \le \sum_{t \ge 1}\gamma^{t-1}\cdot 2 = \frac{2}{1 - \gamma} = \frac{2}{0.05} = 40. \]
+    <p><b>The interpretation.</b> Read \(\gamma = 0.95\) as the probability of continuing. At every step the process stops with probability 0.05 (it moves to an absorbing state with zero reward). The reward at step \(t\) is collected only if the process has survived \(t - 1\) steps, which happens with probability \(0.95^{t-1}\). So the expected undiscounted return equals the discounted return. The horizon is geometric, with mean \(1/(1 - \gamma) = 20\).</p>
+    <p class="pt">Why not the others</p>
+    <ul>
+      <li><b>(b)</b> \(2 \cdot 0.95\) is only the bound on one discounted term, not on the sum of all of them.</li>
+      <li><b>(c)</b> Discounting with \(\gamma &lt; 1\) makes the series converge, so the values are finite.</li>
+      <li><b>(d)</b> The equivalence needs the survival probability to be \(\gamma^{t-1}\), which holds for the geometric distribution only. Another distribution with mean 20 gives other weights.</li>
+    </ul>
   </div>
   <p class="rehearses"><b>Rehearses:</b> bounded values and the two readings of the discount factor.</p>
 </article>
@@ -554,6 +667,7 @@ body.presenter .deck { display: flex; }
     \[ v(1) = 1 + 0.9\big(0.5\, v(1) + 0.5\, v(2)\big) = 1 + 0.45\, v(1) \quad\Longrightarrow\quad v(1) = \frac{1}{0.55} = \frac{20}{11} \approx 1.818 \]
 
     <p class="pt">(b) Three steps of iteration</p>
+    <p>The update is \(v_{k+1}(1) = 1 + 0.45\,v_k(1)\) (because \(v_k(2)\) stays 0). So \(v_1(1) = 1\), \(v_2(1) = 1 + 0.45 = 1.45\), \(v_3(1) = 1 + 0.45 \cdot 1.45 = 1.6525\). The error is \(20/11 - v_k(1)\).</p>
     <table>
       <tr><th>\(k\)</th><th>\(v_k(1)\)</th><th>\(v_k(2)\)</th><th>error in state 1</th></tr>
       <tr><td>0</td><td>0</td><td>0</td><td>1.818</td></tr>
@@ -593,7 +707,19 @@ body.presenter .deck { display: flex; }
   </ol>
   <div class="actions"><span class="verdict"></span></div>
   <div class="expl" hidden>
-    <p>The condition is sufficient, not necessary: non-contractions may still have fixed points. The proof builds the Cauchy sequence \(x_{n+1} = \mathsf{T}(x_n)\), which is "an algorithm in disguise", and gives the a posteriori bound \(\|x_{n+1} - x^\star\| \le \frac{q}{1-q}\|x_{n+1} - x_n\|\). The contraction property is attached to a norm: \(\mathsf{L}_\pi\) contracts in \(\|\cdot\|_\infty\) but need not contract in a weighted \(\ell_2\) norm, which is one of the technical roots of the deadly triad.</p>
+    <p class="pt">Answer: (c)</p>
+    <p>Banach's theorem: if \(\mathsf{T}\) satisfies \(\|\mathsf{T}x - \mathsf{T}y\| \le q\|x - y\|\) with \(q &lt; 1\) on a complete normed space, then:</p>
+    <ul>
+      <li>\(\mathsf{T}\) has exactly one fixed point \(x^\star\);</li>
+      <li>the sequence \(x_{n+1} = \mathsf{T}x_n\) converges to it from any \(x_0\).</li>
+    </ul>
+    <p>The proof shows that this sequence is Cauchy, so the proof is itself the algorithm. It also gives a stopping certificate: \(\|x_{n+1} - x^\star\| \le \frac{q}{1-q}\|x_{n+1} - x_n\|\).</p>
+    <p class="pt">Why not the others</p>
+    <ul>
+      <li><b>(a)</b> Contraction is sufficient, not necessary. For example, the identity map is not a contraction, yet every point is a fixed point.</li>
+      <li><b>(b)</b> Convergence holds from any starting point. That global property is what makes value iteration safe.</li>
+      <li><b>(d)</b> Contraction depends on the norm. \(\mathsf{L}_\pi\) contracts in the sup norm but need not in a weighted \(\ell_2\) norm. This matters later for function approximation (Q34, Q38).</li>
+    </ul>
   </div>
   <p class="rehearses"><b>Rehearses:</b> what a contraction guarantees, and what it does not.</p>
 </article>
@@ -625,6 +751,7 @@ body.presenter .deck { display: flex; }
     <p class="res">\(v^\star = (18, 20)\); the optimal policy is to go.</p>
 
     <p class="pt">(b) Value iteration from \(v_0 = 0\)</p>
+    <p>Each sweep applies the Bellman operator once: \(v_{n+1}(1) = \max\{1 + 0.9\,v_n(1),\; 0.9\,v_n(2)\}\) and \(v_{n+1}(2) = 2 + 0.9\,v_n(2)\). For example, from \(v_1 = (1, 2)\): stay gives \(1 + 0.9 \cdot 1 = 1.9\), go gives \(0.9 \cdot 2 = 1.8\), so \(v_2(1) = 1.9\) and the greedy action is stay; \(v_2(2) = 2 + 0.9 \cdot 2 = 3.8\).</p>
     <table>
       <tr><th>\(n\)</th><th>\(v_n(1)\)</th><th>\(v_n(2)\)</th><th>stay: \(1 + 0.9\,v_n(1)\)</th><th>go: \(0.9\,v_n(2)\)</th><th>greedy in 1</th></tr>
       <tr><td>0</td><td>0</td><td>0</td><td>1</td><td>0</td><td>stay</td></tr>
@@ -632,7 +759,7 @@ body.presenter .deck { display: flex; }
       <tr><td>2</td><td>1.9</td><td>3.8</td><td>2.71</td><td>3.42</td><td>go</td></tr>
       <tr><td>3</td><td>3.42</td><td>5.42</td><td>4.078</td><td>4.878</td><td>go</td></tr>
     </table>
-    <p>Each row: \(v_{n+1}(1)\) is the larger of the two middle columns, and \(v_{n+1}(2) = 2 + 0.9\, v_n(2)\).</p>
+    <p>How to read the table: in row \(n\), the two action columns use \(v_n\); the larger one is \(v_{n+1}(1)\) (next row) and names the greedy action.</p>
 
     <p class="pt">(c) Why the first greedy policy is wrong</p>
     <ul>
@@ -666,7 +793,17 @@ body.presenter .deck { display: flex; }
   </ol>
   <div class="actions"><span class="verdict"></span></div>
   <div class="expl" hidden>
-    <p>Each state can pick its own best action, and a decision rule that does so in every state attains the max over rules: a greedy selector. A max of affine maps is convex and piecewise affine, not linear. The fixed point \(v^\star\) is unique (a sup-norm \(\gamma\)-contraction), but optimal policies need not be: any rule that is greedy with respect to \(v^\star\) (conserving, in Puterman's terms) is optimal over all history-dependent randomized policies, and ties give several.</p>
+    <p class="pt">Answer: (b)</p>
+    <p>The max over decision rules looks expensive, but policies are compared state by state, and each state can choose its own action independently. So the max over rules splits into one max per state:</p>
+    \[ (\mathsf{L}\mathbf{v})(s) = \max_a \Big\{ r(s,a) + \gamma\sum_j p(j\mid s,a)\,v(j) \Big\}. \]
+    <p>Picking the best action in each state gives a rule (the greedy rule) that attains the max over all rules at once. The cost is \(|\mathcal{S}| \times |\mathcal{A}|\) comparisons, not \(|\mathcal{A}|^{|\mathcal{S}|}\).</p>
+    <p>The max makes \(\mathsf{L}\) nonlinear (it is convex and piecewise affine), so \(v = \mathsf{L}v\) cannot be solved with one linear solve, unlike \(v = \mathsf{L}_\pi v\).</p>
+    <p class="pt">Why not the others</p>
+    <ul>
+      <li><b>(a)</b> Correct in principle but unnecessary: the per-state max gives the same answer much more cheaply.</li>
+      <li><b>(c)</b> We do not know the best transition matrix in advance; it depends on \(v\). Solving with the greedy matrix and iterating is policy iteration.</li>
+      <li><b>(d)</b> Each term is affine, but a max of affine functions is not affine. For example, \(\max(x, -x) = |x|\).</li>
+    </ul>
   </div>
   <p class="rehearses"><b>Rehearses:</b> the componentwise form of the Bellman optimality operator and the uniqueness of \(v^\star\).</p>
 </article>
@@ -692,7 +829,20 @@ pi = q.argmax(axis=0)                     # line 4</code></pre>
   </ol>
   <div class="actions"><span class="verdict"></span></div>
   <div class="expl" hidden>
-    <p><code>P @ v</code> sums over the last axis, which is the next state: shape <code>(S, A)</code>, as needed. A small step does not by itself bound the error: the a posteriori bound turns \(\|v_{n+1} - v_n\| &lt; \delta\) into \(\|v_{n+1} - v^\star\| \le \frac{\gamma}{1-\gamma}\delta\), and with \(\gamma = 0.99\) a step of \(\varepsilon\) can leave you \(99\varepsilon\) away. The threshold \(\varepsilon(1-\gamma)/(2\gamma)\) is chosen so that the greedy policy comes with a certificate, a point often missing from textbook implementations. A sharper test uses the span \(\max_s d(s) - \min_s d(s)\) of \(d = v_{n+1} - v_n\) with threshold \(\varepsilon(1-\gamma)/\gamma\): it ignores uniform shifts and often stops much earlier.</p>
+    <p class="pt">Answer: (c)</p>
+    <p>Go through the code line by line.</p>
+    <ul>
+      <li><b>Line 1.</b> P @ v sums over the last axis of P, which is the next state. The result has shape (S, A): for each state and action, the expected next value. Correct.</li>
+      <li><b>Line 2.</b> We maximize reward, so the max over actions (axis 1) is right.</li>
+      <li><b>Line 3: wrong.</b> A step smaller than \(\varepsilon\) does not mean we are within \(\varepsilon\) of \(v^\star\). The certificate is \(\|v_{n+1} - v^\star\| \le \frac{\gamma}{1-\gamma}\|v_{n+1} - v_n\|\). With \(\gamma = 0.99\), a step of \(\varepsilon\) can leave us \(99\varepsilon\) away. To guarantee an \(\varepsilon\)-optimal greedy policy, test against \(\varepsilon(1 - \gamma)/(2\gamma)\).</li>
+      <li><b>Line 4: wrong.</b> q has shape (S, A). We want, for each state, the best action, so the argmax is over axis 1. Axis 0 gives, for each action, the best state, which is meaningless as a policy.</li>
+    </ul>
+    <p class="pt">Why not the others</p>
+    <ul>
+      <li><b>(a)</b> v @ P would sum over the wrong axis. P @ v already contracts the next-state axis.</li>
+      <li><b>(b)</b> The problem maximizes rewards, so max is right.</li>
+      <li><b>(d)</b> Lines 3 and 4 are wrong, as shown above.</li>
+    </ul>
   </div>
   <p class="rehearses"><b>Rehearses:</b> reading a value-iteration loop and checking its stopping test and its greedy step.</p>
 </article>
@@ -710,7 +860,17 @@ pi = q.argmax(axis=0)                     # line 4</code></pre>
   </ol>
   <div class="actions"><span class="verdict"></span></div>
   <div class="expl" hidden>
-    <p>Triangle inequality and contraction: \(\|v - v^\star\| \le \|v - \mathsf{L}v\| + \|\mathsf{L}v - \mathsf{L}v^\star\| \le 0.02 + 0.9\,\|v - v^\star\|\), so \(\|v - v^\star\| \le 0.02/0.1\). The residual is computable from \(v\) alone, which is what makes it a certificate. The factor \(1/(1-\gamma)\) is also why small residuals are not enough when \(\gamma\) is close to one.</p>
+    <p class="pt">Answer: (c)</p>
+    <p>We do not know \(v^\star\), but we know \(v^\star = \mathsf{L}v^\star\). Insert \(\mathsf{L}v\) and use the triangle inequality:</p>
+    \[ \|v - v^\star\| \le \underbrace{\|v - \mathsf{L}v\|}_{= 0.02} + \underbrace{\|\mathsf{L}v - \mathsf{L}v^\star\|}_{\le 0.9\,\|v - v^\star\|}. \]
+    <p>Move the second term to the left:</p>
+    \[ (1 - 0.9)\,\|v - v^\star\| \le 0.02 \quad\Longrightarrow\quad \|v - v^\star\| \le \frac{0.02}{0.1} = 0.2. \]
+    <p>The residual is computable from \(v\) alone, so this is a certificate.</p>
+    <p class="pt">Why not the others</p>
+    <ul>
+      <li><b>(a)</b> and <b>(b)</b> They forget that errors compound over the effective horizon: the factor is \(1/(1-\gamma) = 10\), not 1 or 0.9.</li>
+      <li><b>(d)</b> The contraction property gives the bound without knowing \(v^\star\).</li>
+    </ul>
   </div>
   <p class="rehearses"><b>Rehearses:</b> turning a computable residual into an error bound.</p>
 </article>
@@ -730,7 +890,18 @@ pi = q.argmax(axis=0)                     # line 4</code></pre>
   </ol>
   <div class="actions"><span class="verdict"></span></div>
   <div class="expl" hidden>
-    <p>In the fixed-point lab, each method draws a line through \((v, \mathsf{L}v)\) and jumps to where it meets \(y = v\). Slope zero gives successive approximation and value iteration. The slope of \(\mathsf{L}\) gives Newton: where the greedy action is unique, the derivative of \(\mathsf{L}\) at \(v\) is \(\gamma\mathbf{P}_\pi\) for the greedy \(\pi\), and the Newton step solves \((\mathbf{I} - \gamma\mathbf{P}_\pi)v_{\text{new}} = \mathbf{r}_\pi\), which is exactly evaluating the greedy policy. At ties the max is not differentiable, and the semismooth Newton view handles that. Rust's solver used both: cheap successive approximation from anywhere, then Newton near the fixed point.</p>
+    <p class="pt">Answer: (a)</p>
+    <p>Think of solving \(v = \mathsf{L}v\) as finding where the graph of \(\mathsf{L}\) meets the line \(y = v\).</p>
+    <ul>
+      <li><b>Value iteration</b> sets \(v_{\text{new}} = \mathsf{L}v\). That is successive approximation: each step is cheap (one backup), and the error decreases by a factor \(\gamma\) per step (a linear rate).</li>
+      <li><b>Policy iteration</b> uses the slope of \(\mathsf{L}\). Where the greedy action is unique, the derivative of \(\mathsf{L}\) at \(v\) is \(\gamma\mathbf{P}_\pi\), with \(\pi\) greedy for \(v\). The Newton step for \(\mathsf{L}v - v = 0\) is then \((\mathbf{I} - \gamma\mathbf{P}_\pi)v_{\text{new}} = \mathbf{r}_\pi\), which is exactly evaluating the greedy policy. Few iterations, each one a linear solve.</li>
+    </ul>
+    <p class="pt">Why not the others</p>
+    <ul>
+      <li><b>(b)</b> Value iteration uses no derivative, so it is not a Newton method.</li>
+      <li><b>(c)</b> Policy iteration converges in a few steps, as Newton does, not at the linear rate of successive approximation.</li>
+      <li><b>(d)</b> It is the reverse: policy iteration uses the derivative \(\gamma\mathbf{P}_\pi\); value iteration does not.</li>
+    </ul>
   </div>
   <p class="rehearses"><b>Rehearses:</b> placing value iteration and policy iteration among the general methods for operator equations.</p>
 </article>
@@ -748,7 +919,18 @@ pi = q.argmax(axis=0)                     # line 4</code></pre>
   </ol>
   <div class="actions"><span class="verdict"></span></div>
   <div class="expl" hidden>
-    <p>The Neumann series is a sum of products of nonnegative matrices, so the inverse is monotone. The proof never uses greediness in every state: improving one state where \(\mathsf{L}_{\pi_{n+1}}\mathbf{v}^n &gt; \mathbf{v}^n\) is enough to make progress, which is what actor-critic methods exploit. In a finite MDP there are finitely many policies and each strictly improves, so policy iteration stops when a rule repeats (keep \(\pi_n\) on ties to avoid cycling), and the stopping rule is exact: the last policy is optimal, not \(\varepsilon\)-optimal.</p>
+    <p class="pt">Answer: (b)</p>
+    <p>We have \(\mathbf{r}_{\pi_{n+1}} \ge (\mathbf{I} - \gamma\mathbf{P}_{\pi_{n+1}})\mathbf{v}^n\) and we want \(\mathbf{v}^{n+1} \ge \mathbf{v}^n\), where \(\mathbf{v}^{n+1} = (\mathbf{I} - \gamma\mathbf{P}_{\pi_{n+1}})^{-1}\mathbf{r}_{\pi_{n+1}}\). So multiply both sides by \((\mathbf{I} - \gamma\mathbf{P}_{\pi_{n+1}})^{-1}\).</p>
+    <p>Multiplying an inequality between vectors by a matrix keeps it true if the matrix has nonnegative entries. Here, by the Neumann series,</p>
+    \[ (\mathbf{I} - \gamma\mathbf{P})^{-1} = \mathbf{I} + \gamma\mathbf{P} + \gamma^2\mathbf{P}^2 + \cdots, \]
+    <p>a sum of products of nonnegative matrices, so all its entries are nonnegative. Then</p>
+    \[ \mathbf{v}^{n+1} = (\mathbf{I} - \gamma\mathbf{P}_{\pi_{n+1}})^{-1}\mathbf{r}_{\pi_{n+1}} \;\ge\; \mathbf{v}^n. \]
+    <p class="pt">Why not the others</p>
+    <ul>
+      <li><b>(a)</b> \(\mathbf{I} - \gamma\mathbf{P}_\pi\) is not symmetric in general, and positive definiteness does not preserve componentwise inequalities anyway.</li>
+      <li><b>(c)</b> Contraction gives convergence of value iteration, not the monotone step of policy iteration.</li>
+      <li><b>(d)</b> Uniqueness is not needed; any greedy policy works. (On ties, keep the current action to avoid cycling.)</li>
+    </ul>
   </div>
   <p class="rehearses"><b>Rehearses:</b> the policy improvement argument.</p>
 </article>
@@ -766,7 +948,19 @@ pi = q.argmax(axis=0)                     # line 4</code></pre>
   </ol>
   <div class="actions"><span class="verdict"></span></div>
   <div class="expl" hidden>
-    <p>One application of \(\mathsf{L}_\pi\) with \(\pi\) greedy for \(\mathbf{v}\) is \(\mathsf{L}\mathbf{v}\): a value iteration sweep. Infinitely many is the Neumann series, the exact evaluation. Truncating the series after \(k\) terms keeps each iteration cheap while taking larger steps than value iteration.</p>
+    <p class="pt">Answer: (b)</p>
+    <p>Look at the two extremes.</p>
+    <ul>
+      <li><b>\(k = 1\):</b> one application of \(\mathsf{L}_\pi\), with \(\pi\) greedy for \(\mathbf{v}\), gives \(\mathsf{L}_\pi\mathbf{v} = \mathsf{L}\mathbf{v}\). That is one value iteration sweep.</li>
+      <li><b>\(k = \infty\):</b> applying \(\mathsf{L}_\pi\) forever converges to \(v^\pi\), the exact evaluation. That is policy iteration.</li>
+    </ul>
+    <p>In between, the evaluation is the Neumann series cut after \(k\) terms: an approximate Newton step. Each iteration costs \(k\) matrix-vector products instead of a \(|\mathcal{S}|^3\) linear solve, and it takes larger steps than value iteration.</p>
+    <p class="pt">Why not the others</p>
+    <ul>
+      <li><b>(a)</b> The two extremes are swapped.</li>
+      <li><b>(c)</b> It converges for every \(k \ge 1\).</li>
+      <li><b>(d)</b> Nothing requires a stochastic policy; the greedy policy is deterministic.</li>
+    </ul>
   </div>
   <p class="rehearses"><b>Rehearses:</b> the continuum between value iteration and policy iteration.</p>
 </article>
@@ -786,7 +980,20 @@ pi = q.argmax(axis=0)                     # line 4</code></pre>
   </ol>
   <div class="actions"><span class="verdict"></span></div>
   <div class="expl" hidden>
-    <p>\(e^0 + e^{\log 3} = 4\), and the softmax weights are \(1/4\) and \(3/4\). The log-sum-exp is the smooth counterpart of the max, and the softmax is the smooth counterpart of the argmax (a soft argmax). It always satisfies \(\max_a q \le \frac1\beta\log\sum_a e^{\beta q} \le \max_a q + \frac{\log|\mathcal{A}|}{\beta}\); here \(\log 4 = \log 3 + \log(4/3)\), within the \(\log 2\) slack. As \(\beta \to 0\) the policy becomes uniform.</p>
+    <p class="pt">Answer: (a)</p>
+    <p>Compute with \(\beta = 1\):</p>
+    \[ e^{q(a_1)} = e^0 = 1, \qquad e^{q(a_2)} = e^{\log 3} = 3, \qquad \text{sum} = 4. \]
+    <ul>
+      <li>Smooth value: \(v(s) = \log 4 \approx 1.39\). It is larger than the hard max \(\log 3 \approx 1.10\).</li>
+      <li>Softmax policy: \(\pi(a_1) = 1/4\), \(\pi(a_2) = 3/4\).</li>
+    </ul>
+    <p>The log-sum-exp always lies between the max and the max plus \(\log|\mathcal{A}|/\beta\). Here \(\log 3 \le \log 4 \le \log 3 + \log 2\). As \(\beta \to \infty\), the value tends to the hard max \(\log 3\) and the policy to the greedy one, \((0, 1)\).</p>
+    <p class="pt">Why not the others</p>
+    <ul>
+      <li><b>(b)</b> That is the limit \(\beta \to \infty\), not \(\beta = 1\).</li>
+      <li><b>(c)</b> The uniform policy is the limit \(\beta \to 0\), and the log-sum-exp is not an average.</li>
+      <li><b>(d)</b> The value is right, but the weights must be proportional to 1 and 3, so \(1/4\) and \(3/4\).</li>
+    </ul>
   </div>
   <p class="rehearses"><b>Rehearses:</b> computing a smooth backup and its softmax policy.</p>
 </article>
@@ -804,7 +1011,20 @@ pi = q.argmax(axis=0)                     # line 4</code></pre>
   </ol>
   <div class="actions"><span class="verdict"></span></div>
   <div class="expl" hidden>
-    <p>The augmented MDP is an ordinary MDP on an uncountable state space \((s, \boldsymbol\epsilon)\), solved by the hard Bellman equation. It is only a device: we never discretize \(\boldsymbol\epsilon\). The ex ante value \(v(s) = \mathbb{E}_{\boldsymbol\epsilon}[\tilde v(s, \boldsymbol\epsilon)]\) lives on the original states, and the Gumbel random utility identity gives the log-sum-exp in closed form. The softmax policy is the modeler's view: the chance that action \(a\) wins, \(\mathbb{E}[\mathbb{1}\{a \text{ wins}\}]\). The closed form is specific to the Gumbel distribution; with Gaussian shocks one integrates numerically.</p>
+    <p class="pt">Answer: (b)</p>
+    <p>Separate what the agent sees from what the modeler sees.</p>
+    <ul>
+      <li><b>The agent</b> observes \(s\) and the shocks \(\boldsymbol\epsilon\), and simply takes the best action. Given \((s, \boldsymbol\epsilon)\), it is deterministic.</li>
+      <li><b>The modeler</b> does not see \(\boldsymbol\epsilon\). Averaged over the shocks, the agent's value is \(\mathbb{E}[\max_a(x_a + \epsilon_a)]\). For Gumbel shocks this expectation has a closed form, the log-sum-exp \(\frac1\beta\log\sum_a e^{\beta x_a}\). That is the smooth Bellman equation.</li>
+      <li>The probability that action \(a\) is the best one, from the modeler's view, is the softmax.</li>
+    </ul>
+    <p>So the stochastic policy describes the modeler's uncertainty, not randomization by the agent.</p>
+    <p class="pt">Why not the others</p>
+    <ul>
+      <li><b>(a)</b> The agent does not explore or randomize. The randomness is in the unobserved shocks.</li>
+      <li><b>(c)</b> The closed form is specific to the Gumbel distribution. With Gaussian shocks, one must integrate numerically.</li>
+      <li><b>(d)</b> The augmented MDP is only a device for the derivation. We solve the smooth equation on the original states and never discretize \(\boldsymbol\epsilon\).</li>
+    </ul>
   </div>
   <p class="rehearses"><b>Rehearses:</b> the Gumbel route to the smooth Bellman equation.</p>
 </article>
@@ -865,7 +1085,22 @@ pi = q.argmax(axis=0)                     # line 4</code></pre>
   </ol>
   <div class="actions"><span class="verdict"></span></div>
   <div class="expl" hidden>
-    <p>The convex conjugate turns "max over policies of expected \(q\) minus a penalty" into a smooth max, and its gradient is the maximizer. Strong convexity makes that gradient Lipschitz: the policy moves by a bounded amount when \(q\) changes. The negative Shannon entropy gives the log-sum-exp and the softmax; other regularizers give other smooth maxima (a Tsallis entropy gives sparse policies that put zero mass on poor actions). Regularized evaluation solves \((\mathbf{I} - \gamma\mathbf{P}_\pi)\mathbf{v} = \mathbf{r}_\pi - \boldsymbol\Omega_\pi\).</p>
+    <p class="pt">Answer: (a)</p>
+    <p>The regularized backup takes, in each state, the best trade-off between expected \(q\) and a penalty on the policy:</p>
+    \[ \Omega^\star(q(s,\cdot)) = \max_\pi \; \langle \pi, q(s,\cdot)\rangle - \Omega(\pi). \]
+    <p>This is the convex conjugate of \(\Omega\). Three consequences:</p>
+    <ul>
+      <li>It is still a sup-norm \(\gamma\)-contraction, so smooth value iteration converges.</li>
+      <li>The maximizing policy is the gradient \(\nabla\Omega^\star(q)\). Strong convexity makes the maximizer unique.</li>
+      <li>That maximizer generally puts mass on several actions, so the policy is stochastic.</li>
+    </ul>
+    <p>With the negative entropy, \(\Omega^\star\) is the log-sum-exp and \(\nabla\Omega^\star\) is the softmax (see Q26a).</p>
+    <p class="pt">Why not the others</p>
+    <ul>
+      <li><b>(b)</b> The contraction survives regularization.</li>
+      <li><b>(c)</b> Only the negative Shannon entropy gives the log-sum-exp. A Tsallis entropy, for example, gives a sparse policy.</li>
+      <li><b>(d)</b> The penalty favors spreading mass over actions, so the optimum is generally not deterministic.</li>
+    </ul>
   </div>
   <p class="rehearses"><b>Rehearses:</b> the regularized MDP framework and the role of the convex conjugate.</p>
 </article>
@@ -883,7 +1118,15 @@ pi = q.argmax(axis=0)                     # line 4</code></pre>
   </ol>
   <div class="actions"><span class="verdict"></span></div>
   <div class="expl" hidden>
-    <p>The derivative of the log-sum-exp is the softmax, so \(\mathsf{L}_\beta\) is differentiable everywhere and the classical Newton theory applies, with no ties to worry about. Softmax policies form a continuum, so there is no finite termination; the stopping test uses the Bellman residual \(\|\mathsf{L}_\beta v - v\|_\infty &lt; \varepsilon(1-\gamma)\), which certifies the current policy. A test on the change of the policy would certify nothing. The evaluation includes the entropy bonus \(\mathbf{H}_\pi/\beta\) on the right-hand side.</p>
+    <p class="pt">Answer: (b)</p>
+    <p>Apply Newton's method to \(v - \mathsf{L}_\beta v = 0\). The derivative of the log-sum-exp is the softmax, so the derivative of \(\mathsf{L}_\beta\) at \(v\) is \(\gamma\mathbf{P}_{\pi_v}\), with \(\pi_v\) the softmax policy for \(v\). The Newton step is a linear solve with \(\mathbf{I} - \gamma\mathbf{P}_{\pi_v}\): this is exactly evaluating the softmax policy (with its entropy bonus). So smooth policy iteration is Newton's method, as in the hard case.</p>
+    <p>Softmax policies form a continuum, so the iteration never lands exactly on the optimum. We stop when the Bellman residual \(\|\mathsf{L}_\beta v - v\|_\infty\) is small, which certifies the current value.</p>
+    <p class="pt">Why not the others</p>
+    <ul>
+      <li><b>(a)</b> Finite termination in hard policy iteration comes from having finitely many deterministic policies. There are infinitely many softmax policies.</li>
+      <li><b>(c)</b> The log-sum-exp is smooth everywhere; the kinks belong to the hard max.</li>
+      <li><b>(d)</b> The regularized evaluation includes the entropy term on the right-hand side.</li>
+    </ul>
   </div>
   <p class="rehearses"><b>Rehearses:</b> smooth policy iteration as Newton's method.</p>
 </article>
@@ -901,7 +1144,18 @@ pi = q.argmax(axis=0)                     # line 4</code></pre>
   </ol>
   <div class="actions"><span class="verdict"></span></div>
   <div class="expl" hidden>
-    <p>Here \(\partial F/\partial v = \gamma\mathbf{P}_\pi - \mathbf{I}\) with \(\pi\) the softmax policy, the same matrix as in a smooth policy iteration step. The implicit function theorem holds at the solution of \(F = 0\), so the outer loop on \(\theta\) wraps an inner fixed-point solve: a bilevel problem. Smoothness is what makes the likelihood differentiable at all. Inverse RL is many-to-one: several rewards explain the same behavior, so the estimate need not be the true reward without extra structure.</p>
+    <p class="pt">Answer: (b)</p>
+    <p>\(v^\star_\theta\) is defined implicitly by \(F(v, \theta) = \mathsf{L}_{\beta,\theta}v - v = 0\). Differentiate this identity in \(\theta\):</p>
+    \[ \frac{\partial F}{\partial v}\frac{\partial v^\star}{\partial \theta} + \frac{\partial F}{\partial \theta} = 0 \quad\Longrightarrow\quad \frac{\partial v^\star}{\partial \theta} = -\Big(\frac{\partial F}{\partial v}\Big)^{-1}\frac{\partial F}{\partial \theta}. \]
+    <p>Here \(\partial F/\partial v = \gamma\mathbf{P}_\pi - \mathbf{I}\) (with \(\pi\) the softmax policy) and \(\partial F/\partial\theta = \partial\mathsf{L}_{\beta,\theta}/\partial\theta\). So</p>
+    \[ \frac{\partial v^\star}{\partial \theta} = (\mathbf{I} - \gamma\mathbf{P}_\pi)^{-1}\,\frac{\partial\mathsf{L}_{\beta,\theta}}{\partial\theta}. \]
+    <p>The identity \(F = 0\) holds only at the fixed point, so each gradient step first solves for \(v^\star_\theta\): an inner solve inside an outer loop on \(\theta\).</p>
+    <p class="pt">Why not the others</p>
+    <ul>
+      <li><b>(a)</b> Unrolling works approximately but is not the only option, and the implicit formula is exact at the fixed point with one linear solve.</li>
+      <li><b>(c)</b> We differentiated the identity \(F(v^\star_\theta, \theta) = 0\), which holds only at the fixed point.</li>
+      <li><b>(d)</b> Several rewards can explain the same behavior, so the estimate need not be the true reward without extra structure.</li>
+    </ul>
   </div>
   <p class="rehearses"><b>Rehearses:</b> implicit differentiation through a Bellman fixed point (inverse RL).</p>
 </article>
@@ -921,7 +1175,22 @@ pi = q.argmax(axis=0)                     # line 4</code></pre>
   </ol>
   <div class="actions"><span class="verdict"></span></div>
   <div class="expl" hidden>
-    <p>\(H(\pi(\cdot\mid s)) = \mathbb{E}_{a\sim\pi}[-\log\pi(a\mid s)]\), so the entropy bonus in a state is the average of a per-action term: \(0.9 \cdot 0.105 + 0.1 \cdot 2.303 \approx 0.325\). The transformed reward needs only the probability of the action actually taken, which is why sample-based methods such as soft actor-critic use it. Evaluating it along sampled actions is unbiased but noisier than computing the expectation over actions exactly (conditional Monte Carlo). With the convention of the question, "penalty" \(\alpha\log\pi\) is subtracted, so rarely taken actions receive the larger bonus.</p>
+    <p class="pt">Answer: (a)</p>
+    <p>With \(\alpha = 1\), the reward of action \(a\) becomes \(r(s,a) - \log\pi(a\mid s)\). Since \(\log\pi &lt; 0\), the extra term \(-\log\pi\) is a positive bonus, larger for rarer actions:</p>
+    <table>
+      <tr><th>action</th><th>\(\pi\)</th><th>bonus \(-\log\pi\)</th></tr>
+      <tr><td>common</td><td>0.9</td><td>\(-\log 0.9 \approx 0.105\)</td></tr>
+      <tr><td>rare</td><td>0.1</td><td>\(-\log 0.1 \approx 2.303\)</td></tr>
+    </table>
+    <p>Averaged under \(\pi\):</p>
+    \[ 0.9 \times 0.105 + 0.1 \times 2.303 \approx 0.095 + 0.230 = 0.325 = H(\pi). \]
+    <p>So the entropy is the expected per-action bonus. The per-action form needs only the probability of the action taken, which is why sample-based methods such as soft actor-critic use it.</p>
+    <p class="pt">Why not the others</p>
+    <ul>
+      <li><b>(b)</b> The bonus differs by action; only its average is the entropy.</li>
+      <li><b>(c)</b> The subtracted term is \(\log 0.1 &lt; 0\), so subtracting it adds 2.30: the rare action gets the larger bonus.</li>
+      <li><b>(d)</b> \(\log 2\) is the entropy of the uniform policy, not of \((0.9, 0.1)\).</li>
+    </ul>
   </div>
   <p class="rehearses"><b>Rehearses:</b> entropy regularization written as a transformed reward (Nov 16 lecture).</p>
 </article>
@@ -941,7 +1210,25 @@ pi = q.argmax(axis=0)                     # line 4</code></pre>
   </ol>
   <div class="actions"><span class="verdict"></span></div>
   <div class="expl" hidden>
-    <p>A function is zero if and only if its inner product with every test function is zero; picking \(n\) test functions gives \(n\) equations for \(n\) unknowns. A point mass at \(s_i\) picks out \(R(s_i)\). Galerkin makes the residual orthogonal to the span of the basis, which is the defining property of an orthogonal projection. Least squares, \(\min_\theta \int R^2 w\), has the derivatives of the residual as test functions, and those contain the derivative of \(\mathsf{L}v_\theta\) through the max. The three solutions differ in general.</p>
+    <p class="pt">Answer: (a)</p>
+    <p>With \(n\) parameters we cannot make the residual zero everywhere, so we ask for \(n\) weighted averages of it to vanish: \(\langle R, p_i\rangle_w = 0\) for \(i = 1, \dots, n\). The choice of test functions \(p_i\) names the method.</p>
+    <table>
+      <tr><th>test functions \(p_i\)</th><th>condition</th><th>method</th></tr>
+      <tr><td>point mass at \(s_i\)</td><td>\(R(s_i;\theta) = 0\)</td><td>collocation</td></tr>
+      <tr><td>basis function \(\phi_i\)</td><td>residual orthogonal to the span</td><td>Galerkin</td></tr>
+      <tr><td>\(\partial R/\partial\theta_i\)</td><td>gradient of \(\int R^2 w\) is zero</td><td>least squares</td></tr>
+    </table>
+    <ul>
+      <li>A point mass at \(s_i\) just reads off the residual there, so the condition is "zero residual at node \(i\)".</li>
+      <li>Orthogonality to every \(\phi_i\) is the defining property of an orthogonal projection onto the span.</li>
+      <li>Setting the derivative of \(\int R^2 w\) to zero gives \(\int R\,\frac{\partial R}{\partial\theta_i} w = 0\), so the test functions are the derivatives of the residual.</li>
+    </ul>
+    <p class="pt">Why not the others</p>
+    <ul>
+      <li><b>(b)</b> Collocation and Galerkin are swapped.</li>
+      <li><b>(c)</b> The derivatives \(\partial R/\partial\theta_i\) give least squares, not Galerkin.</li>
+      <li><b>(d)</b> Different test functions give different equations, so the solutions differ in general.</li>
+    </ul>
   </div>
   <p class="rehearses"><b>Rehearses:</b> the weighted residual framework and its three main methods.</p>
 </article>
@@ -960,7 +1247,20 @@ pi = q.argmax(axis=0)                     # line 4</code></pre>
   </ol>
   <div class="actions"><span class="verdict"></span></div>
   <div class="expl" hidden>
-    <p>\(\mathsf{L}v\) is the Bellman operator applied to a function, evaluated where it is needed; it is not a matrix-vector product, because of the max. This is the interpolated backward recursion of the finite-horizon chapter, run to a fixed point. Whether it converges depends on \(\mathsf{P}\): hat functions have nonnegative weights summing to one, while a high-degree polynomial through equally spaced nodes has negative weights and can expand differences.</p>
+    <p class="pt">Answer: (a)</p>
+    <p>With a nodal basis, \(\theta_i\) is the value of the approximation at node \(s_i\). Successive approximation on \(v_\theta = \mathsf{P}\mathsf{L}v_\theta\) does three things per iteration:</p>
+    <ol>
+      <li>For each node \(s_i\), compute the backup \((\mathsf{L}v_\theta)(s_i)\), using the current interpolant to evaluate next-state values.</li>
+      <li>Store those numbers as the new \(\theta_i\).</li>
+      <li>Repeat.</li>
+    </ol>
+    <p>This is the interpolated backward recursion of the finite-horizon chapter, run until it reaches a fixed point. Whether it converges depends on \(\mathsf{P}\). With hat functions, each interpolated value is a weighted average of nodal values with nonnegative weights summing to one, so \(\mathsf{P}\) is an averager. Then \(\mathsf{P}\mathsf{L}\) is a sup-norm \(\gamma\)-contraction.</p>
+    <p class="pt">Why not the others</p>
+    <ul>
+      <li><b>(b)</b> \(\mathsf{L}\) contains a max, so it is not a matrix. It is evaluated state by state.</li>
+      <li><b>(c)</b> That would be a least-squares (residual minimization) method, not successive approximation.</li>
+      <li><b>(d)</b> \(\mathsf{L}\) contracts, but \(\mathsf{P}\) may not be a nonexpansion. A high-degree polynomial through equally spaced nodes has negative weights, and the composition can diverge.</li>
+    </ul>
   </div>
   <p class="rehearses"><b>Rehearses:</b> collocation as repeated interpolation, and when it is stable.</p>
 </article>
@@ -978,7 +1278,16 @@ pi = q.argmax(axis=0)                     # line 4</code></pre>
   </ol>
   <div class="actions"><span class="verdict"></span></div>
   <div class="expl" hidden>
-    <p>TD and LSTD are Galerkin methods, although they were not derived that way historically; Bertsekas made the connection explicit. LSTD solves the \(n \times n\) linear system of the Galerkin conditions with sample averages; TD reaches the same point by stochastic approximation. The projected fixed point is generally not the projection of \(v^\pi\) (option c), and it differs from the residual minimizer (option a).</p>
+    <p class="pt">Answer: (b)</p>
+    <p>Write the TD(0) update in expectation, with states drawn from the on-policy distribution \(w\):</p>
+    \[ \mathbb{E}\big[\big(r + \gamma v_\theta(s') - v_\theta(s)\big)\,\boldsymbol\phi(s)\big] = 0. \]
+    <p>The bracket is, on average over \(s'\), the residual \((\mathsf{L}_\pi v_\theta - v_\theta)(s)\). So the condition says: the residual is orthogonal to each feature \(\phi_i\) in the \(w\)-weighted inner product. Those are the Galerkin conditions, equivalently \(v_\theta = \mathsf{P}\mathsf{L}_\pi v_\theta\). LSTD solves this \(n \times n\) linear system directly with sample averages; TD reaches the same solution by stochastic approximation.</p>
+    <p class="pt">Why not the others</p>
+    <ul>
+      <li><b>(a)</b> Minimizing the squared residual is least squares, with test functions \(\partial R/\partial\theta_i\). It gives a different \(\theta\).</li>
+      <li><b>(c)</b> The best approximation of \(v^\pi\) would need \(v^\pi\) itself. The projected fixed point is generally not that projection.</li>
+      <li><b>(d)</b> Nothing forces \(\theta = 0\); it is only the solution when all rewards are zero.</li>
+    </ul>
   </div>
   <p class="rehearses"><b>Rehearses:</b> placing TD and LSTD in the weighted residual picture.</p>
 </article>
@@ -999,7 +1308,17 @@ pi = q.argmax(axis=0)                     # line 4</code></pre>
   </ol>
   <div class="actions"><span class="verdict"></span></div>
   <div class="expl" hidden>
-    <p>Chain them: \(\|\mathsf{P}\mathsf{L}f - \mathsf{P}\mathsf{L}g\| \le \|\mathsf{L}f - \mathsf{L}g\| \le \gamma\|f - g\|\), then apply Banach. Both steps must use the same norm. Equivalence of norms only gives constants, and a fit can stretch differences by more than \(1/\gamma\): in the fishery, the same Bellman operator converged with hat functions and diverged with a polynomial fit. Two routes give a shared norm: averagers (sup norm, any \(\mathsf{L}\), with or without the max) and on-policy weighting (\(\xi\)-norm, policy evaluation only).</p>
+    <p class="pt">Answer: (a)</p>
+    <p>Chain the two inequalities, both in the same norm:</p>
+    \[ \|\mathsf{P}\mathsf{L}f - \mathsf{P}\mathsf{L}g\| \;\le\; \|\mathsf{L}f - \mathsf{L}g\| \;\le\; \gamma\,\|f - g\|. \]
+    <p>The first step uses that \(\mathsf{P}\) is a nonexpansion, the second that \(\mathsf{L}\) is a contraction with modulus \(\gamma\). So \(\mathsf{P}\mathsf{L}\) is a \(\gamma\)-contraction, and by Banach it has a unique fixed point reached from any \(v_0\).</p>
+    <p>The catch: \(\mathsf{L}\) contracts in the sup norm, while a least-squares fit is a nonexpansion in a weighted \(\ell_2\) norm. When the norms differ, the chain breaks. Two ways to get a shared norm: averagers (sup norm) and on-policy weighting (\(\xi\)-norm, policy evaluation only, Q38).</p>
+    <p class="pt">Why not the others</p>
+    <ul>
+      <li><b>(b)</b> If \(\mathsf{P}\) has Lipschitz constant larger than \(1/\gamma\), the composition can diverge (the fishery example with a polynomial fit, or Q37).</li>
+      <li><b>(c)</b> Only \(\mathsf{L}\) contributes a factor \(\gamma\); \(\mathsf{P}\) contributes at most 1. The modulus is \(\gamma\), not \(\gamma^2\).</li>
+      <li><b>(d)</b> Equivalent norms differ by constants, and those constants can exceed \(1/\gamma\). Contraction is not preserved.</li>
+    </ul>
   </div>
   <p class="rehearses"><b>Rehearses:</b> the composition argument behind every convergence result for fitted value iteration.</p>
 </article>
@@ -1073,7 +1392,20 @@ pi = q.argmax(axis=0)                     # line 4</code></pre>
   </ol>
   <div class="actions"><span class="verdict"></span></div>
   <div class="expl" hidden>
-    <p>An averager outputs, at every state, a convex combination of the target values with weights that do not depend on the targets. Chebyshev interpolation preserves constants but its cardinal functions dip below zero (Lebesgue constant about 2.4 for ten nodes), and splines have negative lobes. Least squares on an arbitrary basis need not even preserve constants. Neural networks are not averagers, even though they often work in practice; the theorem simply does not cover them. Exact interpolation (d) is not enough: the weights must also be nonnegative. Conversely, \(k\)-NN and kernel smoothers are averagers without being projections (\(\mathsf{P}^2 \ne \mathsf{P}\)).</p>
+    <p class="pt">Answer: (a)</p>
+    <p>An averager computes the value at every state as a weighted average of target values, with weights that are nonnegative, sum to one, and do not depend on the targets. Check each method in (a):</p>
+    <ul>
+      <li>Piecewise-linear and multilinear interpolation: barycentric weights, nonnegative and summing to one.</li>
+      <li>State aggregation: each state takes the average of its group.</li>
+      <li>\(k\)-nearest neighbours: average of the \(k\) nearest targets, weight \(1/k\) each.</li>
+      <li>Kernel smoother with a nonnegative kernel: normalized nonnegative weights.</li>
+    </ul>
+    <p class="pt">Why not the others</p>
+    <ul>
+      <li><b>(b)</b> Chebyshev interpolation and cubic splines have some negative weights, so they are not monotone. Least squares on an arbitrary basis need not even preserve constants.</li>
+      <li><b>(c)</b> A neural network is not an averager. It can work well in practice, but the theorem does not cover it.</li>
+      <li><b>(d)</b> Passing through the targets at the nodes is not enough: the weights between nodes must also be nonnegative. A high-degree polynomial interpolates exactly and still fails.</li>
+    </ul>
   </div>
   <p class="rehearses"><b>Rehearses:</b> recognizing which approximators come with the sup-norm guarantee.</p>
 </article>
@@ -1130,7 +1462,19 @@ pi = q.argmax(axis=0)                     # line 4</code></pre>
   </ol>
   <div class="actions"><span class="verdict"></span></div>
   <div class="expl" hidden>
-    <p>The normal equations make \(v - \mathsf{P}v\) \(\xi\)-orthogonal to the span, so \(\|v\|_\xi^2 = \|\mathsf{P}v\|_\xi^2 + \|v - \mathsf{P}v\|_\xi^2\) and \(\|\mathsf{P}v\|_\xi \le \|v\|_\xi\). With \(\xi^\top\mathbf{P}_\pi = \xi^\top\), Jensen gives \(\|\mathbf{P}_\pi v\|_\xi \le \|v\|_\xi\), hence \(\|\mathsf{L}_\pi v - \mathsf{L}_\pi w\|_\xi \le \gamma\|v - w\|_\xi\) (Tsitsiklis and Van Roy). TD(0) with linear features is stochastic approximation on this system and converges to the same Galerkin fixed point as LSTD. The argument breaks with the max: the greedy policy changes with \(v\), so there is no single stationary distribution to weight by.</p>
+    <p class="pt">Answer: (b)</p>
+    <p>We need both operators to be nonexpansive or contractive in the same norm, \(\|\cdot\|_\xi\).</p>
+    <p><b>Step 1: \(\mathsf{P}\) is a nonexpansion in \(\|\cdot\|_\xi\), for any \(\xi\).</b> The weighted fit makes \(v - \mathsf{P}v\) orthogonal (in the \(\xi\) inner product) to the span. By Pythagoras,</p>
+    \[ \|v\|_\xi^2 = \|\mathsf{P}v\|_\xi^2 + \|v - \mathsf{P}v\|_\xi^2 \;\ge\; \|\mathsf{P}v\|_\xi^2. \]
+    <p><b>Step 2: \(\mathsf{L}_\pi\) contracts in \(\|\cdot\|_\xi\) only when \(\xi^\top\mathbf{P}_\pi = \xi^\top\).</b> By Jensen, \(\big((\mathbf{P}_\pi v)(s)\big)^2 \le (\mathbf{P}_\pi v^2)(s)\). Weight by \(\xi\) and use stationarity:</p>
+    \[ \|\mathbf{P}_\pi v\|_\xi^2 \le \xi^\top\mathbf{P}_\pi v^2 = \xi^\top v^2 = \|v\|_\xi^2. \]
+    <p>So \(\|\mathsf{L}_\pi v - \mathsf{L}_\pi w\|_\xi = \gamma\|\mathbf{P}_\pi(v - w)\|_\xi \le \gamma\|v - w\|_\xi\). Combined with step 1, \(\mathsf{P}\mathsf{L}_\pi\) is a \(\gamma\)-contraction. This is why TD needs on-policy data.</p>
+    <p class="pt">Why not the others</p>
+    <ul>
+      <li><b>(a)</b> \(\mathsf{P}\) is fine for any \(\xi\), but \(\mathsf{L}_\pi\) is the problem: step 2 needs stationarity.</li>
+      <li><b>(c)</b> Uniform \(\xi\) works only if the uniform distribution happens to be stationary for \(\pi\).</li>
+      <li><b>(d)</b> With the max, the greedy policy changes with \(v\), so there is no single stationary distribution to weight by.</li>
+    </ul>
   </div>
   <p class="rehearses"><b>Rehearses:</b> the on-policy condition behind TD's convergence with linear features.</p>
 </article>
@@ -1148,7 +1492,20 @@ pi = q.argmax(axis=0)                     # line 4</code></pre>
   </ol>
   <div class="actions"><span class="verdict"></span></div>
   <div class="expl" hidden>
-    <p>Each state lies in exactly one tile of each tiling, so \(\boldsymbol\phi(s)\) is binary and sparse with \(K\) ones, and \(v(s;\theta) = \boldsymbol\phi(s)^\top\theta\) costs \(K\) lookups: cheap on a CPU. Option (b) is \(s = 0.8\), which shares the weight \(\theta_{1,2}\) with \(0.6\): that sharing is how tile coding generalizes. With \(K = 1\) it is state aggregation, an averager. Averaging the separate fits of each tiling is an averager too; the joint least-squares fit is not, in two or more dimensions.</p>
+    <p class="pt">Answer: (a)</p>
+    <p>Find the tile that contains 0.6 in each tiling.</p>
+    <ul>
+      <li>Tiling 1, tiles \([0, \tfrac12), [\tfrac12, 1]\): 0.6 is in the second tile, so \((0, 1)\).</li>
+      <li>Tiling 2, tiles \([0, \tfrac14), [\tfrac14, \tfrac34), [\tfrac34, 1]\): 0.6 is in the second tile, so \((0, 1, 0)\).</li>
+    </ul>
+    <p>So \(\boldsymbol\phi(0.6) = (0, 1 \mid 0, 1, 0)\): one active binary feature per tiling, \(K = 2\) in all. The value is the sum of the active weights:</p>
+    \[ v(0.6;\theta) = \boldsymbol\phi(0.6)^\top\theta = \theta_{1,2} + \theta_{2,2}. \]
+    <p class="pt">Why not the others</p>
+    <ul>
+      <li><b>(b)</b> 0.6 is below \(\tfrac34\), so it is not in the third tile of tiling 2. That vector is \(\boldsymbol\phi(0.8)\). Note that 0.6 and 0.8 share \(\theta_{1,2}\): this sharing is how tile coding generalizes.</li>
+      <li><b>(c)</b> Tile coding features are binary (in or out of a tile), not interpolation weights.</li>
+      <li><b>(d)</b> There is one feature per tile, not per tiling: \(2 + 3 = 5\) features in all.</li>
+    </ul>
   </div>
   <p class="rehearses"><b>Rehearses:</b> computing a tile-coding feature vector.</p>
 </article>
@@ -1166,7 +1523,19 @@ pi = q.argmax(axis=0)                     # line 4</code></pre>
   </ol>
   <div class="actions"><span class="verdict"></span></div>
   <div class="expl" hidden>
-    <p>Each outer step applies \(\mathsf{L}\) and projects back with the regressor: \(v_{k+1} = \mathsf{P}\mathsf{L}v_k\). Calling the inner regression a "Bellman loss" is inaccurate: minimizing the residual would also differentiate through the target. Convergence depends on the fit (Q34–Q37): guaranteed for averagers, not in general. Fitted Q iteration with trees, NFQ and DQN are instances that differ in the regressor and in how long they run the inner fit.</p>
+    <p class="pt">Answer: (b)</p>
+    <p>Read the loop as two nested loops.</p>
+    <ul>
+      <li><b>Outer loop (successive approximation).</b> Compute targets \(y_i = (\mathsf{L}v_{\theta_k})(s_i)\) with the current \(\theta_k\), then freeze them.</li>
+      <li><b>Inner loop (regression).</b> Fit \(v_\theta\) to the frozen pairs \((s_i, y_i)\). Any regressor with a fit method works: linear model, trees, forests, neural network.</li>
+    </ul>
+    <p>Together: \(v_{k+1} = \mathsf{P}\mathsf{L}v_k\), with \(\mathsf{P}\) the regressor. The targets change at every outer step, so there is no single loss being minimized.</p>
+    <p class="pt">Why not the others</p>
+    <ul>
+      <li><b>(a)</b> Gradient descent on the residual \(\sum_i((\mathsf{L}v_\theta)(s_i) - v_\theta(s_i))^2\) would also differentiate the target \(\mathsf{L}v_\theta\) with respect to \(\theta\). Fitted methods freeze the target, so they do something different.</li>
+      <li><b>(c)</b> The inner fit can be any regressor. Fitted Q iteration with trees, NFQ and DQN are examples.</li>
+      <li><b>(d)</b> \(\mathsf{L}\) contracts, but the regressor may not be a nonexpansion in the same norm, so convergence is not guaranteed in general (Q34 to Q37).</li>
+    </ul>
   </div>
   <p class="rehearses"><b>Rehearses:</b> what a fitted value method is, and what it is not.</p>
 </article>
