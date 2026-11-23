@@ -919,12 +919,18 @@ pi = q.argmax(axis=0)                     # line 4</code></pre>
   <div class="actions"><span class="verdict"></span></div>
   <div class="expl" hidden>
     <p class="pt">Answer: (b)</p>
-    <p>Look at the two extremes.</p>
-    <ul>
-      <li><b>\(k = 1\):</b> one application of \(\mathsf{L}_\pi\), with \(\pi\) greedy for \(\mathbf{v}\), gives \(\mathsf{L}_\pi\mathbf{v} = \mathsf{L}\mathbf{v}\). That is one value iteration sweep.</li>
-      <li><b>\(k = \infty\):</b> applying \(\mathsf{L}_\pi\) forever converges to \(v^\pi\), the exact evaluation. That is policy iteration.</li>
-    </ul>
-    <p>In between, the evaluation is the Neumann series cut after \(k\) terms: an approximate Newton step. Each iteration costs \(k\) matrix-vector products instead of a \(|\mathcal{S}|^3\) linear solve, and it takes larger steps than value iteration.</p>
+    <p>Modified policy iteration does two things per iteration: pick \(\pi\) greedy for the current \(\mathbf{v}\), then replace \(\mathbf{v}\) by \(\mathsf{L}_\pi^k\mathbf{v}\), that is, apply</p>
+    \[ \mathsf{L}_\pi\mathbf{v} = \mathbf{r}_\pi + \gamma\mathbf{P}_\pi\mathbf{v} \]
+    <p>\(k\) times. Look at the two extremes.</p>
+    <p><b>\(k = 1\): value iteration.</b> Because \(\pi\) is greedy for \(\mathbf{v}\), in every state it picks the action that attains the max:</p>
+    \[ (\mathsf{L}_\pi\mathbf{v})(s) = r(s, \pi(s)) + \gamma\sum_j p(j\mid s, \pi(s))\,v(j) = \max_a \Big\{ r(s,a) + \gamma\sum_j p(j\mid s,a)\,v(j) \Big\} = (\mathsf{L}\mathbf{v})(s). \]
+    <p>So one application gives \(\mathbf{v}_{\text{new}} = \mathsf{L}_\pi\mathbf{v} = \mathsf{L}\mathbf{v}\): exactly one value iteration sweep.</p>
+    <p><b>\(k \to \infty\): policy iteration.</b> Unroll the \(k\) applications of \(\mathsf{L}_\pi\):</p>
+    \[ \mathsf{L}_\pi^k\mathbf{v} = \mathbf{r}_\pi + \gamma\mathbf{P}_\pi\mathbf{r}_\pi + \cdots + (\gamma\mathbf{P}_\pi)^{k-1}\mathbf{r}_\pi + (\gamma\mathbf{P}_\pi)^k\mathbf{v} = \sum_{t=0}^{k-1}(\gamma\mathbf{P}_\pi)^t\mathbf{r}_\pi + (\gamma\mathbf{P}_\pi)^k\mathbf{v}. \]
+    <p>Since \(\|\gamma\mathbf{P}_\pi\|_\infty = \gamma &lt; 1\), the last term goes to zero and the sum becomes the Neumann series:</p>
+    \[ \lim_{k\to\infty}\mathsf{L}_\pi^k\mathbf{v} = \sum_{t=0}^{\infty}(\gamma\mathbf{P}_\pi)^t\mathbf{r}_\pi = (\mathbf{I} - \gamma\mathbf{P}_\pi)^{-1}\mathbf{r}_\pi = \mathbf{v}^\pi. \]
+    <p>That is the exact evaluation of the greedy policy: one policy iteration step.</p>
+    <p><b>In between.</b> The same unrolled formula with finite \(k\) is the Neumann series cut after \(k\) terms (plus a correction from the starting \(\mathbf{v}\)): an approximate policy evaluation, hence an approximate Newton step. It costs \(k\) matrix-vector products instead of a \(|\mathcal{S}|^3\) linear solve, and it moves further per iteration than value iteration.</p>
     <p class="pt">Why not the others</p>
     <ul>
       <li><b>(a)</b> The two extremes are swapped.</li>
