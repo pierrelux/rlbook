@@ -801,7 +801,7 @@ body.presenter .deck { display: flex; }
 <article class="q" id="q18" data-type="mcq" data-core="1" data-min="3" data-block="E">
   <div class="q-head"><span class="q-num">Q18</span><span class="tag core">core</span><span class="tag min">3 min</span></div>
   <div class="stem">
-    <p>Inspect this value iteration. <code>P</code> has shape <code>(S, A, S)</code>, <code>r</code> has shape <code>(S, A)</code>, and the goal is an \(\varepsilon\)-optimal policy. Which lines are wrong?</p>
+    <p>The code below runs value iteration, \(v_{n+1} = \mathsf{L}v_n\), and then returns the greedy policy. <code>P</code> has shape <code>(S, A, S)</code> and <code>r</code> has shape <code>(S, A)</code>. Line 3 is the termination criterion of value iteration: stop when two successive iterates \(v_n\) and \(v_{n+1}\) are close. The goal is a policy that is \(\varepsilon\)-optimal, meaning its value is within \(\varepsilon\) of \(v^\star\) in every state. Which lines are wrong?</p>
 <pre><code>v = np.zeros(S)
 while True:
     q = r + gamma * P @ v                 # line 1
@@ -824,9 +824,18 @@ pi = q.argmax(axis=0)                     # line 4</code></pre>
     <ul>
       <li><b>Line 1.</b> P @ v sums over the last axis of P, which is the next state. The result has shape (S, A): for each state and action, the expected next value. Correct.</li>
       <li><b>Line 2.</b> We maximize reward, so the max over actions (axis 1) is right.</li>
-      <li><b>Line 3: wrong.</b> A step smaller than \(\varepsilon\) does not mean we are within \(\varepsilon\) of \(v^\star\). The certificate is \(\|v_{n+1} - v^\star\| \le \frac{\gamma}{1-\gamma}\|v_{n+1} - v_n\|\). With \(\gamma = 0.99\), a step of \(\varepsilon\) can leave us \(99\varepsilon\) away. To guarantee an \(\varepsilon\)-optimal greedy policy, test against \(\varepsilon(1 - \gamma)/(2\gamma)\).</li>
+      <li><b>Line 3: wrong.</b> This is the termination criterion of value iteration, and the threshold is wrong: a step smaller than \(\varepsilon\) does not mean we are within \(\varepsilon\) of \(v^\star\). See the derivation below.</li>
       <li><b>Line 4: wrong.</b> q has shape (S, A). We want, for each state, the best action, so the argmax is over axis 1. Axis 0 gives, for each action, the best state, which is meaningless as a policy.</li>
     </ul>
+    <p class="pt">The termination criterion of value iteration</p>
+    <p>Value iteration never reaches \(v^\star\) exactly, so we stop when the step \(\|v_{n+1} - v_n\|_\infty\) is small. How small? Since \(v^\star = \mathsf{L}v^\star\) and \(\mathsf{L}\) is a \(\gamma\)-contraction,</p>
+    \[ \|v_{n+1} - v^\star\| = \|\mathsf{L}v_n - \mathsf{L}v^\star\| \le \gamma\|v_n - v^\star\| \le \gamma\big(\|v_n - v_{n+1}\| + \|v_{n+1} - v^\star\|\big). \]
+    <p>Move \(\gamma\|v_{n+1} - v^\star\|\) to the left:</p>
+    \[ \|v_{n+1} - v^\star\| \le \frac{\gamma}{1 - \gamma}\,\|v_{n+1} - v_n\|. \]
+    <p>The factor \(\gamma/(1-\gamma)\) can be large: with \(\gamma = 0.99\) it is 99, so a step of \(\varepsilon\) can leave us \(99\varepsilon\) away from \(v^\star\). That is why line 3 is wrong.</p>
+    <p>The correct test stops when \(\|v_{n+1} - v_n\| &lt; \varepsilon\frac{1-\gamma}{2\gamma}\). Plugging into the bound:</p>
+    \[ \|v_{n+1} - v^\star\| &lt; \frac{\gamma}{1-\gamma}\cdot\varepsilon\frac{1-\gamma}{2\gamma} = \frac{\varepsilon}{2}. \]
+    <p>The greedy policy for \(v_{n+1}\) loses at most another \(\varepsilon/2\), so its value is within \(\varepsilon\) of \(v^\star\): it is \(\varepsilon\)-optimal. The fix for line 3 is <code>if np.abs(v_new - v).max() &lt; eps * (1 - gamma) / (2 * gamma):</code>.</p>
     <p class="pt">Why not the others</p>
     <ul>
       <li><b>(a)</b> v @ P would sum over the wrong axis. P @ v already contracts the next-state axis.</li>
