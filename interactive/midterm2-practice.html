@@ -371,8 +371,12 @@ body.presenter .deck { display: flex; }
   <div class="actions"><button type="button" class="reveal">Show solution</button></div>
   <div class="sol" hidden>
     <p class="pt">(a) The gain</p>
-    <p>One-step problem at stage \(t\):</p>
-    \[ J_t^\star(x) = \min_u \tfrac12\Big[\, x^2 + u^2 + P_{t+1}(x + u)^2 \,\Big] \]
+    <p>Backward induction says: the best cost from \(x\) at stage \(t\) is the cost paid now plus the best cost from wherever we land:</p>
+    \[ J_t^\star(x) = \min_u \Big\{ \underbrace{\tfrac12\big(x^2 + u^2\big)}_{\text{cost now}} + \underbrace{J_{t+1}^\star(x')}_{\text{cost from the next state}} \Big\}. \]
+    <p>Where does the term \(P_{t+1}(x + u)^2\) come from? Not from the stage cost: it comes from the cost-to-go. We assumed \(J_{t+1}^\star\) is quadratic, \(J_{t+1}^\star(x') = \tfrac12 P_{t+1}\,x'^2\), and the dynamics say the next state is \(x' = x + u\). Substituting:</p>
+    \[ J_{t+1}^\star(x + u) = \tfrac12 P_{t+1}(x + u)^2. \]
+    <p>So the one-step problem at stage \(t\) is</p>
+    \[ J_t^\star(x) = \min_u \tfrac12\Big[\, x^2 + u^2 + P_{t+1}(x + u)^2 \,\Big]. \]
     <p>Set the derivative in \(u\) to zero:</p>
     \[ u + P_{t+1}(x + u) = 0 \quad\Longrightarrow\quad u_t^\star = -K_t\, x, \qquad K_t = \frac{P_{t+1}}{1 + P_{t+1}} \]
     <p>This is the general \(K_t = (R + B^\top P_{t+1} B)^{-1} B^\top P_{t+1} A\) with every matrix equal to 1.</p>
