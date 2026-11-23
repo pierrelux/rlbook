@@ -668,8 +668,14 @@ body.presenter .deck { display: flex; }
     \[ \mathbf{v}^\pi = \sum_{t \ge 0} (\gamma\mathbf{P}_\pi)^t\, \mathbf{r}_\pi = (\mathbf{I} - \gamma\mathbf{P}_\pi)^{-1}\mathbf{r}_\pi \]
     <ul>
       <li>Each row of \(\mathbf{P}_\pi\) sums to one, so \(\|\mathbf{P}_\pi\|_\infty = 1\) and \(\|\gamma\mathbf{P}_\pi\|_\infty = \gamma &lt; 1\).</li>
-      <li>So \(\rho(\gamma\mathbf{P}_\pi) &lt; 1\) and the series converges. Here the eigenvalues of \(\gamma\mathbf{P}_\pi\) are 0.45 and 0.9.</li>
+      <li>So \(\rho(\gamma\mathbf{P}_\pi) &lt; 1\) and the series converges.</li>
     </ul>
+    <p>We can check this directly by computing the eigenvalues. Multiply \(\mathbf{P}_\pi\) by \(\gamma = 0.9\):</p>
+    \[ \gamma\mathbf{P}_\pi = 0.9\begin{pmatrix} 0.5 &amp; 0.5 \\ 0 &amp; 1 \end{pmatrix} = \begin{pmatrix} 0.45 &amp; 0.45 \\ 0 &amp; 0.9 \end{pmatrix}. \]
+    <p>The eigenvalues are the roots of the characteristic polynomial:</p>
+    \[ \det\begin{pmatrix} 0.45 - \lambda &amp; 0.45 \\ 0 &amp; 0.9 - \lambda \end{pmatrix} = (0.45 - \lambda)(0.9 - \lambda) - 0.45 \cdot 0 = 0. \]
+    <p>So \(\lambda = 0.45\) or \(\lambda = 0.9\). (The matrix is upper triangular, so its eigenvalues are its diagonal entries.) The largest is \(\rho(\gamma\mathbf{P}_\pi) = 0.9 &lt; 1\), so the series converges.</p>
+    <p>The two eigenvalues also explain part (b). The value 0.9 belongs to state 2, which stays put with probability 1. The value 0.45 is \(\gamma\) times the probability 0.5 that state 1 stays put, and it is exactly the rate at which the error in state 1 decreased.</p>
 
     <p class="pt">(d) Affine, not linear</p>
     \[ \mathsf{L}_\pi(\mathbf{v}_1 + \mathbf{v}_2) = \mathbf{r}_\pi + \gamma\mathbf{P}_\pi(\mathbf{v}_1 + \mathbf{v}_2) \;\ne\; \mathsf{L}_\pi\mathbf{v}_1 + \mathsf{L}_\pi\mathbf{v}_2 = 2\mathbf{r}_\pi + \gamma\mathbf{P}_\pi(\mathbf{v}_1 + \mathbf{v}_2) \]
