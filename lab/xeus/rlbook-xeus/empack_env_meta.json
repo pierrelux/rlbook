@@ -357,6 +357,18 @@
       "subdir": "noarch"
     },
     {
+      "name": "decorator",
+      "version": "5.3.2",
+      "build": "pyhd8ed1ab_0",
+      "filename_stem": "decorator-5.3.2-pyhd8ed1ab_0",
+      "filename": "decorator-5.3.2-pyhd8ed1ab_0.tar.gz",
+      "channel": "https://prefix.dev/conda-forge",
+      "depends": [
+        "python >=3.11"
+      ],
+      "subdir": "noarch"
+    },
+    {
       "name": "nlohmann_json-abi",
       "version": "3.12.0",
       "build": "h0f90c79_2",
@@ -428,18 +440,6 @@
       "depends": [
         "python >=3.11",
         "python"
-      ],
-      "subdir": "noarch"
-    },
-    {
-      "name": "decorator",
-      "version": "5.3.1",
-      "build": "pyhd8ed1ab_0",
-      "filename_stem": "decorator-5.3.1-pyhd8ed1ab_0",
-      "filename": "decorator-5.3.1-pyhd8ed1ab_0.tar.gz",
-      "channel": "https://prefix.dev/conda-forge",
-      "depends": [
-        "python >=3.10"
       ],
       "subdir": "noarch"
     },
