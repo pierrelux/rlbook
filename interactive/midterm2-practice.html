@@ -164,7 +164,7 @@ body.presenter .deck { display: flex; }
 
 <header class="intro">
   <h1>Midterm 2 Practice</h1>
-  <p class="lede">IFT 6162, in-class practice, Monday November 23, 2026. The second midterm is Thursday November 26, 13:30, on paper. It covers what we did in class since the first one: backward induction and its proof, interpolating the cost-to-go, LQR and the Riccati recursion, stochastic dynamic programming and policy classes, infinite-horizon discounted MDPs, Bellman operators and contraction, value and policy iteration, and the smooth (entropy-regularized) Bellman equations. Q30 and block H add the first function approximation lecture (November 16): entropy as a reward penalty, weighted residual methods, projected Bellman equations and fitted value methods. Block I adds the November 19 lecture: averagers and the \(1/(1-\gamma)\) error bound, the on-policy weighted projection and TD, tile coding, and fitted value methods. Work each question before you reveal the answer. Items marked <span class="tag core">core</span> are the ones to make sure you can do.</p>
+  <p class="lede">IFT 6162, in-class practice, Monday November 23, 2026. The second midterm is Thursday November 26, 13:30, on paper. It covers what we did in class since the first one: backward induction and its proof, interpolating the cost-to-go, LQR and the Riccati recursion, stochastic dynamic programming and policy classes, infinite-horizon discounted MDPs, Bellman operators and contraction, value and policy iteration, and the smooth (entropy-regularized) Bellman equations. Q29 and block H add the first function approximation lecture (November 16): entropy as a reward penalty, weighted residual methods, projected Bellman equations and fitted value methods. Block I adds the November 19 lecture: averagers and the \(1/(1-\gamma)\) error bound, the on-policy weighted projection and TD, tile coding, and fitted value methods. Work each question before you reveal the answer. Items marked <span class="tag core">core</span> are the ones to make sure you can do.</p>
   <div class="toolbar">
     <button id="btn-presenter" class="primary" type="button">Presenter mode</button>
     <button id="btn-core" type="button">Core only: off</button>
@@ -257,78 +257,54 @@ body.presenter .deck { display: flex; }
   <p class="rehearses"><b>Rehearses:</b> running backward induction by hand and reading the two arrays it produces.</p>
 </article>
 
-<article class="q" id="q3" data-type="mcq" data-core="1" data-min="3" data-block="A">
-  <div class="q-head"><span class="q-num">Q3</span><span class="tag core">core</span><span class="tag min">3 min</span></div>
+<article class="q" id="q3" data-type="mcq" data-core="1" data-min="2" data-block="A">
+  <div class="q-head"><span class="q-num">Q3</span><span class="tag core">core</span><span class="tag min">2 min</span></div>
   <div class="stem">
-    <p>The proof that backward induction is optimal uses a cut-and-paste argument. From state \(\mathbf{x}\) at stage \(t\), an arbitrary sequence costs 11: its first step costs 2 and its tail costs 9, while the optimal tail from the same \(\mathbf{x}_{t+1}\) costs 7. Three first steps are available, costing 2, 3 and 1, and leading to states whose optimal tails cost 7, 4 and 8. Which reading is correct?</p>
+    <p>A reservoir system has 4 reservoirs, each with one release, over 52 weekly stages. Compare how many numbers each approach has to handle.</p>
+    <ol type="i">
+      <li><b>Backward induction</b> discretizes each storage into 100 levels and stores one cost-to-go value for every grid state at every stage. How many values is that?</li>
+      <li><b>Transcription</b> for one given initial state makes the 4 storages and the 4 releases at each stage the decision variables of an optimization problem. How many variables is that?</li>
+    </ol>
   </div>
   <ol class="opts">
-    <li><span class="letter">a</span><span>\(J_t^\star(\mathbf{x}) = 9\), because the best tail after the first step is 7</span></li>
-    <li><span class="letter">b</span><span>\(J_t^\star(\mathbf{x}) = 1 + 4 = 5\), taking the cheapest first step and the cheapest tail</span></li>
-    <li data-correct><span class="letter">c</span><span>Cut: the sequence costs at least \(2 + 7 = 9\). Paste: the first steps followed by their optimal tails cost 9, 7 and 9, so \(J_t^\star(\mathbf{x}) = 7\), and every sequence costs at least that much (\(11 \ge 9 \ge 7\))</span></li>
-    <li><span class="letter">d</span><span>The argument needs gradients of the cost with respect to the first control</span></li>
-  </ol>
-  <div class="actions"><span class="verdict"></span></div>
-  <div class="expl" hidden>
-    <p class="pt">Answer: (c)</p>
-    <p>The argument has two steps.</p>
-    <p><b>Cut (lower bound).</b> Take any sequence from \(\mathbf{x}\). Keep its first step and replace its tail by the optimal tail from the same next state. That cannot cost more. Here the sequence costs \(2 + 9 = 11\), and the replacement costs \(2 + 7 = 9\). So every sequence costs at least "its first step plus the optimal tail from where that step lands".</p>
-    <p><b>Paste (attain the bound).</b> Now compare the three first steps, each followed by its own optimal tail:</p>
-    <table>
-      <tr><th>first step</th><th>cost of step</th><th>optimal tail after it</th><th>total</th></tr>
-      <tr><td>1</td><td>2</td><td>7</td><td>\(2 + 7 = 9\)</td></tr>
-      <tr><td>2</td><td>3</td><td>4</td><td>\(3 + 4 = 7\)</td></tr>
-      <tr><td>3</td><td>1</td><td>8</td><td>\(1 + 8 = 9\)</td></tr>
-    </table>
-    <p>The best is 7, so \(J_t^\star(\mathbf{x}) = 7\), and the chain \(11 \ge 9 \ge 7\) shows no sequence does better. This is exactly the backward induction step, which is why the proof is also the algorithm.</p>
-    <p class="pt">Why not the others</p>
-    <ul>
-      <li><b>(a)</b> 9 is the improved version of one particular sequence, not the best over all first steps.</li>
-      <li><b>(b)</b> It glues the cheapest first step (cost 1, step 3) to the cheapest tail (cost 4), but that tail starts from the state reached by step 2. The two pieces do not connect.</li>
-      <li><b>(d)</b> The argument only compares costs. No gradients are used.</li>
-    </ul>
-  </div>
-  <p class="rehearses"><b>Rehearses:</b> the two inequalities of the cut-and-paste proof.</p>
-</article>
-
-<article class="q" id="q4" data-type="mcq" data-core="1" data-min="2" data-block="A">
-  <div class="q-head"><span class="q-num">Q4</span><span class="tag core">core</span><span class="tag min">2 min</span></div>
-  <div class="stem">
-    <p>A reservoir system has 4 reservoirs (state dimension \(n = 4\)) and one release per reservoir, over 52 weekly stages. Each storage is discretized into 100 levels. How large is the table that backward induction stores, and how does that compare with transcribing the problem for a single initial state?</p>
-  </div>
-  <ol class="opts">
-    <li><span class="letter">a</span><span>About \(52 \times 400\) entries, linear in the dimension</span></li>
-    <li data-correct><span class="letter">b</span><span>\(100^4 = 10^8\) values per stage, about \(5 \times 10^9\) in all, each needing its own minimization over releases; a transcription has on the order of \(52 \times (4 + 4) \approx 400\) unknowns but answers for one initial state only</span></li>
-    <li><span class="letter">c</span><span>\(4^{100}\) values per stage</span></li>
-    <li><span class="letter">d</span><span>The table has the same size as the transcription, because both discretize time into 52 stages</span></li>
+    <li><span class="letter">a</span><span>(i) \(52 \times 4 \times 100 \approx 2 \times 10^4\) values; (ii) about 400 variables</span></li>
+    <li data-correct><span class="letter">b</span><span>(i) \(52 \times 100^4 \approx 5 \times 10^9\) values; (ii) \(52 \times (4 + 4) \approx 400\) variables</span></li>
+    <li><span class="letter">c</span><span>(i) \(52 \times 4^{100}\) values; (ii) about 400 variables</span></li>
+    <li><span class="letter">d</span><span>About 400 for both, since both use the same 52 stages</span></li>
   </ol>
   <div class="actions"><span class="verdict"></span></div>
   <div class="expl" hidden>
     <p class="pt">Answer: (b)</p>
-    <p>Count the grid. Each of the 4 storages takes 100 levels, and the grid is every combination of levels:</p>
-    \[ 100 \times 100 \times 100 \times 100 = 100^4 = 10^8 \text{ states per stage}. \]
-    <p>Over 52 stages that is \(52 \times 10^8 \approx 5 \times 10^9\) values, and each one requires a minimization over the releases. This is the curse of dimensionality: the count is exponential in the dimension \(n\).</p>
-    <p>A transcription for one initial state has, at each of the 52 stages, 4 states and 4 releases as unknowns: about \(52 \times 8 \approx 400\) unknowns. That is polynomial in \(n\), but it answers for one starting point only, while the table gives a policy for every state.</p>
+    <p><b>(i) Backward induction.</b> The grid contains every combination of levels of the 4 storages:</p>
+    \[ 100 \times 100 \times 100 \times 100 = 100^4 = 10^8 \text{ grid states per stage}. \]
+    <p>One value per grid state and per stage gives \(52 \times 10^8 \approx 5 \times 10^9\) values, and each one requires its own minimization over the releases. The count is exponential in the number of reservoirs: the curse of dimensionality.</p>
+    <p><b>(ii) Transcription.</b> At each of the 52 stages there are 4 storages and 4 releases, so \(52 \times (4 + 4) = 416 \approx 400\) variables. That grows only linearly with the number of reservoirs.</p>
+    <p><b>The trade-off.</b> The transcription is far smaller, but it answers for one initial state only. The table gives the optimal decision from every state at every stage.</p>
     <p class="pt">Why not the others</p>
     <ul>
-      <li><b>(a)</b> \(52 \times 400\) adds the dimensions instead of multiplying the levels. The grid needs every combination of levels.</li>
-      <li><b>(c)</b> \(4^{100}\) swaps base and exponent: it is levels to the power of dimension, \(100^4\).</li>
-      <li><b>(d)</b> Both discretize time, but the table also covers the whole state space, which the transcription does not.</li>
+      <li><b>(a)</b> \(4 \times 100\) counts the levels of each storage separately. The grid needs every <em>combination</em> of levels, so the levels multiply: \(100^4\).</li>
+      <li><b>(c)</b> \(4^{100}\) swaps base and exponent. It is (levels per storage) to the power (number of storages): \(100^4\).</li>
+      <li><b>(d)</b> Both use 52 stages, but at each stage the table covers all \(10^8\) grid states, while the transcription follows a single trajectory.</li>
     </ul>
   </div>
   <p class="rehearses"><b>Rehearses:</b> counting the cost of a grid and placing DP against trajectory optimization.</p>
 </article>
 
-<article class="q" id="q5" data-type="mcq" data-core="1" data-min="2" data-block="A">
-  <div class="q-head"><span class="q-num">Q5</span><span class="tag core">core</span><span class="tag min">2 min</span></div>
+<article class="q" id="q4" data-type="mcq" data-core="1" data-min="2" data-block="A">
+  <div class="q-head"><span class="q-num">Q4</span><span class="tag core">core</span><span class="tag min">2 min</span></div>
   <div class="stem">
-    <p>The reservoir grid stores one value per 10 hm³. A release sends the storage to 1033.7 hm³, between the nodes 1030 and 1040, where the next-stage values are \(v_{t+1}(1030) = 50\) and \(v_{t+1}(1040) = 60\). Which value does each rule use?</p>
+    <p>Backward induction stores the cost-to-go only at grid nodes, spaced 10 hm³ apart. A release sends the storage to 1033.7 hm³, which is not a node: it lies between the nodes 1030 and 1040, where the stored next-stage values are \(v_{t+1}(1030) = 50\) and \(v_{t+1}(1040) = 60\). To estimate \(v_{t+1}(1033.7)\), we can either</p>
+    <ol type="i">
+      <li>round to the nearest node and use its stored value, or</li>
+      <li>interpolate linearly between the two nodes.</li>
+    </ol>
+    <p>What estimate does each method give?</p>
   </div>
   <ol class="opts">
-    <li data-correct><span class="letter">a</span><span>Rounding uses 50 (nearest node, a zero-order hold); linear interpolation uses \(0.63 \cdot 50 + 0.37 \cdot 60 = 53.7\). Both are convex combinations of stored values, unlike a cubic spline, whose cardinal functions have negative lobes</span></li>
-    <li><span class="letter">b</span><span>Rounding uses 60; linear interpolation uses 55</span></li>
-    <li><span class="letter">c</span><span>Linear interpolation uses \(0.37 \cdot 50 + 0.63 \cdot 60 = 56.3\)</span></li>
-    <li><span class="letter">d</span><span>Both rules must call the simulator again at 1033.7</span></li>
+    <li data-correct><span class="letter">a</span><span>(i) 50; (ii) \(0.63 \cdot 50 + 0.37 \cdot 60 = 53.7\)</span></li>
+    <li><span class="letter">b</span><span>(i) 60; (ii) 55</span></li>
+    <li><span class="letter">c</span><span>(i) 50; (ii) \(0.37 \cdot 50 + 0.63 \cdot 60 = 56.3\)</span></li>
+    <li><span class="letter">d</span><span>Neither works: we must simulate again from 1033.7</span></li>
   </ol>
   <div class="actions"><span class="verdict"></span></div>
   <div class="expl" hidden>
@@ -338,19 +314,19 @@ body.presenter .deck { display: flex; }
     \[ \lambda = \frac{1033.7 - 1030}{10} = 0.37. \]
     <p>The weight on the far node is \(\lambda\) and the weight on the near node is \(1 - \lambda\):</p>
     \[ \hat J_{t+1} = (1 - 0.37)\cdot 50 + 0.37 \cdot 60 = 31.5 + 22.2 = 53.7. \]
-    <p>The closer node (1030) gets the larger weight, 0.63. Both rules use nonnegative weights summing to one, so the result always lies between the stored values. A cubic spline can have negative weights and overshoot.</p>
+    <p>The closer node (1030) gets the larger weight, 0.63. Both methods use nonnegative weights summing to one, so the result always lies between the stored values. A cubic spline can have negative weights and overshoot.</p>
     <p class="pt">Why not the others</p>
     <ul>
-      <li><b>(b)</b> 1040 is not the nearest node, and 55 is the midpoint, which ignores where 1033.7 sits.</li>
-      <li><b>(c)</b> It puts the larger weight on the far node: the weights are swapped.</li>
+      <li><b>(b)</b> 1040 is not the nearest node (it is 6.3 away, against 3.7 for 1030), and 55 is the midpoint, which ignores where 1033.7 sits.</li>
+      <li><b>(c)</b> The rounding part is right, but the interpolation puts the larger weight on the far node: the weights are swapped.</li>
       <li><b>(d)</b> The point of storing a table is that no new simulation is needed: we only combine stored numbers.</li>
     </ul>
   </div>
   <p class="rehearses"><b>Rehearses:</b> evaluating the interpolated Bellman recursion at an off-grid successor.</p>
 </article>
 
-<article class="q" id="q6" data-type="mcq" data-min="2" data-block="A">
-  <div class="q-head"><span class="q-num">Q6</span><span class="tag min">2 min</span></div>
+<article class="q" id="q5" data-type="mcq" data-min="2" data-block="A">
+  <div class="q-head"><span class="q-num">Q5</span><span class="tag min">2 min</span></div>
   <div class="stem">
     <p>A learned approximation \(\hat J_{t+1}\) is off by the same constant everywhere: \(\hat J_{t+1}(\mathbf{x}) = J^\star_{t+1}(\mathbf{x}) + 40\) for every \(\mathbf{x}\). What happens to the decision rule computed from it at stage \(t\)?</p>
   </div>
@@ -377,16 +353,20 @@ body.presenter .deck { display: flex; }
 
 <h2 data-block="B">B. LQR and iLQR <small>backward induction over matrices</small></h2>
 
-<article class="q" id="q7" data-type="work" data-core="1" data-min="8" data-block="B">
-  <div class="q-head"><span class="q-num">Q7</span><span class="tag core">core</span><span class="tag min">8 min, on paper</span></div>
+<article class="q" id="q6" data-type="work" data-core="1" data-min="8" data-block="B">
+  <div class="q-head"><span class="q-num">Q6</span><span class="tag core">core</span><span class="tag min">8 min, on paper</span></div>
   <div class="stem">
-    <p>Scalar LQR: \(x_{t+1} = x_t + u_t\), cost \(\tfrac12 x_T^2 + \tfrac12\sum_{t=0}^{T-1}(x_t^2 + u_t^2)\), so \(A = B = Q = R = Q_T = 1\), with \(T = 2\).</p>
+    <p>Consider a system with one state \(x_t\) and one control \(u_t\), both real numbers, and linear dynamics</p>
+    \[ x_{t+1} = x_t + u_t. \]
+    <p>We make two decisions, at \(t = 0\) and \(t = 1\), and want to minimize the total cost</p>
+    \[ \tfrac12\big(x_0^2 + u_0^2\big) + \tfrac12\big(x_1^2 + u_1^2\big) + \tfrac12 x_2^2. \]
+    <p>Each stage penalizes the distance of the state from 0 and the size of the control, and the final state \(x_2\) is penalized too. In the usual LQR notation, this is the case \(A = B = Q = R = Q_T = 1\) with horizon \(T = 2\).</p>
   </div>
   <ol class="parts" type="a">
-    <li>Assume \(J_{t+1}^\star(x) = \tfrac12 P_{t+1} x^2\). Write the one-step problem at stage \(t\), set its derivative in \(u\) to zero, and get \(u_t^\star = -K_t x_t\) with \(K_t\) in terms of \(P_{t+1}\).</li>
-    <li>Substitute back to get the Riccati recursion for \(P_t\) in this scalar case.</li>
-    <li>Compute \(K_1, P_1, K_0, P_0\). What is the optimal cost from \(x_0 = 2\)?</li>
-    <li>Run the recursion backward for many stages. To what does \(P_t\) converge, and what is the limiting gain?</li>
+    <li>Suppose the optimal cost-to-go from stage \(t+1\) is quadratic, \(J_{t+1}^\star(x) = \tfrac12 P_{t+1} x^2\) for some number \(P_{t+1}\). Write the one-step problem that defines \(J_t^\star(x)\), minimize it over \(u\) by setting the derivative to zero, and show that the optimal control has the form \(u_t^\star = -K_t x_t\). Give the gain \(K_t\) as a function of \(P_{t+1}\).</li>
+    <li>Substitute \(u_t^\star\) back into the one-step problem. Show that \(J_t^\star(x) = \tfrac12 P_t x^2\) is again quadratic, and give \(P_t\) as a function of \(P_{t+1}\). This is the Riccati recursion for this system.</li>
+    <li>Start from the terminal cost, \(P_2 = Q_T = 1\), and compute \(K_1, P_1, K_0, P_0\). What is the optimal total cost from \(x_0 = 2\)?</li>
+    <li>Now imagine a much longer horizon and run the recursion backward for many stages. To what value does \(P_t\) converge, and what is the corresponding gain?</li>
   </ol>
   <div class="actions"><button type="button" class="reveal">Show solution</button></div>
   <div class="sol" hidden>
@@ -428,8 +408,8 @@ body.presenter .deck { display: flex; }
   <p class="rehearses"><b>Rehearses:</b> deriving the Riccati recursion as backward induction specialized to linear dynamics and quadratic costs.</p>
 </article>
 
-<article class="q" id="q8" data-type="mcq" data-core="1" data-min="2" data-block="B">
-  <div class="q-head"><span class="q-num">Q8</span><span class="tag core">core</span><span class="tag min">2 min</span></div>
+<article class="q" id="q7" data-type="mcq" data-core="1" data-min="2" data-block="B">
+  <div class="q-head"><span class="q-num">Q7</span><span class="tag core">core</span><span class="tag min">2 min</span></div>
   <div class="stem">
     <p>Which statement about the finite-horizon LQR solution is correct?</p>
   </div>
@@ -454,8 +434,8 @@ body.presenter .deck { display: flex; }
   <p class="rehearses"><b>Rehearses:</b> the assumptions and the output of the Riccati recursion.</p>
 </article>
 
-<article class="q" id="q9" data-type="mcq" data-min="2" data-block="B">
-  <div class="q-head"><span class="q-num">Q9</span><span class="tag min">2 min</span></div>
+<article class="q" id="q8" data-type="mcq" data-min="2" data-block="B">
+  <div class="q-head"><span class="q-num">Q8</span><span class="tag min">2 min</span></div>
   <div class="stem">
     <p>iLQR is run on the boat-docking problem. Besides a nominal plan \((\bar{\mathbf{x}}_t, \bar{\mathbf{u}}_t)\), it returns gains \(K_t\). The boat is then perturbed by noise during execution and the controller applies \(\mathbf{u}_t = \bar{\mathbf{u}}_t - K_t(\mathbf{x}_t - \bar{\mathbf{x}}_t)\). Which statement is correct?</p>
   </div>
@@ -482,8 +462,8 @@ body.presenter .deck { display: flex; }
 
 <h2 data-block="C">C. Stochastic DP and policies <small>expectations, policy classes, ordering</small></h2>
 
-<article class="q" id="q10" data-type="work" data-core="1" data-min="7" data-block="C">
-  <div class="q-head"><span class="q-num">Q10</span><span class="tag core">core</span><span class="tag min">7 min, on paper</span></div>
+<article class="q" id="q9" data-type="work" data-core="1" data-min="7" data-block="C">
+  <div class="q-head"><span class="q-num">Q9</span><span class="tag core">core</span><span class="tag min">7 min, on paper</span></div>
   <div class="stem">
     <p>A machine is either good (G) or worn (W). Each period you either <em>run</em> it or <em>repair</em> it, and you maximize the expected total reward over two decisions (\(t = 1, 2\)), with terminal reward 0.</p>
     <ul>
@@ -531,8 +511,8 @@ body.presenter .deck { display: flex; }
   <p class="rehearses"><b>Rehearses:</b> backward induction with an expectation, and why the finite-horizon policy depends on \(t\).</p>
 </article>
 
-<article class="q" id="q11" data-type="mcq" data-core="1" data-min="2" data-block="C">
-  <div class="q-head"><span class="q-num">Q11</span><span class="tag core">core</span><span class="tag min">2 min</span></div>
+<article class="q" id="q10" data-type="mcq" data-core="1" data-min="2" data-block="C">
+  <div class="q-head"><span class="q-num">Q10</span><span class="tag core">core</span><span class="tag min">2 min</span></div>
   <div class="stem">
     <p>Policies can be Markovian or history-dependent, deterministic or randomized (classes MD, MR, HD, HR). Which statement is correct for a finite-horizon MDP with finite states and actions?</p>
   </div>
@@ -554,15 +534,15 @@ body.presenter .deck { display: flex; }
     <p class="pt">Why not the others</p>
     <ul>
       <li><b>(a)</b> More information can only help if it predicts the future, and the current state already summarizes everything relevant.</li>
-      <li><b>(c)</b> The MD part is right, but with a finite horizon the optimal rule depends on \(t\) (see Q2 and Q10), so it is not stationary in general.</li>
+      <li><b>(c)</b> The MD part is right, but with a finite horizon the optimal rule depends on \(t\) (see Q2 and Q9), so it is not stationary in general.</li>
       <li><b>(d)</b> Random transitions do not call for random actions: by fact 2, a deterministic choice is always at least as good.</li>
     </ul>
   </div>
   <p class="rehearses"><b>Rehearses:</b> the policy classes and the reduction to Markov deterministic rules.</p>
 </article>
 
-<article class="q" id="q12" data-type="mcq" data-core="1" data-min="2" data-block="C">
-  <div class="q-head"><span class="q-num">Q12</span><span class="tag core">core</span><span class="tag min">2 min</span></div>
+<article class="q" id="q11" data-type="mcq" data-core="1" data-min="2" data-block="C">
+  <div class="q-head"><span class="q-num">Q11</span><span class="tag core">core</span><span class="tag min">2 min</span></div>
   <div class="stem">
     <p>Two policies on a two-state problem have expected returns \(v^{\pi_A} = (3, 5)\) and \(v^{\pi_B} = (4, 4)\), one entry per initial state. Which is better?</p>
   </div>
@@ -590,8 +570,8 @@ body.presenter .deck { display: flex; }
   <p class="rehearses"><b>Rehearses:</b> the componentwise ordering of policies and the expectation as a modeling choice.</p>
 </article>
 
-<article class="q" id="q13" data-type="mcq" data-min="2" data-block="C">
-  <div class="q-head"><span class="q-num">Q13</span><span class="tag min">2 min</span></div>
+<article class="q" id="q12" data-type="mcq" data-min="2" data-block="C">
+  <div class="q-head"><span class="q-num">Q12</span><span class="tag min">2 min</span></div>
   <div class="stem">
     <p>The inflow to a reservoir network is a 6-dimensional continuous random vector, and the Bellman backup needs \(\mathbb{E}_{\mathbf{w}}[J_{t+1}(\mathbf{f}_t(\mathbf{x}, \mathbf{u}, \mathbf{w}))]\). You replace the expectation by an average over \(M\) simulated inflows. Which statement is correct?</p>
   </div>
@@ -619,8 +599,8 @@ body.presenter .deck { display: flex; }
 
 <h2 data-block="D">D. Infinite horizon and policy evaluation <small>discounting, Neumann series, operators</small></h2>
 
-<article class="q" id="q14" data-type="mcq" data-min="2" data-block="D">
-  <div class="q-head"><span class="q-num">Q14</span><span class="tag min">2 min</span></div>
+<article class="q" id="q13" data-type="mcq" data-min="2" data-block="D">
+  <div class="q-head"><span class="q-num">Q13</span><span class="tag min">2 min</span></div>
   <div class="stem">
     <p>Rewards satisfy \(|r(s,a)| \le 2\) and \(\gamma = 0.95\). Which statement about the discounted value of any policy is correct?</p>
   </div>
@@ -646,8 +626,8 @@ body.presenter .deck { display: flex; }
   <p class="rehearses"><b>Rehearses:</b> bounded values and the two readings of the discount factor.</p>
 </article>
 
-<article class="q" id="q15" data-type="work" data-core="1" data-min="7" data-block="D">
-  <div class="q-head"><span class="q-num">Q15</span><span class="tag core">core</span><span class="tag min">7 min, on paper</span></div>
+<article class="q" id="q14" data-type="work" data-core="1" data-min="7" data-block="D">
+  <div class="q-head"><span class="q-num">Q14</span><span class="tag core">core</span><span class="tag min">7 min, on paper</span></div>
   <div class="stem">
     <p>A fixed policy \(\pi\) on two states, \(\gamma = 0.9\):
     \[ \mathbf{P}_\pi = \begin{pmatrix} 0.5 & 0.5 \\ 0 & 1 \end{pmatrix}, \qquad \mathbf{r}_\pi = \begin{pmatrix} 1 \\ 0 \end{pmatrix}. \]</p>
@@ -694,8 +674,8 @@ body.presenter .deck { display: flex; }
   <p class="rehearses"><b>Rehearses:</b> the three views of policy evaluation (linear system, iteration, Neumann series) on a small example.</p>
 </article>
 
-<article class="q" id="q16" data-type="mcq" data-core="1" data-min="2" data-block="D">
-  <div class="q-head"><span class="q-num">Q16</span><span class="tag core">core</span><span class="tag min">2 min</span></div>
+<article class="q" id="q15" data-type="mcq" data-core="1" data-min="2" data-block="D">
+  <div class="q-head"><span class="q-num">Q15</span><span class="tag core">core</span><span class="tag min">2 min</span></div>
   <div class="stem">
     <p>Which statement about the Banach fixed-point theorem is correct?</p>
   </div>
@@ -718,7 +698,7 @@ body.presenter .deck { display: flex; }
     <ul>
       <li><b>(a)</b> Contraction is sufficient, not necessary. For example, the identity map is not a contraction, yet every point is a fixed point.</li>
       <li><b>(b)</b> Convergence holds from any starting point. That global property is what makes value iteration safe.</li>
-      <li><b>(d)</b> Contraction depends on the norm. \(\mathsf{L}_\pi\) contracts in the sup norm but need not in a weighted \(\ell_2\) norm. This matters later for function approximation (Q34, Q38).</li>
+      <li><b>(d)</b> Contraction depends on the norm. \(\mathsf{L}_\pi\) contracts in the sup norm but need not in a weighted \(\ell_2\) norm. This matters later for function approximation (Q33, Q37).</li>
     </ul>
   </div>
   <p class="rehearses"><b>Rehearses:</b> what a contraction guarantees, and what it does not.</p>
@@ -726,8 +706,8 @@ body.presenter .deck { display: flex; }
 
 <h2 data-block="E">E. Bellman optimality and value iteration <small>the max, greedy policies, stopping rules</small></h2>
 
-<article class="q" id="q17" data-type="work" data-core="1" data-min="8" data-block="E">
-  <div class="q-head"><span class="q-num">Q17</span><span class="tag core">core</span><span class="tag min">8 min, on paper</span></div>
+<article class="q" id="q16" data-type="work" data-core="1" data-min="8" data-block="E">
+  <div class="q-head"><span class="q-num">Q16</span><span class="tag core">core</span><span class="tag min">8 min, on paper</span></div>
   <div class="stem">
     <p>Two states, \(\gamma = 0.9\). In state 1 you can <em>stay</em> (reward 1, remain in 1) or <em>go</em> (reward 0, move to 2). State 2 has one action, <em>stay</em> (reward 2, remain in 2).</p>
   </div>
@@ -780,8 +760,8 @@ body.presenter .deck { display: flex; }
   <p class="rehearses"><b>Rehearses:</b> value iteration by hand, greedy extraction, and the stopping rule that certifies the result.</p>
 </article>
 
-<article class="q" id="q18" data-type="mcq" data-core="1" data-min="2" data-block="E">
-  <div class="q-head"><span class="q-num">Q18</span><span class="tag core">core</span><span class="tag min">2 min</span></div>
+<article class="q" id="q17" data-type="mcq" data-core="1" data-min="2" data-block="E">
+  <div class="q-head"><span class="q-num">Q17</span><span class="tag core">core</span><span class="tag min">2 min</span></div>
   <div class="stem">
     <p>The Bellman optimality operator is written \(\mathsf{L}\mathbf{v} = \max_{\pi \in \Pi^{MD}}\{\mathbf{r}_\pi + \gamma\mathbf{P}_\pi\mathbf{v}\}\). How is it computed in practice, and what follows?</p>
   </div>
@@ -808,8 +788,8 @@ body.presenter .deck { display: flex; }
   <p class="rehearses"><b>Rehearses:</b> the componentwise form of the Bellman optimality operator and the uniqueness of \(v^\star\).</p>
 </article>
 
-<article class="q" id="q19" data-type="mcq" data-core="1" data-min="3" data-block="E">
-  <div class="q-head"><span class="q-num">Q19</span><span class="tag core">core</span><span class="tag min">3 min</span></div>
+<article class="q" id="q18" data-type="mcq" data-core="1" data-min="3" data-block="E">
+  <div class="q-head"><span class="q-num">Q18</span><span class="tag core">core</span><span class="tag min">3 min</span></div>
   <div class="stem">
     <p>Inspect this value iteration. <code>P</code> has shape <code>(S, A, S)</code>, <code>r</code> has shape <code>(S, A)</code>, and the goal is an \(\varepsilon\)-optimal policy. Which lines are wrong?</p>
 <pre><code>v = np.zeros(S)
@@ -847,8 +827,8 @@ pi = q.argmax(axis=0)                     # line 4</code></pre>
   <p class="rehearses"><b>Rehearses:</b> reading a value-iteration loop and checking its stopping test and its greedy step.</p>
 </article>
 
-<article class="q" id="q20" data-type="mcq" data-min="2" data-block="E">
-  <div class="q-head"><span class="q-num">Q20</span><span class="tag min">2 min</span></div>
+<article class="q" id="q19" data-type="mcq" data-min="2" data-block="E">
+  <div class="q-head"><span class="q-num">Q19</span><span class="tag min">2 min</span></div>
   <div class="stem">
     <p>Value iteration on a problem with \(\gamma = 0.9\) produces an iterate with Bellman residual \(\|\mathsf{L}v - v\|_\infty = 0.02\). What can you say about \(\|v - v^\star\|_\infty\)?</p>
   </div>
@@ -877,8 +857,8 @@ pi = q.argmax(axis=0)                     # line 4</code></pre>
 
 <h2 data-block="F">F. Policy iteration and Newton <small>evaluation, improvement, Newton-Kantorovich</small></h2>
 
-<article class="q" id="q21" data-type="mcq" data-core="1" data-min="2" data-block="F">
-  <div class="q-head"><span class="q-num">Q21</span><span class="tag core">core</span><span class="tag min">2 min</span></div>
+<article class="q" id="q20" data-type="mcq" data-core="1" data-min="2" data-block="F">
+  <div class="q-head"><span class="q-num">Q20</span><span class="tag core">core</span><span class="tag min">2 min</span></div>
   <div class="stem">
     <p>Value iteration and policy iteration solve the same equation \(v = \mathsf{L}v\). Which pairing is correct?</p>
   </div>
@@ -906,8 +886,8 @@ pi = q.argmax(axis=0)                     # line 4</code></pre>
   <p class="rehearses"><b>Rehearses:</b> placing value iteration and policy iteration among the general methods for operator equations.</p>
 </article>
 
-<article class="q" id="q22" data-type="mcq" data-core="1" data-min="3" data-block="F">
-  <div class="q-head"><span class="q-num">Q22</span><span class="tag core">core</span><span class="tag min">3 min</span></div>
+<article class="q" id="q21" data-type="mcq" data-core="1" data-min="3" data-block="F">
+  <div class="q-head"><span class="q-num">Q21</span><span class="tag core">core</span><span class="tag min">3 min</span></div>
   <div class="stem">
     <p>The proof that policy iteration improves monotonically goes: \(\pi_{n+1}\) is greedy for \(\mathbf{v}^n\), so \(\mathsf{L}_{\pi_{n+1}}\mathbf{v}^n \ge \mathbf{v}^n\), that is \(\mathbf{r}_{\pi_{n+1}} \ge (\mathbf{I} - \gamma\mathbf{P}_{\pi_{n+1}})\mathbf{v}^n\). Which fact lets us conclude \(\mathbf{v}^{n+1} \ge \mathbf{v}^n\)?</p>
   </div>
@@ -935,8 +915,8 @@ pi = q.argmax(axis=0)                     # line 4</code></pre>
   <p class="rehearses"><b>Rehearses:</b> the policy improvement argument.</p>
 </article>
 
-<article class="q" id="q23" data-type="mcq" data-min="2" data-block="F">
-  <div class="q-head"><span class="q-num">Q23</span><span class="tag min">2 min</span></div>
+<article class="q" id="q22" data-type="mcq" data-min="2" data-block="F">
+  <div class="q-head"><span class="q-num">Q22</span><span class="tag min">2 min</span></div>
   <div class="stem">
     <p>Modified policy iteration replaces the exact evaluation \((\mathbf{I} - \gamma\mathbf{P}_\pi)^{-1}\mathbf{r}_\pi\) by \(k\) applications of \(\mathsf{L}_\pi\), starting from the current \(\mathbf{v}\). Which statement is correct?</p>
   </div>
@@ -967,8 +947,8 @@ pi = q.argmax(axis=0)                     # line 4</code></pre>
 
 <h2 data-block="G">G. Smooth Bellman equations <small>log-sum-exp, Gumbel noise, entropy regularization</small></h2>
 
-<article class="q" id="q24" data-type="mcq" data-core="1" data-min="3" data-block="G">
-  <div class="q-head"><span class="q-num">Q24</span><span class="tag core">core</span><span class="tag min">3 min</span></div>
+<article class="q" id="q23" data-type="mcq" data-core="1" data-min="3" data-block="G">
+  <div class="q-head"><span class="q-num">Q23</span><span class="tag core">core</span><span class="tag min">3 min</span></div>
   <div class="stem">
     <p>In some state, two actions have \(q(s, a_1) = 0\) and \(q(s, a_2) = \log 3\), and \(\beta = 1\). The smooth value is \(\frac1\beta\log\sum_a e^{\beta q(s,a)}\) and the policy is the softmax. Which is correct?</p>
   </div>
@@ -998,8 +978,8 @@ pi = q.argmax(axis=0)                     # line 4</code></pre>
   <p class="rehearses"><b>Rehearses:</b> computing a smooth backup and its softmax policy.</p>
 </article>
 
-<article class="q" id="q25" data-type="mcq" data-core="1" data-min="2" data-block="G">
-  <div class="q-head"><span class="q-num">Q25</span><span class="tag core">core</span><span class="tag min">2 min</span></div>
+<article class="q" id="q24" data-type="mcq" data-core="1" data-min="2" data-block="G">
+  <div class="q-head"><span class="q-num">Q24</span><span class="tag core">core</span><span class="tag min">2 min</span></div>
   <div class="stem">
     <p>In Rust's construction, each action's reward is perturbed by a shock \(\epsilon(a)\), i.i.d. Gumbel with scale \(1/\beta\) and mean zero, which the agent observes before acting and the modeler does not. The agent acts greedily in the augmented MDP. Which statement is correct?</p>
   </div>
@@ -1029,8 +1009,8 @@ pi = q.argmax(axis=0)                     # line 4</code></pre>
   <p class="rehearses"><b>Rehearses:</b> the Gumbel route to the smooth Bellman equation.</p>
 </article>
 
-<article class="q" id="q26" data-type="work" data-core="1" data-min="8" data-block="G">
-  <div class="q-head"><span class="q-num">Q26</span><span class="tag core">core</span><span class="tag min">8 min, on paper</span></div>
+<article class="q" id="q25" data-type="work" data-core="1" data-min="8" data-block="G">
+  <div class="q-head"><span class="q-num">Q25</span><span class="tag core">core</span><span class="tag min">8 min, on paper</span></div>
   <div class="stem">
     <p>Entropy regularization on one state with two actions, rewards \(r(a_1) = 1\) and \(r(a_2) = 0\), both returning to the same state, \(\gamma = 0.5\), \(\beta = 1\). The regularizer is the negative entropy \(\Omega(\pi) = \sum_a \pi(a)\log\pi(a)\).</p>
   </div>
@@ -1072,8 +1052,8 @@ pi = q.argmax(axis=0)                     # line 4</code></pre>
   <p class="rehearses"><b>Rehearses:</b> the convex conjugate of the negative entropy, and solving a smooth Bellman equation by hand.</p>
 </article>
 
-<article class="q" id="q27" data-type="mcq" data-core="1" data-min="2" data-block="G">
-  <div class="q-head"><span class="q-num">Q27</span><span class="tag core">core</span><span class="tag min">2 min</span></div>
+<article class="q" id="q26" data-type="mcq" data-core="1" data-min="2" data-block="G">
+  <div class="q-head"><span class="q-num">Q26</span><span class="tag core">core</span><span class="tag min">2 min</span></div>
   <div class="stem">
     <p>A regularized MDP uses a strongly convex \(\Omega\) on each \(\pi(\cdot\mid s)\). Which statement is correct?</p>
   </div>
@@ -1094,7 +1074,7 @@ pi = q.argmax(axis=0)                     # line 4</code></pre>
       <li>The maximizing policy is the gradient \(\nabla\Omega^\star(q)\). Strong convexity makes the maximizer unique.</li>
       <li>That maximizer generally puts mass on several actions, so the policy is stochastic.</li>
     </ul>
-    <p>With the negative entropy, \(\Omega^\star\) is the log-sum-exp and \(\nabla\Omega^\star\) is the softmax (see Q26a).</p>
+    <p>With the negative entropy, \(\Omega^\star\) is the log-sum-exp and \(\nabla\Omega^\star\) is the softmax (see Q25a).</p>
     <p class="pt">Why not the others</p>
     <ul>
       <li><b>(b)</b> The contraction survives regularization.</li>
@@ -1105,8 +1085,8 @@ pi = q.argmax(axis=0)                     # line 4</code></pre>
   <p class="rehearses"><b>Rehearses:</b> the regularized MDP framework and the role of the convex conjugate.</p>
 </article>
 
-<article class="q" id="q28" data-type="mcq" data-min="2" data-block="G">
-  <div class="q-head"><span class="q-num">Q28</span><span class="tag min">2 min</span></div>
+<article class="q" id="q27" data-type="mcq" data-min="2" data-block="G">
+  <div class="q-head"><span class="q-num">Q27</span><span class="tag min">2 min</span></div>
   <div class="stem">
     <p>Smooth policy iteration alternates the entropy-regularized evaluation of a softmax policy with a softmax improvement. Which statement is correct?</p>
   </div>
@@ -1131,8 +1111,8 @@ pi = q.argmax(axis=0)                     # line 4</code></pre>
   <p class="rehearses"><b>Rehearses:</b> smooth policy iteration as Newton's method.</p>
 </article>
 
-<article class="q" id="q29" data-type="mcq" data-min="3" data-block="G">
-  <div class="q-head"><span class="q-num">Q29</span><span class="tag min">3 min</span></div>
+<article class="q" id="q28" data-type="mcq" data-min="3" data-block="G">
+  <div class="q-head"><span class="q-num">Q28</span><span class="tag min">3 min</span></div>
   <div class="stem">
     <p>Rust estimates a reward parameter \(\theta\) by maximum likelihood on observed bus-engine decisions: \(\theta \mapsto r_\theta \mapsto v^\star_\theta\) (the fixed point of the smooth Bellman operator) \(\mapsto\) softmax policy \(\mapsto\) log-likelihood. To get the gradient of \(v^\star_\theta\) with respect to \(\theta\), he writes \(F(v, \theta) = \mathsf{L}_{\beta,\theta}v - v = 0\). Which is correct?</p>
   </div>
@@ -1162,8 +1142,8 @@ pi = q.argmax(axis=0)                     # line 4</code></pre>
 
 
 
-<article class="q" id="q30" data-type="mcq" data-core="1" data-min="2" data-block="G">
-  <div class="q-head"><span class="q-num">Q30</span><span class="tag core">core</span><span class="tag min">2 min</span></div>
+<article class="q" id="q29" data-type="mcq" data-core="1" data-min="2" data-block="G">
+  <div class="q-head"><span class="q-num">Q29</span><span class="tag core">core</span><span class="tag min">2 min</span></div>
   <div class="stem">
     <p>With entropy weight \(\alpha\), the regularized return equals the ordinary return of the reward \(r(s,a) - \alpha\log\pi(a\mid s)\). In some state the policy is \(\pi = (0.9, 0.1)\) and \(\alpha = 1\). Which is correct?</p>
   </div>
@@ -1197,8 +1177,8 @@ pi = q.argmax(axis=0)                     # line 4</code></pre>
 
 <h2 data-block="H">H. Parametric value functions <small>Nov 16 lecture: weighted residuals and fitted value methods</small></h2>
 
-<article class="q" id="q31" data-type="mcq" data-core="1" data-min="2" data-block="H">
-  <div class="q-head"><span class="q-num">Q31</span><span class="tag core">core</span><span class="tag min">2 min</span></div>
+<article class="q" id="q30" data-type="mcq" data-core="1" data-min="2" data-block="H">
+  <div class="q-head"><span class="q-num">Q30</span><span class="tag core">core</span><span class="tag min">2 min</span></div>
   <div class="stem">
     <p>With \(v(s;\theta) = \sum_{j=1}^n \theta_j\phi_j(s)\), the Bellman residual \(R(s;\theta) = (\mathsf{L}v_\theta)(s) - v(s;\theta)\) cannot be set to zero at every state, so we impose \(n\) conditions \(\langle R(\cdot;\theta), p_i\rangle_w = 0\). Which pairing of test functions \(p_i\) and method is correct?</p>
   </div>
@@ -1234,8 +1214,8 @@ pi = q.argmax(axis=0)                     # line 4</code></pre>
 </article>
 
 
-<article class="q" id="q32" data-type="mcq" data-min="2" data-block="H">
-  <div class="q-head"><span class="q-num">Q32</span><span class="tag min">2 min</span></div>
+<article class="q" id="q31" data-type="mcq" data-min="2" data-block="H">
+  <div class="q-head"><span class="q-num">Q31</span><span class="tag min">2 min</span></div>
   <div class="stem">
     <p>Collocation with a nodal basis imposes \(\theta_i = (\mathsf{L}v_\theta)(s_i)\) at the nodes, that is \(v_\theta = \mathsf{P}\mathsf{L}v_\theta\) with \(\mathsf{P}\) the interpolation through the nodes. Successive approximation on this equation means:</p>
   </div>
@@ -1265,8 +1245,8 @@ pi = q.argmax(axis=0)                     # line 4</code></pre>
   <p class="rehearses"><b>Rehearses:</b> collocation as repeated interpolation, and when it is stable.</p>
 </article>
 
-<article class="q" id="q33" data-type="mcq" data-min="2" data-block="H">
-  <div class="q-head"><span class="q-num">Q33</span><span class="tag min">2 min</span></div>
+<article class="q" id="q32" data-type="mcq" data-min="2" data-block="H">
+  <div class="q-head"><span class="q-num">Q32</span><span class="tag min">2 min</span></div>
   <div class="stem">
     <p>TD(0) with linear features and LSTD, applied to evaluate a fixed policy from on-policy data, converge to the same \(\theta\). Which equation does that \(\theta\) solve?</p>
   </div>
@@ -1295,8 +1275,8 @@ pi = q.argmax(axis=0)                     # line 4</code></pre>
 
 <h2 data-block="I">I. Convergence and error bounds <small>Nov 19 lecture: averagers, on-policy projection, tile coding, fitted value methods</small></h2>
 
-<article class="q" id="q34" data-type="mcq" data-core="1" data-min="2" data-block="I">
-  <div class="q-head"><span class="q-num">Q34</span><span class="tag core">core</span><span class="tag min">2 min</span></div>
+<article class="q" id="q33" data-type="mcq" data-core="1" data-min="2" data-block="I">
+  <div class="q-head"><span class="q-num">Q33</span><span class="tag core">core</span><span class="tag min">2 min</span></div>
   <div class="stem">
     <p>Fitted value iteration runs \(v_{k+1} = \mathsf{P}\mathsf{L}v_k\). Suppose \(\|\mathsf{P}f - \mathsf{P}g\| \le \|f - g\|\) and \(\|\mathsf{L}f - \mathsf{L}g\| \le \gamma\|f - g\|\). Which statement is correct?</p>
   </div>
@@ -1312,10 +1292,10 @@ pi = q.argmax(axis=0)                     # line 4</code></pre>
     <p>Chain the two inequalities, both in the same norm:</p>
     \[ \|\mathsf{P}\mathsf{L}f - \mathsf{P}\mathsf{L}g\| \;\le\; \|\mathsf{L}f - \mathsf{L}g\| \;\le\; \gamma\,\|f - g\|. \]
     <p>The first step uses that \(\mathsf{P}\) is a nonexpansion, the second that \(\mathsf{L}\) is a contraction with modulus \(\gamma\). So \(\mathsf{P}\mathsf{L}\) is a \(\gamma\)-contraction, and by Banach it has a unique fixed point reached from any \(v_0\).</p>
-    <p>The catch: \(\mathsf{L}\) contracts in the sup norm, while a least-squares fit is a nonexpansion in a weighted \(\ell_2\) norm. When the norms differ, the chain breaks. Two ways to get a shared norm: averagers (sup norm) and on-policy weighting (\(\xi\)-norm, policy evaluation only, Q38).</p>
+    <p>The catch: \(\mathsf{L}\) contracts in the sup norm, while a least-squares fit is a nonexpansion in a weighted \(\ell_2\) norm. When the norms differ, the chain breaks. Two ways to get a shared norm: averagers (sup norm) and on-policy weighting (\(\xi\)-norm, policy evaluation only, Q37).</p>
     <p class="pt">Why not the others</p>
     <ul>
-      <li><b>(b)</b> If \(\mathsf{P}\) has Lipschitz constant larger than \(1/\gamma\), the composition can diverge (the fishery example with a polynomial fit, or Q37).</li>
+      <li><b>(b)</b> If \(\mathsf{P}\) has Lipschitz constant larger than \(1/\gamma\), the composition can diverge (the fishery example with a polynomial fit, or Q36).</li>
       <li><b>(c)</b> Only \(\mathsf{L}\) contributes a factor \(\gamma\); \(\mathsf{P}\) contributes at most 1. The modulus is \(\gamma\), not \(\gamma^2\).</li>
       <li><b>(d)</b> Equivalent norms differ by constants, and those constants can exceed \(1/\gamma\). Contraction is not preserved.</li>
     </ul>
@@ -1323,8 +1303,8 @@ pi = q.argmax(axis=0)                     # line 4</code></pre>
   <p class="rehearses"><b>Rehearses:</b> the composition argument behind every convergence result for fitted value iteration.</p>
 </article>
 
-<article class="q" id="q35" data-type="work" data-core="1" data-min="8" data-block="I">
-  <div class="q-head"><span class="q-num">Q35</span><span class="tag core">core</span><span class="tag min">8 min, on paper</span></div>
+<article class="q" id="q34" data-type="work" data-core="1" data-min="8" data-block="I">
+  <div class="q-head"><span class="q-num">Q34</span><span class="tag core">core</span><span class="tag min">8 min, on paper</span></div>
   <div class="stem">
     <p>A linear operator \(\mathsf{P}\) is an <em>averager</em> if it is monotone (\(f \le g \Rightarrow \mathsf{P}f \le \mathsf{P}g\)) and preserves constants (\(\mathsf{P}\mathbf{1} = \mathbf{1}\)).</p>
   </div>
@@ -1379,8 +1359,8 @@ pi = q.argmax(axis=0)                     # line 4</code></pre>
   <p class="rehearses"><b>Rehearses:</b> the averager definition, the nonexpansion proof and the \(1/(1-\gamma)\) error bound.</p>
 </article>
 
-<article class="q" id="q36" data-type="mcq" data-core="1" data-min="2" data-block="I">
-  <div class="q-head"><span class="q-num">Q36</span><span class="tag core">core</span><span class="tag min">2 min</span></div>
+<article class="q" id="q35" data-type="mcq" data-core="1" data-min="2" data-block="I">
+  <div class="q-head"><span class="q-num">Q35</span><span class="tag core">core</span><span class="tag min">2 min</span></div>
   <div class="stem">
     <p>Which list contains only averagers?</p>
   </div>
@@ -1410,8 +1390,8 @@ pi = q.argmax(axis=0)                     # line 4</code></pre>
   <p class="rehearses"><b>Rehearses:</b> recognizing which approximators come with the sup-norm guarantee.</p>
 </article>
 
-<article class="q" id="q37" data-type="work" data-core="1" data-min="6" data-block="I">
-  <div class="q-head"><span class="q-num">Q37</span><span class="tag core">core</span><span class="tag min">6 min, on paper</span></div>
+<article class="q" id="q36" data-type="work" data-core="1" data-min="6" data-block="I">
+  <div class="q-head"><span class="q-num">Q36</span><span class="tag core">core</span><span class="tag min">6 min, on paper</span></div>
   <div class="stem">
     <p>Two states; in each, the agent chooses to move to state 1 or to state 2. All rewards are zero, so \(v^\star = 0\). One feature: \(v(1;\theta) = \theta\), \(v(2;\theta) = 2\theta\). Function iteration computes the targets at both states and fits them by least squares with equal weights. Start from \(\theta_0 &gt; 0\).</p>
   </div>
@@ -1449,8 +1429,8 @@ pi = q.argmax(axis=0)                     # line 4</code></pre>
   <p class="rehearses"><b>Rehearses:</b> the book's two-state divergence example, and diagnosing it with the averager condition.</p>
 </article>
 
-<article class="q" id="q38" data-type="mcq" data-core="1" data-min="3" data-block="I">
-  <div class="q-head"><span class="q-num">Q38</span><span class="tag core">core</span><span class="tag min">3 min</span></div>
+<article class="q" id="q37" data-type="mcq" data-core="1" data-min="3" data-block="I">
+  <div class="q-head"><span class="q-num">Q37</span><span class="tag core">core</span><span class="tag min">3 min</span></div>
   <div class="stem">
     <p>Linear policy evaluation with features \(\boldsymbol\Phi\) fits with weights \(\xi\): \(\mathsf{P} = \boldsymbol\Phi(\boldsymbol\Phi^\top\boldsymbol\Xi\boldsymbol\Phi)^{-1}\boldsymbol\Phi^\top\boldsymbol\Xi\), \(\boldsymbol\Xi = \mathrm{diag}(\xi)\). When is \(\mathsf{P}\mathsf{L}_\pi\) a \(\gamma\)-contraction in \(\|\cdot\|_\xi\)?</p>
   </div>
@@ -1479,8 +1459,8 @@ pi = q.argmax(axis=0)                     # line 4</code></pre>
   <p class="rehearses"><b>Rehearses:</b> the on-policy condition behind TD's convergence with linear features.</p>
 </article>
 
-<article class="q" id="q39" data-type="mcq" data-min="2" data-block="I">
-  <div class="q-head"><span class="q-num">Q39</span><span class="tag min">2 min</span></div>
+<article class="q" id="q38" data-type="mcq" data-min="2" data-block="I">
+  <div class="q-head"><span class="q-num">Q38</span><span class="tag min">2 min</span></div>
   <div class="stem">
     <p>Tile coding on \([0, 1]\) with \(K = 2\) tilings of width \(h = \tfrac12\), the second shifted by \(\tfrac14\): tiling 1 has tiles \([0, \tfrac12), [\tfrac12, 1]\); tiling 2 has \([0, \tfrac14), [\tfrac14, \tfrac34), [\tfrac34, 1]\). Features are listed tiling by tiling. What are \(\boldsymbol\phi(0.6)\) and \(v(0.6;\theta)\)?</p>
   </div>
@@ -1510,8 +1490,8 @@ pi = q.argmax(axis=0)                     # line 4</code></pre>
   <p class="rehearses"><b>Rehearses:</b> computing a tile-coding feature vector.</p>
 </article>
 
-<article class="q" id="q40" data-type="mcq" data-core="1" data-min="2" data-block="I">
-  <div class="q-head"><span class="q-num">Q40</span><span class="tag core">core</span><span class="tag min">2 min</span></div>
+<article class="q" id="q39" data-type="mcq" data-core="1" data-min="2" data-block="I">
+  <div class="q-head"><span class="q-num">Q39</span><span class="tag core">core</span><span class="tag min">2 min</span></div>
   <div class="stem">
     <p>A fitted value method repeats: compute targets \(y_i = (\mathsf{L}v_{\theta_k})(s_i)\) at sampled states, then call <code>fit</code> on the pairs \((s_i, y_i)\) to get \(\theta_{k+1}\). Which statement is correct?</p>
   </div>
@@ -1534,7 +1514,7 @@ pi = q.argmax(axis=0)                     # line 4</code></pre>
     <ul>
       <li><b>(a)</b> Gradient descent on the residual \(\sum_i((\mathsf{L}v_\theta)(s_i) - v_\theta(s_i))^2\) would also differentiate the target \(\mathsf{L}v_\theta\) with respect to \(\theta\). Fitted methods freeze the target, so they do something different.</li>
       <li><b>(c)</b> The inner fit can be any regressor. Fitted Q iteration with trees, NFQ and DQN are examples.</li>
-      <li><b>(d)</b> \(\mathsf{L}\) contracts, but the regressor may not be a nonexpansion in the same norm, so convergence is not guaranteed in general (Q34 to Q37).</li>
+      <li><b>(d)</b> \(\mathsf{L}\) contracts, but the regressor may not be a nonexpansion in the same norm, so convergence is not guaranteed in general (Q33 to Q36).</li>
     </ul>
   </div>
   <p class="rehearses"><b>Rehearses:</b> what a fitted value method is, and what it is not.</p>
