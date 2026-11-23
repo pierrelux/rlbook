@@ -156,7 +156,7 @@ body.presenter .deck { display: flex; }
 
 <header class="intro">
   <h1>Midterm 2 Practice</h1>
-  <p class="lede">IFT 6162, Monday November 16, 2026. The second midterm is Thursday November 26, 13:30, on paper. It covers what we did in class since the first one: backward induction and its proof, interpolating the cost-to-go, LQR and the Riccati recursion, stochastic dynamic programming and policy classes, infinite-horizon discounted MDPs, Bellman operators and contraction, value and policy iteration, and the smooth (entropy-regularized) Bellman equations. Q30 and block H add the first function approximation lecture (November 16): entropy as a reward penalty, weighted residual methods, projected Bellman equations and fitted value methods. Work each question before you reveal the answer. Items marked <span class="tag core">core</span> are the ones to make sure you can do.</p>
+  <p class="lede">IFT 6162, in-class practice, Monday November 23, 2026. The second midterm is Thursday November 26, 13:30, on paper. It covers what we did in class since the first one: backward induction and its proof, interpolating the cost-to-go, LQR and the Riccati recursion, stochastic dynamic programming and policy classes, infinite-horizon discounted MDPs, Bellman operators and contraction, value and policy iteration, and the smooth (entropy-regularized) Bellman equations. Q30 and block H add the first function approximation lecture (November 16): entropy as a reward penalty, weighted residual methods, projected Bellman equations and fitted value methods. Block I adds the November 19 lecture: averagers and the \(1/(1-\gamma)\) error bound, the on-policy weighted projection and TD, tile coding, and fitted value methods. Work each question before you reveal the answer. Items marked <span class="tag core">core</span> are the ones to make sure you can do.</p>
   <div class="toolbar">
     <button id="btn-presenter" class="primary" type="button">Presenter mode</button>
     <button id="btn-core" type="button">Core only: off</button>
@@ -809,6 +809,139 @@ pi = q.argmax(axis=0)                     # line 4</code></pre>
     <p>TD and LSTD are Galerkin methods, although they were not derived that way historically; Bertsekas made the connection explicit. LSTD solves the \(n \times n\) linear system of the Galerkin conditions with sample averages; TD reaches the same point by stochastic approximation. The projected fixed point is generally not the projection of \(v^\pi\) (option c), and it differs from the residual minimizer (option a).</p>
   </div>
   <p class="rehearses"><b>Rehearses:</b> placing TD and LSTD in the weighted residual picture.</p>
+</article>
+
+
+<h2 data-block="I">I. Convergence and error bounds <small>Nov 19 lecture: averagers, on-policy projection, tile coding, fitted value methods</small></h2>
+
+<article class="q" id="q34" data-type="mcq" data-core="1" data-min="2" data-block="I">
+  <div class="q-head"><span class="q-num">Q34</span><span class="tag core">core</span><span class="tag min">2 min</span></div>
+  <div class="stem">
+    <p>Fitted value iteration runs \(v_{k+1} = \mathsf{P}\mathsf{L}v_k\). Suppose \(\|\mathsf{P}f - \mathsf{P}g\| \le \|f - g\|\) and \(\|\mathsf{L}f - \mathsf{L}g\| \le \gamma\|f - g\|\). Which statement is correct?</p>
+  </div>
+  <ol class="opts">
+    <li data-correct><span class="letter">a</span><span>If both inequalities hold in the <em>same</em> norm, \(\mathsf{P}\mathsf{L}\) is a \(\gamma\)-contraction in that norm, so it has a unique fixed point reached from any \(v_0\). The catch is that \(\mathsf{L}\) contracts in the sup norm while a least-squares fit is a nonexpansion in a weighted \(\ell_2\) norm</span></li>
+    <li><span class="letter">b</span><span>\(\mathsf{P}\mathsf{L}\) is always a contraction because \(\mathsf{L}\) is one, whatever \(\mathsf{P}\) does</span></li>
+    <li><span class="letter">c</span><span>\(\mathsf{P}\mathsf{L}\) is a contraction with factor \(\gamma^2\)</span></li>
+    <li><span class="letter">d</span><span>The composition contracts in any norm, since all norms are equivalent in finite dimension</span></li>
+  </ol>
+  <div class="actions"><span class="verdict"></span></div>
+  <div class="expl" hidden>
+    <p>Chain them: \(\|\mathsf{P}\mathsf{L}f - \mathsf{P}\mathsf{L}g\| \le \|\mathsf{L}f - \mathsf{L}g\| \le \gamma\|f - g\|\), then apply Banach. Both steps must use the same norm. Equivalence of norms only gives constants, and a fit can stretch differences by more than \(1/\gamma\): in the fishery, the same Bellman operator converged with hat functions and diverged with a polynomial fit. Two routes give a shared norm: averagers (sup norm, any \(\mathsf{L}\), with or without the max) and on-policy weighting (\(\xi\)-norm, policy evaluation only).</p>
+  </div>
+  <p class="rehearses"><b>Rehearses:</b> the composition argument behind every convergence result for fitted value iteration.</p>
+</article>
+
+<article class="q" id="q35" data-type="work" data-core="1" data-min="8" data-block="I">
+  <div class="q-head"><span class="q-num">Q35</span><span class="tag core">core</span><span class="tag min">8 min, on paper</span></div>
+  <div class="stem">
+    <p>A linear operator \(\mathsf{P}\) is an <em>averager</em> if it is monotone (\(f \le g \Rightarrow \mathsf{P}f \le \mathsf{P}g\)) and preserves constants (\(\mathsf{P}\mathbf{1} = \mathbf{1}\)).</p>
+  </div>
+  <ol class="parts" type="a">
+    <li>On a finite state space, \(\mathsf{P}v = Wv\). What must \(W\) look like? Which of these is an averager: \(W_1 = \begin{pmatrix} 1 & 0 & 0 \\ \tfrac12 & \tfrac12 & 0 \\ 0 & 0 & 1\end{pmatrix}\), or the quadratic Lagrange weights at \(\tau = \tfrac14\), \((\tfrac38, \tfrac34, -\tfrac18)\)?</li>
+    <li>Show that an averager is a sup-norm nonexpansion. (Start from \(g - M\mathbf{1} \le f \le g + M\mathbf{1}\) with \(M = \|f - g\|_\infty\).)</li>
+    <li>Let \(v_\mathsf{P}\) be the fixed point of \(\mathsf{P}\mathsf{L}\). Show \(\|v_\mathsf{P} - v^\star\|_\infty \le \frac{1}{1-\gamma}\|\mathsf{P}v^\star - v^\star\|_\infty\). (Add and subtract \(\mathsf{P}\mathsf{L}v^\star\).)</li>
+    <li>With \(\gamma = 0.95\) and an interpolation error \(\|\mathsf{P}v^\star - v^\star\|_\infty = 0.1\), what does the bound give? Read the two factors.</li>
+  </ol>
+  <div class="actions"><button type="button" class="reveal">Show solution</button></div>
+  <div class="sol" hidden>
+    <p>(a) \(W\) must be a stochastic matrix: nonnegative entries (monotone) and rows summing to one (constants preserved). \(W_1\) is one, so it is an averager. The quadratic Lagrange row sums to one but has a negative weight, so it is not monotone; its absolute row sum is \(1.25\), so it can stretch differences by 25%.</p>
+    <p>(b) By monotonicity, \(\mathsf{P}(g - M\mathbf{1}) \le \mathsf{P}f \le \mathsf{P}(g + M\mathbf{1})\). By linearity and \(\mathsf{P}\mathbf{1} = \mathbf{1}\), \(\mathsf{P}g - M\mathbf{1} \le \mathsf{P}f \le \mathsf{P}g + M\mathbf{1}\), so \(\|\mathsf{P}f - \mathsf{P}g\|_\infty \le M\).</p>
+    <p>(c) Using \(v_\mathsf{P} = \mathsf{P}\mathsf{L}v_\mathsf{P}\) and \(v^\star = \mathsf{L}v^\star\): \(\|v_\mathsf{P} - v^\star\| \le \|\mathsf{P}\mathsf{L}v_\mathsf{P} - \mathsf{P}\mathsf{L}v^\star\| + \|\mathsf{P}\mathsf{L}v^\star - v^\star\| \le \gamma\|v_\mathsf{P} - v^\star\| + \|\mathsf{P}v^\star - v^\star\|\). Rearrange.</p>
+    <p>(d) \(0.1/0.05 = 2\). The factor \(1/(1-\gamma) = 20\) is the effective horizon: representation errors accumulate along it. The norm term is the irreducible bias of the approximator: how well it can represent \(v^\star\) at all. It holds with the max, so it covers the optimality equation, not only policy evaluation.</p>
+  </div>
+  <p class="rehearses"><b>Rehearses:</b> the averager definition, the nonexpansion proof and the \(1/(1-\gamma)\) error bound.</p>
+</article>
+
+<article class="q" id="q36" data-type="mcq" data-core="1" data-min="2" data-block="I">
+  <div class="q-head"><span class="q-num">Q36</span><span class="tag core">core</span><span class="tag min">2 min</span></div>
+  <div class="stem">
+    <p>Which list contains only averagers?</p>
+  </div>
+  <ol class="opts">
+    <li data-correct><span class="letter">a</span><span>Piecewise-linear interpolation with barycentric weights, multilinear interpolation on a grid, state aggregation, \(k\)-nearest neighbours, a kernel smoother with a nonnegative kernel</span></li>
+    <li><span class="letter">b</span><span>Polynomial interpolation at Chebyshev nodes, cubic splines, least squares on an arbitrary basis</span></li>
+    <li><span class="letter">c</span><span>A neural network trained by regression, since it worked well on Atari</span></li>
+    <li><span class="letter">d</span><span>Any method that interpolates the targets exactly at the nodes</span></li>
+  </ol>
+  <div class="actions"><span class="verdict"></span></div>
+  <div class="expl" hidden>
+    <p>An averager outputs, at every state, a convex combination of the target values with weights that do not depend on the targets. Chebyshev interpolation preserves constants but its cardinal functions dip below zero (Lebesgue constant about 2.4 for ten nodes), and splines have negative lobes. Least squares on an arbitrary basis need not even preserve constants. Neural networks are not averagers, even though they often work in practice; the theorem simply does not cover them. Exact interpolation (d) is not enough: the weights must also be nonnegative. Conversely, \(k\)-NN and kernel smoothers are averagers without being projections (\(\mathsf{P}^2 \ne \mathsf{P}\)).</p>
+  </div>
+  <p class="rehearses"><b>Rehearses:</b> recognizing which approximators come with the sup-norm guarantee.</p>
+</article>
+
+<article class="q" id="q37" data-type="work" data-core="1" data-min="6" data-block="I">
+  <div class="q-head"><span class="q-num">Q37</span><span class="tag core">core</span><span class="tag min">6 min, on paper</span></div>
+  <div class="stem">
+    <p>Two states; in each, the agent chooses to move to state 1 or to state 2. All rewards are zero, so \(v^\star = 0\). One feature: \(v(1;\theta) = \theta\), \(v(2;\theta) = 2\theta\). Function iteration computes the targets at both states and fits them by least squares with equal weights. Start from \(\theta_0 &gt; 0\).</p>
+  </div>
+  <ol class="parts" type="a">
+    <li>Show that both targets equal \(2\gamma\theta_k\).</li>
+    <li>Show that \(\theta_{k+1} = \tfrac{6\gamma}{5}\theta_k\). For which \(\gamma\) does the iteration diverge? Does the feature space contain \(v^\star\)?</li>
+    <li>Write the least-squares fit as a matrix \(\mathsf{P}\) acting on the target vector. What does it do to the constant \((1, 1)\)? Why does the averager theorem not apply?</li>
+  </ol>
+  <div class="actions"><button type="button" class="reveal">Show solution</button></div>
+  <div class="sol" hidden>
+    <p>(a) Both states have the same successors, so \((\mathsf{L}v_k)(s) = \gamma\max\{\theta_k, 2\theta_k\} = 2\gamma\theta_k\) for \(\theta_k &gt; 0\).</p>
+    <p>(b) Minimize \((\theta - 2\gamma\theta_k)^2 + (2\theta - 2\gamma\theta_k)^2\): \(5\theta = 6\gamma\theta_k\). Divergence for \(\gamma &gt; 5/6\), although \(v^\star = 0\) is represented exactly at \(\theta = 0\). \(\mathsf{L}\) shrinks the error by \(\gamma\) and the fit stretches it by \(6/5\).</p>
+    <p>(c) For targets \(y = (y_1, y_2)\), \(\hat\theta = (y_1 + 2y_2)/5\), so \(\mathsf{P}y = \hat\theta\,(1, 2)\), that is \(\mathsf{P} = \tfrac15\begin{pmatrix} 1 & 2 \\ 2 & 4\end{pmatrix}\). It maps \((1, 1)\) to \((3/5, 6/5)\): constants are not preserved, and the second row has absolute sum \(6/5 &gt; 1\), so \(\mathsf{P}\) is not a sup-norm nonexpansion. The fit is a perfectly good orthogonal projection in the unweighted \(\ell_2\) norm; the problem is that \(\mathsf{L}\) does not contract in that norm.</p>
+  </div>
+  <p class="rehearses"><b>Rehearses:</b> the book's two-state divergence example, and diagnosing it with the averager condition.</p>
+</article>
+
+<article class="q" id="q38" data-type="mcq" data-core="1" data-min="3" data-block="I">
+  <div class="q-head"><span class="q-num">Q38</span><span class="tag core">core</span><span class="tag min">3 min</span></div>
+  <div class="stem">
+    <p>Linear policy evaluation with features \(\boldsymbol\Phi\) fits with weights \(\xi\): \(\mathsf{P} = \boldsymbol\Phi(\boldsymbol\Phi^\top\boldsymbol\Xi\boldsymbol\Phi)^{-1}\boldsymbol\Phi^\top\boldsymbol\Xi\), \(\boldsymbol\Xi = \mathrm{diag}(\xi)\). When is \(\mathsf{P}\mathsf{L}_\pi\) a \(\gamma\)-contraction in \(\|\cdot\|_\xi\)?</p>
+  </div>
+  <ol class="opts">
+    <li><span class="letter">a</span><span>For any \(\xi\), since \(\mathsf{P}\) is an orthogonal projection</span></li>
+    <li data-correct><span class="letter">b</span><span>When \(\xi\) is the stationary distribution of the evaluated policy, \(\xi^\top\mathbf{P}_\pi = \xi^\top\): \(\mathsf{P}\) is a nonexpansion in \(\|\cdot\|_\xi\) by Pythagoras for any \(\xi\), but \(\mathsf{L}_\pi\) contracts in \(\|\cdot\|_\xi\) only for that \(\xi\). This is why TD needs on-policy data</span></li>
+    <li><span class="letter">c</span><span>Only when \(\xi\) is uniform</span></li>
+    <li><span class="letter">d</span><span>Whenever \(\xi\) is the stationary distribution, also for the optimality operator with the max</span></li>
+  </ol>
+  <div class="actions"><span class="verdict"></span></div>
+  <div class="expl" hidden>
+    <p>The normal equations make \(v - \mathsf{P}v\) \(\xi\)-orthogonal to the span, so \(\|v\|_\xi^2 = \|\mathsf{P}v\|_\xi^2 + \|v - \mathsf{P}v\|_\xi^2\) and \(\|\mathsf{P}v\|_\xi \le \|v\|_\xi\). With \(\xi^\top\mathbf{P}_\pi = \xi^\top\), Jensen gives \(\|\mathbf{P}_\pi v\|_\xi \le \|v\|_\xi\), hence \(\|\mathsf{L}_\pi v - \mathsf{L}_\pi w\|_\xi \le \gamma\|v - w\|_\xi\) (Tsitsiklis and Van Roy). TD(0) with linear features is stochastic approximation on this system and converges to the same Galerkin fixed point as LSTD. The argument breaks with the max: the greedy policy changes with \(v\), so there is no single stationary distribution to weight by.</p>
+  </div>
+  <p class="rehearses"><b>Rehearses:</b> the on-policy condition behind TD's convergence with linear features.</p>
+</article>
+
+<article class="q" id="q39" data-type="mcq" data-min="2" data-block="I">
+  <div class="q-head"><span class="q-num">Q39</span><span class="tag min">2 min</span></div>
+  <div class="stem">
+    <p>Tile coding on \([0, 1]\) with \(K = 2\) tilings of width \(h = \tfrac12\), the second shifted by \(\tfrac14\): tiling 1 has tiles \([0, \tfrac12), [\tfrac12, 1]\); tiling 2 has \([0, \tfrac14), [\tfrac14, \tfrac34), [\tfrac34, 1]\). Features are listed tiling by tiling. What are \(\boldsymbol\phi(0.6)\) and \(v(0.6;\theta)\)?</p>
+  </div>
+  <ol class="opts">
+    <li data-correct><span class="letter">a</span><span>\(\boldsymbol\phi(0.6) = (0, 1 \mid 0, 1, 0)\), so \(v(0.6;\theta) = \theta_{1,2} + \theta_{2,2}\): exactly \(K = 2\) active binary features, and the value is the sum of their weights</span></li>
+    <li><span class="letter">b</span><span>\(\boldsymbol\phi(0.6) = (0, 1 \mid 0, 0, 1)\), so \(v = \theta_{1,2} + \theta_{2,3}\)</span></li>
+    <li><span class="letter">c</span><span>\(\boldsymbol\phi(0.6) = (0.4, 0.6 \mid 0, 0.7, 0.3)\), interpolation weights</span></li>
+    <li><span class="letter">d</span><span>One feature per tiling, so \(\boldsymbol\phi(0.6) \in \mathbb{R}^2\)</span></li>
+  </ol>
+  <div class="actions"><span class="verdict"></span></div>
+  <div class="expl" hidden>
+    <p>Each state lies in exactly one tile of each tiling, so \(\boldsymbol\phi(s)\) is binary and sparse with \(K\) ones, and \(v(s;\theta) = \boldsymbol\phi(s)^\top\theta\) costs \(K\) lookups: cheap on a CPU. Option (b) is \(s = 0.8\), which shares the weight \(\theta_{1,2}\) with \(0.6\): that sharing is how tile coding generalizes. With \(K = 1\) it is state aggregation, an averager. Averaging the separate fits of each tiling is an averager too; the joint least-squares fit is not, in two or more dimensions.</p>
+  </div>
+  <p class="rehearses"><b>Rehearses:</b> computing a tile-coding feature vector.</p>
+</article>
+
+<article class="q" id="q40" data-type="mcq" data-core="1" data-min="2" data-block="I">
+  <div class="q-head"><span class="q-num">Q40</span><span class="tag core">core</span><span class="tag min">2 min</span></div>
+  <div class="stem">
+    <p>A fitted value method repeats: compute targets \(y_i = (\mathsf{L}v_{\theta_k})(s_i)\) at sampled states, then call <code>fit</code> on the pairs \((s_i, y_i)\) to get \(\theta_{k+1}\). Which statement is correct?</p>
+  </div>
+  <ol class="opts">
+    <li><span class="letter">a</span><span>It is gradient descent on the fixed loss \(\sum_i \big((\mathsf{L}v_\theta)(s_i) - v_\theta(s_i)\big)^2\), the "Bellman loss"</span></li>
+    <li data-correct><span class="letter">b</span><span>It is two nested loops: successive approximation outside, a regression on targets frozen at \(\theta_k\) inside. The targets move between outer steps, so it is not gradient descent on a fixed loss; any regressor with a <code>fit</code> method (trees, forests, neural networks) gives such a method</span></li>
+    <li><span class="letter">c</span><span>It only works with linear features</span></li>
+    <li><span class="letter">d</span><span>It is guaranteed to converge because \(\mathsf{L}\) is a contraction</span></li>
+  </ol>
+  <div class="actions"><span class="verdict"></span></div>
+  <div class="expl" hidden>
+    <p>Each outer step applies \(\mathsf{L}\) and projects back with the regressor: \(v_{k+1} = \mathsf{P}\mathsf{L}v_k\). Calling the inner regression a "Bellman loss" is inaccurate: minimizing the residual would also differentiate through the target. Convergence depends on the fit (Q34–Q37): guaranteed for averagers, not in general. Fitted Q iteration with trees, NFQ and DQN are instances that differ in the regressor and in how long they run the inner fit.</p>
+  </div>
+  <p class="rehearses"><b>Rehearses:</b> what a fitted value method is, and what it is not.</p>
 </article>
 
 </div>
