@@ -164,7 +164,7 @@ body.presenter .deck { display: flex; }
 
 <header class="intro">
   <h1>Midterm 2 Practice</h1>
-  <p class="lede">IFT 6162, in-class practice, Monday November 23, 2026. The second midterm is Thursday November 26, 13:30, on paper. It covers what we did in class since the first one: backward induction and its proof, interpolating the cost-to-go, LQR and the Riccati recursion, stochastic dynamic programming and policy classes, infinite-horizon discounted MDPs, Bellman operators and contraction, value and policy iteration, and the smooth (entropy-regularized) Bellman equations. Q28 and block H add the first function approximation lecture (November 16): entropy as a reward penalty, weighted residual methods, projected Bellman equations and fitted value methods. Block I adds the November 19 lecture: averagers and the \(1/(1-\gamma)\) error bound, the on-policy weighted projection and TD, tile coding, and fitted value methods. Work each question before you reveal the answer. Items marked <span class="tag core">core</span> are the ones to make sure you can do.</p>
+  <p class="lede">IFT 6162, in-class practice, Monday November 23, 2026. The second midterm is Thursday November 26, 13:30, on paper. It covers what we did in class since the first one: backward induction and its proof, interpolating the cost-to-go, LQR and the Riccati recursion, stochastic dynamic programming and policy classes, infinite-horizon discounted MDPs, Bellman operators and contraction, value and policy iteration, and the smooth (entropy-regularized) Bellman equations. Q28 and block H add the first function approximation lecture (November 16): entropy as a reward penalty, weighted residual methods, projected Bellman equations and fitted value methods. Block I adds the November 19 lecture: averagers and the \(1/(1-\gamma)\) error bound, and fitted value methods. Work each question before you reveal the answer. Items marked <span class="tag core">core</span> are the ones to make sure you can do.</p>
   <div class="toolbar">
     <button id="btn-presenter" class="primary" type="button">Presenter mode</button>
     <button id="btn-core" type="button">Core only: off</button>
@@ -708,7 +708,7 @@ body.presenter .deck { display: flex; }
     <ul>
       <li><b>(a)</b> Contraction is sufficient, not necessary. For example, the identity map is not a contraction, yet every point is a fixed point.</li>
       <li><b>(b)</b> Convergence holds from any starting point. That global property is what makes value iteration safe.</li>
-      <li><b>(d)</b> Contraction depends on the norm. \(\mathsf{L}_\pi\) contracts in the sup norm but need not in a weighted \(\ell_2\) norm. This matters later for function approximation (Q32, Q36).</li>
+      <li><b>(d)</b> Contraction depends on the norm. \(\mathsf{L}_\pi\) contracts in the sup norm but need not in a weighted \(\ell_2\) norm. This matters later for function approximation (Q32).</li>
     </ul>
   </div>
   <p class="rehearses"><b>Rehearses:</b> what a contraction guarantees, and what it does not.</p>
@@ -1269,7 +1269,7 @@ pi = q.argmax(axis=0)                     # line 4</code></pre>
 </article>
 
 
-<h2 data-block="I">I. Convergence and error bounds <small>Nov 19 lecture: averagers, on-policy projection, tile coding, fitted value methods</small></h2>
+<h2 data-block="I">I. Convergence and error bounds <small>Nov 19 lecture: averagers and fitted value methods</small></h2>
 
 <article class="q" id="q32" data-type="mcq" data-core="1" data-min="2" data-block="I">
   <div class="q-head"><span class="q-num">Q32</span><span class="tag core">core</span><span class="tag min">2 min</span></div>
@@ -1288,10 +1288,10 @@ pi = q.argmax(axis=0)                     # line 4</code></pre>
     <p>Chain the two inequalities, both in the same norm:</p>
     \[ \|\mathsf{P}\mathsf{L}f - \mathsf{P}\mathsf{L}g\| \;\le\; \|\mathsf{L}f - \mathsf{L}g\| \;\le\; \gamma\,\|f - g\|. \]
     <p>The first step uses that \(\mathsf{P}\) is a nonexpansion, the second that \(\mathsf{L}\) is a contraction with modulus \(\gamma\). So \(\mathsf{P}\mathsf{L}\) is a \(\gamma\)-contraction, and by Banach it has a unique fixed point reached from any \(v_0\).</p>
-    <p>The catch: \(\mathsf{L}\) contracts in the sup norm, while a least-squares fit is a nonexpansion in a weighted \(\ell_2\) norm. When the norms differ, the chain breaks. Two ways to get a shared norm: averagers (sup norm) and on-policy weighting (\(\xi\)-norm, policy evaluation only, Q36).</p>
+    <p>The catch: \(\mathsf{L}\) contracts in the sup norm, while a least-squares fit is a nonexpansion in a weighted \(\ell_2\) norm. When the norms differ, the chain breaks. Two ways to get a shared norm: averagers (sup norm) and on-policy weighting (\(\xi\)-norm, policy evaluation only).</p>
     <p class="pt">Why not the others</p>
     <ul>
-      <li><b>(b)</b> If \(\mathsf{P}\) has Lipschitz constant larger than \(1/\gamma\), the composition can diverge (the fishery example with a polynomial fit, or Q35).</li>
+      <li><b>(b)</b> If \(\mathsf{P}\) has Lipschitz constant larger than \(1/\gamma\), the composition can diverge (the fishery example with a polynomial fit).</li>
       <li><b>(c)</b> Only \(\mathsf{L}\) contributes a factor \(\gamma\); \(\mathsf{P}\) contributes at most 1. The modulus is \(\gamma\), not \(\gamma^2\).</li>
       <li><b>(d)</b> Equivalent norms differ by constants, and those constants can exceed \(1/\gamma\). Contraction is not preserved.</li>
     </ul>
@@ -1386,109 +1386,8 @@ pi = q.argmax(axis=0)                     # line 4</code></pre>
   <p class="rehearses"><b>Rehearses:</b> recognizing which approximators come with the sup-norm guarantee.</p>
 </article>
 
-<article class="q" id="q35" data-type="work" data-core="1" data-min="6" data-block="I">
-  <div class="q-head"><span class="q-num">Q35</span><span class="tag core">core</span><span class="tag min">6 min, on paper</span></div>
-  <div class="stem">
-    <p>Two states; in each, the agent chooses to move to state 1 or to state 2. All rewards are zero, so \(v^\star = 0\). One feature: \(v(1;\theta) = \theta\), \(v(2;\theta) = 2\theta\). Function iteration computes the targets at both states and fits them by least squares with equal weights. Start from \(\theta_0 &gt; 0\).</p>
-  </div>
-  <ol class="parts" type="a">
-    <li>Show that both targets equal \(2\gamma\theta_k\).</li>
-    <li>Show that \(\theta_{k+1} = \tfrac{6\gamma}{5}\theta_k\). For which \(\gamma\) does the iteration diverge? Does the feature space contain \(v^\star\)?</li>
-    <li>Write the least-squares fit as a matrix \(\mathsf{P}\) acting on the target vector. What does it do to the constant \((1, 1)\)? Why does the averager theorem not apply?</li>
-  </ol>
-  <div class="actions"><button type="button" class="reveal">Show solution</button></div>
-  <div class="sol" hidden>
-    <p class="pt">(a) The targets</p>
-    <p>Both states have the same two successors, so for \(\theta_k &gt; 0\):</p>
-    \[ (\mathsf{L}v_k)(s) = 0 + \gamma\max\{\theta_k,\, 2\theta_k\} = 2\gamma\theta_k \quad\text{in both states} \]
-
-    <p class="pt">(b) The fit</p>
-    <p>Least squares with equal weights:</p>
-    \[ \min_\theta\; (\theta - 2\gamma\theta_k)^2 + (2\theta - 2\gamma\theta_k)^2 \]
-    <p>Set the derivative to zero:</p>
-    \[ (\theta - 2\gamma\theta_k) + 2(2\theta - 2\gamma\theta_k) = 0 \quad\Longrightarrow\quad 5\theta = 6\gamma\theta_k \quad\Longrightarrow\quad \theta_{k+1} = \tfrac{6\gamma}{5}\,\theta_k \]
-    <ul>
-      <li>Diverges if and only if \(6\gamma/5 &gt; 1\), that is \(\gamma &gt; 5/6\).</li>
-      <li>Yet \(v^\star = 0\) is in the feature space (\(\theta = 0\)): representation is not the problem.</li>
-      <li>\(\mathsf{L}\) is a contraction with modulus \(\gamma\); the fit has sup-norm Lipschitz constant \(6/5\); the product is \(6\gamma/5\).</li>
-    </ul>
-
-    <p class="pt">(c) The fit as a matrix</p>
-    <p>For targets \(y = (y_1, y_2)\), \(\hat\theta = (y_1 + 2y_2)/5\), so</p>
-    \[ \mathsf{P}y = \hat\theta \begin{pmatrix} 1 \\ 2 \end{pmatrix}, \qquad \mathsf{P} = \frac15\begin{pmatrix} 1 &amp; 2 \\ 2 &amp; 4 \end{pmatrix} \]
-    <ul>
-      <li>\(\mathsf{P}(1, 1) = (3/5, 6/5) \ne (1, 1)\): constants are not preserved, so \(\mathsf{P}\) is not an averager.</li>
-      <li>Second row: absolute sum \(6/5 &gt; 1\), so \(\mathsf{P}\) is not a sup-norm nonexpansion.</li>
-      <li>\(\mathsf{P}\) is an orthogonal projection in the unweighted \(\ell_2\) norm; the trouble is that \(\mathsf{L}\) is not a contraction in that norm.</li>
-    </ul>
-  </div>
-  <p class="rehearses"><b>Rehearses:</b> the book's two-state divergence example, and diagnosing it with the averager condition.</p>
-</article>
-
-<article class="q" id="q36" data-type="mcq" data-core="1" data-min="3" data-block="I">
-  <div class="q-head"><span class="q-num">Q36</span><span class="tag core">core</span><span class="tag min">3 min</span></div>
-  <div class="stem">
-    <p>Linear policy evaluation with features \(\boldsymbol\Phi\) fits with weights \(\xi\): \(\mathsf{P} = \boldsymbol\Phi(\boldsymbol\Phi^\top\boldsymbol\Xi\boldsymbol\Phi)^{-1}\boldsymbol\Phi^\top\boldsymbol\Xi\), \(\boldsymbol\Xi = \mathrm{diag}(\xi)\). When is \(\mathsf{P}\mathsf{L}_\pi\) a \(\gamma\)-contraction in \(\|\cdot\|_\xi\)?</p>
-  </div>
-  <ol class="opts">
-    <li><span class="letter">a</span><span>For any \(\xi\), since \(\mathsf{P}\) is an orthogonal projection</span></li>
-    <li data-correct><span class="letter">b</span><span>When \(\xi\) is the stationary distribution of the evaluated policy, \(\xi^\top\mathbf{P}_\pi = \xi^\top\): \(\mathsf{P}\) is a nonexpansion in \(\|\cdot\|_\xi\) by Pythagoras for any \(\xi\), but \(\mathsf{L}_\pi\) contracts in \(\|\cdot\|_\xi\) only for that \(\xi\). This is why TD needs on-policy data</span></li>
-    <li><span class="letter">c</span><span>Only when \(\xi\) is uniform</span></li>
-    <li><span class="letter">d</span><span>Whenever \(\xi\) is the stationary distribution, also for the optimality operator with the max</span></li>
-  </ol>
-  <div class="actions"><span class="verdict"></span></div>
-  <div class="expl" hidden>
-    <p class="pt">Answer: (b)</p>
-    <p>We need both operators to be nonexpansive or contractive in the same norm, \(\|\cdot\|_\xi\).</p>
-    <p><b>Step 1: \(\mathsf{P}\) is a nonexpansion in \(\|\cdot\|_\xi\), for any \(\xi\).</b> The weighted fit makes \(v - \mathsf{P}v\) orthogonal (in the \(\xi\) inner product) to the span. By Pythagoras,</p>
-    \[ \|v\|_\xi^2 = \|\mathsf{P}v\|_\xi^2 + \|v - \mathsf{P}v\|_\xi^2 \;\ge\; \|\mathsf{P}v\|_\xi^2. \]
-    <p><b>Step 2: \(\mathsf{L}_\pi\) contracts in \(\|\cdot\|_\xi\) only when \(\xi^\top\mathbf{P}_\pi = \xi^\top\).</b> By Jensen, \(\big((\mathbf{P}_\pi v)(s)\big)^2 \le (\mathbf{P}_\pi v^2)(s)\). Weight by \(\xi\) and use stationarity:</p>
-    \[ \|\mathbf{P}_\pi v\|_\xi^2 \le \xi^\top\mathbf{P}_\pi v^2 = \xi^\top v^2 = \|v\|_\xi^2. \]
-    <p>So \(\|\mathsf{L}_\pi v - \mathsf{L}_\pi w\|_\xi = \gamma\|\mathbf{P}_\pi(v - w)\|_\xi \le \gamma\|v - w\|_\xi\). Combined with step 1, \(\mathsf{P}\mathsf{L}_\pi\) is a \(\gamma\)-contraction. This is why TD needs on-policy data.</p>
-    <p class="pt">Why not the others</p>
-    <ul>
-      <li><b>(a)</b> \(\mathsf{P}\) is fine for any \(\xi\), but \(\mathsf{L}_\pi\) is the problem: step 2 needs stationarity.</li>
-      <li><b>(c)</b> Uniform \(\xi\) works only if the uniform distribution happens to be stationary for \(\pi\).</li>
-      <li><b>(d)</b> With the max, the greedy policy changes with \(v\), so there is no single stationary distribution to weight by.</li>
-    </ul>
-  </div>
-  <p class="rehearses"><b>Rehearses:</b> the on-policy condition behind TD's convergence with linear features.</p>
-</article>
-
-<article class="q" id="q37" data-type="mcq" data-min="2" data-block="I">
-  <div class="q-head"><span class="q-num">Q37</span><span class="tag min">2 min</span></div>
-  <div class="stem">
-    <p>Tile coding on \([0, 1]\) with \(K = 2\) tilings of width \(h = \tfrac12\), the second shifted by \(\tfrac14\): tiling 1 has tiles \([0, \tfrac12), [\tfrac12, 1]\); tiling 2 has \([0, \tfrac14), [\tfrac14, \tfrac34), [\tfrac34, 1]\). Features are listed tiling by tiling. What are \(\boldsymbol\phi(0.6)\) and \(v(0.6;\theta)\)?</p>
-  </div>
-  <ol class="opts">
-    <li data-correct><span class="letter">a</span><span>\(\boldsymbol\phi(0.6) = (0, 1 \mid 0, 1, 0)\), so \(v(0.6;\theta) = \theta_{1,2} + \theta_{2,2}\): exactly \(K = 2\) active binary features, and the value is the sum of their weights</span></li>
-    <li><span class="letter">b</span><span>\(\boldsymbol\phi(0.6) = (0, 1 \mid 0, 0, 1)\), so \(v = \theta_{1,2} + \theta_{2,3}\)</span></li>
-    <li><span class="letter">c</span><span>\(\boldsymbol\phi(0.6) = (0.4, 0.6 \mid 0, 0.7, 0.3)\), interpolation weights</span></li>
-    <li><span class="letter">d</span><span>One feature per tiling, so \(\boldsymbol\phi(0.6) \in \mathbb{R}^2\)</span></li>
-  </ol>
-  <div class="actions"><span class="verdict"></span></div>
-  <div class="expl" hidden>
-    <p class="pt">Answer: (a)</p>
-    <p>Find the tile that contains 0.6 in each tiling.</p>
-    <ul>
-      <li>Tiling 1, tiles \([0, \tfrac12), [\tfrac12, 1]\): 0.6 is in the second tile, so \((0, 1)\).</li>
-      <li>Tiling 2, tiles \([0, \tfrac14), [\tfrac14, \tfrac34), [\tfrac34, 1]\): 0.6 is in the second tile, so \((0, 1, 0)\).</li>
-    </ul>
-    <figure class="tilefig" style="margin:.6rem 0 .8rem"><svg viewBox="0 0 600 205" style="width:100%;max-width:600px;height:auto;display:block" role="img" aria-label="Two tilings of [0,1]; the point 0.6 lies in the second tile of each"><g style="font-family:inherit"><line x1="70.0" y1="15" x2="70.0" y2="145" style="stroke:var(--rule);stroke-width:1;stroke-dasharray:2 3"/><line x1="185.0" y1="15" x2="185.0" y2="145" style="stroke:var(--rule);stroke-width:1;stroke-dasharray:2 3"/><line x1="300.0" y1="15" x2="300.0" y2="145" style="stroke:var(--rule);stroke-width:1;stroke-dasharray:2 3"/><line x1="415.0" y1="15" x2="415.0" y2="145" style="stroke:var(--rule);stroke-width:1;stroke-dasharray:2 3"/><line x1="530.0" y1="15" x2="530.0" y2="145" style="stroke:var(--rule);stroke-width:1;stroke-dasharray:2 3"/><text x="62" y="37" text-anchor="end" style="font-size:13px;fill:var(--ink)">tiling 1</text><rect x="70.0" y="15" width="230.0" height="34" rx="3" style="fill:none;stroke:var(--ink-muted);stroke-width:1.2"/><text x="185.0" y="37" text-anchor="middle" style="font-size:14px;fill:var(--ink-muted)">θ₁,₁</text><rect x="300.0" y="15" width="230.0" height="34" rx="3" style="fill:var(--structure-soft);stroke:var(--structure);stroke-width:2.5"/><text x="415.0" y="37" text-anchor="middle" style="font-size:14px;font-weight:600;fill:var(--structure)">θ₁,₂ = 1</text><text x="62" y="97" text-anchor="end" style="font-size:13px;fill:var(--ink)">tiling 2</text><rect x="70.0" y="75" width="115.0" height="34" rx="3" style="fill:none;stroke:var(--ink-muted);stroke-width:1.2"/><text x="127.5" y="97" text-anchor="middle" style="font-size:14px;fill:var(--ink-muted)">θ₂,₁</text><rect x="185.0" y="75" width="230.0" height="34" rx="3" style="fill:var(--structure-soft);stroke:var(--structure);stroke-width:2.5"/><text x="300.0" y="97" text-anchor="middle" style="font-size:14px;font-weight:600;fill:var(--structure)">θ₂,₂ = 1</text><rect x="415.0" y="75" width="115.0" height="34" rx="3" style="fill:none;stroke:var(--ink-muted);stroke-width:1.2"/><text x="472.5" y="97" text-anchor="middle" style="font-size:14px;fill:var(--ink-muted)">θ₂,₃</text><line x1="70" y1="150" x2="530" y2="150" style="stroke:var(--ink);stroke-width:1.2"/><line x1="70.0" y1="145" x2="70.0" y2="155" style="stroke:var(--ink);stroke-width:1.2"/><text x="70.0" y="172" text-anchor="middle" style="font-size:13px;fill:var(--ink)">0</text><line x1="185.0" y1="145" x2="185.0" y2="155" style="stroke:var(--ink);stroke-width:1.2"/><text x="185.0" y="172" text-anchor="middle" style="font-size:13px;fill:var(--ink)">¼</text><line x1="300.0" y1="145" x2="300.0" y2="155" style="stroke:var(--ink);stroke-width:1.2"/><text x="300.0" y="172" text-anchor="middle" style="font-size:13px;fill:var(--ink)">½</text><line x1="415.0" y1="145" x2="415.0" y2="155" style="stroke:var(--ink);stroke-width:1.2"/><text x="415.0" y="172" text-anchor="middle" style="font-size:13px;fill:var(--ink)">¾</text><line x1="530.0" y1="145" x2="530.0" y2="155" style="stroke:var(--ink);stroke-width:1.2"/><text x="530.0" y="172" text-anchor="middle" style="font-size:13px;fill:var(--ink)">1</text><line x1="346.0" y1="8" x2="346.0" y2="150" style="stroke:var(--structure);stroke-width:2;stroke-dasharray:5 3"/><circle cx="346.0" cy="150" r="5" style="fill:var(--structure)"/><text x="346.0" y="195" text-anchor="middle" style="font-size:14px;font-weight:600;fill:var(--structure)">s = 0.6</text></g></svg><figcaption style="font-size:.9em;color:var(--ink-muted)">The point 0.6 falls in tile 2 of tiling 1 and in tile 2 of tiling 2 (highlighted). Reading the tiles left to right, tiling by tiling, gives φ(0.6) = (0, 1 | 0, 1, 0).</figcaption></figure>
-    <p>So \(\boldsymbol\phi(0.6) = (0, 1 \mid 0, 1, 0)\): one active binary feature per tiling, \(K = 2\) in all. The value is the sum of the active weights:</p>
-    \[ v(0.6;\theta) = \boldsymbol\phi(0.6)^\top\theta = \theta_{1,2} + \theta_{2,2}. \]
-    <p class="pt">Why not the others</p>
-    <ul>
-      <li><b>(b)</b> 0.6 is below \(\tfrac34\), so it is not in the third tile of tiling 2. That vector is \(\boldsymbol\phi(0.8)\). Note that 0.6 and 0.8 share \(\theta_{1,2}\): this sharing is how tile coding generalizes.</li>
-      <li><b>(c)</b> Tile coding features are binary (in or out of a tile), not interpolation weights.</li>
-      <li><b>(d)</b> There is one feature per tile, not per tiling: \(2 + 3 = 5\) features in all.</li>
-    </ul>
-  </div>
-  <p class="rehearses"><b>Rehearses:</b> computing a tile-coding feature vector.</p>
-</article>
-
-<article class="q" id="q38" data-type="mcq" data-core="1" data-min="2" data-block="I">
-  <div class="q-head"><span class="q-num">Q38</span><span class="tag core">core</span><span class="tag min">2 min</span></div>
+<article class="q" id="q35" data-type="mcq" data-core="1" data-min="2" data-block="I">
+  <div class="q-head"><span class="q-num">Q35</span><span class="tag core">core</span><span class="tag min">2 min</span></div>
   <div class="stem">
     <p>A fitted value method repeats: compute targets \(y_i = (\mathsf{L}v_{\theta_k})(s_i)\) at sampled states, then call <code>fit</code> on the pairs \((s_i, y_i)\) to get \(\theta_{k+1}\). Which statement is correct?</p>
   </div>
@@ -1511,7 +1410,7 @@ pi = q.argmax(axis=0)                     # line 4</code></pre>
     <ul>
       <li><b>(a)</b> Gradient descent on the residual \(\sum_i((\mathsf{L}v_\theta)(s_i) - v_\theta(s_i))^2\) would also differentiate the target \(\mathsf{L}v_\theta\) with respect to \(\theta\). Fitted methods freeze the target, so they do something different.</li>
       <li><b>(c)</b> The inner fit can be any regressor. Fitted Q iteration with trees, NFQ and DQN are examples.</li>
-      <li><b>(d)</b> \(\mathsf{L}\) contracts, but the regressor may not be a nonexpansion in the same norm, so convergence is not guaranteed in general (Q32 to Q35).</li>
+      <li><b>(d)</b> \(\mathsf{L}\) contracts, but the regressor may not be a nonexpansion in the same norm, so convergence is not guaranteed in general (Q32 to Q34).</li>
     </ul>
   </div>
   <p class="rehearses"><b>Rehearses:</b> what a fitted value method is, and what it is not.</p>
