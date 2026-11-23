@@ -114,6 +114,14 @@ button.primary { background: var(--structure); color: #fff; border-color: var(--
 .expl, .sol { margin-top: .9rem; padding: .8rem .95rem; border-left: 3px solid var(--structure); background: var(--structure-soft); border-radius: 0 var(--radius) var(--radius) 0; font-size: .95rem; }
 .expl p:first-child, .sol p:first-child { margin-top: 0; }
 .expl p:last-child, .sol p:last-child { margin-bottom: 0; }
+.sol .pt { font-weight: 600; color: var(--structure); margin: 1.1rem 0 .35rem; }
+.sol .pt:first-child { margin-top: 0; }
+.sol .res { font-weight: 600; }
+.sol table { border-collapse: collapse; margin: .5rem 0 .7rem; font-size: .95em; display: block; overflow-x: auto; }
+.sol th, .sol td { padding: .3rem .65rem; border-bottom: 1px solid var(--rule); text-align: left; white-space: nowrap; }
+.sol th { font-weight: 600; }
+.sol ul, .sol ol { margin: .3rem 0 .5rem; padding-left: 1.3rem; }
+.sol li { margin: .2rem 0; }
 .rehearses { margin-top: .75rem; font-size: .8rem; color: var(--ink-muted); }
 .rehearses b { font-weight: 500; color: var(--ink); }
 code { font-family: var(--font-mono); font-size: .9em; background: var(--bg-sunken); padding: .05em .3em; border-radius: 3px; }
@@ -199,10 +207,42 @@ body.presenter .deck { display: flex; }
   </ol>
   <div class="actions"><button type="button" class="reveal">Show solution</button></div>
   <div class="sol" hidden>
-    <p>(a) \(J_3^\star(x) = x = (0, 1, 2)\). At \(t = 2\), \(J_2^\star(x) = \min_u \{2x + 2|u| + J_3^\star(x+u)\}\). For \(x = 0\): stay, \(0\). For \(x = 1\): down costs \(2 + 2 + 0 = 4\), stay costs \(2 + 1 = 3\): stay, \(J_2^\star(1) = 3\). For \(x = 2\): down costs \(4 + 2 + 1 = 7\), stay costs \(4 + 2 = 6\): stay, \(J_2^\star(2) = 6\). So \(J_2^\star = (0, 3, 6)\) and \(\pi_2^\star = (0, 0, 0)\).</p>
-    <p>(b) \(J_1^\star(x) = \min_u \{2x + 2|u| + J_2^\star(x+u)\}\). For \(x = 1\): down \(2 + 2 + 0 = 4\), stay \(2 + 3 = 5\): down, \(J_1^\star(1) = 4\). For \(x = 2\): down \(4 + 2 + 3 = 9\), stay \(4 + 6 = 10\): down, \(J_1^\star(2) = 9\). So \(J_1^\star = (0, 4, 9)\) and \(\pi_1^\star = (0, -1, -1)\).</p>
-    <p>(c) At the last decision, moving costs 2 and saves only one unit of terminal cost, so you stay. With two stages left, moving down at \(t = 1\) lowers \(x_2\) and \(x_3\) by one, which saves 2 on the stage cost at \(t = 2\) and 1 on the terminal cost, more than the price of 2. The number of remaining stages is part of the situation: with a fixed horizon the optimal decision rule depends on \(t\). Stationarity comes with the discounted infinite-horizon case.</p>
-    <p>(d) \(x_1 = 2 \to x_2 = 1 \to x_3 = 1\): \((4 + 2) + (2 + 0) + 1 = 9 = J_1^\star(2)\).</p>
+    <p class="pt">(a) Last decision, \(t = 2\)</p>
+    <p>Terminal cost: \(J_3^\star(x) = x\), so \(J_3^\star = (0, 1, 2)\). Each entry below is stage cost plus cost-to-go:</p>
+    \[ J_2^\star(x) = \min_u \big\{ 2x + 2|u| + J_3^\star(x + u) \big\} \]
+    <table>
+      <tr><th>\(x\)</th><th>stay (\(u = 0\))</th><th>down (\(u = -1\))</th><th>up (\(u = +1\))</th><th>best</th><th>\(J_2^\star(x)\)</th></tr>
+      <tr><td>0</td><td>\(0 + 0 = 0\)</td><td>not allowed</td><td>\(0 + 2 + 1 = 3\)</td><td>stay</td><td>0</td></tr>
+      <tr><td>1</td><td>\(2 + 1 = 3\)</td><td>\(2 + 2 + 0 = 4\)</td><td>\(2 + 2 + 2 = 6\)</td><td>stay</td><td>3</td></tr>
+      <tr><td>2</td><td>\(4 + 2 = 6\)</td><td>\(4 + 2 + 1 = 7\)</td><td>not allowed</td><td>stay</td><td>6</td></tr>
+    </table>
+    <p class="res">\(J_2^\star = (0, 3, 6)\), \(\pi_2^\star = (0, 0, 0)\).</p>
+
+    <p class="pt">(b) First decision, \(t = 1\)</p>
+    <p>Same computation with \(J_2^\star = (0, 3, 6)\) as the cost-to-go:</p>
+    <table>
+      <tr><th>\(x\)</th><th>stay</th><th>down</th><th>up</th><th>best</th><th>\(J_1^\star(x)\)</th></tr>
+      <tr><td>0</td><td>\(0 + 0 = 0\)</td><td>not allowed</td><td>\(0 + 2 + 3 = 5\)</td><td>stay</td><td>0</td></tr>
+      <tr><td>1</td><td>\(2 + 3 = 5\)</td><td>\(2 + 2 + 0 = 4\)</td><td>\(2 + 2 + 6 = 10\)</td><td>down</td><td>4</td></tr>
+      <tr><td>2</td><td>\(4 + 6 = 10\)</td><td>\(4 + 2 + 3 = 9\)</td><td>not allowed</td><td>down</td><td>9</td></tr>
+    </table>
+    <p class="res">\(J_1^\star = (0, 4, 9)\), \(\pi_1^\star = (0, -1, -1)\).</p>
+
+    <p class="pt">(c) Why \(\pi_1^\star \ne \pi_2^\star\)</p>
+    <ul>
+      <li>At \(t = 2\), moving down costs 2 and saves only 1 (one unit of terminal cost). Not worth it.</li>
+      <li>At \(t = 1\), moving down costs 2 and saves 3: 2 on the stage cost at \(t = 2\) and 1 on the terminal cost. Worth it.</li>
+      <li>Same state, different decision: with a finite horizon, the optimal rule depends on how many stages remain. Stationary policies come with the discounted infinite-horizon case.</li>
+    </ul>
+
+    <p class="pt">(d) Trajectory from \(x_1 = 2\)</p>
+    <table>
+      <tr><th>\(t\)</th><th>\(x_t\)</th><th>\(u_t\)</th><th>cost</th></tr>
+      <tr><td>1</td><td>2</td><td>\(-1\)</td><td>\(4 + 2 = 6\)</td></tr>
+      <tr><td>2</td><td>1</td><td>0</td><td>\(2\)</td></tr>
+      <tr><td>3</td><td>1</td><td></td><td>terminal: 1</td></tr>
+    </table>
+    <p class="res">Total \(6 + 2 + 1 = 9 = J_1^\star(2)\).</p>
   </div>
   <p class="rehearses"><b>Rehearses:</b> running backward induction by hand and reading the two arrays it produces.</p>
 </article>
@@ -294,10 +334,40 @@ body.presenter .deck { display: flex; }
   </ol>
   <div class="actions"><button type="button" class="reveal">Show solution</button></div>
   <div class="sol" hidden>
-    <p>(a) \(J_t^\star(x) = \min_u \tfrac12\left[x^2 + u^2 + P_{t+1}(x + u)^2\right]\). Setting the derivative to zero: \(u + P_{t+1}(x + u) = 0\), so \(u_t^\star = -\frac{P_{t+1}}{1 + P_{t+1}}\,x\) and \(K_t = \frac{P_{t+1}}{1 + P_{t+1}}\). This is \((R + B^\top P_{t+1} B)^{-1} B^\top P_{t+1} A\) with every matrix equal to 1.</p>
-    <p>(b) Plugging in, \(x + u^\star = \frac{x}{1 + P_{t+1}}\), and \(P_t = 1 + K_t^2 + P_{t+1}(1 - K_t)^2 = 1 + \frac{P_{t+1}}{1 + P_{t+1}}\). The general form \(Q + A^\top P A - A^\top P B (R + B^\top P B)^{-1} B^\top P A\) gives the same: \(1 + P - P^2/(1+P)\).</p>
-    <p>(c) \(P_2 = Q_T = 1\). \(K_1 = 1/2\), \(P_1 = 3/2\). \(K_0 = (3/2)/(5/2) = 3/5\), \(P_0 = 1 + 3/5 = 8/5\). Optimal cost from \(x_0 = 2\): \(\tfrac12 \cdot \tfrac85 \cdot 4 = 16/5\). Check: \(u_0 = -6/5\), \(x_1 = 4/5\), \(u_1 = -2/5\), \(x_2 = 2/5\), cost \(\tfrac12\left[4 + \tfrac{36}{25} + \tfrac{16}{25} + \tfrac{4}{25} + \tfrac{4}{25}\right] = \tfrac12 \cdot \tfrac{160}{25} = \tfrac{16}{5}\).</p>
-    <p>(d) The fixed point solves \(P = 1 + P/(1+P)\), that is \(P^2 - P - 1 = 0\), so \(P_\infty = (1 + \sqrt5)/2 \approx 1.618\) and \(K_\infty = P_\infty/(1 + P_\infty) = 1/P_\infty \approx 0.618\). Far from the end of the horizon the gain is nearly constant; near the end it changes because fewer stages remain. The gains are time-varying in the finite-horizon problem, and no grid or interpolation was needed: the value function stays exactly quadratic.</p>
+    <p class="pt">(a) The gain</p>
+    <p>One-step problem at stage \(t\):</p>
+    \[ J_t^\star(x) = \min_u \tfrac12\Big[\, x^2 + u^2 + P_{t+1}(x + u)^2 \,\Big] \]
+    <p>Set the derivative in \(u\) to zero:</p>
+    \[ u + P_{t+1}(x + u) = 0 \quad\Longrightarrow\quad u_t^\star = -K_t\, x, \qquad K_t = \frac{P_{t+1}}{1 + P_{t+1}} \]
+    <p>This is the general \(K_t = (R + B^\top P_{t+1} B)^{-1} B^\top P_{t+1} A\) with every matrix equal to 1.</p>
+
+    <p class="pt">(b) The Riccati recursion</p>
+    <p>Under \(u^\star\), the next state is \(x + u^\star = (1 - K_t)\,x = \dfrac{x}{1 + P_{t+1}}\). Substitute:</p>
+    \[ P_t = 1 + K_t^2 + P_{t+1}(1 - K_t)^2 = 1 + \frac{P_{t+1}}{1 + P_{t+1}} \]
+
+    <p class="pt">(c) Two stages, from \(P_2 = Q_T = 1\)</p>
+    <table>
+      <tr><th>\(t\)</th><th>\(P_{t+1}\)</th><th>\(K_t = \frac{P_{t+1}}{1 + P_{t+1}}\)</th><th>\(P_t = 1 + K_t\)</th></tr>
+      <tr><td>1</td><td>1</td><td>\(1/2\)</td><td>\(3/2\)</td></tr>
+      <tr><td>0</td><td>\(3/2\)</td><td>\(3/5\)</td><td>\(8/5\)</td></tr>
+    </table>
+    <p class="res">Optimal cost from \(x_0 = 2\): \(\tfrac12 P_0 x_0^2 = \tfrac12 \cdot \tfrac85 \cdot 4 = \tfrac{16}{5}\).</p>
+    <p>Check by simulating the policy:</p>
+    <table>
+      <tr><th>\(t\)</th><th>\(x_t\)</th><th>\(u_t = -K_t x_t\)</th><th>cost</th></tr>
+      <tr><td>0</td><td>2</td><td>\(-6/5\)</td><td>\(\tfrac12(4 + \tfrac{36}{25}) = \tfrac{68}{25}\)</td></tr>
+      <tr><td>1</td><td>\(4/5\)</td><td>\(-2/5\)</td><td>\(\tfrac12(\tfrac{16}{25} + \tfrac{4}{25}) = \tfrac{10}{25}\)</td></tr>
+      <tr><td>2</td><td>\(2/5\)</td><td></td><td>terminal: \(\tfrac12 \cdot \tfrac{4}{25} = \tfrac{2}{25}\)</td></tr>
+    </table>
+    <p class="res">Total \(\tfrac{80}{25} = \tfrac{16}{5}\).</p>
+
+    <p class="pt">(d) Long horizon</p>
+    <p>The fixed point solves \(P = 1 + P/(1 + P)\), that is \(P^2 - P - 1 = 0\):</p>
+    \[ P_\infty = \frac{1 + \sqrt5}{2} \approx 1.618, \qquad K_\infty = \frac{P_\infty}{1 + P_\infty} = \frac{1}{P_\infty} \approx 0.618 \]
+    <ul>
+      <li>Far from the end of the horizon the gain is nearly constant; near the end it changes because fewer stages remain.</li>
+      <li>No grid or interpolation was needed: the value function stays exactly quadratic.</li>
+    </ul>
   </div>
   <p class="rehearses"><b>Rehearses:</b> deriving the Riccati recursion as backward induction specialized to linear dynamics and quadratic costs.</p>
 </article>
@@ -358,10 +428,33 @@ body.presenter .deck { display: flex; }
   </ol>
   <div class="actions"><button type="button" class="reveal">Show solution</button></div>
   <div class="sol" hidden>
-    <p>(a) At the last decision there is no future: \(v_2^\star(\mathrm{G}) = \max(10, -1) = 10\) (run), \(v_2^\star(\mathrm{W}) = \max(4, -1) = 4\) (run).</p>
-    <p>(b) G: run gives \(10 + 0.7 \cdot 10 + 0.3 \cdot 4 = 18.2\), repair gives \(-1 + 10 = 9\): run, \(v_1^\star(\mathrm{G}) = 18.2\). W: run gives \(4 + 4 = 8\), repair gives \(-1 + 10 = 9\): repair, \(v_1^\star(\mathrm{W}) = 9\).</p>
-    <p>(c) No: in W the rule is repair at \(t = 1\) and run at \(t = 2\). Repairing pays off only if a period remains to enjoy the good state. With a fixed horizon, the optimal Markov deterministic policy exists but depends on the stage.</p>
-    <p>(d) No. For any distribution \(q\) over actions, \(\sum_a q(a)\, w(a) \le \max_a w(a)\): a mixture of 8 and 9 is at most 9. Combined with state sufficiency, this is why a Markov deterministic optimal policy exists among all history-dependent randomized ones.</p>
+    <p class="pt">(a) Last decision, \(t = 2\)</p>
+    <p>No future, so each action is worth its reward:</p>
+    <table>
+      <tr><th>state</th><th>run</th><th>repair</th><th>best</th><th>\(v_2^\star\)</th></tr>
+      <tr><td>G</td><td>10</td><td>\(-1\)</td><td>run</td><td>10</td></tr>
+      <tr><td>W</td><td>4</td><td>\(-1\)</td><td>run</td><td>4</td></tr>
+    </table>
+
+    <p class="pt">(b) First decision, \(t = 1\)</p>
+    <p>Each action is worth reward \(+\) expected \(v_2^\star\) of the next state:</p>
+    <table>
+      <tr><th>state</th><th>run</th><th>repair</th><th>best</th><th>\(v_1^\star\)</th></tr>
+      <tr><td>G</td><td>\(10 + (0.7 \cdot 10 + 0.3 \cdot 4) = 18.2\)</td><td>\(-1 + 10 = 9\)</td><td>run</td><td>18.2</td></tr>
+      <tr><td>W</td><td>\(4 + 4 = 8\)</td><td>\(-1 + 10 = 9\)</td><td>repair</td><td>9</td></tr>
+    </table>
+
+    <p class="pt">(c) Not stationary</p>
+    <ul>
+      <li>In W: repair at \(t = 1\), run at \(t = 2\).</li>
+      <li>Repairing pays off only if a period remains to enjoy the good state.</li>
+      <li>With a fixed horizon, an optimal Markov deterministic policy exists, but it depends on the stage.</li>
+    </ul>
+
+    <p class="pt">(d) Randomizing does not help</p>
+    <p>For any distribution \(q\) over actions,</p>
+    \[ \sum_a q(a)\, w(a) \;\le\; \max_a w(a) \]
+    <p>so a mixture of 8 and 9 is at most 9. With state sufficiency, this is why a Markov deterministic optimal policy exists among all history-dependent randomized ones.</p>
   </div>
   <p class="rehearses"><b>Rehearses:</b> backward induction with an expectation, and why the finite-horizon policy depends on \(t\).</p>
 </article>
@@ -454,10 +547,35 @@ body.presenter .deck { display: flex; }
   </ol>
   <div class="actions"><button type="button" class="reveal">Show solution</button></div>
   <div class="sol" hidden>
-    <p>(a) State 2 never leaves and earns nothing: \(v(2) = 0.9\,v(2)\), so \(v(2) = 0\). State 1: \(v(1) = 1 + 0.45\,v(1) + 0.45\,v(2)\), so \(v(1) = 1/0.55 = 20/11 \approx 1.818\).</p>
-    <p>(b) \(\mathbf{v}_1 = (1, 0)\), \(\mathbf{v}_2 = (1.45, 0)\), \(\mathbf{v}_3 = (1.6525, 0)\). Errors in state 1: \(0.818, 0.368, 0.166\), each \(0.45\) times the previous. The guarantee \(\gamma = 0.9\) is a worst case over all states; here state 1 stays put only half of the time, so its error decays at \(\gamma \cdot 0.5\).</p>
-    <p>(c) \(\mathbf{v}^\pi = \sum_{t \ge 0} (\gamma\mathbf{P}_\pi)^t \mathbf{r}_\pi\). Each row of \(\mathbf{P}_\pi\) sums to one, so \(\|\mathbf{P}_\pi\|_\infty = 1\) and \(\rho(\gamma\mathbf{P}_\pi) \le \|\gamma\mathbf{P}_\pi\|_\infty = \gamma < 1\), which is the condition for the series to converge to \((\mathbf{I} - \gamma\mathbf{P}_\pi)^{-1}\). Here the eigenvalues of \(\gamma\mathbf{P}_\pi\) are \(0.45\) and \(0.9\).</p>
-    <p>(d) No, it is affine: \(\mathsf{L}_\pi(\mathbf{v}_1 + \mathbf{v}_2) \ne \mathsf{L}_\pi\mathbf{v}_1 + \mathsf{L}_\pi\mathbf{v}_2\) because \(\mathbf{r}_\pi\) appears once on the left and twice on the right. Policy evaluation is the fixed-point problem \(\mathbf{v} = \mathsf{L}_\pi\mathbf{v}\), equivalently the root-finding problem \(\mathsf{L}_\pi\mathbf{v} - \mathbf{v} = 0\).</p>
+    <p class="pt">(a) Solve the linear system</p>
+    <p>State 2 never leaves and earns nothing:</p>
+    \[ v(2) = 0 + 0.9\, v(2) \quad\Longrightarrow\quad v(2) = 0 \]
+    <p>State 1:</p>
+    \[ v(1) = 1 + 0.9\big(0.5\, v(1) + 0.5\, v(2)\big) = 1 + 0.45\, v(1) \quad\Longrightarrow\quad v(1) = \frac{1}{0.55} = \frac{20}{11} \approx 1.818 \]
+
+    <p class="pt">(b) Three steps of iteration</p>
+    <table>
+      <tr><th>\(k\)</th><th>\(v_k(1)\)</th><th>\(v_k(2)\)</th><th>error in state 1</th></tr>
+      <tr><td>0</td><td>0</td><td>0</td><td>1.818</td></tr>
+      <tr><td>1</td><td>1</td><td>0</td><td>0.818</td></tr>
+      <tr><td>2</td><td>1.45</td><td>0</td><td>0.368</td></tr>
+      <tr><td>3</td><td>1.6525</td><td>0</td><td>0.166</td></tr>
+    </table>
+    <ul>
+      <li>Each error is 0.45 times the previous one: \(0.45 = \gamma \cdot 0.5\), because state 1 stays put only half of the time.</li>
+      <li>The guarantee \(\gamma = 0.9\) is a worst case over all states.</li>
+    </ul>
+
+    <p class="pt">(c) Neumann series</p>
+    \[ \mathbf{v}^\pi = \sum_{t \ge 0} (\gamma\mathbf{P}_\pi)^t\, \mathbf{r}_\pi = (\mathbf{I} - \gamma\mathbf{P}_\pi)^{-1}\mathbf{r}_\pi \]
+    <ul>
+      <li>Each row of \(\mathbf{P}_\pi\) sums to one, so \(\|\mathbf{P}_\pi\|_\infty = 1\) and \(\|\gamma\mathbf{P}_\pi\|_\infty = \gamma &lt; 1\).</li>
+      <li>So \(\rho(\gamma\mathbf{P}_\pi) &lt; 1\) and the series converges. Here the eigenvalues of \(\gamma\mathbf{P}_\pi\) are 0.45 and 0.9.</li>
+    </ul>
+
+    <p class="pt">(d) Affine, not linear</p>
+    \[ \mathsf{L}_\pi(\mathbf{v}_1 + \mathbf{v}_2) = \mathbf{r}_\pi + \gamma\mathbf{P}_\pi(\mathbf{v}_1 + \mathbf{v}_2) \;\ne\; \mathsf{L}_\pi\mathbf{v}_1 + \mathsf{L}_\pi\mathbf{v}_2 = 2\mathbf{r}_\pi + \gamma\mathbf{P}_\pi(\mathbf{v}_1 + \mathbf{v}_2) \]
+    <p>Policy evaluation is the fixed-point problem \(\mathbf{v} = \mathsf{L}_\pi\mathbf{v}\), or equivalently the root-finding problem \(\mathsf{L}_\pi\mathbf{v} - \mathbf{v} = 0\).</p>
   </div>
   <p class="rehearses"><b>Rehearses:</b> the three views of policy evaluation (linear system, iteration, Neumann series) on a small example.</p>
 </article>
@@ -495,10 +613,42 @@ body.presenter .deck { display: flex; }
   </ol>
   <div class="actions"><button type="button" class="reveal">Show solution</button></div>
   <div class="sol" hidden>
-    <p>(a) \(v(2) = 2 + 0.9\,v(2)\), so \(v^\star(2) = 20\). \(v(1) = \max\{1 + 0.9\,v(1),\; 0 + 0.9\,v(2)\}\). Staying forever gives \(1/0.1 = 10\); going gives \(0.9 \cdot 20 = 18\). So \(v^\star = (18, 20)\) and the optimal policy is to go.</p>
-    <p>(b) \(v_1 = (\max(1, 0), 2) = (1, 2)\); greedy w.r.t. \(v_1\) in state 1: stay \(1 + 0.9 = 1.9\) versus go \(0.9 \cdot 2 = 1.8\), so <em>stay</em>. \(v_2 = (1.9, 3.8)\); greedy: stay \(2.71\) versus go \(3.42\), so <em>go</em>. \(v_3 = (3.42, 5.42)\); greedy: go.</p>
-    <p>(c) After one sweep, \(v_1\) only knows one step of reward, and the payoff of going (a delayed reward) has not propagated yet. Each sweep adds one step of lookahead; the greedy policy can be optimal long before the values are accurate, and here it is from the second sweep on.</p>
-    <p>(d) The threshold is \(0.1 \cdot 0.1/1.8 \approx 0.0056\). The change in state 2 is \(2 \cdot 0.9^{n}\) at sweep \(n+1\), which is the largest one, so we need \(2 \cdot 0.9^n < 0.0056\), \(n \ge 56\): about 57 sweeps. Then \(\|v_{n+1} - v^\star\|_\infty \le \varepsilon/2 = 0.05\) and the greedy policy is \(\varepsilon\)-optimal: its value is within 0.1 of \(v^\star\) in every state. (Running it gives \(v \approx (17.95, 19.95)\).)</p>
+    <p class="pt">(a) Bellman optimality equation</p>
+    <p>State 2:</p>
+    \[ v(2) = 2 + 0.9\, v(2) \quad\Longrightarrow\quad v^\star(2) = 20 \]
+    <p>State 1:</p>
+    \[ v(1) = \max\big\{\, \underbrace{1 + 0.9\, v(1)}_{\text{stay}},\; \underbrace{0 + 0.9\, v(2)}_{\text{go}} \,\big\} \]
+    <ul>
+      <li>Stay forever: \(1/(1 - 0.9) = 10\).</li>
+      <li>Go: \(0.9 \cdot 20 = 18\).</li>
+    </ul>
+    <p class="res">\(v^\star = (18, 20)\); the optimal policy is to go.</p>
+
+    <p class="pt">(b) Value iteration from \(v_0 = 0\)</p>
+    <table>
+      <tr><th>\(n\)</th><th>\(v_n(1)\)</th><th>\(v_n(2)\)</th><th>stay: \(1 + 0.9\,v_n(1)\)</th><th>go: \(0.9\,v_n(2)\)</th><th>greedy in 1</th></tr>
+      <tr><td>0</td><td>0</td><td>0</td><td>1</td><td>0</td><td>stay</td></tr>
+      <tr><td>1</td><td>1</td><td>2</td><td>1.9</td><td>1.8</td><td>stay</td></tr>
+      <tr><td>2</td><td>1.9</td><td>3.8</td><td>2.71</td><td>3.42</td><td>go</td></tr>
+      <tr><td>3</td><td>3.42</td><td>5.42</td><td>4.078</td><td>4.878</td><td>go</td></tr>
+    </table>
+    <p>Each row: \(v_{n+1}(1)\) is the larger of the two middle columns, and \(v_{n+1}(2) = 2 + 0.9\, v_n(2)\).</p>
+
+    <p class="pt">(c) Why the first greedy policy is wrong</p>
+    <ul>
+      <li>\(v_1\) only knows one step of reward. Going pays later, and that has not propagated yet.</li>
+      <li>Each sweep adds one step of lookahead.</li>
+      <li>The greedy policy is optimal from the second sweep on, long before the values are accurate (\(v_3(1) = 3.42\) against \(v^\star(1) = 18\)).</li>
+    </ul>
+
+    <p class="pt">(d) Stopping rule</p>
+    \[ \text{threshold} = \varepsilon\,\frac{1 - \gamma}{2\gamma} = 0.1 \cdot \frac{0.1}{1.8} \approx 0.0056 \]
+    <p>The largest change is in state 2: \(v_{n+1}(2) - v_n(2) = 2 \cdot 0.9^n\). We need</p>
+    \[ 2 \cdot 0.9^n &lt; 0.0056 \quad\Longrightarrow\quad n \ge 56, \text{ about 57 sweeps.} \]
+    <ul>
+      <li>Then \(\|v_{n+1} - v^\star\|_\infty \le \varepsilon/2 = 0.05\).</li>
+      <li>The greedy policy is \(\varepsilon\)-optimal: its value is within 0.1 of \(v^\star\) in every state. (Running it gives \(v \approx (17.95, 19.95)\).)</li>
+    </ul>
   </div>
   <p class="rehearses"><b>Rehearses:</b> value iteration by hand, greedy extraction, and the stopping rule that certifies the result.</p>
 </article>
@@ -672,10 +822,32 @@ pi = q.argmax(axis=0)                     # line 4</code></pre>
   </ol>
   <div class="actions"><button type="button" class="reveal">Show solution</button></div>
   <div class="sol" hidden>
-    <p>(a) The derivative in \(p\) is \(q_1 - q_2 - \log p + \log(1-p) = 0\), so \(\frac{p}{1-p} = e^{q_1 - q_2}\) and \(p = \frac{e^{q_1}}{e^{q_1} + e^{q_2}}\), the softmax. Substituting \(\log p = q_1 - \log Z\) and \(\log(1-p) = q_2 - \log Z\) with \(Z = e^{q_1} + e^{q_2}\), the objective becomes \(p q_1 + (1-p) q_2 - p(q_1 - \log Z) - (1-p)(q_2 - \log Z) = \log Z\). The objective is strictly concave, so this is the maximum.</p>
-    <p>(b) \(q(a_1) = 1 + 0.5v\), \(q(a_2) = 0.5v\), so \(v = \log(e^{1 + 0.5v} + e^{0.5v}) = 0.5v + \log(1 + e)\), and \(v^\star_\beta = 2\log(1 + e) \approx 2.627\).</p>
-    <p>(c) \(\pi(a_1) = \frac{e}{1+e} \approx 0.731\), \(\pi(a_2) \approx 0.269\). Then \(r_\pi \approx 0.731\), \(H(\pi) \approx 0.582\), and \((r_\pi + H)/(1 - \gamma) \approx 1.313/0.5 \approx 2.627\). This is \((\mathbf{I} - \gamma\mathbf{P}_\pi)\mathbf{v} = \mathbf{r}_\pi - \boldsymbol\Omega_\pi\) with \(-\Omega = H\), and the identity log-sum-exp \(=\) expected \(q\) under the softmax \(+\) entropy.</p>
-    <p>(d) Without regularization, always take \(a_1\): \(v^\star = 1/(1-0.5) = 2\). The bound gives \(2 \le 2.627 \le 2 + \log 2/0.5 \approx 3.386\). The gap is a bias from the temperature, which no number of iterations removes; it shrinks as \(\beta\) grows.</p>
+    <p class="pt">(a) Conjugate of the negative entropy</p>
+    <p>Call the objective \(f(p) = p\,q_1 + (1-p)\,q_2 - \big[p\log p + (1-p)\log(1-p)\big]\). Set \(f'(p) = 0\):</p>
+    \[ q_1 - q_2 - \log p + \log(1-p) = 0 \quad\Longrightarrow\quad \frac{p}{1-p} = e^{q_1 - q_2} \quad\Longrightarrow\quad p = \frac{e^{q_1}}{e^{q_1} + e^{q_2}} \]
+    <p>That is the softmax. Its value: with \(Z = e^{q_1} + e^{q_2}\), we have \(\log p = q_1 - \log Z\) and \(\log(1-p) = q_2 - \log Z\), so</p>
+    \[ f(p) = p\,q_1 + (1-p)\,q_2 - p\,(q_1 - \log Z) - (1-p)(q_2 - \log Z) = \log Z \]
+    <p>\(f\) is strictly concave, so this is the maximum.</p>
+
+    <p class="pt">(b) Smooth Bellman equation</p>
+    <p>Both actions return to the same state:</p>
+    \[ q(a_1) = 1 + 0.5\,v, \qquad q(a_2) = 0.5\,v \]
+    \[ v = \log\big(e^{1 + 0.5v} + e^{0.5v}\big) = 0.5\,v + \log(1 + e) \]
+    <p class="res">\(v^\star_\beta = 2\log(1 + e) \approx 2.627\).</p>
+
+    <p class="pt">(c) Softmax policy and check</p>
+    <p>\(\pi(a_1) = \dfrac{e}{1 + e} \approx 0.731\), \(\pi(a_2) \approx 0.269\).</p>
+    <table>
+      <tr><td>expected reward \(r_\pi\)</td><td>0.731</td></tr>
+      <tr><td>entropy \(H(\pi)\)</td><td>0.582</td></tr>
+      <tr><td>\((r_\pi + H)/(1 - \gamma)\)</td><td>\(1.313/0.5 \approx 2.627\)</td></tr>
+    </table>
+    <p>Same value. This is log-sum-exp \(=\) expected \(q\) under the softmax \(+\) entropy.</p>
+
+    <p class="pt">(d) Compare with the unregularized problem</p>
+    <p>Without regularization, always take \(a_1\): \(v^\star = 1/(1 - 0.5) = 2\). The bound:</p>
+    \[ 2 \;\le\; 2.627 \;\le\; 2 + \frac{\log 2}{1 \cdot 0.5} \approx 3.386 \]
+    <p>The gap is a bias from the temperature. No number of iterations removes it; it goes away as \(\beta\) grows.</p>
   </div>
   <p class="rehearses"><b>Rehearses:</b> the convex conjugate of the negative entropy, and solving a smooth Bellman equation by hand.</p>
 </article>
@@ -845,10 +1017,45 @@ pi = q.argmax(axis=0)                     # line 4</code></pre>
   </ol>
   <div class="actions"><button type="button" class="reveal">Show solution</button></div>
   <div class="sol" hidden>
-    <p>(a) \(W\) must be a stochastic matrix: nonnegative entries (monotone) and rows summing to one (constants preserved). \(W_1\) is one, so it is an averager. The quadratic Lagrange row sums to one but has a negative weight, so it is not monotone; its absolute row sum is \(1.25\), so it can stretch differences by 25%.</p>
-    <p>(b) By monotonicity, \(\mathsf{P}(g - M\mathbf{1}) \le \mathsf{P}f \le \mathsf{P}(g + M\mathbf{1})\). By linearity and \(\mathsf{P}\mathbf{1} = \mathbf{1}\), \(\mathsf{P}g - M\mathbf{1} \le \mathsf{P}f \le \mathsf{P}g + M\mathbf{1}\), so \(\|\mathsf{P}f - \mathsf{P}g\|_\infty \le M\).</p>
-    <p>(c) Using \(v_\mathsf{P} = \mathsf{P}\mathsf{L}v_\mathsf{P}\) and \(v^\star = \mathsf{L}v^\star\): \(\|v_\mathsf{P} - v^\star\| \le \|\mathsf{P}\mathsf{L}v_\mathsf{P} - \mathsf{P}\mathsf{L}v^\star\| + \|\mathsf{P}\mathsf{L}v^\star - v^\star\| \le \gamma\|v_\mathsf{P} - v^\star\| + \|\mathsf{P}v^\star - v^\star\|\). Rearrange.</p>
-    <p>(d) \(0.1/0.05 = 2\). The factor \(1/(1-\gamma) = 20\) is the effective horizon: representation errors accumulate along it. The norm term is the irreducible bias of the approximator: how well it can represent \(v^\star\) at all. It holds with the max, so it covers the optimality equation, not only policy evaluation.</p>
+    <p class="pt">(a) What \(W\) must look like</p>
+    <p>\(W\) must be a stochastic matrix:</p>
+    <ul>
+      <li>nonnegative entries (monotone);</li>
+      <li>rows summing to one (constants preserved).</li>
+    </ul>
+    <table>
+      <tr><th></th><th>nonnegative?</th><th>rows sum to 1?</th><th>averager?</th></tr>
+      <tr><td>\(W_1\)</td><td>yes</td><td>yes</td><td>yes</td></tr>
+      <tr><td>\((\tfrac38, \tfrac34, -\tfrac18)\)</td><td>no</td><td>yes</td><td>no</td></tr>
+    </table>
+    <p>The Lagrange row has absolute sum \(1.25\), so it is not a sup-norm nonexpansion: it has Lipschitz constant 1.25.</p>
+
+    <p class="pt">(b) Averagers are nonexpansions</p>
+    <p>Let \(M = \|f - g\|_\infty\).</p>
+    <ol>
+      <li>Start: \(g - M\mathbf{1} \le f \le g + M\mathbf{1}\).</li>
+      <li>Monotone: \(\mathsf{P}(g - M\mathbf{1}) \le \mathsf{P}f \le \mathsf{P}(g + M\mathbf{1})\).</li>
+      <li>Linear and \(\mathsf{P}\mathbf{1} = \mathbf{1}\): \(\mathsf{P}g - M\mathbf{1} \le \mathsf{P}f \le \mathsf{P}g + M\mathbf{1}\).</li>
+      <li>So \(\|\mathsf{P}f - \mathsf{P}g\|_\infty \le M\).</li>
+    </ol>
+
+    <p class="pt">(c) The error bound</p>
+    <p>Use \(v_\mathsf{P} = \mathsf{P}\mathsf{L}v_\mathsf{P}\) and \(v^\star = \mathsf{L}v^\star\), and add and subtract \(\mathsf{P}\mathsf{L}v^\star\):</p>
+    \[ \|v_\mathsf{P} - v^\star\| \;\le\; \underbrace{\|\mathsf{P}\mathsf{L}v_\mathsf{P} - \mathsf{P}\mathsf{L}v^\star\|}_{\le\, \gamma\|v_\mathsf{P} - v^\star\|} \;+\; \underbrace{\|\mathsf{P}\mathsf{L}v^\star - v^\star\|}_{=\, \|\mathsf{P}v^\star - v^\star\|} \]
+    <ul>
+      <li>First term: \(\mathsf{P}\) is a nonexpansion and \(\mathsf{L}\) a contraction with modulus \(\gamma\).</li>
+      <li>Second term: \(\mathsf{L}v^\star = v^\star\).</li>
+    </ul>
+    <p>Rearrange:</p>
+    \[ \|v_\mathsf{P} - v^\star\|_\infty \le \frac{1}{1 - \gamma}\,\|\mathsf{P}v^\star - v^\star\|_\infty \]
+
+    <p class="pt">(d) Numbers</p>
+    \[ \frac{0.1}{1 - 0.95} = 20 \times 0.1 = 2 \]
+    <ul>
+      <li>\(1/(1 - \gamma) = 20\) is the effective horizon: representation errors accumulate along it.</li>
+      <li>\(\|\mathsf{P}v^\star - v^\star\|\) is the bias of the approximator: how well it can represent \(v^\star\) at all.</li>
+      <li>The proof uses \(\mathsf{L}\) with the max, so it covers the optimality equation, not only policy evaluation.</li>
+    </ul>
   </div>
   <p class="rehearses"><b>Rehearses:</b> the averager definition, the nonexpansion proof and the \(1/(1-\gamma)\) error bound.</p>
 </article>
@@ -883,9 +1090,29 @@ pi = q.argmax(axis=0)                     # line 4</code></pre>
   </ol>
   <div class="actions"><button type="button" class="reveal">Show solution</button></div>
   <div class="sol" hidden>
-    <p>(a) Both states have the same successors, so \((\mathsf{L}v_k)(s) = \gamma\max\{\theta_k, 2\theta_k\} = 2\gamma\theta_k\) for \(\theta_k &gt; 0\).</p>
-    <p>(b) Minimize \((\theta - 2\gamma\theta_k)^2 + (2\theta - 2\gamma\theta_k)^2\): \(5\theta = 6\gamma\theta_k\). Divergence for \(\gamma &gt; 5/6\), although \(v^\star = 0\) is represented exactly at \(\theta = 0\). \(\mathsf{L}\) shrinks the error by \(\gamma\) and the fit stretches it by \(6/5\).</p>
-    <p>(c) For targets \(y = (y_1, y_2)\), \(\hat\theta = (y_1 + 2y_2)/5\), so \(\mathsf{P}y = \hat\theta\,(1, 2)\), that is \(\mathsf{P} = \tfrac15\begin{pmatrix} 1 & 2 \\ 2 & 4\end{pmatrix}\). It maps \((1, 1)\) to \((3/5, 6/5)\): constants are not preserved, and the second row has absolute sum \(6/5 &gt; 1\), so \(\mathsf{P}\) is not a sup-norm nonexpansion. The fit is a perfectly good orthogonal projection in the unweighted \(\ell_2\) norm; the problem is that \(\mathsf{L}\) does not contract in that norm.</p>
+    <p class="pt">(a) The targets</p>
+    <p>Both states have the same two successors, so for \(\theta_k &gt; 0\):</p>
+    \[ (\mathsf{L}v_k)(s) = 0 + \gamma\max\{\theta_k,\, 2\theta_k\} = 2\gamma\theta_k \quad\text{in both states} \]
+
+    <p class="pt">(b) The fit</p>
+    <p>Least squares with equal weights:</p>
+    \[ \min_\theta\; (\theta - 2\gamma\theta_k)^2 + (2\theta - 2\gamma\theta_k)^2 \]
+    <p>Set the derivative to zero:</p>
+    \[ (\theta - 2\gamma\theta_k) + 2(2\theta - 2\gamma\theta_k) = 0 \quad\Longrightarrow\quad 5\theta = 6\gamma\theta_k \quad\Longrightarrow\quad \theta_{k+1} = \tfrac{6\gamma}{5}\,\theta_k \]
+    <ul>
+      <li>Diverges if and only if \(6\gamma/5 &gt; 1\), that is \(\gamma &gt; 5/6\).</li>
+      <li>Yet \(v^\star = 0\) is in the feature space (\(\theta = 0\)): representation is not the problem.</li>
+      <li>\(\mathsf{L}\) is a contraction with modulus \(\gamma\); the fit has sup-norm Lipschitz constant \(6/5\); the product is \(6\gamma/5\).</li>
+    </ul>
+
+    <p class="pt">(c) The fit as a matrix</p>
+    <p>For targets \(y = (y_1, y_2)\), \(\hat\theta = (y_1 + 2y_2)/5\), so</p>
+    \[ \mathsf{P}y = \hat\theta \begin{pmatrix} 1 \\ 2 \end{pmatrix}, \qquad \mathsf{P} = \frac15\begin{pmatrix} 1 &amp; 2 \\ 2 &amp; 4 \end{pmatrix} \]
+    <ul>
+      <li>\(\mathsf{P}(1, 1) = (3/5, 6/5) \ne (1, 1)\): constants are not preserved, so \(\mathsf{P}\) is not an averager.</li>
+      <li>Second row: absolute sum \(6/5 &gt; 1\), so \(\mathsf{P}\) is not a sup-norm nonexpansion.</li>
+      <li>\(\mathsf{P}\) is an orthogonal projection in the unweighted \(\ell_2\) norm; the trouble is that \(\mathsf{L}\) is not a contraction in that norm.</li>
+    </ul>
   </div>
   <p class="rehearses"><b>Rehearses:</b> the book's two-state divergence example, and diagnosing it with the averager condition.</p>
 </article>
