@@ -45,9 +45,9 @@
     }
    ],
    "drive": "https://drive.google.com/file/d//view",
-   "duration_ms": 6234100,
+   "duration_ms": 5330083,
    "thumb": "2026-11-23.jpg",
-   "paragraphs": 132,
+   "paragraphs": 119,
    "cleaned": true,
    "tldr": [
     {
@@ -103,7 +103,7 @@
       "en": "Markovian deterministic policies suffice",
       "fr": "Les politiques markoviennes déterministes suffisent"
      },
-     "p": 76,
+     "p": 63,
      "exam": true
     },
     {
@@ -111,7 +111,7 @@
       "en": "Value bound and effective horizon",
       "fr": "Borne sur la valeur et horizon effectif"
      },
-     "p": 84,
+     "p": 71,
      "exam": true
     },
     {
@@ -119,7 +119,7 @@
       "en": "Neumann series and the Banach fixed-point theorem",
       "fr": "Série de Neumann et théorème du point fixe de Banach"
      },
-     "p": 90,
+     "p": 77,
      "exam": true
     },
     {
@@ -127,7 +127,7 @@
       "en": "The Bellman residual as a certificate",
       "fr": "Le résidu de Bellman comme certificat"
      },
-     "p": 101,
+     "p": 88,
      "exam": true
     },
     {
@@ -135,7 +135,7 @@
       "en": "Modified policy iteration as a truncated Neumann series",
       "fr": "L'itération de politique modifiée comme série de Neumann tronquée"
      },
-     "p": 110,
+     "p": 97,
      "exam": true
     },
     {
@@ -143,7 +143,7 @@
       "en": "Smooth Bellman equations: Gumbel shocks and regularization",
       "fr": "Équations de Bellman lisses : chocs de Gumbel et régularisation"
      },
-     "p": 118,
+     "p": 105,
      "exam": false
     },
     {
@@ -151,7 +151,7 @@
       "en": "Fitted value methods are two nested loops",
       "fr": "Les méthodes de valeur ajustée sont deux boucles imbriquées"
      },
-     "p": 130,
+     "p": 117,
      "exam": false
     }
    ]

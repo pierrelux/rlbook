@@ -34,7 +34,7 @@
    "detail_fr": "Ajouter une constante au coût à venir (ou à tous les coûts) décale chaque terme de la minimisation de Bellman de la même quantité : l'argmin et la politique gloutonne restent inchangés en programmation dynamique exacte. Avec des approximations apprises par descente de gradient, l'échelle des valeurs peut toutefois compter."
   },
   {
-   "t": 2158520,
+   "t": 1968503,
    "exam": true,
    "notion": "Scalar LQR by backward induction",
    "detail": "With \\(x_{t+1}=x_t+u_t\\), quadratic costs with unit weights and \\(J_{t+1}^\\star(x)=\\tfrac12 P_{t+1}x^2\\), setting the derivative to zero gives \\(u_t^\\star=-\\frac{P_{t+1}}{1+P_{t+1}}x_t\\), a linear policy. Substituting back keeps the cost-to-go quadratic and gives the Riccati recursion for \\(P_t\\). The Riccati recursion is backward induction, and the gain depends on the stage but not on the state.",
@@ -42,7 +42,7 @@
    "detail_fr": "Avec \\(x_{t+1}=x_t+u_t\\), des coûts quadratiques de poids unitaires et \\(J_{t+1}^\\star(x)=\\tfrac12 P_{t+1}x^2\\), annuler la dérivée donne \\(u_t^\\star=-\\frac{P_{t+1}}{1+P_{t+1}}x_t\\), une politique linéaire. En la réinjectant, le coût à venir reste quadratique et on obtient la récurrence de Riccati pour \\(P_t\\). La récurrence de Riccati est une induction arrière, et le gain dépend de l'étape mais pas de l'état."
   },
   {
-   "t": 2593860,
+   "t": 2403843,
    "exam": false,
    "notion": "What iLQR returns",
    "detail": "iLQR re-linearizes the nonlinear dynamics around the current trajectory and solves an LQR problem at each iteration. The result is a local, time-varying feedback controller that corrects deviations inside a tube around the nominal trajectory, where the linearization holds. It is not MPC (though it can be used inside MPC), and its gains are not globally optimal.",
@@ -50,7 +50,7 @@
    "detail_fr": "iLQR linéarise de nouveau la dynamique non linéaire autour de la trajectoire courante et résout un problème LQR à chaque itération. Le résultat est un contrôleur par rétroaction local, variable dans le temps, qui corrige les écarts dans un tube autour de la trajectoire nominale, là où la linéarisation est valide. Ce n'est pas de la commande prédictive (même s'il peut servir à l'intérieur), et ses gains ne sont pas globalement optimaux."
   },
   {
-   "t": 3716820,
+   "t": 2812803,
    "exam": true,
    "notion": "Markovian deterministic policies suffice",
    "detail": "In a finite-horizon MDP with finite states and actions, history-dependent randomized policies do no better: the best value over that class is attained by a Markovian deterministic policy, which is in general non-stationary (one decision rule per stage). Under the componentwise partial order two policies can be incomparable, yet an optimal policy exists that is at least as good as every other policy in every state.",
@@ -58,7 +58,7 @@
    "detail_fr": "Dans un PDM à horizon fini avec états et actions finis, les politiques aléatoires dépendant de l'historique ne font pas mieux : la meilleure valeur de cette classe est atteinte par une politique markovienne déterministe, en général non stationnaire (une règle de décision par étape). Pour l'ordre partiel composante par composante, deux politiques peuvent être incomparables, et pourtant il existe une politique optimale au moins aussi bonne que toutes les autres dans chaque état."
   },
   {
-   "t": 4135660,
+   "t": 3231643,
    "exam": true,
    "notion": "Value bound and effective horizon",
    "detail": "With \\(|r(s,a)|\\le R_{\\max}\\), every discounted value satisfies \\(|v(s)|\\le R_{\\max}/(1-\\gamma)\\). With \\(R_{\\max}=2\\) and \\(\\gamma=0.95\\), the bound is 40 in every state. The effective horizon is \\(1/(1-\\gamma)\\), here 20.",
@@ -66,7 +66,7 @@
    "detail_fr": "Avec \\(|r(s,a)|\\le R_{\\max}\\), toute valeur actualisée vérifie \\(|v(s)|\\le R_{\\max}/(1-\\gamma)\\). Avec \\(R_{\\max}=2\\) et \\(\\gamma=0.95\\), la borne vaut 40 dans chaque état. L'horizon effectif est \\(1/(1-\\gamma)\\), ici 20."
   },
   {
-   "t": 4379600,
+   "t": 3475583,
    "exam": true,
    "notion": "Neumann series and the Banach fixed-point theorem",
    "detail": "Policy evaluation solves \\(v=(I-\\gamma P_\\pi)^{-1}r_\\pi\\), and this inverse equals the Neumann series \\(\\sum_k(\\gamma P_\\pi)^k\\) when the spectral radius of \\(\\gamma P_\\pi\\) is below one. A contraction on a complete normed space has exactly one fixed point, and successive approximation reaches it from any starting point. Contraction is a property tied to a norm, and non-contractions can still have fixed points.",
@@ -74,7 +74,7 @@
    "detail_fr": "L'évaluation de politique résout \\(v=(I-\\gamma P_\\pi)^{-1}r_\\pi\\), et cet inverse égale la série de Neumann \\(\\sum_k(\\gamma P_\\pi)^k\\) lorsque le rayon spectral de \\(\\gamma P_\\pi\\) est inférieur à un. Une contraction sur un espace normé complet a exactement un point fixe, et les approximations successives l'atteignent depuis n'importe quel point de départ. La contraction est une propriété liée à une norme, et un opérateur qui n'est pas une contraction peut quand même avoir un point fixe."
   },
   {
-   "t": 4794680,
+   "t": 3890663,
    "exam": true,
    "notion": "The Bellman residual as a certificate",
    "detail": "The triangle inequality, \\(v^\\star=\\mathrm{L}v^\\star\\) and the contraction of \\(\\mathrm{L}\\) give \\(\\|v-v^\\star\\|\\le\\|v-\\mathrm{L}v\\|/(1-\\gamma)\\). A residual of 0.02 with \\(\\gamma=0.9\\) bounds the distance to \\(v^\\star\\) by 0.2. The distance itself is unknown, but the bound is computable. This is also why stopping value iteration when two iterates differ by less than \\(\\varepsilon\\) does not give \\(\\varepsilon\\)-optimality.",
@@ -82,7 +82,7 @@
    "detail_fr": "L'inégalité triangulaire, \\(v^\\star=\\mathrm{L}v^\\star\\) et la contraction de \\(\\mathrm{L}\\) donnent \\(\\|v-v^\\star\\|\\le\\|v-\\mathrm{L}v\\|/(1-\\gamma)\\). Un résidu de 0,02 avec \\(\\gamma=0.9\\) borne la distance à \\(v^\\star\\) par 0,2. La distance elle-même est inconnue, mais la borne se calcule. C'est aussi pourquoi arrêter l'itération de valeur quand deux itérés diffèrent de moins de \\(\\varepsilon\\) ne garantit pas l'\\(\\varepsilon\\)-optimalité."
   },
   {
-   "t": 5240800,
+   "t": 4336783,
    "exam": true,
    "notion": "Modified policy iteration as a truncated Neumann series",
    "detail": "Modified policy iteration replaces exact policy evaluation by \\(k\\) applications of the policy evaluation operator, that is, a truncation of the Neumann series of \\((I-\\gamma P_\\pi)^{-1}\\). With \\(k=1\\) it is value iteration; as \\(k\\to\\infty\\) it is policy iteration.",
@@ -90,7 +90,7 @@
    "detail_fr": "L'itération de politique modifiée remplace l'évaluation exacte de la politique par \\(k\\) applications de l'opérateur d'évaluation, c'est-à-dire une troncature de la série de Neumann de \\((I-\\gamma P_\\pi)^{-1}\\). Avec \\(k=1\\), c'est l'itération de valeur ; quand \\(k\\to\\infty\\), c'est l'itération de politique."
   },
   {
-   "t": 5601980,
+   "t": 4697963,
    "exam": false,
    "notion": "Smooth Bellman equations: Gumbel shocks and regularization",
    "detail": "In Rust's augmented MDP the agent is deterministic given the state and the Gumbel shock; averaging over the shocks gives the log-sum-exp smooth Bellman equation. In a regularized MDP, a strongly convex \\(\\Omega\\) keeps the operator a contraction, and the optimal policy is \\(\\nabla\\Omega^*(q)\\). Only the Shannon entropy gives log-sum-exp, and the optimal policy is generally stochastic. For estimation, Rust differentiates the fixed point with the implicit function theorem instead of unrolling value iteration.",
@@ -98,7 +98,7 @@
    "detail_fr": "Dans le PDM augmenté de Rust, l'agent est déterministe étant donné l'état et le choc de Gumbel ; la moyenne sur les chocs donne l'équation de Bellman lisse en log-sum-exp. Dans un PDM régularisé, un \\(\\Omega\\) fortement convexe garde l'opérateur contractant, et la politique optimale est \\(\\nabla\\Omega^*(q)\\). Seule l'entropie de Shannon donne log-sum-exp, et la politique optimale est en général stochastique. Pour l'estimation, Rust dérive le point fixe par le théorème des fonctions implicites au lieu de dérouler l'itération de valeur."
   },
   {
-   "t": 6170600,
+   "t": 5266583,
    "exam": false,
    "notion": "Fitted value methods are two nested loops",
    "detail": "Approximate successive approximation iterates in parameter space: each outer step builds targets from the current approximation, freezes them, and fits a regression. A non-expansive fitting step composed with the contraction \\(\\mathrm{L}\\) in the same norm stays a contraction (Gordon's averagers, on-policy LSTD). It is not gradient descent on one fixed loss.",
@@ -138,62 +138,57 @@
    "title_fr": "Q6 et Q7 : LQR scalaire, la récurrence de Riccati et ses propriétés"
   },
   {
-   "t": 2401640,
+   "t": 2211623,
    "title": "Q8: iLQR as a local time-varying feedback controller",
    "title_fr": "Q8 : iLQR comme contrôleur par rétroaction local variable dans le temps"
   },
   {
-   "t": 2667200,
+   "t": 2477183,
    "title": "Q9: the machine replacement problem",
    "title_fr": "Q9 : le problème de remplacement de machine"
   },
   {
-   "t": 2944680,
-   "title": "Break",
-   "title_fr": "Pause"
-  },
-  {
-   "t": 3647540,
+   "t": 2743523,
    "title": "Policy classes, the partial order and the existence of an optimal policy",
    "title_fr": "Classes de politiques, ordre partiel et existence d'une politique optimale"
   },
   {
-   "t": 3975160,
+   "t": 3071143,
    "title": "The bound R_max/(1-gamma) and the effective horizon",
    "title_fr": "La borne R_max/(1-gamma) et l'horizon effectif"
   },
   {
-   "t": 4174900,
+   "t": 3270883,
    "title": "Absorbing states, the Neumann series and the Banach fixed-point theorem",
    "title_fr": "États absorbants, série de Neumann et théorème du point fixe de Banach"
   },
   {
-   "t": 4415360,
+   "t": 3511343,
    "title": "The Bellman optimality operator and a value iteration code listing",
    "title_fr": "L'opérateur d'optimalité de Bellman et un code d'itération de valeur"
   },
   {
-   "t": 4712740,
+   "t": 3808723,
    "title": "Bounding the distance to v* from the Bellman residual",
    "title_fr": "Borner la distance à v* à partir du résidu de Bellman"
   },
   {
-   "t": 5176340,
+   "t": 4272323,
    "title": "Modified policy iteration as a truncated Neumann series",
    "title_fr": "L'itération de politique modifiée comme série de Neumann tronquée"
   },
   {
-   "t": 5377799,
+   "t": 4473782,
    "title": "Rust's Gumbel shocks and regularized MDPs",
    "title_fr": "Les chocs de Gumbel de Rust et les PDM régularisés"
   },
   {
-   "t": 5668240,
+   "t": 4764223,
    "title": "Smooth policy iteration, Rust's estimation and the entropy bonus",
    "title_fr": "Itération de politique lisse, l'estimation de Rust et le bonus d'entropie"
   },
   {
-   "t": 5858519,
+   "t": 4954502,
    "title": "Weighted residuals, projected Bellman equations and fitted value methods",
    "title_fr": "Résidus pondérés, équations de Bellman projetées et méthodes de valeur ajustée"
   }
@@ -473,651 +468,560 @@
    "readable_fr": "la question demande d'écrire l'équation de Bellman pour ce problème LQR. Je trouve la formulation alambiquée, mais c'est tout ce qu'elle demande. Prenez crayon et papier et écrivez l'induction arrière spécialisée au cadre LQR ; cette forme rendra commode la minimisation, qui est la partie suivante de la question."
   },
   {
-   "t": 1926220,
+   "t": 1736203,
    "text": "Okay, let's look at the solution together. So we start with writing down the Bellman equation. Same structure as usual: it's the current cost right now, and then it's the cost for the next stage. And then we start working out the solution itself. So \\(x'\\) here, the prime means the next stage. The dynamics are such that the next state is given by \\(x + u\\), and then we substitute that into the expression for the cost-to-go at the next stage.",
    "fr": "Bon, regardons la solution ensemble. On commence par écrire l'équation de Bellman. Même structure que d'habitude : c'est le coût actuel, maintenant, puis c'est le coût pour l'étape suivante. Ensuite on commence à développer la solution elle-même. Donc \\(x'\\) ici, le prime signifie l'étape suivante. La dynamique est telle que l'état suivant est donné par \\(x + u\\), et ensuite on substitue cela dans l'expression du coût-à-venir à l'étape suivante.",
    "readable": "Let us go through the solution. We start from the Bellman equation, with its usual structure: the cost paid now plus the cost from the next stage. Here \\(x'\\) denotes the next state, which the dynamics give as \\(x + u\\). We substitute it into the cost-to-go of the next stage.",
    "readable_fr": "Parcourons la solution. On part de l'équation de Bellman, avec sa structure habituelle : le coût payé maintenant plus le coût à partir de l'étape suivante. Ici, \\(x'\\) désigne l'état suivant, que la dynamique donne comme \\(x + u\\). On le substitue dans le coût-à-venir de l'étape suivante."
   },
   {
-   "t": 1964120,
+   "t": 1774103,
    "text": "Now look, the way we started this problem, we gave you the inductive step here: that the cost-to-go at stage \\(t+1\\) is one half of \\(P\\) times \\(x\\) to the power 2. So as you plug that into the equation over there, you get that \\(J_{t+1}^\\star\\) is one half \\(P_{t+1}\\) times \\(x + u\\) squared.",
    "fr": "Maintenant, regardez, la façon dont on a posé ce problème, on vous a donné l'hypothèse d'induction ici : que le coût-à-venir à l'étape \\(t+1\\) est un demi de \\(P\\) fois \\(x\\) au carré. Donc quand on insère ça dans l'équation là-bas, on obtient que \\(J_{t+1}^\\star\\) vaut un demi \\(P_{t+1}\\) fois \\(x + u\\) au carré.",
    "readable": "The problem statement gives the induction hypothesis: the cost-to-go at stage \\(t+1\\) is \\(\\tfrac12 P_{t+1} x^2\\). Plugging in the next state gives \\(J_{t+1}^\\star(x + u) = \\tfrac12 P_{t+1}(x + u)^2\\).",
    "readable_fr": "L'énoncé donne l'hypothèse d'induction : le coût-à-venir à l'étape \\(t+1\\) est \\(\\tfrac12 P_{t+1} x^2\\). En y insérant l'état suivant, on obtient \\(J_{t+1}^\\star(x + u) = \\tfrac12 P_{t+1}(x + u)^2\\)."
   },
   {
-   "t": 1996140,
+   "t": 1806123,
    "text": "Plug back into the Bellman equation and you get this form. Okay, so nothing here groundbreaking, except taking the definition and replacing the terms with the specific quantities we had. This is basically mimicking what we derived in the notes, more like derived in the more general case, with the vector-valued case for the state and the controls. Here we're just doing it for the scalar case, to essentially re-derive this property. So given that this is your Bellman equation, afterwards, the beautiful thing: since everything is quadratic, we can solve this optimization problem in closed form. So locally, this is an unconstrained optimization problem. It could even be constrained, by the way, if you were to put bound constraints on \\(u\\), but here it's unconstrained, which means we can apply simple calculus, and also",
    "fr": "On réinsère dans l'équation de Bellman et on obtient cette forme. Donc rien de révolutionnaire ici, sinon prendre la définition et remplacer les termes par les quantités précises qu'on avait. C'est essentiellement une reprise de ce qu'on a dérivé dans les notes, plutôt dérivé dans le cas plus général, avec le cas vectoriel pour l'état et les commandes. Ici on le fait simplement dans le cas scalaire, pour essentiellement redériver cette propriété. Donc étant donné que c'est votre équation de Bellman, ensuite, ce qui est beau : comme tout est quadratique, on peut résoudre ce problème d'optimisation sous forme fermée. Donc localement, c'est un problème d'optimisation sans contraintes. Il pourrait même être contraint, d'ailleurs, si on mettait des contraintes de bornes sur \\(u\\), mais ici il est sans contraintes, ce qui veut dire qu'on peut appliquer du calcul différentiel simple, et aussi",
    "readable": "Substituting back into the Bellman equation gives this form. Nothing deep happens here: we take the definition and replace each term with the specific quantities of the problem. This mirrors the derivation in the notes, which treats the general case of vector-valued states and controls; here we redo it in the scalar case. The nice part is that, since everything is quadratic, the minimization has a closed-form solution. Locally it is an unconstrained problem (bound constraints on \\(u\\) would make it constrained, but there are none here), so simple calculus applies. Moreover,",
    "readable_fr": "En réinsérant dans l'équation de Bellman, on obtient cette forme. Rien de profond ici : on prend la définition et on remplace chaque terme par les quantités propres au problème. Cela reprend la dérivation des notes, qui traite le cas général d'états et de commandes vectoriels ; ici on la refait dans le cas scalaire. Ce qui est agréable, c'est que, comme tout est quadratique, la minimisation a une solution sous forme fermée. Localement, c'est un problème sans contraintes (des contraintes de bornes sur \\(u\\) le rendraient contraint, mais il n'y en a pas ici), donc le calcul différentiel simple s'applique. De plus,"
   },
   {
-   "t": 2060620,
+   "t": 1870603,
    "text": "we know that the minimizer here is not only a local minimizer, it's also a global minimizer of the local problem. It's a bit confusing, but this is only a local subproblem. So the way we do this is we take the local loss function and we set the partial derivative with respect to \\(u\\) to zero. The only terms that involve \\(u\\) are here. So the derivative of this quantity here gives us \\(2u\\), which cancels out with the one half, so we get a \\(u\\) term here, and then we get \\(2P_{t+1}(x + u)\\), which cancels out with the one half and gives you this term over there. You set this thing to zero. Why do you set it to zero? Because this is the first-order optimality condition for unconstrained optimization problems: we know that if we have a minimizer, then the derivative evaluated at the minimizer will vanish. So then we're looking for a value of \\(u\\) that makes this",
    "fr": "on sait que le minimiseur ici n'est pas seulement un minimiseur local, c'est aussi un minimiseur global du problème local. C'est un peu déroutant, mais ce n'est qu'un sous-problème local. Donc la façon de procéder, c'est de prendre la fonction de perte locale et d'annuler la dérivée partielle par rapport à \\(u\\). Les seuls termes qui font intervenir \\(u\\) sont ici. Donc la dérivée de cette quantité ici nous donne \\(2u\\), qui s'annule avec le un demi, donc on obtient un terme en \\(u\\) ici, et ensuite on obtient \\(2P_{t+1}(x + u)\\), qui s'annule avec le un demi et donne ce terme-là. On annule cette expression. Pourquoi l'annuler ? Parce que c'est la condition d'optimalité du premier ordre pour les problèmes d'optimisation sans contraintes : on sait que si on a un minimiseur, alors la dérivée évaluée au minimiseur s'annule. Donc on cherche une valeur de \\(u\\) qui rend ceci",
    "readable": "the stationary point is not merely a local minimizer but the global minimizer of this one-step subproblem (the word \"local\" refers to the subproblem, not to the optimum). We set the partial derivative of the one-step objective with respect to \\(u\\) to zero. Only two terms involve \\(u\\): differentiating \\(\\tfrac12 u^2\\) gives \\(u\\), and differentiating \\(\\tfrac12 P_{t+1}(x + u)^2\\) gives \\(P_{t+1}(x + u)\\). We set the sum to zero because this is the first-order optimality condition for unconstrained problems: the derivative vanishes at a minimizer. We therefore look for the value of \\(u\\) that makes this expression",
    "readable_fr": "le point stationnaire n'est pas seulement un minimiseur local mais le minimiseur global de ce sous-problème à une étape (le mot « local » se rapporte au sous-problème, pas à l'optimum). On annule la dérivée partielle de l'objectif à une étape par rapport à \\(u\\). Seuls deux termes font intervenir \\(u\\) : la dérivée de \\(\\tfrac12 u^2\\) donne \\(u\\), et celle de \\(\\tfrac12 P_{t+1}(x + u)^2\\) donne \\(P_{t+1}(x + u)\\). On annule la somme parce que c'est la condition d'optimalité du premier ordre pour les problèmes sans contraintes : la dérivée s'annule en un minimiseur. On cherche donc la valeur de \\(u\\) qui rend cette expression"
   },
   {
-   "t": 2122100,
+   "t": 1932083,
    "text": "zero. So just do a bit of algebra and then you end up with \\(u_t^\\star\\) is equal to blah. In the general case, it looks like a scarier expression, with a bunch of terms and a matrix inverse. Here it's simply the reciprocal of \\(1 + P_{t+1}\\). No matrix inverse, because all of that is a scalar operation. The next step then in the general proof was to take this optimal solution for \\(u^\\star\\), which is the minimizer,",
    "fr": "nulle. Donc on fait un peu d'algèbre et on obtient que \\(u_t^\\star\\) est égal à ceci. Dans le cas général, ça ressemble à une expression plus effrayante, avec plein de termes et une inversion de matrice. Ici, c'est simplement l'inverse de \\(1 + P_{t+1}\\). Pas d'inversion de matrice, parce que tout ça est une opération scalaire. L'étape suivante dans la preuve générale était de prendre cette solution optimale \\(u^\\star\\), qui est le minimiseur,",
    "readable": "zero. A little algebra gives \\(u_t^\\star = -K_t x\\) with \\(K_t = P_{t+1}/(1 + P_{t+1})\\). In the general case the expression looks more intimidating, with several terms and a matrix inverse; here the inverse is just a reciprocal, since everything is scalar. The next step of the general proof takes this minimizer \\(u^\\star\\)",
    "readable_fr": "nulle. Un peu d'algèbre donne \\(u_t^\\star = -K_t x\\) avec \\(K_t = P_{t+1}/(1 + P_{t+1})\\). Dans le cas général, l'expression paraît plus intimidante, avec plusieurs termes et une inversion de matrice ; ici, l'inversion se réduit à une simple division, puisque tout est scalaire. L'étape suivante de la preuve générale prend ce minimiseur \\(u^\\star\\)"
   },
   {
-   "t": 2158520,
+   "t": 1968503,
    "text": "so this is the minimizer, then we can replace it inside the recursion. So whenever we have \\(x + u\\), well, we know what the minimizing \\(u\\) is here. So we can rewrite the Bellman equation here with \\(u^\\star\\), which is this guy over there, and then continue the recursion over there, to then get a form for what \\(P_t\\) is in terms of the previous one over there.",
    "fr": "donc c'est le minimiseur, puis on peut le remplacer dans la récursion. Donc partout où on a \\(x + u\\), eh bien, on sait quel est le \\(u\\) qui minimise ici. Donc on peut réécrire l'équation de Bellman ici avec \\(u^\\star\\), qui est celui-là, puis poursuivre la récursion là-bas, pour obtenir une forme de \\(P_t\\) en fonction du précédent là-bas.",
    "readable": "and substitutes it back into the recursion: wherever \\(x + u\\) appears, we replace \\(u\\) by \\(u^\\star\\). Rewriting the Bellman equation this way yields \\(P_t\\) as a function of \\(P_{t+1}\\).",
    "readable_fr": "et la réinjecte dans la récursion : partout où \\(x + u\\) apparaît, on remplace \\(u\\) par \\(u^\\star\\). En réécrivant ainsi l'équation de Bellman, on obtient \\(P_t\\) en fonction de \\(P_{t+1}\\)."
   },
   {
-   "t": 2194780,
+   "t": 2004763,
    "text": "I'm not going to go over the details of the derivation; I'll let you work it out. Long horizon: we didn't talk about that, so forget about this question there. But you can kind of guess that you can have an LQR problem in an infinite-horizon setting, with a discount factor of course, and this thing should work out, right? It's just an MDP. And indeed, you can take the limit of these gain matrices and you can get a solution for an LQR in an infinite-horizon setting.",
    "fr": "Je ne vais pas passer en revue les détails de la dérivation ; je vous laisse la faire. L'horizon long : on n'en a pas parlé, donc oubliez cette question-là. Mais vous pouvez deviner qu'on peut avoir un problème LQR dans un cadre à horizon infini, avec un facteur d'actualisation bien sûr, et que ça devrait fonctionner, n'est-ce pas ? C'est simplement un MDP. Et en effet, on peut prendre la limite de ces matrices de gain et obtenir une solution pour un LQR dans un cadre à horizon infini.",
    "readable": "I will leave the details of the derivation to you. We did not cover the long-horizon part, so you can ignore that question. You can guess, though, that LQR also makes sense with an infinite horizon (with a discount factor, of course): it is just an MDP. Indeed, taking the limit of the gain matrices gives the solution of the infinite-horizon LQR.",
    "readable_fr": "Je vous laisse les détails de la dérivation. On n'a pas vu la partie sur l'horizon long, donc vous pouvez ignorer cette question. Vous pouvez toutefois deviner que le LQR a aussi un sens à horizon infini (avec un facteur d'actualisation, bien sûr) : c'est simplement un MDP. En effet, en passant à la limite sur les matrices de gain, on obtient la solution du LQR à horizon infini."
   },
   {
-   "t": 2226820,
+   "t": 2036803,
    "text": "But we haven't talked about that. Maybe I just forgot. So forget about this; it's not going to be in the exam. Okay. Which statement... I'm just at Q7, and I have 35 questions. Which statement about the finite-horizon LQR is correct? The cost-to-go stays exactly quadratic, so backward induction carries one matrix per stage instead of a table.",
    "fr": "Mais on n'en a pas parlé. J'ai peut-être simplement oublié. Donc oubliez ça ; ce ne sera pas à l'examen. Bon. Quel énoncé... je n'en suis qu'à Q7, et j'ai 35 questions. Quel énoncé sur le LQR à horizon fini est correct ? Le coût-à-venir reste exactement quadratique, donc l'induction arrière transporte une matrice par étape au lieu d'une table.",
    "readable": "Since we did not discuss it (perhaps I simply forgot), it will not be on the exam. Next, Q7; I am only at question 7 out of 35. Which statement about the finite-horizon LQR is correct? Option (a): the cost-to-go stays exactly quadratic, so backward induction carries one matrix per stage instead of a table,",
    "readable_fr": "Comme on n'en a pas parlé (j'ai peut-être simplement oublié), ce ne sera pas à l'examen. Ensuite, Q7 ; je n'en suis qu'à la question 7 sur 35. Quel énoncé sur le LQR à horizon fini est correct ? Option (a) : le coût-à-venir reste exactement quadratique, donc l'induction arrière transporte une matrice par étape au lieu d'une table,"
   },
   {
-   "t": 2258260,
+   "t": 2068243,
    "text": "The fact that \\(R_t\\) is positive definite makes the one-step minimization well posed. The policy is linear. It's quite cool, right? Yeah, actually, the answer is A. It's quite cool: the policy is compactly written in this way, it's linear. You want to compute the exact optimal action, the optimal control to pick? All you've got to do is a matrix-vector multiplication, as long as you've got \\(K_t\\). But you compute \\(K_t\\) anyway along the way as you do backward induction.",
    "fr": "Le fait que \\(R_t\\) soit défini positif rend la minimisation à une étape bien posée. La politique est linéaire. C'est plutôt chouette, non ? Oui, en fait, la réponse est A. C'est plutôt chouette : la politique s'écrit de façon compacte comme ça, elle est linéaire. Vous voulez calculer l'action optimale exacte, la commande optimale à choisir ? Tout ce que vous avez à faire, c'est une multiplication matrice-vecteur, du moment que vous avez \\(K_t\\). Mais vous calculez \\(K_t\\) de toute façon en cours de route quand vous faites l'induction arrière.",
    "readable": "\\(R_t \\succ 0\\) makes the one-step minimization well posed, and the policy is linear. The answer is indeed (a). What is remarkable is how compact the policy is: to compute the exact optimal control, you only need a matrix-vector product with \\(K_t\\), and \\(K_t\\) comes for free during backward induction.",
    "readable_fr": "\\(R_t \\succ 0\\) rend la minimisation à une étape bien posée, et la politique est linéaire. La réponse est bien (a). Ce qui est remarquable, c'est la compacité de la politique : pour calculer la commande optimale exacte, il suffit d'un produit matrice-vecteur avec \\(K_t\\), et \\(K_t\\) est obtenu sans effort supplémentaire pendant l'induction arrière."
   },
   {
-   "t": 2288620,
+   "t": 2098603,
    "text": "This is the right answer here. Why are the other answers not correct? \"Runs forward in time from \\(P_0 = Q_0\\)\": that has nothing to do with it, it's like random stuff, and the Riccati recursion runs backward. The Riccati equation, and the Riccati recursion, is just another name for backward induction. There are probably historical reasons; to be honest I'd have to do my research to figure it out, but I'm pretty sure it's a case where there's this guy, Italian I presume, Riccati, who figured out the math for the linear setting, and people called it the Riccati equation, and then Bellman figured out this stuff and called it the Bellman equations.",
    "fr": "C'est la bonne réponse ici. Pourquoi les autres réponses ne sont-elles pas correctes ? « S'exécute vers l'avant dans le temps à partir de \\(P_0 = Q_0\\) » : ça n'a rien à voir, c'est n'importe quoi, et la récursion de Riccati s'exécute vers l'arrière. L'équation de Riccati, et la récursion de Riccati, c'est simplement un autre nom pour l'induction arrière. Il y a probablement des raisons historiques ; pour être honnête, il faudrait que je fasse mes recherches pour le savoir, mais je suis à peu près sûr que c'est un cas où il y a ce monsieur, italien je présume, Riccati, qui a trouvé les mathématiques pour le cadre linéaire, et on a appelé ça l'équation de Riccati, et ensuite Bellman a trouvé tout ça et l'a appelé les équations de Bellman.",
    "readable": "Why are the other options wrong? Option (b), a recursion running forward from \\(P_0 = Q_0\\), is meaningless: the Riccati recursion runs backward. The Riccati equation, or Riccati recursion, is simply backward induction under another name. The reasons are probably historical, and I would have to check, but I believe the Italian mathematician Riccati worked out the mathematics of this equation, which therefore bears his name, before Bellman developed the general theory and called its equations the Bellman equations.",
    "readable_fr": "Pourquoi les autres options sont-elles fausses ? L'option (b), une récursion qui part de \\(P_0 = Q_0\\) vers l'avant, n'a aucun sens : la récursion de Riccati s'exécute vers l'arrière. L'équation de Riccati, ou récursion de Riccati, n'est rien d'autre que l'induction arrière sous un autre nom. Les raisons sont probablement historiques, et il faudrait que je vérifie, mais je crois que le mathématicien italien Riccati a établi les mathématiques de cette équation, qui porte donc son nom, avant que Bellman ne développe la théorie générale et appelle ses équations les équations de Bellman."
   },
   {
-   "t": 2339500,
+   "t": 2149483,
    "text": "But really, they're the same thing; the Riccati case is more specific, though. C is a condition we made up, of course. And what was... oh yeah, \"the gain matrix depends on the current state\". When you read it fast, I was confused myself, it almost sounds like it's correct. But no. Yes, the gain matrix depends on the stage, it's a finite-horizon MDP, but it does not depend on the state itself. You know, it's not \\(K_t\\) of \\(x_t\\), and it's computed offline, independently of that.",
    "fr": "Mais en réalité, c'est la même chose ; le cas de Riccati est toutefois plus particulier. C est une condition qu'on a inventée, bien sûr. Et c'était quoi... ah oui, « la matrice de gain dépend de l'état courant ». Quand on le lit vite, je me suis moi-même trompé, ça a presque l'air correct. Mais non. Oui, la matrice de gain dépend de l'étape, c'est un MDP à horizon fini, mais elle ne dépend pas de l'état lui-même. Vous voyez, ce n'est pas \\(K_t\\) de \\(x_t\\), et elle est calculée hors ligne, indépendamment de ça.",
    "readable": "They are the same thing, with the Riccati case being the more specific one. Option (c) states a condition we made up. Option (d), that the gain matrix depends on the current state, almost sounds right on a quick read; it even confused me. But it is false: the gain depends on the stage, since this is a finite-horizon MDP, but not on the state. It is \\(K_t\\), not \\(K_t(x_t)\\), and it is computed offline, before any state is observed.",
    "readable_fr": "C'est la même chose, le cas de Riccati étant le plus particulier. L'option (c) énonce une condition inventée. L'option (d), selon laquelle la matrice de gain dépend de l'état courant, paraît presque juste à première lecture ; elle m'a moi-même trompé. Mais elle est fausse : le gain dépend de l'étape, puisqu'il s'agit d'un MDP à horizon fini, mais pas de l'état. C'est \\(K_t\\), pas \\(K_t(x_t)\\), et il est calculé hors ligne, avant d'observer le moindre état."
   },
   {
-   "t": 2401640,
+   "t": 2211623,
    "text": "Okay, iLQR. Remember, iLQR was a bit of a fancier technique than just LQR, which would give us a bit more robustness in our trajectory optimization algorithm. So it's a bit of a hybrid between trajectory optimization and pure dynamic programming. And what's the point of using iLQR rather than LQR if we just start with this? Why would you use this? Both of them have LQR in the title.",
    "fr": "Bon, iLQR. Rappelez-vous, iLQR était une technique un peu plus sophistiquée que le simple LQR, qui nous donnait un peu plus de robustesse dans notre algorithme d'optimisation de trajectoire. C'est donc un peu un hybride entre l'optimisation de trajectoire et la programmation dynamique pure. Et quel est l'intérêt d'utiliser iLQR plutôt que LQR, pour commencer ? Pourquoi l'utiliser ? Les deux ont LQR dans le nom.",
    "readable": "Next, iLQR (Q8). Recall that iLQR is a more elaborate technique than plain LQR, which made our trajectory optimization more robust; it is a hybrid between trajectory optimization and pure dynamic programming. To start, what is the point of using iLQR rather than LQR, given that both have LQR in their name?",
    "readable_fr": "Ensuite, iLQR (Q8). Rappelons qu'iLQR est une technique plus élaborée que le LQR simple, qui rendait notre optimisation de trajectoire plus robuste ; c'est un hybride entre l'optimisation de trajectoire et la programmation dynamique pure. Pour commencer, quel est l'intérêt d'utiliser iLQR plutôt que LQR, sachant que les deux portent LQR dans leur nom ?"
   },
   {
-   "t": 2440200,
+   "t": 2250183,
    "text": "iLQR: linear dynamics? How about LQR? Are they the same? Did you say linear or nonlinear? iLQR, nonlinear. Ah, there you go, nonlinear, yes. iLQR gives you a way of applying LQR in a nonlinear setting. So the I in there stands for iterative.",
    "fr": "iLQR : dynamique linéaire ? Et LQR ? Est-ce que c'est pareil ? Vous avez dit linéaire ou non linéaire ? iLQR, non linéaire. Voilà, non linéaire, oui. iLQR donne une façon d'appliquer LQR dans un cadre non linéaire. Donc le I veut dire itératif.",
    "readable": "Does iLQR assume linear dynamics? And LQR? Are they the same? iLQR handles nonlinear dynamics: it is a way of applying LQR in a nonlinear setting. The I stands for iterative.",
    "readable_fr": "iLQR suppose-t-il une dynamique linéaire ? Et LQR ? Est-ce la même chose ? iLQR traite une dynamique non linéaire : c'est une façon d'appliquer LQR dans un cadre non linéaire. Le I signifie itératif."
   },
   {
-   "t": 2470340,
+   "t": 2280323,
    "text": "But what is it that we iterate over? Yeah, there's an LQR in there that we iterate over, yeah. So locally linearized dynamics around our current solution. So we keep on linearizing along our current guess. Because when you linearize the system, you need to linearize around something. So then the question is, where is that something coming from? Is it coming from a demonstration? You could maybe bootstrap it from a demonstration, but you can also linearize along your current guess. And as you do this, every time you have a guess and you solve the corresponding LQR problem, you get a new policy. So that's an interesting thing: you now get a sequence of policies,",
    "fr": "Mais sur quoi est-ce qu'on itère ? Oui, il y a un LQR à l'intérieur sur lequel on itère, oui. Donc une dynamique linéarisée localement autour de notre solution courante. On continue de linéariser le long de notre estimation courante. Parce que quand on linéarise le système, il faut linéariser autour de quelque chose. Donc la question est : d'où vient ce quelque chose ? Est-ce que ça vient d'une démonstration ? On pourrait peut-être l'amorcer à partir d'une démonstration, mais on peut aussi linéariser le long de notre estimation courante. Et en faisant ça, chaque fois qu'on a une estimation et qu'on résout le problème LQR correspondant, on obtient une nouvelle politique. C'est donc intéressant : on obtient maintenant une suite de politiques,",
    "readable": "What do we iterate over? An LQR problem: we linearize the dynamics locally around the current solution, again and again. A linearization needs a point to linearize around, so where does it come from? It could be bootstrapped from a demonstration, but we can also linearize along the current guess. Each time we have a guess and solve the corresponding LQR problem, we get a new policy, so the method produces a sequence of policies,",
    "readable_fr": "Sur quoi itère-t-on ? Sur un problème LQR : on linéarise la dynamique localement autour de la solution courante, encore et encore. Une linéarisation demande un point autour duquel linéariser ; d'où vient-il ? On pourrait l'amorcer à partir d'une démonstration, mais on peut aussi linéariser le long de l'estimation courante. Chaque fois qu'on a une estimation et qu'on résout le problème LQR correspondant, on obtient une nouvelle politique, si bien que la méthode produit une suite de politiques,"
   },
   {
-   "t": 2531240,
+   "t": 2341223,
    "text": "which is maybe a source of confusion, and why I have option (a) in the answers here: since I'm computing many policies over time, is that MPC? Actually iLQR can be used within MPC, so it's not the same thing, and we'll talk about the differences as we expand the solutions here. But (a), \"this is MPC since it uses the measured state\": first of all, it's not MPC. And the measurement of the state, you know, we do actually take a measurement of the state. What's great with iLQR is that it gives us local robustness, which means that you can tolerate a little bit of noise, a little bit of disturbances locally. It's going to keep our system stable locally around our current solution.",
    "fr": "ce qui est peut-être une source de confusion, et c'est pourquoi j'ai l'option (a) dans les réponses ici : puisque je calcule beaucoup de politiques au fil du temps, est-ce que c'est de la MPC ? En fait, iLQR peut être utilisé à l'intérieur de la MPC, donc ce n'est pas la même chose, et on parlera des différences en développant les solutions ici. Mais (a), « c'est de la MPC puisque ça utilise l'état mesuré » : d'abord, ce n'est pas de la MPC. Et la mesure de l'état, vous savez, on prend effectivement une mesure de l'état. Ce qui est formidable avec iLQR, c'est que ça nous donne une robustesse locale, ce qui veut dire qu'on peut tolérer un peu de bruit, un peu de perturbations localement. Ça va garder notre système stable localement autour de notre solution courante.",
    "readable": "which may be a source of confusion, and is why option (a) is among the answers: since we compute many policies over time, is this MPC? No. iLQR can be used inside MPC, but it is not the same thing; we will discuss the differences as we go through the solutions. So (a), \"this is MPC since it uses the measured state,\" is wrong, even though the state is indeed measured. What iLQR does give us is local robustness: it tolerates a little noise and small disturbances, and keeps the system stable locally around the current solution.",
    "readable_fr": "ce qui peut prêter à confusion, et c'est pourquoi l'option (a) figure parmi les réponses : puisqu'on calcule beaucoup de politiques au fil du temps, est-ce de la MPC ? Non. iLQR peut être utilisé à l'intérieur de la MPC, mais ce n'est pas la même chose ; on discutera des différences en parcourant les solutions. Donc (a), « c'est de la MPC puisque ça utilise l'état mesuré », est faux, même si l'état est bien mesuré. Ce qu'iLQR nous donne, c'est une robustesse locale : il tolère un peu de bruit et de petites perturbations, et garde le système stable localement autour de la solution courante."
   },
   {
-   "t": 2593860,
+   "t": 2403843,
    "text": "Yes, actually, the correct answer is (b). I guess, the way the answers are spelled out, the longest one is always the correct one. But yeah, iLQR gives you a local time-varying feedback controller. It's time-varying because it's a finite-horizon LQR problem. It corrects the deviations inside a tube around the nominal trajectory where the linearization holds. So it's going to hold locally because we linearize, and the accuracy of the linearization gets worse as we go too far.",
    "fr": "Oui, en fait, la bonne réponse est (b). J'imagine que, vu la façon dont les réponses sont formulées, la plus longue est toujours la bonne. Mais oui, iLQR vous donne un contrôleur par rétroaction local et variable dans le temps. Il varie dans le temps parce que c'est un problème LQR à horizon fini. Il corrige les écarts à l'intérieur d'un tube autour de la trajectoire nominale où la linéarisation est valide. Donc ça tient localement parce qu'on linéarise, et la précision de la linéarisation se dégrade quand on va trop loin.",
    "readable": "The correct answer is (b). Judging by how the answers are written, the longest one always seems to be correct. iLQR gives a local, time-varying feedback controller. It is time-varying because the LQR problem has a finite horizon. It corrects deviations inside a tube around the nominal trajectory where the linearization holds. The guarantee is only local, because the linearization becomes less accurate as we move away from the trajectory.",
    "readable_fr": "La bonne réponse est (b). À voir comment les réponses sont rédigées, la plus longue semble toujours être la bonne. iLQR donne un contrôleur par rétroaction local et variable dans le temps. Il varie dans le temps parce que le problème LQR est à horizon fini. Il corrige les écarts à l'intérieur d'un tube autour de la trajectoire nominale où la linéarisation est valide. La garantie n'est que locale, car la linéarisation perd en précision à mesure qu'on s'éloigne de la trajectoire."
   },
   {
-   "t": 2632840,
+   "t": 2442823,
    "text": "It's just like a Taylor expansion. So yeah, within that tube around the trajectory it's going to be stable. Option (c): the gains make the controller globally optimal for the nonlinear system. No: the feedback gains are computed locally, so they only hold locally. (d): the gains are only used during optimization and are discarded afterwards.",
    "fr": "C'est exactement comme un développement de Taylor. Donc oui, à l'intérieur de ce tube autour de la trajectoire, ce sera stable. Option (c) : les gains rendent le contrôleur globalement optimal pour le système non linéaire. Non : les gains de rétroaction sont calculés localement, donc ils ne sont valides que localement. (d) : les gains ne servent que pendant l'optimisation et sont jetés ensuite.",
    "readable": "It is just like a Taylor expansion: inside that tube around the trajectory, the system stays stable. Option (c) says the gains make the controller globally optimal for the nonlinear system. No: the feedback gains are computed from a local model, so they are only valid locally. Option (d) says the gains are only used during optimization and discarded afterward.",
    "readable_fr": "C'est exactement comme un développement de Taylor : à l'intérieur de ce tube autour de la trajectoire, le système reste stable. L'option (c) affirme que les gains rendent le contrôleur globalement optimal pour le système non linéaire. Non : les gains de rétroaction sont calculés à partir d'un modèle local, donc ils ne sont valides que localement. L'option (d) affirme que les gains ne servent que pendant l'optimisation et sont jetés ensuite."
   },
   {
-   "t": 2667200,
+   "t": 2477183,
    "text": "No: the gain matrices that we compute along the way are actually useful, and we keep them after the optimization itself. Okay, now the world of dynamic programming in the stochastic case. It's 11:25 here. So this is a machine replacement problem; it's a classical type of problem. You've got a machine that can be in two states: it can either be good, or it can be in a state that is called worn. And then at each stage you decide whether you let the machine run or you repair it. Now of course there's a trade-off here: if you repair it, you need to stop the machine, and you incur a cost for doing the maintenance itself. If you let it run, then you can get some benefit out of it, but then you might postpone the problems and have",
    "fr": "Non : les matrices de gains qu'on calcule en chemin sont en fait utiles, et on les garde après l'optimisation elle-même. Bon, passons maintenant au monde de la programmation dynamique dans le cas stochastique. Il est 11 h 25 ici. Donc c'est un problème de remplacement de machine ; c'est un type de problème classique. On a une machine qui peut être dans deux états : elle peut être bonne, ou dans un état qu'on appelle usé. Et à chaque étape, on décide si on laisse la machine tourner ou si on la répare. Bien sûr, il y a un compromis : si on la répare, il faut arrêter la machine, et on paie un coût pour l'entretien lui-même. Si on la laisse tourner, on peut en tirer un bénéfice, mais on risque de repousser les problèmes et d'avoir",
    "readable": "That is false: the gain matrices computed along the way are useful, and we keep them after the optimization. Now to dynamic programming in the stochastic case (it is 11:25). This is a machine replacement problem, a classical one. The machine is in one of two states, good or worn, and at each stage we decide whether to run it or repair it. There is a trade-off: repairing means stopping the machine and paying for the maintenance, while running it brings a benefit now but may postpone the problems and cause",
    "readable_fr": "C'est faux : les matrices de gains calculées en chemin sont utiles, et on les garde après l'optimisation. Passons à la programmation dynamique dans le cas stochastique (il est 11 h 25). Il s'agit d'un problème de remplacement de machine, un problème classique. La machine est dans l'un de deux états, bonne ou usée, et à chaque étape on décide de la faire tourner ou de la réparer. Il y a un compromis : réparer veut dire arrêter la machine et payer l'entretien, tandis que la faire tourner rapporte un bénéfice immédiat mais peut repousser les problèmes et en causer"
   },
   {
-   "t": 2731520,
+   "t": 2541503,
    "text": "problems down the line if you don't do the maintenance at the right time. Okay, so you maximize the expected total reward, a finite MDP with three [?] stages again. And then we've got here essentially the definition of our MDP.",
    "fr": "des problèmes plus tard si on ne fait pas l'entretien au bon moment. Bon, donc on maximise la récompense totale espérée, un MDP fini avec encore trois [?] étapes. Et ensuite on a ici essentiellement la définition de notre MDP.",
    "readable": "trouble later if the maintenance is not done at the right time. We maximize the expected total reward in a finite-horizon MDP, again over a few stages, and the question then gives the definition of the MDP.",
    "readable_fr": "des ennuis plus tard si l'entretien n'est pas fait au bon moment. On maximise la récompense totale espérée dans un MDP à horizon fini, encore une fois sur quelques étapes, et la question donne ensuite la définition du MDP."
   },
   {
-   "t": 2764080,
+   "t": 2574063,
    "text": "So it's not super clear the way it's written, but if you're in state good, then the reward you get is 10, and if you're in state good, with probability 0.7 you stay in state good and you go to state worn with probability 0.3. It's one of those cases where maybe it's clearer if we draw it. So we're going to have two states. If you're in state good, then with probability 0.7 you're in the same state,",
    "fr": "Ce n'est pas très clair tel que c'est écrit, mais si on est dans l'état bon, la récompense qu'on obtient est 10, et si on est dans l'état bon, avec probabilité 0,7 on reste dans l'état bon et on passe à l'état usé avec probabilité 0,3. C'est un de ces cas où c'est peut-être plus clair si on le dessine. Donc on va avoir deux états. Si on est dans l'état bon, alors avec probabilité 0,7 on reste dans le même état,",
    "readable": "The way it is written is not very clear. Running in the good state yields reward 10; from good, the machine stays good with probability 0.7 and becomes worn with probability 0.3. This is easier to see in a drawing with two states: from good, with probability 0.7 we stay in the same state,",
    "readable_fr": "La formulation n'est pas très claire. Faire tourner la machine dans l'état bon rapporte 10 ; depuis l'état bon, la machine reste bonne avec probabilité 0,7 et devient usée avec probabilité 0,3. C'est plus facile à voir sur un dessin à deux états : depuis l'état bon, avec probabilité 0,7 on reste dans le même état,"
   },
   {
-   "t": 2824420,
+   "t": 2634403,
    "text": "and with probability 0.3 we go to the other one. If you're in state W, you stay in state W, so there will be a self-loop with probability 1. It's an absorbing state: once you get there, you stay there.",
    "fr": "et avec probabilité 0,3 on passe à l'autre. Si on est dans l'état W, on reste dans l'état W, donc il y aura une boucle sur lui-même avec probabilité 1. C'est un état absorbant : une fois qu'on y est, on y reste.",
    "readable": "and with probability 0.3 we move to the other one. Running in W keeps the machine in W, a self-loop with probability 1: under running, W is absorbing, and once there we stay there.",
    "readable_fr": "et avec probabilité 0,3 on passe à l'autre. Faire tourner la machine en W la garde en W, une boucle avec probabilité 1 : sous l'action de faire tourner, W est absorbant, et une fois qu'on y est, on y reste."
   },
   {
-   "t": 2866640,
-   "text": "The repair action can be applied in both cases, and then you've got to pay a cost of minus one. And if you apply the repair action, it's the only way that can get you out of the worn state: it's going to bring you back to the good state. So then we're going to ask you here to compute the value function for this MDP, and then to look also at the structure of the corresponding policy.",
-   "fr": "L'action de réparer peut s'appliquer dans les deux cas, et on paie alors un coût, une récompense de moins un. Et l'action de réparer est la seule façon de sortir de l'état usé : elle nous ramène à l'état bon. Ensuite, on vous demande ici de calculer la fonction de valeur de ce MDP, puis d'examiner aussi la structure de la politique correspondante.",
-   "readable": "Repair can be applied in either state, with reward \\(-1\\). It is the only way out of the worn state: it brings the machine back to good. The question asks for the value function of this MDP and then for the structure of the corresponding policy.",
-   "readable_fr": "On peut réparer dans l'un ou l'autre état, avec une récompense de \\(-1\\). C'est la seule façon de sortir de l'état usé : la réparation ramène la machine à l'état bon. La question demande la fonction de valeur de ce MDP, puis la structure de la politique correspondante."
+   "t": 2676623,
+   "text": "The repair action can be applied in both cases, and then you've got to pay a cost of minus one. And if you apply the repair action, it's the only way that can get you out of the worn state: it's going to bring you back to the good state. So then we're going to ask you here to compute the value function for this MDP, and then to look also at the structure of the corresponding policy. If you want, we can take a 10-minute break now and we'll work it out, but realistically I'll have to skip some content afterwards. Some of it is not needed, so I'm going to go a bit faster afterwards, okay? So just take a 10-minute break, and then we're going to try to go over the rest.",
+   "fr": "L'action de réparer peut s'appliquer dans les deux cas, et on paie alors un coût, une récompense de moins un. Et l'action de réparer est la seule façon de sortir de l'état usé : elle nous ramène à l'état bon. Ensuite, on vous demande ici de calculer la fonction de valeur de ce MDP, puis d'examiner aussi la structure de la politique correspondante. Si vous voulez, on peut prendre une pause de 10 minutes maintenant et on le résoudra ensuite, mais réalistement, je devrai sauter du contenu après. Une partie n'est pas nécessaire, donc je vais aller un peu plus vite ensuite, d'accord ? Prenez donc une pause de 10 minutes, et ensuite on va essayer de couvrir le reste.",
+   "readable": "Repair can be applied in either state, with reward \\(-1\\). It is the only way out of the worn state: it brings the machine back to good. The question asks for the value function of this MDP and then for the structure of the corresponding policy. Let us take a ten-minute break now and work this out afterward. Realistically, I will have to skip some content later; part of it is not needed, so I will go a bit faster. Take ten minutes, and then we will try to cover the rest.",
+   "readable_fr": "On peut réparer dans l'un ou l'autre état, avec une récompense de \\(-1\\). C'est la seule façon de sortir de l'état usé : la réparation ramène la machine à l'état bon. La question demande la fonction de valeur de ce MDP, puis la structure de la politique correspondante. Prenons une pause de dix minutes maintenant, et on résoudra cela ensuite. Réalistement, je devrai sauter du contenu plus tard ; une partie n'est pas nécessaire, donc j'irai un peu plus vite. Prenez dix minutes, puis on essaiera de couvrir le reste."
   },
   {
-   "t": 2910300,
-   "text": "If you want, we can take a 10-minute break now and we'll work it out, but realistically I'll have to skip some content afterwards. Some of it is not needed, so I'm going to go a bit faster afterwards, okay? So just take a 10-minute break, and then we're going to try to go over the rest.",
-   "fr": "Si vous voulez, on peut prendre une pause de 10 minutes maintenant et on le résoudra ensuite, mais réalistement, je devrai sauter du contenu après. Une partie n'est pas nécessaire, donc je vais aller un peu plus vite ensuite, d'accord ? Prenez donc une pause de 10 minutes, et ensuite on va essayer de couvrir le reste.",
-   "readable": "Let us take a ten-minute break now and work this out afterward. Realistically, I will have to skip some content later; part of it is not needed, so I will go a bit faster. Take ten minutes, and then we will try to cover the rest.",
-   "readable_fr": "Prenons une pause de dix minutes maintenant, et on résoudra cela ensuite. Réalistement, je devrai sauter du contenu plus tard ; une partie n'est pas nécessaire, donc j'irai un peu plus vite. Prenez dix minutes, puis on essaiera de couvrir le reste."
-  },
-  {
-   "t": 2944680,
-   "text": "[Break]",
-   "fr": "[Break]",
-   "readable": "[Break]",
-   "readable_fr": "[Break]"
-  },
-  {
-   "t": 3020340,
-   "text": "[Break]",
-   "fr": "[Break]",
-   "readable": "[Break]",
-   "readable_fr": "[Break]"
-  },
-  {
-   "t": 3071060,
-   "text": "[Break]",
-   "fr": "[Break]",
-   "readable": "[Break]",
-   "readable_fr": "[Break]"
-  },
-  {
-   "t": 3107859,
-   "text": "[Break]",
-   "fr": "[Break]",
-   "readable": "[Break]",
-   "readable_fr": "[Break]"
-  },
-  {
-   "t": 3185779,
-   "text": "[Break]",
-   "fr": "[Break]",
-   "readable": "[Break]",
-   "readable_fr": "[Break]"
-  },
-  {
-   "t": 3221160,
-   "text": "[Break]",
-   "fr": "[Break]",
-   "readable": "[Break]",
-   "readable_fr": "[Break]"
-  },
-  {
-   "t": 3279640,
-   "text": "[Break]",
-   "fr": "[Break]",
-   "readable": "[Break]",
-   "readable_fr": "[Break]"
-  },
-  {
-   "t": 3317620,
-   "text": "[Break]",
-   "fr": "[Break]",
-   "readable": "[Break]",
-   "readable_fr": "[Break]"
-  },
-  {
-   "t": 3366120,
-   "text": "[Break]",
-   "fr": "[Break]",
-   "readable": "[Break]",
-   "readable_fr": "[Break]"
-  },
-  {
-   "t": 3400520,
-   "text": "[Break]",
-   "fr": "[Break]",
-   "readable": "[Break]",
-   "readable_fr": "[Break]"
-  },
-  {
-   "t": 3433560,
-   "text": "[Break]",
-   "fr": "[Break]",
-   "readable": "[Break]",
-   "readable_fr": "[Break]"
-  },
-  {
-   "t": 3470419,
-   "text": "[Break]",
-   "fr": "[Break]",
-   "readable": "[Break]",
-   "readable_fr": "[Break]"
-  },
-  {
-   "t": 3647540,
+   "t": 2743523,
    "text": "Okay. So I was scrolling over the questions. I think I'm going to skip the replacement question because realistically I'm not going to have time. But it's in the same flavor as the other questions we did earlier, where you work out the Bellman equation and write it down explicitly. Okay. Let's go with some things I need you to understand. So policies can be Markovian or history dependent, deterministic or randomized.",
    "fr": "Bon. J'ai parcouru les questions. Je pense que je vais sauter la question sur le remplacement, parce que, de façon réaliste, je n'aurai pas le temps. Mais elle est dans le même esprit que les autres questions qu'on a faites plus tôt, où on développe l'équation de Bellman et on l'écrit explicitement. Bon. Passons à des choses que j'ai besoin que vous compreniez. Les politiques peuvent être markoviennes ou dépendre de l'historique, déterministes ou randomisées.",
    "readable": "I looked over the remaining questions, and I will skip the replacement question for lack of time. It is in the same spirit as the earlier ones: you write out the Bellman equation explicitly and solve it. Let us turn to some points you need to understand. Policies can be Markovian or history dependent, and deterministic or randomized.",
    "readable_fr": "J'ai parcouru les questions restantes, et je vais sauter la question sur le remplacement, faute de temps. Elle est dans le même esprit que les précédentes : on écrit explicitement l'équation de Bellman et on la résout. Passons à quelques points que vous devez comprendre. Les politiques peuvent être markoviennes ou dépendre de l'historique, et déterministes ou randomisées."
   },
   {
-   "t": 3682680,
+   "t": 2778663,
    "text": "Which statement is correct for a finite horizon MDP with finite states and actions? Is it true that history-dependent randomized, HR, policies can do strictly better because they use more information? Strictly better. Is it true? \\(\\Pi^{MD}\\), the class of all possible Markovian deterministic policies, is a subset of the history-dependent randomized policies,",
    "fr": "Quel énoncé est correct pour un MDP à horizon fini avec des états et des actions finis ? Est-il vrai que les politiques randomisées dépendant de l'historique, HR, peuvent faire strictement mieux parce qu'elles utilisent plus d'information ? Strictement mieux. Est-ce vrai ? \\(\\Pi^{MD}\\), la classe de toutes les politiques markoviennes déterministes possibles, est un sous-ensemble des politiques randomisées dépendant de l'historique,",
    "readable": "Which statement is correct for a finite-horizon MDP with finite states and actions? Option (a) claims that history-dependent randomized (HR) policies can do strictly better because they use more information. Is that true? Option (b) says that \\(\\Pi^{MD}\\), the class of all Markovian deterministic policies, is a subset of \\(\\Pi^{HR}\\),",
    "readable_fr": "Quel énoncé est correct pour un MDP à horizon fini avec des états et des actions finis ? L'option (a) affirme que les politiques randomisées dépendant de l'historique (HR) peuvent faire strictement mieux parce qu'elles utilisent plus d'information. Est-ce vrai ? L'option (b) dit que \\(\\Pi^{MD}\\), la classe de toutes les politiques markoviennes déterministes, est un sous-ensemble de \\(\\Pi^{HR}\\),"
   },
   {
-   "t": 3716820,
+   "t": 2812803,
    "text": "and the maximum you can get in the class of history-dependent randomized policies is obtained by a policy that actually lives in the class of Markovian deterministic policies. There's a lot to unpack here. And that policy, which attains the supremum, is in general non-stationary, with one decision rule per stage.",
    "fr": "et le maximum qu'on peut obtenir dans la classe des politiques randomisées dépendant de l'historique est atteint par une politique qui vit en fait dans la classe des politiques markoviennes déterministes. Il y a beaucoup de choses à démêler ici. Et cette politique, qui atteint le supremum, est en général non stationnaire, avec une règle de décision par étape.",
    "readable": "and that the supremum over \\(\\Pi^{HR}\\) is attained by a policy in \\(\\Pi^{MD}\\). There is a lot to unpack here. That maximizing policy is in general non-stationary, with one decision rule per stage.",
    "readable_fr": "et que le supremum sur \\(\\Pi^{HR}\\) est atteint par une politique de \\(\\Pi^{MD}\\). Il y a beaucoup à démêler ici. Cette politique maximisante est en général non stationnaire, avec une règle de décision par étape."
   },
   {
-   "t": 3749280,
+   "t": 2845263,
    "text": "Same thing as usual: the longest statement is the actual answer. Let's just read the other ones. An optimal policy exists in... so what's important here is that the statement says finite horizon MDP, and if we say that, then an optimal policy exists in Markovian deterministic, yeah, that's true, and is always stationary: this is not true. This is not true. Randomized policies are needed whenever the transitions are random: not at all. In fact, that's a remarkable fact of the theory here. Even with stochastic transitions, your optimal policy is still deterministic. It's kind of weird. So yeah, the answer here is B. So if you've got Markovian dynamics and rewards, then you don't need to maintain the history, so you can",
    "fr": "Comme d'habitude : l'énoncé le plus long est la bonne réponse. Lisons quand même les autres. Une politique optimale existe dans... ce qui est important ici, c'est que l'énoncé dit MDP à horizon fini, et si on dit ça, alors une politique optimale existe parmi les markoviennes déterministes, oui, c'est vrai, et elle est toujours stationnaire : ça, ce n'est pas vrai. Ce n'est pas vrai. Les politiques randomisées sont nécessaires dès que les transitions sont aléatoires : pas du tout. En fait, c'est un fait remarquable de cette théorie. Même avec des transitions stochastiques, votre politique optimale reste déterministe. C'est un peu étrange. Donc la réponse ici est B. Si on a une dynamique et des récompenses markoviennes, on n'a pas besoin de conserver l'historique, donc on peut",
    "readable": "As usual, the longest statement is the answer, but let us check the others. Option (c) says an optimal policy exists in the Markovian deterministic class and is always stationary. Existence is true, but in a finite-horizon MDP the policy is not stationary in general. Option (d) says randomized policies are needed whenever transitions are random. Not at all: a remarkable fact of the theory is that even with stochastic transitions, an optimal policy can be taken deterministic, which may seem surprising. The answer is (b). With Markovian dynamics and rewards there is no need to keep the history, so we can",
    "readable_fr": "Comme d'habitude, l'énoncé le plus long est la réponse, mais vérifions les autres. L'option (c) dit qu'une politique optimale existe dans la classe markovienne déterministe et qu'elle est toujours stationnaire. L'existence est vraie, mais dans un MDP à horizon fini la politique n'est en général pas stationnaire. L'option (d) dit que les politiques randomisées sont nécessaires dès que les transitions sont aléatoires. Pas du tout : un fait remarquable de la théorie est que, même avec des transitions stochastiques, on peut prendre une politique optimale déterministe, ce qui peut surprendre. La réponse est (b). Avec une dynamique et des récompenses markoviennes, il n'est pas nécessaire de conserver l'historique, donc on peut"
   },
   {
-   "t": 3815460,
+   "t": 2911443,
    "text": "have Markovian decision rules, and that's it. Next. Okay, this one is interesting. Here you've got two policies on a two-state problem, and the expected returns for these two policies are (3, 5) and (4, 4). Which of \\(\\pi_A\\) and \\(\\pi_B\\) is better, \\(\\pi_A\\) or \\(\\pi_B\\)? What do you think? Is it \\(\\pi_A\\) because 3 plus 5 is larger? There's nothing to that. Is it \\(\\pi_B\\) because the worst case is larger? Doesn't make sense either.",
    "fr": "avoir des règles de décision markoviennes, et c'est tout. Suivante. Bon, celle-ci est intéressante. Ici on a deux politiques sur un problème à deux états, et les rendements espérés de ces deux politiques sont (3, 5) et (4, 4). Laquelle de \\(\\pi_A\\) et \\(\\pi_B\\) est meilleure, \\(\\pi_A\\) ou \\(\\pi_B\\) ? Qu'en pensez-vous ? Est-ce \\(\\pi_A\\) parce que 3 plus 5 est plus grand ? Ça ne tient pas. Est-ce \\(\\pi_B\\) parce que le pire cas est plus grand ? Ça n'a pas de sens non plus.",
    "readable": "use Markovian decision rules. Next question, an interesting one. Two policies on a two-state problem have expected returns \\(v^{\\pi_A} = (3, 5)\\) and \\(v^{\\pi_B} = (4, 4)\\). Which is better? Is it \\(\\pi_A\\) because \\(3 + 5\\) is larger? That has no basis. Is it \\(\\pi_B\\) because its worst case is larger? That does not make sense either.",
    "readable_fr": "utiliser des règles de décision markoviennes. Question suivante, intéressante. Deux politiques sur un problème à deux états ont pour rendements espérés \\(v^{\\pi_A} = (3, 5)\\) et \\(v^{\\pi_B} = (4, 4)\\). Laquelle est meilleure ? Est-ce \\(\\pi_A\\) parce que \\(3 + 5\\) est plus grand ? Cela n'a aucun fondement. Est-ce \\(\\pi_B\\) parce que son pire cas est plus grand ? Cela n'a pas de sens non plus."
   },
   {
-   "t": 3876660,
+   "t": 2972643,
    "text": "Neither, because under the componentwise partial order the two are not comparable; an optimal policy must be at least as good as both in every state. Or they are equally good, since 3 plus 5 is equal to 4 plus 4. What do you think is the right answer? Are they the same? C, yes, because the way we compare policies is with that componentwise partial order, and it happens that here is a case where things are not comparable.",
    "fr": "Aucune des deux, parce que sous l'ordre partiel composante par composante les deux ne sont pas comparables ; une politique optimale doit être au moins aussi bonne que les deux dans chaque état. Ou bien elles sont aussi bonnes l'une que l'autre, puisque 3 plus 5 égale 4 plus 4. Selon vous, quelle est la bonne réponse ? Sont-elles pareilles ? C, oui, parce que la façon dont on compare les politiques, c'est avec cet ordre partiel composante par composante, et il se trouve qu'ici on a un cas où elles ne sont pas comparables.",
    "readable": "Option (c) says neither: under the componentwise partial order the two are not comparable, and an optimal policy must be at least as good as both in every state. Option (d) says they are equally good, since \\(3 + 5 = 4 + 4\\). The answer is (c). We compare policies with the componentwise partial order, and this is a case where the two are not comparable.",
    "readable_fr": "L'option (c) dit aucune des deux : sous l'ordre partiel composante par composante, les deux ne sont pas comparables, et une politique optimale doit être au moins aussi bonne que les deux dans chaque état. L'option (d) dit qu'elles sont aussi bonnes l'une que l'autre, puisque \\(3 + 5 = 4 + 4\\). La réponse est (c). On compare les politiques avec l'ordre partiel composante par composante, et voici un cas où les deux ne sont pas comparables."
   },
   {
-   "t": 3912460,
+   "t": 3008443,
    "text": "This is why it's called a partial order. You can come up with these pairs where things are not comparable. But what's remarkable with the theory of MDPs is that we know there is actually a policy which dominates every other possible policy. So even though we pick a componentwise partial order, in that partial order there still exists a policy that is optimal, in the sense that it's at least as good as any other policy. Okay, that one we haven't really talked much about, except orally: when you have the Bellman equation and things are stochastic, you can estimate the expected next value with a little simulation. I might have just said orally that you could do such a thing. We'll come back to this actually",
    "fr": "C'est pour ça qu'on l'appelle un ordre partiel. On peut trouver de telles paires qui ne sont pas comparables. Mais ce qui est remarquable avec la théorie des MDP, c'est qu'on sait qu'il existe en fait une politique qui domine toutes les autres politiques possibles. Donc même si on choisit un ordre partiel composante par composante, dans cet ordre partiel il existe quand même une politique optimale, au sens où elle est au moins aussi bonne que n'importe quelle autre politique. Bon, celle-là, on n'en a pas vraiment beaucoup parlé, sauf oralement : quand on a l'équation de Bellman et que les choses sont stochastiques, on peut estimer la valeur suivante espérée avec une petite simulation. J'ai peut-être seulement dit oralement qu'on pouvait faire ça. On va y revenir en fait",
    "readable": "This is why it is called a partial order: some pairs are not comparable. The remarkable result of MDP theory is that there nevertheless exists a policy that dominates every other policy. Even under a componentwise partial order, an optimal policy exists, at least as good as any other in every state. The next question covers something we discussed only briefly in class: when the Bellman equation involves randomness, the expected next value can be estimated by simulation. I may have mentioned it only in passing. We will come back to it",
    "readable_fr": "C'est pour cela qu'on parle d'ordre partiel : certaines paires ne sont pas comparables. Le résultat remarquable de la théorie des MDP est qu'il existe malgré tout une politique qui domine toutes les autres. Même sous un ordre partiel composante par composante, une politique optimale existe, au moins aussi bonne que toute autre dans chaque état. La question suivante porte sur un point qu'on n'a abordé que brièvement en classe : quand l'équation de Bellman fait intervenir de l'aléa, on peut estimer la valeur suivante espérée par simulation. Je l'ai peut-être seulement mentionné en passant. On y reviendra"
   },
   {
-   "t": 3975160,
+   "t": 3071143,
    "text": "after the exam, so we can skip that one if you want. This one is good; make sure you understand it and remember it. I'm going to give you two minutes to think about it. You've got a reward function whose absolute value is bounded by 2, the discount factor is 0.95, and my question to you is: give me an upper bound on the absolute value in any given state. In the statement I should have written for all states and actions it's upper bounded by 2. So just look at the options you've got there and see which one makes sense. Oh, by the way, this is under the section infinite horizon, so the question here is for infinite",
    "fr": "après l'examen, donc on peut sauter celle-là si vous voulez. Celle-ci est bonne ; assurez-vous de la comprendre et de vous en souvenir. Je vais vous donner deux minutes pour y réfléchir. On a une fonction de récompense dont la valeur absolue est bornée par 2, le facteur d'actualisation est 0,95, et ma question est : donnez-moi une borne supérieure sur la valeur absolue dans un état donné. Dans l'énoncé, j'aurais dû écrire que pour tous les états et toutes les actions, elle est bornée par 2. Regardez simplement les options et voyez laquelle a du sens. Ah, au fait, c'est dans la section horizon infini, donc la question ici porte sur l'horizon",
    "readable": "after the exam, so we can skip it. The next one is important; make sure you understand and remember it. Take two minutes. Rewards satisfy \\(|r(s,a)| \\le 2\\) (the statement should say for all states and actions) and \\(\\gamma = 0.95\\). Give an upper bound on \\(|v^\\pi(s)|\\) in any state. Look at the options and see which one makes sense. Note that this question is in the infinite-horizon section, so it concerns the infinite",
    "readable_fr": "après l'examen, donc on peut la sauter. La suivante est importante ; assurez-vous de la comprendre et de la retenir. Prenez deux minutes. Les récompenses satisfont \\(|r(s,a)| \\le 2\\) (l'énoncé devrait préciser pour tous les états et toutes les actions) et \\(\\gamma = 0.95\\). Donnez une borne supérieure sur \\(|v^\\pi(s)|\\) dans n'importe quel état. Regardez les options et voyez laquelle a du sens. Notez que cette question est dans la section sur l'horizon infini, elle porte donc sur l'horizon"
   },
   {
-   "t": 4038240,
+   "t": 3134223,
    "text": "horizon. Let me tell you right off the bat that the answer is not C. It's not because you're in infinite horizon that this thing is going to blow up, because, as you know, gamma of 0.95 is what helps us here. Option D is just random stuff, so I'm not even going to comment on that one. So the question here is A or B: which one is the right one, and mostly why?",
    "fr": "infini. Je vous le dis tout de suite, la réponse n'est pas C. Ce n'est pas parce qu'on est à horizon infini que ça va exploser, parce que, comme vous le savez, le gamma de 0,95 est ce qui nous aide ici. L'option D, c'est n'importe quoi, donc je ne vais même pas la commenter. La question est donc A ou B : laquelle est la bonne, et surtout pourquoi ?",
    "readable": "horizon. The answer is not (c): an infinite horizon does not make the values blow up, because \\(\\gamma = 0.95\\) keeps them finite. Option (d) is a distractor I will not comment on. So it is (a) or (b): which one, and above all why?",
    "readable_fr": "infini. La réponse n'est pas (c) : un horizon infini ne fait pas exploser les valeurs, parce que \\(\\gamma = 0.95\\) les garde finies. L'option (d) est un leurre que je ne commenterai pas. C'est donc (a) ou (b) : laquelle, et surtout pourquoi ?"
   },
   {
-   "t": 4101920,
+   "t": 3197903,
    "text": "If I ask you: what is the effective horizon of an MDP? Remember that formula? It's maybe the one thing you need to memorize, or write down on your cheat sheet. What is the effective horizon of an MDP? It's? 1 over 1 minus gamma. That's good. So this is what you've seen in class. Maybe the only bit I haven't shown, and maybe I should include it in my notes, is what happens if you also have an upper bound on the maximum immediate reward you can get. That's going to help you upper bound the expected return. Why?",
    "fr": "Si je vous demande : quel est l'horizon effectif d'un MDP ? Vous vous souvenez de la formule ? C'est peut-être la seule chose à mémoriser, ou à écrire sur votre aide-mémoire. Quel est l'horizon effectif d'un MDP ? C'est ? 1 sur 1 moins gamma. C'est bien. C'est ce que vous avez vu en classe. Le seul élément que je n'ai peut-être pas montré, et je devrais peut-être l'ajouter à mes notes, c'est ce qui se passe si on a aussi une borne supérieure sur la récompense immédiate maximale qu'on peut obtenir. Ça va vous aider à borner le rendement espéré. Pourquoi ?",
    "readable": "What is the effective horizon of an MDP? It is perhaps the one formula worth memorizing or putting on your cheat sheet: \\(1/(1-\\gamma)\\). You have seen this in class. What I may not have shown, and perhaps should add to the notes, is that a bound on the immediate reward also bounds the expected return. Why?",
    "readable_fr": "Quel est l'horizon effectif d'un MDP ? C'est peut-être la seule formule à mémoriser ou à mettre sur votre aide-mémoire : \\(1/(1-\\gamma)\\). Vous l'avez vu en classe. Ce que je n'ai peut-être pas montré, et que je devrais peut-être ajouter aux notes, c'est qu'une borne sur la récompense immédiate borne aussi le rendement espéré. Pourquoi ?"
   },
   {
-   "t": 4135660,
+   "t": 3231643,
    "text": "Because, well, first of all, it's not going to be B, right? The one that looks the most like the effective horizon is this one. Basically what we see here is this constant; we sometimes write it as \\(R_{\\max}\\) over 1 minus gamma. And you can convince yourself that this is the right upper bound. If you take the expectation along this process, then you get the upper bound, which is \\(R_{\\max}\\) over this value over there, which here, if you compute it, gives you 40 in every state.",
    "fr": "Parce que, d'abord, ce ne sera pas B, n'est-ce pas ? Celle qui ressemble le plus à l'horizon effectif, c'est celle-ci. En gros, ce qu'on voit ici, c'est cette constante ; on l'écrit parfois \\(R_{\\max}\\) sur 1 moins gamma. Et vous pouvez vous convaincre que c'est la bonne borne supérieure. Si on prend l'espérance le long de ce processus, on obtient la borne supérieure, qui est \\(R_{\\max}\\) divisé par cette valeur-là, ce qui ici, si on calcule, donne 40 dans chaque état.",
    "readable": "First, it is not (b). Option (a) is the one that resembles the effective horizon: the constant \\(R_{\\max}/(1-\\gamma)\\). You can check that it is the right bound: taking expectations along the process gives \\(|v^\\pi(s)| \\le R_{\\max}/(1-\\gamma) = 2/0.05 = 40\\) in every state.",
    "readable_fr": "D'abord, ce n'est pas (b). L'option (a) est celle qui rappelle l'horizon effectif : la constante \\(R_{\\max}/(1-\\gamma)\\). On peut vérifier que c'est la bonne borne : en prenant l'espérance le long du processus, on obtient \\(|v^\\pi(s)| \\le R_{\\max}/(1-\\gamma) = 2/0.05 = 40\\) dans chaque état."
   },
   {
-   "t": 4174900,
+   "t": 3270883,
    "text": "So the upper bound here is 40. Okay, so remember that one. This one I'm not going to work out with you again because I don't have time, but here, when you look at this transition matrix, this row over there is special because it's an absorbing state, which means that if you're in state, it depends how you label them, but let's say state A and B.",
    "fr": "Donc la borne supérieure ici est 40. Bon, retenez celle-là. Celle-ci, je ne vais pas la refaire avec vous parce que je n'ai pas le temps, mais ici, quand on regarde cette matrice de transition, cette ligne-là est particulière parce que c'est un état absorbant, ce qui veut dire que si on est dans l'état, ça dépend comment on les nomme, mais disons les états A et B.",
    "readable": "So the upper bound here is 40; remember that one. I will not work through the next question again for lack of time. Look at its transition matrix: one row is special because it describes an absorbing state. Depending on how you label the states, say we have states A and B.",
    "readable_fr": "La borne supérieure ici est donc 40 ; retenez-la. Je ne referai pas la question suivante, faute de temps. Regardez sa matrice de transition : une des lignes est particulière parce qu'elle décrit un état absorbant. Selon la façon dont on nomme les états, disons qu'on a les états A et B."
   },
   {
-   "t": 4210880,
+   "t": 3306863,
    "text": "If you're in state B, you stay in state B forever. So it's an absorbing state. Then because of that structure, you can work out the math a bit more easily, and you don't actually have to solve this thing using Gaussian elimination. All you've got to do is write down the Bellman equation, well, the policy evaluation equation, which is basically this: the value function of the state is equal to r plus gamma P v. And then you can work it out directly from this system. This is what the solution shows you. So have a look at the solution, but it's small numbers you can work out. Maybe what's more important, well, this you can just write down on your cheat sheet, is the Neumann series expansion. So the value function writes as this infinite sum here. It's pretty important, you've got to remember this guy: the sum of gamma P to the power t, this thing",
    "fr": "Si on est dans l'état B, on reste dans l'état B pour toujours. C'est donc un état absorbant. Grâce à cette structure, on peut faire le calcul un peu plus facilement, et on n'a pas besoin de résoudre ce système par élimination de Gauss. Il suffit d'écrire l'équation de Bellman, enfin, l'équation d'évaluation de politique, qui est essentiellement ceci : la fonction de valeur de l'état est égale à r plus gamma P v. Ensuite, on peut la résoudre directement à partir de ce système. C'est ce que montre la solution. Donc regardez la solution, ce sont de petits nombres qu'on peut calculer. Ce qui est peut-être plus important, et ça vous pouvez simplement l'écrire sur votre aide-mémoire, c'est le développement en série de Neumann. La fonction de valeur s'écrit comme cette somme infinie ici. C'est assez important, il faut retenir celle-là : la somme de gamma P à la puissance t, cette chose",
    "readable": "If you are in state B, you stay there forever: it is absorbing. This structure makes the algebra easier, and you do not need Gaussian elimination. Write down the policy evaluation equation, \\( v = r + \\gamma P v \\), and solve this small system directly, as the solution shows; the numbers are small enough to work by hand. More important, and worth putting on your cheat sheet, is the Neumann series expansion, which writes the value function as an infinite sum. Remember this one: the sum \\( \\sum_t (\\gamma P)^t \\)",
    "readable_fr": "Si on est dans l'état B, on y reste pour toujours : il est absorbant. Cette structure simplifie l'algèbre, et on n'a pas besoin de l'élimination de Gauss. On écrit l'équation d'évaluation de politique, \\( v = r + \\gamma P v \\), et on résout directement ce petit système, comme le montre la solution ; les nombres sont assez petits pour un calcul à la main. Plus important, et à mettre sur votre aide-mémoire : le développement en série de Neumann, qui écrit la fonction de valeur comme une somme infinie. Retenez celle-ci : la somme \\( \\sum_t (\\gamma P)^t \\)"
   },
   {
-   "t": 4278480,
+   "t": 3374463,
    "text": "is equal to this inverse, and this inverse exists when the spectral radius of gamma P pi is strictly less than one. And under those conditions, this series exists and is equal to the inverse. Okay. All right. Which statement about the Banach fixed-point theorem is correct? An operator that is not a contraction has no fixed point.",
    "fr": "est égale à cet inverse, et cet inverse existe quand le rayon spectral de gamma P pi est strictement inférieur à un. Dans ces conditions, cette série existe et est égale à l'inverse. D'accord. Bon. Quel énoncé sur le théorème du point fixe de Banach est correct ? Un opérateur qui n'est pas une contraction n'a pas de point fixe.",
    "readable": "equals the inverse \\( (I - \\gamma P_\\pi)^{-1} \\), which exists when the spectral radius of \\( \\gamma P_\\pi \\) is strictly less than one. Under that condition the series converges to the inverse. Next question: which statement about the Banach fixed-point theorem is correct? First option: an operator that is not a contraction has no fixed point.",
    "readable_fr": "est égale à l'inverse \\( (I - \\gamma P_\\pi)^{-1} \\), qui existe quand le rayon spectral de \\( \\gamma P_\\pi \\) est strictement inférieur à un. Sous cette condition, la série converge vers l'inverse. Question suivante : quel énoncé sur le théorème du point fixe de Banach est correct ? Première option : un opérateur qui n'est pas une contraction n'a pas de point fixe."
   },
   {
-   "t": 4313160,
+   "t": 3409143,
    "text": "Is this true or false? It is false. The notion of a fixed point is not the exclusive domain of contraction mappings. That being said, establishing that something is a contraction then helps us establish that there is a unique fixed point of that operator, which is the Banach fixed-point theorem.",
    "fr": "Est-ce vrai ou faux ? C'est faux. La notion de point fixe n'est pas le domaine exclusif des applications contractantes. Cela dit, établir que quelque chose est une contraction nous aide ensuite à établir que cet opérateur a un unique point fixe, ce qui est le théorème du point fixe de Banach.",
    "readable": "True or false? False. Fixed points are not exclusive to contraction mappings. Still, showing that an operator is a contraction is what lets us conclude that it has a unique fixed point: that is the Banach fixed-point theorem.",
    "readable_fr": "Vrai ou faux ? Faux. Les points fixes ne sont pas réservés aux applications contractantes. Cependant, montrer qu'un opérateur est une contraction est ce qui permet de conclure qu'il a un unique point fixe : c'est le théorème du point fixe de Banach."
   },
   {
-   "t": 4349239,
+   "t": 3445222,
    "text": "A contraction has a fixed point, yeah, that's true. But successive approximation only finds it from a good initial guess: this part is false. One of the beauties of it is that we can start from a random guess and it's going to make its way to the right solution, up to the numerical precision that we've allowed our procedure.",
    "fr": "Une contraction a un point fixe, oui, c'est vrai. Mais l'approximation successive ne le trouve qu'à partir d'une bonne estimation initiale : cette partie est fausse. Une des beautés de la chose, c'est qu'on peut partir d'une estimation aléatoire et la méthode va se rendre jusqu'à la bonne solution, à la précision numérique qu'on a permise à notre procédure.",
    "readable": "Option b: a contraction has a fixed point, which is true, but successive approximation finds it only from a good initial guess, which is false. The beauty of the method is that it reaches the solution from any starting point, even a random one, up to the numerical precision we allow.",
    "readable_fr": "Option b : une contraction a un point fixe, ce qui est vrai, mais l'approximation successive ne le trouve qu'à partir d'une bonne estimation initiale, ce qui est faux. La beauté de la méthode est qu'elle atteint la solution depuis n'importe quel point de départ, même aléatoire, à la précision numérique qu'on se donne."
   },
   {
-   "t": 4379600,
+   "t": 3475583,
    "text": "A contraction on a complete normed space has exactly one fixed point, and successive approximation converges to it from any starting point. Yeah, this is the statement of the Banach fixed-point theorem. Uniqueness of the fixed point is one important part. And the proof itself is the algorithm. Yeah. Clearly D is wrong: contraction in the sup norm implies contraction with the same factor in every norm on R n.",
    "fr": "Une contraction sur un espace normé complet a exactement un point fixe, et l'approximation successive converge vers lui à partir de n'importe quel point de départ. Oui, c'est l'énoncé du théorème du point fixe de Banach. L'unicité du point fixe en est une partie importante. Et la preuve elle-même est l'algorithme. Oui. Clairement, D est faux : une contraction pour la norme sup implique une contraction avec le même facteur pour toute norme sur R n.",
    "readable": "Option c: a contraction on a complete normed space has exactly one fixed point, and successive approximation converges to it from any starting point. This is the Banach fixed-point theorem. Uniqueness is one important part, and the proof itself is the algorithm. Option d is clearly wrong: it claims that a contraction in the sup norm is a contraction with the same factor in every norm on \\( \\mathbb{R}^n \\).",
    "readable_fr": "Option c : une contraction sur un espace normé complet a exactement un point fixe, et l'approximation successive converge vers lui depuis n'importe quel point de départ. C'est le théorème du point fixe de Banach. L'unicité en est une partie importante, et la preuve elle-même est l'algorithme. L'option d est clairement fausse : elle affirme qu'une contraction pour la norme sup est une contraction de même facteur pour toute norme sur \\( \\mathbb{R}^n \\)."
   },
   {
-   "t": 4415360,
+   "t": 3511343,
    "text": "No, actually. Contraction is a property that is established per norm and need not hold for other norms. This one is an example: you do value iteration by hand. Practice it again. Okay, this one is just a little conceptual thing to make sure you follow the notation and all that. So the Bellman optimality operator, we often write it down like this in matrix form.",
    "fr": "Non, en fait. La contraction est une propriété qui s'établit pour une norme donnée et qui n'est pas forcément vraie pour d'autres normes. Celle-ci est un exemple : on fait l'itération sur les valeurs à la main. Exercez-vous encore. Bon, celle-ci est juste une petite question conceptuelle pour vérifier que vous suivez la notation et tout ça. Donc l'opérateur d'optimalité de Bellman, on l'écrit souvent comme ceci, sous forme matricielle.",
    "readable": "It does not: contraction is established for a given norm and need not hold in other norms. The next question is a worked example of value iteration by hand; practice it again. The one after is a small conceptual check on notation. The Bellman optimality operator is often written in matrix form like this.",
    "readable_fr": "Non : la contraction s'établit pour une norme donnée et n'est pas forcément vraie pour d'autres normes. La question suivante est un exemple d'itération sur les valeurs à la main ; refaites-la. Celle d'après est une petite vérification conceptuelle de la notation. L'opérateur d'optimalité de Bellman s'écrit souvent sous forme matricielle, comme ceci."
   },
   {
-   "t": 4445600,
+   "t": 3541583,
    "text": "So the effect of applying L to a function v is a max. But see how I do the max? I take pi in the class of Markovian deterministic decision rules of whatever happens here. And then the question is, in practice, how do we compute this? This is the math, it's fine, it's correct. In practice, how do we do it? Do we enumerate all decision rules? The set of all possible deterministic Markovian decision rules is this big.",
    "fr": "Donc l'effet d'appliquer L à une fonction v est un max. Mais voyez comment je fais le max ? Je prends pi dans la classe des règles de décision markoviennes déterministes de ce qui se trouve ici. Et la question est : en pratique, comment calcule-t-on ça ? Ça, ce sont les mathématiques, c'est correct. En pratique, comment fait-on ? Est-ce qu'on énumère toutes les règles de décision ? L'ensemble de toutes les règles de décision markoviennes déterministes possibles est de cette taille.",
    "readable": "Applying \\( \\mathsf{L} \\) to \\( v \\) takes a max, and that max ranges over the class \\( \\Pi^{MD} \\) of Markovian deterministic decision rules: \\( \\mathsf{L}v = \\max_{\\pi \\in \\Pi^{MD}} \\{ r_\\pi + \\gamma P_\\pi v \\} \\). The math is correct, but how do we compute it in practice? Do we enumerate all decision rules? There are \\( |\\mathcal{A}|^{|\\mathcal{S}|} \\) of them.",
    "readable_fr": "Appliquer \\( \\mathsf{L} \\) à \\( v \\) revient à prendre un max, et ce max porte sur la classe \\( \\Pi^{MD} \\) des règles de décision markoviennes déterministes : \\( \\mathsf{L}v = \\max_{\\pi \\in \\Pi^{MD}} \\{ r_\\pi + \\gamma P_\\pi v \\} \\). Les mathématiques sont correctes, mais comment le calcule-t-on en pratique ? Énumère-t-on toutes les règles de décision ? Il y en a \\( |\\mathcal{A}|^{|\\mathcal{S}|} \\)."
   },
   {
-   "t": 4482960,
+   "t": 3578943,
    "text": "I don't want to do this, that's way too large. So clearly no, it's not how we do it. We do it state-wise, and we can do it state-wise because we compare policies component-wise. So the answer is B here. Okay, a little bit of code. It's good to keep looking at code even though we don't write it anymore.",
    "fr": "Je ne veux pas faire ça, c'est beaucoup trop grand. Donc clairement non, ce n'est pas comme ça qu'on fait. On le fait état par état, et on peut le faire état par état parce qu'on compare les politiques composante par composante. Donc la réponse ici est B. Bon, un peu de code. C'est bien de continuer à lire du code même si on n'en écrit plus.",
    "readable": "That is far too many, so no, this is not how it is done. We take the max state by state, which is valid because policies are compared componentwise. The answer is b. Next, a bit of code: it is good to keep reading code even if we no longer write it ourselves.",
    "readable_fr": "C'est beaucoup trop, donc non, ce n'est pas comme ça qu'on procède. On prend le max état par état, ce qui est valide parce que les politiques se comparent composante par composante. La réponse est b. Ensuite, un peu de code : c'est bien de continuer à lire du code même si on n'en écrit plus nous-mêmes."
   },
   {
-   "t": 4515460,
+   "t": 3611443,
    "text": "This is code for value iteration. Maybe conceptually it's not the best question, but we're going to look at it too. So I've organized P as an n-dimensional array: first dimension is the origin state, then action and successor state. It's a three-dimensional array. R is a matrix of S times A. And then we have a termination criterion, and the documentation of the procedure says that this is a procedure that gives us an epsilon-optimal policy.",
    "fr": "Voici du code pour l'itération sur les valeurs. Ce n'est peut-être pas la meilleure question sur le plan conceptuel, mais on va la regarder aussi. J'ai organisé P comme un tableau à n dimensions : la première dimension est l'état d'origine, puis l'action et l'état suivant. C'est un tableau à trois dimensions. R est une matrice S fois A. Ensuite, on a un critère d'arrêt, et la documentation de la procédure dit que c'est une procédure qui nous donne une politique epsilon-optimale.",
    "readable": "This is a value iteration routine. Conceptually it is not the strongest question, but let us look at it. \\( P \\) is a three-dimensional array indexed by origin state, action and successor state, and \\( R \\) is an \\( |\\mathcal{S}| \\times |\\mathcal{A}| \\) matrix. There is a termination criterion, and the docstring promises an \\( \\epsilon \\)-optimal policy.",
    "readable_fr": "Voici une routine d'itération sur les valeurs. Sur le plan conceptuel, ce n'est pas la meilleure question, mais regardons-la. \\( P \\) est un tableau à trois dimensions indexé par l'état d'origine, l'action et l'état suivant, et \\( R \\) est une matrice \\( |\\mathcal{S}| \\times |\\mathcal{A}| \\). Il y a un critère d'arrêt, et la documentation promet une politique \\( \\epsilon \\)-optimale."
   },
   {
-   "t": 4561200,
+   "t": 3657183,
    "text": "So then where's the problem in this code listing here? Okay, I initialize the value function from zeros, that's fine. I could have initialized it from a random value, that would have been fine too. And I have a loop, and then I break in that loop with some criterion; we'll come to this in a second. I compute Q, so this is the inside of the maximization, and I do R plus gamma P times v. If you remember, in NumPy, and I think in PyTorch it must be the same, you can do these things where P here is a multi-dimensional array and v is a vector.",
    "fr": "Alors où est le problème dans ce code ? Bon, j'initialise la fonction de valeur à zéro, c'est correct. J'aurais pu l'initialiser à une valeur aléatoire, ça aurait été correct aussi. Et j'ai une boucle, dont je sors selon un certain critère ; on y revient dans une seconde. Je calcule Q, c'est donc l'intérieur de la maximisation, et je fais R plus gamma P fois v. Si vous vous souvenez, en NumPy, et je pense qu'en PyTorch c'est pareil, on peut faire ce genre de choses où P est un tableau multidimensionnel et v est un vecteur.",
    "readable": "So where is the problem in this listing? Initializing the value function at zero is fine; a random initialization would also be fine. The loop exits on some criterion, which we will come back to. Inside, we compute \\( Q = R + \\gamma P v \\), the quantity inside the maximization. In NumPy, and I believe in PyTorch as well, this product works with \\( P \\) a multi-dimensional array and \\( v \\) a vector.",
    "readable_fr": "Où est donc le problème dans ce code ? Initialiser la fonction de valeur à zéro est correct ; une initialisation aléatoire le serait aussi. La boucle s'arrête selon un certain critère, sur lequel on reviendra. À l'intérieur, on calcule \\( Q = R + \\gamma P v \\), la quantité à l'intérieur de la maximisation. En NumPy, et je crois aussi en PyTorch, ce produit fonctionne avec \\( P \\) un tableau multidimensionnel et \\( v \\) un vecteur."
   },
   {
-   "t": 4619460,
+   "t": 3715443,
    "text": "It's going to use broadcasting rules, and for this to work you need the last dimension to match the first dimension of the other guy. So here we're good: these two dimensions match, so it should be fine. So then where is the problem? The problem is definitely, there's an issue here.",
    "fr": "Ça va utiliser les règles de diffusion, et pour que ça fonctionne, il faut que la dernière dimension corresponde à la première dimension de l'autre. Donc ici, ça va : ces deux dimensions correspondent, donc ça devrait être correct. Alors où est le problème ? Il y a clairement un problème ici.",
    "readable": "The product follows the broadcasting rules, which require the last dimension of the first operand to match the first dimension of the second. Here they match, so this line is fine. Where is the problem, then? There is definitely one here.",
    "readable_fr": "Le produit suit les règles de diffusion, qui exigent que la dernière dimension du premier opérande corresponde à la première dimension du second. Ici, elles correspondent, donc cette ligne est correcte. Où est donc le problème ? Il y en a clairement un ici."
   },
   {
-   "t": 4650040,
+   "t": 3746023,
    "text": "Because remember, we spent some time deriving a termination criterion for epsilon-optimality. And one of the takeaways is that you cannot naively just look at the error between two iterates, actually not even the error but the residual, the difference between two iterates, and conclude that when it's less than epsilon, you're epsilon-optimal. It's not how it works. So with the goal of implementing the procedure that is described, line three is not correct.",
    "fr": "Parce que, souvenez-vous, on a passé du temps à dériver un critère d'arrêt pour l'epsilon-optimalité. Et une des leçons, c'est qu'on ne peut pas naïvement regarder l'erreur entre deux itérés, en fait même pas l'erreur mais le résidu, la différence entre deux itérés, et conclure que lorsqu'elle est inférieure à epsilon, on est epsilon-optimal. Ce n'est pas comme ça que ça marche. Donc, pour implémenter la procédure décrite, la ligne trois n'est pas correcte.",
    "readable": "Recall that we derived a termination criterion for \\( \\epsilon \\)-optimality. One takeaway was that you cannot just check whether the residual, the difference between two successive iterates, is below \\( \\epsilon \\) and conclude that the result is \\( \\epsilon \\)-optimal. So, for the procedure as documented, line 3 is wrong.",
    "readable_fr": "Rappelez-vous qu'on a dérivé un critère d'arrêt pour l'\\( \\epsilon \\)-optimalité. Une des leçons était qu'on ne peut pas simplement vérifier que le résidu, la différence entre deux itérés successifs, est inférieur à \\( \\epsilon \\) et conclure que le résultat est \\( \\epsilon \\)-optimal. Pour la procédure telle que documentée, la ligne 3 est donc fausse."
   },
   {
-   "t": 4680079,
+   "t": 3776062,
    "text": "Then, by the way, here we do max along axis one. Why? Because Q is now a matrix of S times A. So when we take axis one, we're taking the max over the actions. So then line four is a mistake too, because when we extract the policy, we need to extract it from the argmax across the actions.",
    "fr": "Ensuite, au passage, ici on fait le max selon l'axe un. Pourquoi ? Parce que Q est maintenant une matrice S fois A. Donc quand on prend l'axe un, on prend le max sur les actions. Alors la ligne quatre est aussi une erreur, parce que quand on extrait la politique, il faut l'extraire de l'argmax sur les actions.",
    "readable": "Next, the max is taken along axis 1. Since \\( Q \\) is an \\( |\\mathcal{S}| \\times |\\mathcal{A}| \\) matrix, axis 1 indexes the actions, so this is the max over actions. Line 4 is also a mistake: the policy must be extracted with an argmax over the actions.",
    "readable_fr": "Ensuite, le max est pris selon l'axe 1. Comme \\( Q \\) est une matrice \\( |\\mathcal{S}| \\times |\\mathcal{A}| \\), l'axe 1 indexe les actions : c'est donc le max sur les actions. La ligne 4 est aussi une erreur : la politique doit être extraite par un argmax sur les actions."
   },
   {
-   "t": 4712740,
+   "t": 3808723,
    "text": "So this is fine, this is not the problem here, and this is the problem. Okay, that one is interesting. Question 19. You run value iteration with a discount factor of 0.9,",
    "fr": "Donc ceci est correct, ce n'est pas le problème ici, et ceci est le problème. Bon, celle-là est intéressante. Question 19. On exécute l'itération sur les valeurs avec un facteur d'actualisation de 0,9,",
    "readable": "So this part is fine and that one is the problem. The next one is interesting. Question 19: you run value iteration with discount factor \\( \\gamma = 0.9 \\)",
    "readable_fr": "Cette partie est donc correcte, et celle-là est le problème. La suivante est intéressante. Question 19 : on exécute l'itération sur les valeurs avec un facteur d'actualisation \\( \\gamma = 0{,}9 \\)"
   },
   {
-   "t": 4746679,
+   "t": 3842662,
    "text": "and then you get a solution which gives a Bellman residual of 0.02. So now what can we say about the distance to the actual optimal value function? We're going to have to come up with a way of bounding this, and it uses a property we talked about last time. You can't guess it just like this by staring at the answers, so we have to first find the, oops. We'll look at it together then.",
    "fr": "et on obtient une solution dont le résidu de Bellman est 0,02. Alors que peut-on dire de la distance à la vraie fonction de valeur optimale ? Il va falloir trouver une façon de la borner, et ça utilise une propriété dont on a parlé la dernière fois. On ne peut pas la deviner simplement en fixant les réponses, donc il faut d'abord trouver le, oups. On va la regarder ensemble, alors.",
    "readable": "and obtain an iterate whose Bellman residual is 0.02. What can we say about its distance to the optimal value function? We need a bound, and it relies on a property from last time. You cannot guess it by staring at the options, so let us work it out together.",
    "readable_fr": "et on obtient un itéré dont le résidu de Bellman vaut 0,02. Que peut-on dire de sa distance à la fonction de valeur optimale ? Il nous faut une borne, et elle repose sur une propriété vue la dernière fois. On ne peut pas la deviner en fixant les options, donc faisons-la ensemble."
   },
   {
-   "t": 4794680,
+   "t": 3890663,
    "text": "So what we're asking here is basically to bound this thing: the distance from whatever solution I found to my optimal value. And the way we do this is by applying the triangle inequality. I mean, there are lots of bounds you could come up with, but that's the most primitive one. So remember how the triangle inequality was working here: we first write this as v minus L v plus L v. I think maybe I had it before, no?",
    "fr": "Donc ce qu'on demande ici, c'est essentiellement de borner cette quantité : la distance entre la solution que j'ai trouvée et ma valeur optimale. Et la façon de le faire, c'est d'appliquer l'inégalité triangulaire. Il y a beaucoup de bornes possibles, mais c'est la plus élémentaire. Rappelez-vous comment l'inégalité triangulaire fonctionnait ici : on écrit d'abord ceci comme v moins L v plus L v. Je pense que je l'avais peut-être déjà, non ?",
    "readable": "We want to bound \\( \\|v - v^\\star\\|_\\infty \\), the distance from the iterate we found to the optimal value. The tool is the triangle inequality; many bounds are possible, but this is the most elementary one. Recall the trick: insert \\( \\mathsf{L}v \\), writing \\( v - v^\\star = (v - \\mathsf{L}v) + (\\mathsf{L}v - v^\\star) \\). I think I had this on an earlier slide.",
    "readable_fr": "On veut borner \\( \\|v - v^\\star\\|_\\infty \\), la distance entre l'itéré trouvé et la valeur optimale. L'outil est l'inégalité triangulaire ; beaucoup de bornes sont possibles, mais celle-ci est la plus élémentaire. Rappelez-vous l'astuce : on insère \\( \\mathsf{L}v \\), en écrivant \\( v - v^\\star = (v - \\mathsf{L}v) + (\\mathsf{L}v - v^\\star) \\). Je crois que je l'avais sur une diapositive précédente."
   },
   {
-   "t": 4847339,
+   "t": 3943322,
    "text": "Of course these two guys cancel out, but it's useful for the decomposition. And why do we write things this way? So this is an equality, right? This is an equality. Why is that the case?",
    "fr": "Bien sûr, ces deux termes s'annulent, mais c'est utile pour la décomposition. Et pourquoi écrit-on les choses ainsi ? C'est une égalité, n'est-ce pas ? C'est une égalité. Pourquoi est-ce le cas ?",
    "readable": "These two terms cancel, of course, but adding and subtracting them is what makes the decomposition work. Note that this is an equality. Why does it hold?",
    "readable_fr": "Ces deux termes s'annulent, bien sûr, mais c'est en les ajoutant et en les retranchant que la décomposition fonctionne. Remarquez qu'il s'agit d'une égalité. Pourquoi est-elle vraie ?"
   },
   {
-   "t": 4889740,
+   "t": 3985723,
    "text": "Of course these two things cancel. Why is that the case? Yeah, V star is equal to L V star. This is our fixed point, it's our optimal value. So these two terms are equal to one another. Afterwards we use the triangle inequality to decompose it into two parts: V minus LV, plus LV minus L V star. Okay? And then in the problem statement we have the residual, the Bellman residual. This is what we mean by Bellman residual: I have V and I apply the Bellman operator to it, and I ask how far it is from being equal on both sides.",
    "fr": "Bien sûr, ces deux termes s'annulent. Pourquoi est-ce le cas ? Oui, V étoile est égal à L V étoile. C'est notre point fixe, c'est notre valeur optimale. Donc ces deux termes sont égaux. Ensuite, on utilise l'inégalité triangulaire pour décomposer en deux parties : V moins LV, plus LV moins L V étoile. D'accord ? Et dans l'énoncé du problème, on a le résidu, le résidu de Bellman. C'est ce qu'on entend par résidu de Bellman : j'ai V, je lui applique l'opérateur de Bellman, et je me demande à quel point on est loin de l'égalité des deux côtés.",
    "readable": "The equality holds because \\(v^\\star = \\mathsf{L}v^\\star\\): the optimal value is the fixed point. We then apply the triangle inequality to split the distance into two parts, \\(\\|v - \\mathsf{L}v\\| + \\|\\mathsf{L}v - \\mathsf{L}v^\\star\\|\\). The first part is given in the problem statement: it is the Bellman residual, which measures how far \\(v\\) is from satisfying \\(v = \\mathsf{L}v\\).",
    "readable_fr": "L'égalité est vraie parce que \\(v^\\star = \\mathsf{L}v^\\star\\) : la valeur optimale est le point fixe. On applique ensuite l'inégalité triangulaire pour séparer la distance en deux parties, \\(\\|v - \\mathsf{L}v\\| + \\|\\mathsf{L}v - \\mathsf{L}v^\\star\\|\\). La première partie est donnée dans l'énoncé : c'est le résidu de Bellman, qui mesure à quel point \\(v\\) est loin de satisfaire \\(v = \\mathsf{L}v\\)."
   },
   {
-   "t": 4951820,
+   "t": 4047803,
    "text": "Okay? And for the second part over there, we do something clever, clever but not that far-fetched. We know that L is a contraction mapping, and the very definition of a contraction is: if you pick any two functions, call them u and v, pick your favorite names, any two vectors in finite spaces, the fact that it's a contraction means that there exists a constant, the contraction factor, which makes things behave this way.",
    "fr": "D'accord ? Et pour la deuxième partie, là, on fait quelque chose d'astucieux, astucieux mais pas si tiré par les cheveux. On sait que L est une contraction, et la définition même d'une contraction, c'est : si vous prenez deux fonctions quelconques, appelez-les u et v, choisissez vos noms préférés, deux vecteurs quelconques en dimension finie, le fait que ce soit une contraction veut dire qu'il existe une constante, le facteur de contraction, qui fait que les choses se comportent ainsi.",
    "readable": "For the second part we use a simple but effective argument. \\(\\mathsf{L}\\) is a contraction: for any two functions \\(u\\) and \\(v\\) (any two vectors, in the finite case), there is a constant \\(\\gamma < 1\\), the contraction factor, such that \\(\\|\\mathsf{L}u - \\mathsf{L}v\\| \\le \\gamma\\|u - v\\|\\).",
    "readable_fr": "Pour la deuxième partie, on utilise un argument simple mais efficace. \\(\\mathsf{L}\\) est une contraction : pour deux fonctions quelconques \\(u\\) et \\(v\\) (deux vecteurs quelconques, dans le cas fini), il existe une constante \\(\\gamma < 1\\), le facteur de contraction, telle que \\(\\|\\mathsf{L}u - \\mathsf{L}v\\| \\le \\gamma\\|u - v\\|\\)."
   },
   {
-   "t": 5015320,
+   "t": 4111303,
    "text": "And our contraction factor is 0.9 over there. So this just stems from the fact that L is a contraction. So with this, we can now compute the terms that we've got in our problem. And we were asking here for basically a bound on this thing over there.",
    "fr": "Et notre facteur de contraction est 0,9, là. Donc ça découle simplement du fait que L est une contraction. Avec ça, on peut maintenant calculer les termes de notre problème. Et on demandait ici, en gros, une borne sur cette quantité, là.",
    "readable": "Here the contraction factor is \\(\\gamma = 0.9\\). With these two pieces we can evaluate the terms of the problem, which asks for a bound on \\(\\|v - v^\\star\\|_\\infty\\).",
    "readable_fr": "Ici, le facteur de contraction est \\(\\gamma = 0.9\\). Avec ces deux éléments, on peut évaluer les termes du problème, qui demande une borne sur \\(\\|v - v^\\star\\|_\\infty\\)."
   },
   {
-   "t": 5045740,
+   "t": 4141723,
    "text": "We can move the second term to the left, reorder the terms, and then the solution in the end was 0.2. So you move the term that has v minus v star to the left side, where there is already v minus v star, and you get this term divided by this one over there: 0.2. But what I want you to appreciate here is the simplicity of this argument with the triangle inequality. Am I going to ask you this in the exam? I don't think so, but I think it's worth having it in mind when studying this. It's not a very involved proof. And perhaps what's interesting is that this is sometimes what we call a certificate.",
    "fr": "On peut déplacer le deuxième terme à gauche, réordonner les termes, et la solution au bout du compte était 0,2. Donc on déplace le terme qui contient v moins v étoile du côté gauche, où il y a déjà v moins v étoile, et on obtient ce terme divisé par celui-ci : 0,2. Mais ce que je veux que vous appréciiez ici, c'est la simplicité de cet argument avec l'inégalité triangulaire. Est-ce que je vais vous demander ça à l'examen ? Je ne pense pas, mais je pense que ça vaut la peine de l'avoir en tête en étudiant. Ce n'est pas une preuve très compliquée. Et ce qui est peut-être intéressant, c'est que c'est ce qu'on appelle parfois un certificat.",
    "readable": "Moving \\(\\gamma\\|v - v^\\star\\|\\) to the left-hand side gives \\((1 - 0.9)\\|v - v^\\star\\| \\le 0.02\\), so \\(\\|v - v^\\star\\| \\le 0.2\\). What I want you to appreciate is how simple this triangle-inequality argument is. I do not expect to ask it on the exam, but it is worth keeping in mind as you study. The bound is an example of what is sometimes called a certificate.",
    "readable_fr": "En déplaçant \\(\\gamma\\|v - v^\\star\\|\\) à gauche, on obtient \\((1 - 0.9)\\|v - v^\\star\\| \\le 0.02\\), donc \\(\\|v - v^\\star\\| \\le 0.2\\). Ce que je veux que vous reteniez, c'est la simplicité de cet argument fondé sur l'inégalité triangulaire. Je ne compte pas le demander à l'examen, mais il vaut la peine de l'avoir en tête en révisant. Cette borne est un exemple de ce qu'on appelle parfois un certificat."
   },
   {
-   "t": 5115779,
+   "t": 4211762,
    "text": "So the actual distance to the real value function, we can't compute it. If we were able to compute that distance, it would mean we know the answer. But instead we have an upper bound, and that upper bound is computable from the residual alone. The residual is the difference between two consecutive iterates. This is something you can compute: the certificate.",
    "fr": "Donc la distance réelle à la vraie fonction de valeur, on ne peut pas la calculer. Si on pouvait calculer cette distance, ça voudrait dire qu'on connaît la réponse. Mais à la place, on a une borne supérieure, et cette borne est calculable à partir du résidu seulement. Le résidu, c'est la différence entre deux itérés consécutifs. C'est quelque chose qu'on peut calculer : le certificat.",
    "readable": "We cannot compute the true distance to the optimal value function; if we could, we would already know the answer. We can, however, compute an upper bound from the residual alone, since the residual is the difference between two consecutive iterates. That computable bound is the certificate.",
    "readable_fr": "On ne peut pas calculer la vraie distance à la fonction de valeur optimale ; si on le pouvait, on connaîtrait déjà la réponse. On peut toutefois calculer une borne supérieure à partir du seul résidu, puisque le résidu est la différence entre deux itérés consécutifs. Cette borne calculable est le certificat."
   },
   {
-   "t": 5145960,
+   "t": 4241943,
    "text": "And maybe that's the takeaway from this exercise: we usually use residuals as a way to get certificates on quantities that we don't have access to. Okay, 20 [?] more questions to go. Policy iteration and Newton's method, they're the same. We didn't talk too much about this, so let's just skip over that. Modified policy iteration.",
    "fr": "Et c'est peut-être ce qu'il faut retenir de cet exercice : on utilise habituellement les résidus pour obtenir des certificats sur des quantités auxquelles on n'a pas accès. D'accord, encore 20 [?] questions. L'itération sur les politiques et la méthode de Newton, c'est la même chose. On n'en a pas beaucoup parlé, alors sautons cette question. L'itération sur les politiques modifiée.",
    "readable": "The takeaway from this exercise is that residuals are the usual way to obtain certificates on quantities we cannot access directly. There are about twenty [?] questions left. The next one, on policy iteration as Newton's method, covers material we did not spend much time on, so let us skip it and move to modified policy iteration.",
    "readable_fr": "Ce qu'il faut retenir de cet exercice, c'est que les résidus sont le moyen habituel d'obtenir des certificats sur des quantités auxquelles on n'a pas accès directement. Il reste une vingtaine [?] de questions. La suivante, sur l'itération sur les politiques vue comme une méthode de Newton, porte sur une matière qu'on a peu approfondie ; sautons-la et passons à l'itération sur les politiques modifiée."
   },
   {
-   "t": 5176340,
+   "t": 4272323,
    "text": "Maybe that's interesting, though. Modified policy iteration replaces the exact policy evaluation by k applications of the Bellman consistency, or policy evaluation, operator, starting from the current v. Remember policy iteration: there are two things we do. Do we start from an initial value function? No, we start from an initial guess of the policy, we compute its value function, and then we improve it, which means we take the argmax on that guess. That gives us a new policy, we compute its value function, we improve it, and so on and so forth. Okay, so this is policy iteration. And you can do something very natural: instead of doing exact policy evaluation, which can be done using direct linear solvers or using iterative methods to find the value function as the solution to a fixed point, an alternative is just not to solve for the actual",
    "fr": "Celle-ci est peut-être intéressante, par contre. L'itération sur les politiques modifiée remplace l'évaluation exacte de la politique par k applications de l'opérateur de cohérence de Bellman, ou opérateur d'évaluation de politique, à partir du v courant. Rappelez-vous l'itération sur les politiques : on fait deux choses. Est-ce qu'on part d'une fonction de valeur initiale ? Non, on part d'une estimation initiale de la politique, on calcule sa fonction de valeur, puis on l'améliore, c'est-à-dire qu'on prend l'argmax sur cette estimation. Ça nous donne une nouvelle politique, on calcule sa fonction de valeur, on l'améliore, et ainsi de suite. D'accord, ça, c'est l'itération sur les politiques. Et on peut faire quelque chose de très naturel : au lieu de faire l'évaluation exacte de la politique, qu'on peut faire avec des solveurs linéaires directs ou avec des méthodes itératives qui trouvent la fonction de valeur comme solution d'un point fixe, une autre option est simplement de ne pas résoudre exactement pour la vraie",
    "readable": "This one is worth a look. Modified policy iteration replaces exact policy evaluation by \\(k\\) applications of the policy evaluation operator \\(\\mathsf{L}_\\pi\\), starting from the current \\(v\\). Recall that policy iteration starts not from a value function but from an initial policy: it computes that policy's value function, improves the policy by taking the greedy (argmax) policy, computes the new value function, and so on. Exact evaluation can be done with a direct linear solver or with an iterative method that finds the value function as a fixed point. A natural alternative is not to compute the",
    "readable_fr": "Celle-ci mérite qu'on s'y arrête. L'itération sur les politiques modifiée remplace l'évaluation exacte de la politique par \\(k\\) applications de l'opérateur d'évaluation \\(\\mathsf{L}_\\pi\\), à partir du \\(v\\) courant. Rappelons que l'itération sur les politiques part non pas d'une fonction de valeur, mais d'une politique initiale : elle calcule la fonction de valeur de cette politique, améliore la politique en prenant la politique gloutonne (argmax), calcule la nouvelle fonction de valeur, et ainsi de suite. L'évaluation exacte peut se faire avec un solveur linéaire direct ou avec une méthode itérative qui trouve la fonction de valeur comme point fixe. Une solution de rechange naturelle consiste à ne pas calculer la"
   },
   {
-   "t": 5240800,
+   "t": 4336783,
    "text": "value function exactly at every step. Instead, just do a couple of terms of the Neumann series expansion. Because remember, this identity minus gamma P pi inverse is a Neumann series. It's an infinite sum, so you might as well take a truncated sum. This is what modified policy iteration is doing. And then we had two cases: what happens if you take only one term in that infinite sum, or you take the whole thing, infinity? Let's just think about it. Are we recovering policy iteration, the original one, for k equal to one, and k equal to infinity is value iteration? Or k equal to one gives value iteration and k equal to infinity gives policy iteration? Or it only converges for k larger than the cardinality of the state space? Or the policy needs to be stochastic for modified policy iteration to hold? Which one of these is a valid answer?",
    "fr": "fonction de valeur exactement à chaque étape. À la place, on fait simplement quelques termes du développement en série de Neumann. Parce que rappelez-vous, l'inverse de identité moins gamma P pi est une série de Neumann. C'est une somme infinie, alors autant prendre une somme tronquée. C'est ce que fait l'itération sur les politiques modifiée. Et ensuite on avait deux cas : que se passe-t-il si on ne prend qu'un seul terme de cette somme infinie, ou si on prend tout, l'infini ? Réfléchissons-y. Est-ce qu'on retrouve l'itération sur les politiques originale pour k égal à un, et k égal à l'infini donne l'itération sur les valeurs ? Ou bien k égal à un donne l'itération sur les valeurs et k égal à l'infini donne l'itération sur les politiques ? Ou ça ne converge que pour k plus grand que la cardinalité de l'espace d'états ? Ou la politique doit être stochastique pour que l'itération modifiée fonctionne ? Laquelle de ces réponses est valide ?",
    "readable": "value function exactly at every step, and instead keep only a few terms of the Neumann series. Recall that \\((\\mathbf{I} - \\gamma\\mathbf{P}_\\pi)^{-1}\\) is a Neumann series, an infinite sum, so we may as well truncate it. That is what modified policy iteration does. The question considers the two extremes: a single term (\\(k = 1\\)) and the full sum (\\(k = \\infty\\)). Does \\(k = 1\\) give policy iteration and \\(k = \\infty\\) value iteration, or the reverse? Does the method converge only for \\(k \\ge |\\mathcal{S}|\\)? Does it need a stochastic policy? Which statement is correct?",
    "readable_fr": "fonction de valeur exactement à chaque étape, et à ne garder que quelques termes de la série de Neumann. Rappelons que \\((\\mathbf{I} - \\gamma\\mathbf{P}_\\pi)^{-1}\\) est une série de Neumann, une somme infinie ; autant la tronquer. C'est ce que fait l'itération sur les politiques modifiée. La question considère les deux extrêmes : un seul terme (\\(k = 1\\)) et la somme complète (\\(k = \\infty\\)). Est-ce que \\(k = 1\\) donne l'itération sur les politiques et \\(k = \\infty\\) l'itération sur les valeurs, ou l'inverse ? La méthode ne converge-t-elle que pour \\(k \\ge |\\mathcal{S}|\\) ? Exige-t-elle une politique stochastique ? Quel énoncé est correct ?"
   },
   {
-   "t": 5311639,
+   "t": 4407622,
    "text": "[Student answer, partly inaudible: with k equal to one you only iterate on the value function, which is value iteration, and with k equal to infinity you get policy iteration.] Infinity, yeah. I think you're correct. Indeed, the step of modified policy iteration looked like this. This is what I was saying out loud with the truncation of the Neumann series.",
    "fr": "[Réponse d'un étudiant, en partie inaudible : avec k égal à un, on ne fait qu'itérer sur la fonction de valeur, ce qui est l'itération sur les valeurs, et avec k égal à l'infini, on obtient l'itération sur les politiques.] L'infini, oui. Je pense que vous avez raison. En effet, l'étape de l'itération sur les politiques modifiée ressemblait à ceci. C'est ce que je disais de vive voix avec la troncature de la série de Neumann.",
    "readable": "[A student answers, partly inaudible: with \\(k = 1\\) we only iterate on the value function, which is value iteration, and with \\(k = \\infty\\) we recover policy iteration.] That is correct. The modified policy iteration step looks like this; it is the truncated Neumann series I just described.",
    "readable_fr": "[Un étudiant répond, en partie inaudible : avec \\(k = 1\\), on ne fait qu'itérer sur la fonction de valeur, ce qui est l'itération sur les valeurs, et avec \\(k = \\infty\\), on retrouve l'itération sur les politiques.] C'est exact. L'étape de l'itération sur les politiques modifiée ressemble à ceci ; c'est la série de Neumann tronquée que je viens de décrire."
   },
   {
-   "t": 5347620,
+   "t": 4443603,
    "text": "And as your colleague was saying, in the limit of k going to infinity, this truncation just becomes the Neumann series, which gives us the actual value. Whereas for k equal to 1, we basically just take the greedy or v-improving policy in every state, and that gives us back the value iteration algorithm. So in between, it's something else. It doesn't have a name, but it's something else.",
    "fr": "Et comme le disait votre collègue, à la limite où k tend vers l'infini, cette troncature devient simplement la série de Neumann, qui nous donne la vraie valeur. Alors que pour k égal à 1, on prend simplement la politique gloutonne, ou v-améliorante, dans chaque état, et ça nous redonne l'algorithme d'itération sur les valeurs. Donc entre les deux, c'est autre chose. Ça n'a pas de nom, mais c'est autre chose.",
    "readable": "As your classmate said, when \\(k \\to \\infty\\) the truncated sum becomes the full Neumann series and yields the exact value of the policy, which is policy iteration. When \\(k = 1\\), we take the greedy (\\(v\\)-improving) policy in every state and apply one backup, which is exactly value iteration. Values of \\(k\\) in between give something else, which has no particular name.",
    "readable_fr": "Comme l'a dit votre collègue, lorsque \\(k \\to \\infty\\), la somme tronquée devient la série de Neumann complète et donne la valeur exacte de la politique : c'est l'itération sur les politiques. Lorsque \\(k = 1\\), on prend la politique gloutonne (\\(v\\)-améliorante) dans chaque état et on applique une seule mise à jour, ce qui est exactement l'itération sur les valeurs. Les valeurs intermédiaires de \\(k\\) donnent autre chose, qui n'a pas de nom particulier."
   },
   {
-   "t": 5377799,
+   "t": 4473782,
    "text": "Question 22 I'm going to skip because we don't have time. In these last few weeks we talked about Rust and inverse RL. So remember the way that Rust derived inverse RL: he had a reward function that was perturbed by a Gumbel distribution, and that was giving us an augmented state space comprising the noise variable, and that noise variable would evolve independently from the state and across time; it would be i.i.d. So then in that augmented MDP the agent would act greedily. It would do the same thing as usual in an MDP: derive the optimal policy, get a v-improving policy or a greedy policy, and call it a day.",
    "fr": "La question 22, je vais la sauter parce qu'on n'a pas le temps. Ces dernières semaines, on a parlé de Rust et du RL inverse. Rappelez-vous comment Rust a dérivé le RL inverse : il avait une fonction de récompense perturbée par une loi de Gumbel, ce qui nous donnait un espace d'états augmenté comprenant la variable de bruit, et cette variable de bruit évoluait indépendamment de l'état et dans le temps ; elle était i.i.d. Ensuite, dans ce MDP augmenté, l'agent agissait de façon gloutonne. Il faisait la même chose que d'habitude dans un MDP : dériver la politique optimale, obtenir une politique v-améliorante ou gloutonne, et c'est tout.",
    "readable": "I will skip question 22 for lack of time. In the last few weeks we discussed Rust's approach to inverse RL. In Rust's construction, the reward is perturbed by Gumbel noise. The noise becomes part of an augmented state, and it evolves independently of the state and is i.i.d. over time. In this augmented MDP the agent acts greedily, as in any MDP: it computes the optimal policy, which is the greedy (\\(v\\)-improving) policy.",
    "readable_fr": "Je saute la question 22 faute de temps. Ces dernières semaines, on a vu l'approche de Rust pour le RL inverse. Dans la construction de Rust, la récompense est perturbée par un bruit de Gumbel. Ce bruit fait partie d'un état augmenté ; il évolue indépendamment de l'état et il est i.i.d. dans le temps. Dans ce MDP augmenté, l'agent agit de façon gloutonne, comme dans tout MDP : il calcule la politique optimale, qui est la politique gloutonne (\\(v\\)-améliorante)."
   },
   {
-   "t": 5437060,
+   "t": 4533043,
    "text": "With that construction, is it true that the agent's policy needs to be stochastic because the Gumbel noise makes it such that it needs to randomize to explore? Or is it that the agent is deterministic given s and epsilon, which we then average over the possible realizations of that noise variable, and in doing so it gives us a smooth Bellman equation?",
    "fr": "Avec cette construction, est-il vrai que la politique de l'agent doit être stochastique parce que le bruit de Gumbel l'oblige à choisir ses actions au hasard pour explorer ? Ou bien l'agent est-il déterministe étant donné s et epsilon, et on fait ensuite la moyenne sur les réalisations possibles de cette variable de bruit, ce qui nous donne une équation de Bellman lisse ?",
    "readable": "Given this construction, must the agent's policy be stochastic because the Gumbel noise forces it to randomize in order to explore? Or is the agent deterministic given \\((s, \\boldsymbol\\epsilon)\\), so that averaging over the realizations of the noise yields a smooth Bellman equation?",
    "readable_fr": "Dans cette construction, la politique de l'agent doit-elle être stochastique parce que le bruit de Gumbel l'oblige à choisir ses actions au hasard pour explorer ? Ou bien l'agent est-il déterministe étant donné \\((s, \\boldsymbol\\epsilon)\\), de sorte que la moyenne sur les réalisations du bruit donne une équation de Bellman lisse ?"
   },
   {
-   "t": 5472600,
+   "t": 4568583,
    "text": "Again, same thing as usual: the longest statement is the right answer. So yeah, that's basically what it is. The takeaway here is that we can form an augmented MDP, and that augmented MDP is just the usual thing where we solve for a deterministic policy. But the deterministic policy here admits a closed-form solution, which is the log-sum-exp. That was the remarkable thing: we have the expectation of the noisy maximum, which admits this closed form as a log-sum-exp because it's Gumbel.",
    "fr": "Encore une fois, comme d'habitude, l'énoncé le plus long est la bonne réponse. Donc oui, c'est essentiellement ça. Ce qu'il faut retenir ici, c'est qu'on peut former un MDP augmenté, et ce MDP augmenté, c'est simplement la situation habituelle où l'on cherche une politique déterministe. Mais la politique déterministe admet ici une solution sous forme close, qui est le log-sum-exp. C'était ça, le résultat remarquable : on a l'espérance du maximum bruité, qui admet cette forme close en log-sum-exp parce que le bruit est de Gumbel.",
    "readable": "As usual, the longest statement is the right answer. The takeaway is that we can form an augmented MDP in which, as usual, we solve for a deterministic policy. What is remarkable is that the expectation of the noisy maximum has a closed form, the log-sum-exp, because the noise is Gumbel.",
    "readable_fr": "Comme d'habitude, l'énoncé le plus long est la bonne réponse. Ce qu'il faut retenir, c'est qu'on peut former un MDP augmenté dans lequel, comme d'habitude, on cherche une politique déterministe. Le résultat remarquable est que l'espérance du maximum bruité admet une forme close, le log-sum-exp, parce que le bruit est de Gumbel."
   },
   {
-   "t": 5510180,
+   "t": 4606163,
    "text": "This one we'll skip, we don't have time. It's a worked-out example again. A regularized MDP uses a convex regularizer, big Omega, that regularizes the conditional distribution over actions. Which statement is correct? The regularized Bellman operator looks like the following.",
    "fr": "Celle-ci, on la saute, on n'a pas le temps. C'est encore un exemple calculé. Un MDP régularisé utilise un régularisateur convexe, grand Oméga, qui régularise la distribution conditionnelle sur les actions. Quel énoncé est correct ? L'opérateur de Bellman régularisé ressemble à ceci.",
    "readable": "We will skip the next one, another worked example, for lack of time. A regularized MDP uses a strongly convex regularizer \\(\\Omega\\) on each conditional action distribution \\(\\pi(\\cdot\\mid s)\\). Which statement is correct? The first option gives the regularized Bellman operator as follows.",
    "readable_fr": "On saute la suivante, encore un exemple calculé, faute de temps. Un MDP régularisé utilise un régularisateur fortement convexe \\(\\Omega\\) sur chaque distribution conditionnelle des actions \\(\\pi(\\cdot\\mid s)\\). Quel énoncé est correct ? La première option donne l'opérateur de Bellman régularisé comme suit."
   },
   {
-   "t": 5541400,
+   "t": 4637383,
    "text": "So remember this bracket over there: think of it as the inner product between your policy and Q. It's just a fancy way of writing an expectation. Well, look, it's not a case where the longest answer is the right one... I'll try to make sure the exam is not like that. But yeah, the regularized operator is defined like this. If you don't put the regularizer, it's just the usual Bellman equation. And one of the amazing properties is that you can bring any strongly convex big Omega and the resulting operator will still be a sup-norm contraction. We didn't really look at the proof, though; it's more something we took for granted. And then the optimal policy, this is quite remarkable, and maybe you want to remember this, the optimal policy has this structure.",
    "fr": "Rappelez-vous ce crochet, là : voyez-le comme le produit scalaire entre votre politique et Q. C'est juste une façon élégante d'écrire une espérance. Bon, ce n'est pas un cas où la réponse la plus longue est la bonne... Je vais essayer de faire en sorte que l'examen ne soit pas comme ça. Mais oui, l'opérateur régularisé est défini ainsi. Si on ne met pas le régularisateur, c'est simplement l'équation de Bellman habituelle. Et l'une des propriétés étonnantes, c'est qu'on peut prendre n'importe quel grand Oméga fortement convexe et l'opérateur résultant sera toujours une contraction en norme sup. On n'a pas vraiment vu la preuve, par contre ; c'est plutôt quelque chose qu'on a pris pour acquis. Et ensuite la politique optimale, c'est assez remarquable, et vous voudrez peut-être retenir ceci, la politique optimale a cette structure.",
    "readable": "The bracket \\(\\langle \\pi, q(s,\\cdot)\\rangle\\) is the inner product between the policy and \\(q\\), a compact way of writing an expectation. (I will try to make sure the exam does not reward picking the longest answer.) The regularized operator is \\(v(s) \\mapsto \\Omega^\\star(q(s,\\cdot)) = \\max_\\pi \\langle \\pi, q(s,\\cdot)\\rangle - \\Omega(\\pi)\\); without the regularizer it reduces to the usual Bellman operator. A remarkable property is that for any strongly convex \\(\\Omega\\), the resulting operator is still a sup-norm contraction. We did not go through the proof and mostly took it for granted. The optimal policy also has a remarkable structure, worth remembering.",
    "readable_fr": "Le crochet \\(\\langle \\pi, q(s,\\cdot)\\rangle\\) est le produit scalaire entre la politique et \\(q\\), une façon compacte d'écrire une espérance. (J'essaierai de faire en sorte que l'examen ne récompense pas le choix de la réponse la plus longue.) L'opérateur régularisé est \\(v(s) \\mapsto \\Omega^\\star(q(s,\\cdot)) = \\max_\\pi \\langle \\pi, q(s,\\cdot)\\rangle - \\Omega(\\pi)\\) ; sans le régularisateur, il se réduit à l'opérateur de Bellman habituel. Une propriété remarquable est que, pour tout \\(\\Omega\\) fortement convexe, l'opérateur obtenu reste une contraction en norme sup. On n'a pas vu la preuve et on l'a surtout prise pour acquise. La politique optimale a aussi une structure remarquable, qui vaut la peine d'être retenue."
   },
   {
-   "t": 5601980,
+   "t": 4697963,
    "text": "It's going to be equal to the gradient of the convex conjugate evaluated at our Q function here, and that comes from the properties of the convex conjugate for our choice of regularizer. Things that are not true: that regularization breaks contraction. That's not true; actually it's the reason why we like that framework. Any regularizer gives us the log-sum-exp? No, it's only the Shannon entropy that gives us this. And the optimal regularized policy is deterministic as in the hard case? This is also not true. The penalty in fact favors spreading the mass over multiple actions, so the optimum is generally not deterministic in that framework.",
    "fr": "Elle sera égale au gradient du conjugué convexe évalué en notre fonction Q ici, et ça découle des propriétés du conjugué convexe pour notre choix de régularisateur. Ce qui n'est pas vrai : que la régularisation brise la contraction. Ce n'est pas vrai ; en fait, c'est la raison pour laquelle on aime ce cadre. N'importe quel régularisateur donne le log-sum-exp ? Non, c'est seulement l'entropie de Shannon qui donne ça. Et la politique régularisée optimale est déterministe comme dans le cas non régularisé ? Ce n'est pas vrai non plus. La pénalité favorise en fait la répartition de la masse sur plusieurs actions, donc l'optimum n'est généralement pas déterministe dans ce cadre.",
    "readable": "The optimal policy is the gradient of the convex conjugate evaluated at the optimal \\(q\\), \\(\\pi^\\star(\\cdot\\mid s) = \\nabla\\Omega^\\star(q^\\star_\\Omega(s,\\cdot))\\), a property of the convex conjugate for this choice of regularizer. The other options are false. Regularization does not break the contraction; preserving it is precisely why we like this framework. Not every regularizer gives the log-sum-exp; only the Shannon entropy does. Nor is the optimal regularized policy deterministic as in the hard case: the penalty favors spreading probability mass over several actions, so the optimum is generally stochastic.",
    "readable_fr": "La politique optimale est le gradient du conjugué convexe évalué en la \\(q\\) optimale, \\(\\pi^\\star(\\cdot\\mid s) = \\nabla\\Omega^\\star(q^\\star_\\Omega(s,\\cdot))\\), une propriété du conjugué convexe pour ce choix de régularisateur. Les autres options sont fausses. La régularisation ne brise pas la contraction ; c'est justement parce qu'elle la préserve qu'on apprécie ce cadre. Tout régularisateur ne donne pas le log-sum-exp ; seule l'entropie de Shannon le donne. La politique régularisée optimale n'est pas non plus déterministe comme dans le cas non régularisé : la pénalité favorise la répartition de la masse de probabilité sur plusieurs actions, de sorte que l'optimum est généralement stochastique."
   },
   {
-   "t": 5668240,
+   "t": 4764223,
    "text": "Smooth policy iteration. Okay, here it's just saying basically that you can do Newton-Kantorovich; that was from Rust. Newton-Kantorovich over what? Maybe that's something I could ask you. Well, Newton-Kantorovich over this operator equation, \\( v - \\mathsf{L}_\\beta v \\), where \\( \\mathsf{L}_\\beta v \\) was the smooth Bellman operator, and everything is smooth, so Newton-Kantorovich applies. Q27: Rust estimates the reward parameters by maximum likelihood on observed bus-engine decisions. So our goal here is to infer a set of parameters that will define a reward function. This is what I have here with the arrows: our \\( \\theta \\), and from our \\( \\theta \\) I can then derive an optimal policy, an optimal value function, an optimal smooth value function \\( v^\\star_\\theta \\). This is like the high-level",
    "fr": "Itération sur les politiques lisse. Bon, ici on dit simplement qu'on peut faire du Newton-Kantorovich ; ça venait de Rust. Newton-Kantorovich sur quoi ? C'est peut-être quelque chose que je pourrais vous demander. Eh bien, Newton-Kantorovich sur cette équation d'opérateur, \\( v - \\mathsf{L}_\\beta v \\), où \\( \\mathsf{L}_\\beta v \\) était l'opérateur de Bellman lisse, et tout est lisse, donc Newton-Kantorovich s'applique. Q27 : Rust estime les paramètres de la récompense par maximum de vraisemblance sur des décisions observées de remplacement de moteurs d'autobus. Notre but ici est donc d'inférer un ensemble de paramètres qui vont définir une fonction de récompense. C'est ce que j'ai ici avec les flèches : notre \\( \\theta \\), et à partir de \\( \\theta \\) je peux ensuite obtenir une politique optimale, une fonction de valeur optimale, une fonction de valeur lisse optimale \\( v^\\star_\\theta \\). C'est en quelque sorte le",
    "readable": "Smooth policy iteration. This question says that we can apply Newton-Kantorovich, as in Rust's work. Newton-Kantorovich applied to what? That is the kind of thing I could ask you. It is applied to the operator equation \\( v - \\mathsf{L}_\\beta v = 0 \\), where \\( \\mathsf{L}_\\beta \\) is the smooth Bellman operator; since everything is smooth, Newton-Kantorovich applies. In Q27, Rust estimates the reward parameters by maximum likelihood on observed bus-engine replacement decisions. The goal is to infer the parameters \\( \\theta \\) of a reward function. Following the arrows, from \\( \\theta \\) we derive an optimal policy and the optimal smooth value function \\( v^\\star_\\theta \\). This is the high-level",
    "readable_fr": "Itération sur les politiques lisse. Cette question dit qu'on peut appliquer Newton-Kantorovich, comme dans les travaux de Rust. Newton-Kantorovich appliqué à quoi ? C'est le genre de chose que je pourrais vous demander. On l'applique à l'équation d'opérateur \\( v - \\mathsf{L}_\\beta v = 0 \\), où \\( \\mathsf{L}_\\beta \\) est l'opérateur de Bellman lisse ; comme tout est lisse, Newton-Kantorovich s'applique. Dans la Q27, Rust estime les paramètres de la récompense par maximum de vraisemblance sur des décisions observées de remplacement de moteurs d'autobus. Le but est d'inférer les paramètres \\( \\theta \\) d'une fonction de récompense. En suivant les flèches, on obtient à partir de \\( \\theta \\) une politique optimale et la fonction de valeur lisse optimale \\( v^\\star_\\theta \\). C'est le"
   },
   {
-   "t": 5730760,
+   "t": 4826743,
    "text": "computation graph, in a way. And then from that \\( v^\\star_\\theta \\) I can derive a softmax policy, and from that softmax policy I can compute the log-likelihood on my data set that I've collected. So that's the whole chain I want to backprop through, going from the log-likelihood all the way down to \\( \\theta \\). It's my neural network; think of it this way. So in doing this, the question is: how do I get the gradient of that thing? Do I unroll a thousand sweeps of smooth value iteration and propagate through them?",
    "fr": "graphe de calcul, d'une certaine façon. Ensuite, à partir de ce \\( v^\\star_\\theta \\), je peux obtenir une politique softmax, et à partir de cette politique softmax je peux calculer la log-vraisemblance sur le jeu de données que j'ai collecté. Donc c'est toute la chaîne à travers laquelle je veux rétropropager, de la log-vraisemblance jusqu'à \\( \\theta \\). C'est mon réseau de neurones ; voyez-le comme ça. La question est alors : comment obtenir le gradient de cette chose ? Est-ce que je déroule mille balayages d'itération sur les valeurs lisse et je rétropropage à travers eux ?",
    "readable": "computation graph. From \\( v^\\star_\\theta \\) we derive a softmax policy, and from that policy we compute the log-likelihood of the collected data. That is the chain we want to backpropagate through, from the log-likelihood down to \\( \\theta \\); think of it as a neural network. The question is how to get its gradient. Should we unroll a thousand sweeps of smooth value iteration and backpropagate through them?",
    "readable_fr": "graphe de calcul. À partir de \\( v^\\star_\\theta \\), on obtient une politique softmax, et à partir de cette politique on calcule la log-vraisemblance des données collectées. C'est la chaîne à travers laquelle on veut rétropropager, de la log-vraisemblance jusqu'à \\( \\theta \\) ; voyez-la comme un réseau de neurones. La question est de savoir comment obtenir son gradient. Faut-il dérouler mille balayages d'itération sur les valeurs lisse et rétropropager à travers eux ?"
   },
   {
-   "t": 5765420,
+   "t": 4861403,
    "text": "No, it's not what we do in Rust. We use the implicit function theorem instead, which allows us to do things tractably and backprop through what would otherwise be an infinite-depth neural network. This one here is just asking you to plug numbers into the entropy-regularized perspective, to understand what the effect of that entropy regularizer is. Because we take minus the log of the policy, which way is it going to go? If, for example, I've got a policy here that picks between two actions, and picks action a with probability 0.9 and action b with 0.1, how much am I going to pay? Because that's the interpretation here.",
    "fr": "Non, ce n'est pas ce qu'on fait chez Rust. On utilise plutôt le théorème des fonctions implicites, qui permet de faire les choses de façon traitable et de rétropropager à travers ce qui serait autrement un réseau de neurones de profondeur infinie. Celle-ci vous demande simplement de mettre des nombres dans la perspective de la régularisation entropique, pour comprendre l'effet de ce régularisateur d'entropie. Comme on prend moins le log de la politique, dans quel sens est-ce que ça va aller ? Si, par exemple, j'ai ici une politique qui choisit entre deux actions, et choisit l'action a avec probabilité 0,9 et l'action b avec 0,1, combien est-ce que je vais payer ? Parce que c'est l'interprétation ici.",
    "readable": "No, that is not what Rust does. He uses the implicit function theorem, which makes the computation tractable and lets us backpropagate through what would otherwise be a network of infinite depth. The next question asks you to plug numbers into the entropy-regularized view to see what the entropy regularizer does. Since the penalty is minus the log of the policy, which way does it push? Suppose a policy chooses between two actions, a with probability 0.9 and b with probability 0.1. How much do we pay for each action? That is the interpretation to work out.",
    "readable_fr": "Non, ce n'est pas ce que fait Rust. Il utilise le théorème des fonctions implicites, qui rend le calcul traitable et permet de rétropropager à travers ce qui serait autrement un réseau de profondeur infinie. La question suivante vous demande de mettre des nombres dans la perspective de la régularisation entropique pour voir ce que fait le régularisateur d'entropie. Comme la pénalité est moins le log de la politique, dans quel sens pousse-t-elle ? Supposons qu'une politique choisisse entre deux actions, a avec probabilité 0,9 et b avec probabilité 0,1. Combien paie-t-on pour chaque action ? C'est l'interprétation à dégager."
   },
   {
-   "t": 5826719,
+   "t": 4922702,
    "text": "So the correct answer here, what we're trying to say here, is that we're basically adding a bonus for actions that are rarer. So that's the entropy-regularization perspective. Okay, let me just quickly add two minutes, my goodness. Parametric value functions: that's the stuff we finished last week. So we use this polynomial representation. We work with the Bellman residual,",
    "fr": "Donc la bonne réponse ici, ce qu'on essaie de dire, c'est qu'on ajoute essentiellement un bonus pour les actions plus rares. C'est la perspective de la régularisation entropique. Bon, laissez-moi juste ajouter deux minutes, mon Dieu. Fonctions de valeur paramétriques : c'est ce qu'on a terminé la semaine dernière. On utilise cette représentation polynomiale. On travaille avec le résidu de Bellman,",
    "readable": "The correct answer is that the regularizer adds a bonus for rarer actions: the rarer the action, the larger \\( -\\log \\pi \\). That is the entropy-regularization view. Let me take two more minutes. Parametric value functions are what we finished last week. We use a polynomial representation and work with the Bellman residual,",
    "readable_fr": "La bonne réponse est que le régularisateur ajoute un bonus aux actions plus rares : plus l'action est rare, plus \\( -\\log \\pi \\) est grand. C'est la perspective de la régularisation entropique. Je prends encore deux minutes. Les fonctions de valeur paramétriques sont ce qu'on a terminé la semaine dernière. On utilise une représentation polynomiale et on travaille avec le résidu de Bellman,"
   },
   {
-   "t": 5858519,
+   "t": 4954502,
    "text": "and then we had this notion of figuring out how far my residual was from the zero function, and I was doing it by testing it in different directions, choosing different test functions. And let me just say for the question, the answer is a. Using point masses, or Diracs, basically amounts to saying I want my residual to be zero at these designated points. I could also choose \\( p \\), the test function, to be the basis function itself; that's what we're calling the Galerkin framework. And we could also pick \\( p \\) to be the partial derivative of the residual with respect to the parameters, and that was in fact giving us a least-squares solution of the residual, so basically saying I want to find parameters that make the residual as small as possible in the least-squares sense of the term.",
    "fr": "et ensuite on avait cette idée de déterminer à quel point mon résidu était loin de la fonction nulle, et je le faisais en le testant dans différentes directions, en choisissant différentes fonctions test. Et pour la question, la réponse est a. Utiliser des masses ponctuelles, ou des Dirac, revient essentiellement à dire que je veux que mon résidu soit nul en ces points désignés. Je pourrais aussi choisir \\( p \\), la fonction test, comme étant la fonction de base elle-même ; c'est ce qu'on appelle le cadre de Galerkin. Et on pourrait aussi prendre \\( p \\) comme la dérivée partielle du résidu par rapport aux paramètres, et cela nous donnait en fait une solution aux moindres carrés du résidu, donc essentiellement dire que je veux trouver les paramètres qui rendent le résidu aussi petit que possible au sens des moindres carrés.",
    "readable": "We then asked how far the residual is from the zero function, and measured this by testing it in different directions, with different test functions. The answer to this question is (a). Point masses (Diracs) as test functions mean that the residual must vanish at designated points: collocation. Taking the test functions \\( p_i \\) to be the basis functions themselves gives the Galerkin method. Taking \\( p_i \\) to be the partial derivatives of the residual with respect to the parameters gives the least-squares solution: the parameters that make the residual as small as possible in the least-squares sense.",
    "readable_fr": "On s'est ensuite demandé à quelle distance le résidu se trouve de la fonction nulle, et on l'a mesuré en le testant dans différentes directions, avec différentes fonctions test. La réponse à cette question est (a). Des masses ponctuelles (des Dirac) comme fonctions test imposent que le résidu s'annule en des points désignés : c'est la collocation. Prendre comme fonctions test \\( p_i \\) les fonctions de base elles-mêmes donne la méthode de Galerkin. Prendre pour \\( p_i \\) les dérivées partielles du résidu par rapport aux paramètres donne la solution aux moindres carrés : les paramètres qui rendent le résidu aussi petit que possible au sens des moindres carrés."
   },
   {
-   "t": 5910640,
+   "t": 5006623,
    "text": "Okay. This I tried to highlight many times earlier: whenever you implement one of those methods in practice with function approximation, let's say with collocation, and you have a corresponding operator \\( \\mathsf{P}\\mathsf{L} \\), that is the composition of \\( \\mathsf{P} \\) and \\( \\mathsf{L} \\), you never do these iterates in the actual function space. You always only manipulate parameters.",
    "fr": "Bon. J'ai essayé de souligner ceci plusieurs fois plus tôt : chaque fois que vous implémentez une de ces méthodes en pratique avec de l'approximation de fonctions, disons avec la collocation, et que vous avez un opérateur correspondant \\( \\mathsf{P}\\mathsf{L} \\), c'est-à-dire la composition de \\( \\mathsf{P} \\) et de \\( \\mathsf{L} \\), vous ne faites jamais ces itérations dans l'espace de fonctions lui-même. Vous ne manipulez jamais que des paramètres.",
    "readable": "I tried to stress this many times: whenever you implement one of these methods with function approximation, say collocation, with the corresponding operator \\( \\mathsf{P}\\mathsf{L} \\) (the composition of \\( \\mathsf{P} \\) and \\( \\mathsf{L} \\)), you never iterate in the function space itself. You only ever manipulate parameters.",
    "readable_fr": "J'ai essayé de le souligner plusieurs fois : chaque fois qu'on implémente une de ces méthodes avec de l'approximation de fonctions, disons la collocation, avec l'opérateur correspondant \\( \\mathsf{P}\\mathsf{L} \\) (la composition de \\( \\mathsf{P} \\) et de \\( \\mathsf{L} \\)), on n'itère jamais dans l'espace de fonctions lui-même. On ne manipule jamais que des paramètres."
   },
   {
-   "t": 5945540,
+   "t": 5041523,
    "text": "So the iterates of successive approximation, approximate successive approximation, always take place in the parameter space. So it means you keep on refitting your function approximator, or your interpolant, at every stage. And that's all you maintain through the iterations, but of course you never go to that function space, because that's the whole thing we're trying to avoid.",
    "fr": "Donc les itérations de l'approximation successive, de l'approximation successive approchée, se font toujours dans l'espace des paramètres. Cela veut dire qu'on réajuste sans cesse notre approximateur de fonction, ou notre interpolant, à chaque étape. Et c'est tout ce qu'on maintient au fil des itérations, mais bien sûr on ne va jamais dans cet espace de fonctions, parce que c'est précisément ce qu'on essaie d'éviter.",
    "readable": "The iterates of approximate successive approximation therefore live in parameter space. At every stage you refit the function approximator or interpolant, and the parameters are all you carry from one iteration to the next. You never work in the function space, since avoiding it is the whole point.",
    "readable_fr": "Les itérés de l'approximation successive approchée vivent donc dans l'espace des paramètres. À chaque étape, on réajuste l'approximateur de fonction ou l'interpolant, et les paramètres sont tout ce qu'on transmet d'une itération à l'autre. On ne travaille jamais dans l'espace de fonctions, puisque l'éviter est tout l'intérêt."
   },
   {
-   "t": 5977220,
+   "t": 5073203,
    "text": "That one's not so important, but it's stuff I talked about last time: the Galerkin framework in the policy evaluation setting amounts to an algorithm called the TD fixed point, or LSTD. So these are called the projected Bellman equation. And it is not true that the projected Bellman equation minimizes this thing. In fact, what they do is Galerkin, and then it gives us the projected Bellman equation.",
    "fr": "Celle-là n'est pas si importante, mais c'est ce dont j'ai parlé la dernière fois : le cadre de Galerkin dans le contexte de l'évaluation de politique revient à un algorithme appelé le point fixe de TD, ou LSTD. On appelle cela l'équation de Bellman projetée. Et il n'est pas vrai que l'équation de Bellman projetée minimise cette quantité. En fait, ce qu'ils font, c'est du Galerkin, et cela nous donne l'équation de Bellman projetée.",
    "readable": "This one matters less, but it covers last time's material: in policy evaluation, the Galerkin method gives the TD fixed point, computed by LSTD. Its conditions form the projected Bellman equation. The projected Bellman equation does not minimize the squared Bellman residual; it comes from the Galerkin conditions.",
    "readable_fr": "Celle-ci compte moins, mais elle porte sur la matière de la dernière fois : en évaluation de politique, la méthode de Galerkin donne le point fixe de TD, calculé par LSTD. Ses conditions forment l'équation de Bellman projetée. L'équation de Bellman projetée ne minimise pas le carré du résidu de Bellman ; elle vient des conditions de Galerkin."
   },
   {
-   "t": 6007560,
+   "t": 5103543,
    "text": "It's not the best; at least the phrasing is not the best question, I find. Okay, maybe this one is useful. When we have fitted value methods, interpolation or Galerkin, whatever, it's equivalent to doing a composition of two operators, \\( \\mathsf{P} \\) and \\( \\mathsf{L} \\), and then the question is always: is this thing going to converge? So suppose that the following holds. What is this property called, that for any \\( f \\) and \\( g \\), \\( \\|\\mathsf{P}f - \\mathsf{P}g\\| \\le \\|f - g\\| \\)? It's related, but this is the property called a non-expansion, a non-expansive mapping. It's like a contraction mapping but with constant one. The other one is a contraction mapping. So when we have these two properties, it's kind of nice, because you can show by the non-expansion that",
    "fr": "Ce n'est pas la meilleure ; du moins la formulation n'est pas la meilleure, je trouve. Bon, celle-ci est peut-être utile. Quand on a des méthodes de valeur ajustée, interpolation ou Galerkin, peu importe, cela équivaut à composer deux opérateurs, \\( \\mathsf{P} \\) et \\( \\mathsf{L} \\), et la question est toujours : est-ce que ça va converger ? Supposons donc que ce qui suit soit vrai. Comment s'appelle cette propriété, que pour tous \\( f \\) et \\( g \\), \\( \\|\\mathsf{P}f - \\mathsf{P}g\\| \\le \\|f - g\\| \\) ? C'est apparenté, mais c'est la propriété qu'on appelle une non-expansion, une application non expansive. C'est comme une contraction, mais avec une constante égale à un. L'autre est une contraction. Quand on a ces deux propriétés, c'est assez agréable, parce qu'on peut montrer par la non-expansion que",
    "readable": "I find the phrasing of that question not ideal. This next one is more useful. Fitted value methods, whether interpolation or Galerkin, compose two operators, \\( \\mathsf{P} \\) and \\( \\mathsf{L} \\), and the question is always whether the iteration converges. Suppose that for all \\( f \\) and \\( g \\), \\( \\|\\mathsf{P}f - \\mathsf{P}g\\| \\le \\|f - g\\| \\). What is this property called? It is non-expansiveness: \\( \\mathsf{P} \\) is a non-expansive mapping, like a contraction but with constant one. \\( \\mathsf{L} \\), for its part, is a contraction. Together these properties are convenient, because non-expansiveness shows that",
    "readable_fr": "Je trouve la formulation de cette question peu idéale. La suivante est plus utile. Les méthodes de valeur ajustée, interpolation ou Galerkin, composent deux opérateurs, \\( \\mathsf{P} \\) et \\( \\mathsf{L} \\), et la question est toujours de savoir si l'itération converge. Supposons que pour tous \\( f \\) et \\( g \\), \\( \\|\\mathsf{P}f - \\mathsf{P}g\\| \\le \\|f - g\\| \\). Comment s'appelle cette propriété ? C'est la non-expansivité : \\( \\mathsf{P} \\) est une application non expansive, comme une contraction mais avec une constante égale à un. \\( \\mathsf{L} \\), lui, est une contraction. Ensemble, ces propriétés sont commodes, car la non-expansivité montre que"
   },
   {
-   "t": 6070380,
+   "t": 5166363,
    "text": "this thing is going to be upper bounded by the contraction, and this then gives us a contraction. So a non-expansion with a contraction mapping, when they're under the same norm: when you have something that is non-expansive and something contractive in the same norm, they compose together really nicely and give us a contraction mapping at the end, which is what we want. We want the composition to behave as a contraction mapping. And then the averager story was basically about the choice of features which ensures that we get a contraction mapping, and the LSTD story was about a specific case of policy evaluation, and it was asking for properties of the underlying projection, which have to do with the sampling of the process, that give us a contraction. And the takeaway was that you get it when you're on-policy. I want to skip; let's just finish here. The fitted value methods keep on doing this, and it calls",
    "fr": "cette quantité va être bornée supérieurement par la contraction, ce qui nous donne alors une contraction. Donc une non-expansion avec une contraction, quand elles sont pour la même norme : quand on a quelque chose de non expansif et quelque chose de contractant pour la même norme, ils se composent très bien et nous donnent une contraction à la fin, ce qui est ce qu'on veut. On veut que la composition se comporte comme une contraction. Ensuite, l'histoire des moyenneurs portait essentiellement sur le choix des caractéristiques qui garantit qu'on obtient une contraction, et l'histoire de LSTD portait sur un cas particulier d'évaluation de politique, et demandait quelles propriétés de la projection sous-jacente, liées à l'échantillonnage du processus, nous donnent une contraction. Et la leçon était qu'on l'obtient quand on est sur la politique. Je veux sauter ; terminons simplement ici. Les méthodes de valeur ajustée font cela sans arrêt, et elles appellent",
    "readable": "\\( \\|\\mathsf{P}\\mathsf{L}f - \\mathsf{P}\\mathsf{L}g\\| \\le \\|\\mathsf{L}f - \\mathsf{L}g\\| \\le \\gamma \\|f - g\\| \\), so the composition is a contraction. A non-expansion and a contraction in the same norm compose into a contraction, which is exactly what we want from \\( \\mathsf{P}\\mathsf{L} \\). The averager story was about choosing features that guarantee this. The LSTD story, a special case of policy evaluation, asked which properties of the projection, tied to how the process is sampled, give a contraction; the takeaway was that sampling on-policy does. I will skip ahead and finish here. Fitted value methods repeat this step, calling",
    "readable_fr": "\\( \\|\\mathsf{P}\\mathsf{L}f - \\mathsf{P}\\mathsf{L}g\\| \\le \\|\\mathsf{L}f - \\mathsf{L}g\\| \\le \\gamma \\|f - g\\| \\), donc la composition est une contraction. Une non-expansion et une contraction pour la même norme se composent en une contraction, ce qu'on attend précisément de \\( \\mathsf{P}\\mathsf{L} \\). L'histoire des moyenneurs portait sur le choix de caractéristiques qui le garantissent. L'histoire de LSTD, un cas particulier d'évaluation de politique, demandait quelles propriétés de la projection, liées à la façon d'échantillonner le processus, donnent une contraction ; la leçon était qu'un échantillonnage sur la politique y parvient. Je vais sauter plus loin et terminer ici. Les méthodes de valeur ajustée répètent cette étape, en appelant"
   },
   {
-   "t": 6137840,
+   "t": 5233823,
    "text": "a fit; they keep on refitting this thing. Okay, so it creates a data set. Everything we've done abstractly amounts to that. So whether you interpolate or you fit a neural network, it's the same structure. You have the outer loop of value iteration, and within each Bellman update step, you fit your operator. I want you to understand that. So which statement is correct? That fitted value methods are like gradient descent on a fixed loss, the Bellman loss?",
    "fr": "une routine d'ajustement ; elles réajustent sans cesse cette chose. Bon, cela crée un jeu de données. Tout ce qu'on a fait de façon abstraite revient à cela. Donc que vous interpoliez ou que vous ajustiez un réseau de neurones, c'est la même structure. Vous avez la boucle externe de l'itération sur les valeurs, et à chaque étape de mise à jour de Bellman, vous ajustez votre opérateur. Je veux que vous compreniez cela. Alors, quel énoncé est correct ? Que les méthodes de valeur ajustée sont comme une descente de gradient sur une perte fixe, la perte de Bellman ?",
    "readable": "a fit routine and refitting at every step. Each step builds a data set of targets. Everything we did abstractly reduces to this: whether you interpolate or fit a neural network, the structure is the same, an outer loop of value iteration with a fit inside each Bellman update. Make sure you understand this. Which statement is correct? Is a fitted value method gradient descent on a fixed loss, the \"Bellman loss\"?",
    "readable_fr": "une routine d'ajustement et en réajustant à chaque étape. Chaque étape construit un jeu de données de cibles. Tout ce qu'on a fait de façon abstraite se ramène à cela : qu'on interpole ou qu'on ajuste un réseau de neurones, la structure est la même, une boucle externe d'itération sur les valeurs avec un ajustement à chaque mise à jour de Bellman. Assurez-vous de bien comprendre cela. Quel énoncé est correct ? Une méthode de valeur ajustée est-elle une descente de gradient sur une perte fixe, la « perte de Bellman » ?"
   },
   {
-   "t": 6170600,
+   "t": 5266583,
    "text": "That's the thing I don't want you to ever say in your career. No, this is not true, because you never quite write things in this way. We're fitting a local sub-problem that keeps on changing at every outer iteration step. So, yeah, the answer is b. It's two nested loops, with regression on frozen targets. The stop-gradient business comes from that. And, yeah, it's not gradient descent on a fixed loss. So it's not like a single fit.",
    "fr": "C'est la chose que je ne veux jamais vous entendre dire de toute votre carrière. Non, ce n'est pas vrai, parce qu'on n'écrit jamais vraiment les choses de cette façon. On ajuste un sous-problème local qui change à chaque étape de l'itération externe. Donc oui, la réponse est b. Ce sont deux boucles imbriquées, avec une régression sur des cibles figées. L'histoire de l'arrêt du gradient vient de là. Et oui, ce n'est pas une descente de gradient sur une perte fixe. Ce n'est donc pas un ajustement unique.",
    "readable": "That is something I never want to hear you say in your career. It is false: the method never takes that form. Each outer iteration fits a local subproblem, and that subproblem changes from one outer step to the next. The answer is (b): two nested loops, with a regression on frozen targets inside. That is where the stop-gradient comes from. It is not gradient descent on a fixed loss, and not a single fit.",
    "readable_fr": "C'est une chose que je ne veux jamais vous entendre dire de votre carrière. C'est faux : la méthode ne prend jamais cette forme. Chaque itération externe ajuste un sous-problème local, et ce sous-problème change d'une étape externe à l'autre. La réponse est (b) : deux boucles imbriquées, avec à l'intérieur une régression sur des cibles figées. C'est de là que vient l'arrêt du gradient. Ce n'est pas une descente de gradient sur une perte fixe, ni un ajustement unique."
   },
   {
-   "t": 6202740,
+   "t": 5298723,
    "text": "Voilà, it's enough for today. So study well, and you can always ping Gabriel to help you if you've got any questions. Otherwise, expect relatively the same thing as the first exam. And yeah, that's it. Okay, good luck. You're allowed to have a cheat sheet as usual, just like last time. All right. Thank you.",
    "fr": "Voilà, c'est assez pour aujourd'hui. Étudiez bien, et vous pouvez toujours écrire à Gabriel pour qu'il vous aide si vous avez des questions. Sinon, attendez-vous à peu près à la même chose qu'au premier examen. Et voilà, c'est tout. Bonne chance. Vous avez droit à un aide-mémoire comme d'habitude, comme la dernière fois. Très bien. Merci.",
    "readable": "That is enough for today. Study well, and contact Gabriel if you have questions. Expect an exam much like the first one. You may bring a cheat sheet, as last time. Good luck, and thank you.",
