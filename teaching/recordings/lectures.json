@@ -230,6 +230,22 @@
         "monte-carlo-bellman-estimation"
       ],
       "redact": []
+    },
+    "2026-11-23": {
+      "title": {
+        "en": "Midterm 2 review: backward induction and non-stationary policies; the curse of dimensionality; scalar LQR and iLQR; optimal policy classes; value bounds, Banach and the residual certificate; modified policy iteration; smooth and regularized Bellman equations; projection and fitted value methods",
+        "fr": "Révision de l'intra 2 : induction arrière et politiques non stationnaires ; la malédiction de la dimension ; LQR scalaire et iLQR ; classes de politiques optimales ; bornes sur la valeur, Banach et le certificat du résidu ; itération de politique modifiée ; équations de Bellman lisses et régularisées ; projection et méthodes de valeur ajustée"
+      },
+      "chapters": [
+        "finite-horizon-dp",
+        "stochastic-dp",
+        "infinite-horizon-mdps",
+        "regularized-dp",
+        "weighted-residual-methods",
+        "approximate-bellman-equations",
+        "monte-carlo-bellman-estimation"
+      ],
+      "redact": []
     }
   },
   "corrections": {

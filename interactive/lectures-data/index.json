@@ -5,8 +5,157 @@
   "fr": "Automne 2026"
  },
  "folder_url": "https://drive.google.com/drive/folders/1iwN-j6IJP9l8EOkXrcxy4DpWRNcTixr8",
- "updated": "2026-11-20",
+ "updated": "2026-11-25",
  "lectures": [
+  {
+   "date": "2026-11-23",
+   "week": 12,
+   "title": {
+    "en": "Midterm 2 review: backward induction and non-stationary policies; the curse of dimensionality; scalar LQR and iLQR; optimal policy classes; value bounds, Banach and the residual certificate; modified policy iteration; smooth and regularized Bellman equations; projection and fitted value methods",
+    "fr": "Révision de l'intra 2 : induction arrière et politiques non stationnaires ; la malédiction de la dimension ; LQR scalaire et iLQR ; classes de politiques optimales ; bornes sur la valeur, Banach et le certificat du résidu ; itération de politique modifiée ; équations de Bellman lisses et régularisées ; projection et méthodes de valeur ajustée"
+   },
+   "chapters": [
+    {
+     "slug": "finite-horizon-dp",
+     "title": "Finite-Horizon Dynamic Programming"
+    },
+    {
+     "slug": "stochastic-dp",
+     "title": "Stochastic Dynamic Programming and Markov Decision Processes"
+    },
+    {
+     "slug": "infinite-horizon-mdps",
+     "title": "Infinite-Horizon Markov Decision Processes"
+    },
+    {
+     "slug": "regularized-dp",
+     "title": "Entropy-Regularized Dynamic Programming"
+    },
+    {
+     "slug": "weighted-residual-methods",
+     "title": "Parametric Value Functions"
+    },
+    {
+     "slug": "approximate-bellman-equations",
+     "title": "Convergence and Error Bounds for Approximate Value Iteration"
+    },
+    {
+     "slug": "monte-carlo-bellman-estimation",
+     "title": "Fitted Value Methods"
+    }
+   ],
+   "drive": "https://drive.google.com/file/d//view",
+   "duration_ms": 6234100,
+   "thumb": "2026-11-23.jpg",
+   "paragraphs": 132,
+   "cleaned": true,
+   "tldr": [
+    {
+     "notion": {
+      "en": "What backward induction returns",
+      "fr": "Ce que retourne l'induction arrière"
+     },
+     "p": 4,
+     "exam": true
+    },
+    {
+     "notion": {
+      "en": "Finite-horizon policies are non-stationary",
+      "fr": "En horizon fini, les politiques ne sont pas stationnaires"
+     },
+     "p": 19,
+     "exam": true
+    },
+    {
+     "notion": {
+      "en": "Curse of dimensionality versus transcription",
+      "fr": "Malédiction de la dimension contre transcription"
+     },
+     "p": 25,
+     "exam": true
+    },
+    {
+     "notion": {
+      "en": "A constant shift does not change the policy",
+      "fr": "Un décalage constant ne change pas la politique"
+     },
+     "p": 34,
+     "exam": true
+    },
+    {
+     "notion": {
+      "en": "Scalar LQR by backward induction",
+      "fr": "LQR scalaire par induction arrière"
+     },
+     "p": 44,
+     "exam": true
+    },
+    {
+     "notion": {
+      "en": "What iLQR returns",
+      "fr": "Ce que retourne iLQR"
+     },
+     "p": 54,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Markovian deterministic policies suffice",
+      "fr": "Les politiques markoviennes déterministes suffisent"
+     },
+     "p": 76,
+     "exam": true
+    },
+    {
+     "notion": {
+      "en": "Value bound and effective horizon",
+      "fr": "Borne sur la valeur et horizon effectif"
+     },
+     "p": 84,
+     "exam": true
+    },
+    {
+     "notion": {
+      "en": "Neumann series and the Banach fixed-point theorem",
+      "fr": "Série de Neumann et théorème du point fixe de Banach"
+     },
+     "p": 90,
+     "exam": true
+    },
+    {
+     "notion": {
+      "en": "The Bellman residual as a certificate",
+      "fr": "Le résidu de Bellman comme certificat"
+     },
+     "p": 101,
+     "exam": true
+    },
+    {
+     "notion": {
+      "en": "Modified policy iteration as a truncated Neumann series",
+      "fr": "L'itération de politique modifiée comme série de Neumann tronquée"
+     },
+     "p": 110,
+     "exam": true
+    },
+    {
+     "notion": {
+      "en": "Smooth Bellman equations: Gumbel shocks and regularization",
+      "fr": "Équations de Bellman lisses : chocs de Gumbel et régularisation"
+     },
+     "p": 118,
+     "exam": false
+    },
+    {
+     "notion": {
+      "en": "Fitted value methods are two nested loops",
+      "fr": "Les méthodes de valeur ajustée sont deux boucles imbriquées"
+     },
+     "p": 130,
+     "exam": false
+    }
+   ]
+  },
   {
    "date": "2026-11-19",
    "week": 11,
