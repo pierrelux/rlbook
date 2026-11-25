@@ -317,19 +317,6 @@
       "subdir": "emscripten-wasm32"
     },
     {
-      "name": "packaging",
-      "version": "26.3",
-      "build": "pyhc364b38_0",
-      "filename_stem": "packaging-26.3-pyhc364b38_0",
-      "filename": "packaging-26.3-pyhc364b38_0.tar.gz",
-      "channel": "https://prefix.dev/conda-forge",
-      "depends": [
-        "python >=3.9",
-        "python"
-      ],
-      "subdir": "noarch"
-    },
-    {
       "name": "contourpy",
       "version": "1.4.0",
       "build": "py313hb0228bc_0",
@@ -494,6 +481,19 @@
       "depends": [
         "python >=3.10",
         "traitlets"
+      ],
+      "subdir": "noarch"
+    },
+    {
+      "name": "packaging",
+      "version": "26.4",
+      "build": "pyhc364b38_0",
+      "filename_stem": "packaging-26.4-pyhc364b38_0",
+      "filename": "packaging-26.4-pyhc364b38_0.tar.gz",
+      "channel": "https://prefix.dev/conda-forge",
+      "depends": [
+        "python >=3.10",
+        "python"
       ],
       "subdir": "noarch"
     },
